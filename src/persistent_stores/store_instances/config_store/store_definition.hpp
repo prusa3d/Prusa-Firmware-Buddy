@@ -26,6 +26,7 @@
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <tristate.hpp>
+#include <utils/meta/meta_utils.hpp>
 #include <tool_index.hpp>
 #include <option/has_loadcell.h>
 #include <option/has_sheet_profiles.h>
@@ -510,6 +511,7 @@ struct CurrentStore
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
     StoreItemArray<FilamentTypeParameters_EEPROM4, FilamentTypeParameters_EEPROM4 {}, ItemFlag::user_presets, journal::hash("User Filament Parameters 4"), 32, user_filament_type_count> user_filament_parameters_4;
 #endif
+    // EEPROM5 (color) is adhoc-only
 
     StoreItemArray<FilamentTypeParameters_EEPROM1, defaults::adhoc_filament_parameters, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters"), 16, adhoc_filament_type_count> adhoc_filament_parameters;
 #if HAS_CHAMBER_API()
@@ -521,6 +523,8 @@ struct CurrentStore
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
     StoreItemArray<FilamentTypeParameters_EEPROM4, FilamentTypeParameters_EEPROM4 {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 4"), 16, adhoc_filament_type_count> adhoc_filament_parameters_4;
 #endif
+    StoreItemArray<FilamentTypeParameters_EEPROM5, AnyDefaultConstructor {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 5d"), 16, adhoc_filament_type_count> adhoc_filament_parameters_5;
+
 #if HAS_ANFC()
     /// Tags assigned to specific tools. See ToolTag::for_tool_assigned
     /// Not using ToolTag::UIDHash here to avoid dependency hell. static_asserted inside tool_tag.cpp

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "filament.hpp"
 #include <utils/string/inplace_string.hpp>
+#include <utils/color555.hpp>
 
 #include <option/has_chamber_api.h>
 #include <option/has_filament_heatbreak_param.h>
@@ -86,3 +86,23 @@ public:
     constexpr bool operator==(const FilamentTypeParameters_EEPROM4 &) const = default;
 };
 #endif
+
+// !!! DO NOT CHANGE - this is used in config store
+struct FilamentTypeParameters_EEPROM5 {
+
+public:
+    using EncodedColor = CompactOptional<Color555, Color555 { Color555::invalid_bit }>;
+    EncodedColor encoded_color = std::nullopt;
+    static_assert(sizeof(EncodedColor) == 2);
+
+    static constexpr EncodedColor encode_color(OptionalColor color) {
+        return color.transform(Color555::from_color);
+    }
+
+    constexpr OptionalColor color() const {
+        return encoded_color.transform(&Color555::to_color);
+    }
+
+public:
+    constexpr bool operator==(const FilamentTypeParameters_EEPROM5 &) const = default;
+};

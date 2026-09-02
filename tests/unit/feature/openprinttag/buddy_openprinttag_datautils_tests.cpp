@@ -31,6 +31,7 @@ void ReadEnumFieldRequestBase::complete(Bytes event_data) {}
 void ReadFloatFieldRequest::complete(Bytes event_data) {}
 void ReadInt32FieldRequest::complete(Bytes event_data) {}
 void ReadStringRequestBase::complete(Bytes event_data) {}
+void ReadColorFieldRequest::complete(Bytes event_data) {}
 
 Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
     return std::nullopt;
@@ -41,6 +42,7 @@ void ReadEnumFieldRequestBase::serialize(RequestID, TagID, anfc::modbus::Request
 void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadInt32FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadStringRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
+void ReadColorFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 
 std::optional<ToolTag> ToolTag::for_tool_ephemeral(VirtualToolIndex tool) {
     return std::nullopt;
@@ -307,7 +309,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AbbreviationInfo") {
 
 TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
     // If the requirements change, we probably want to update the tests
-    static_assert(FilamentParametersInfo::Requirements::size == 13);
+    static_assert(FilamentParametersInfo::Requirements::size == 14); // TODO COLOR
 
     SECTION("Temperature Averaging") {
         // The logic averages Min and Max to find the target print temperature

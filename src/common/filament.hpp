@@ -12,6 +12,7 @@
 #include <utils/string/inplace_string.hpp>
 #include <utils/enum_array.hpp>
 #include <utils/compact_optional.hpp>
+#include <utils/color.hpp>
 #include <tool_index.hpp>
 
 #include <option/has_chamber_api.h>
@@ -71,6 +72,10 @@ public:
     using Name = InplaceString<filament_name_buffer_size>;
     /// Name of the filament (zero terminated).
     Name name;
+
+    /// Color of the material, duh
+    /// Only for adhoc types, does not make sense for presets
+    OptionalColor color = std::nullopt;
 
     /// Nozzle temperature for the filament, in degrees Celsius
     int16_t nozzle_temperature = 215;

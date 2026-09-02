@@ -130,12 +130,14 @@ FilamentTypeParameters FilamentType::parameters() const {
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
                                          const FilamentTypeParameters_EEPROM4 &e4,
 #endif
+                                         const FilamentTypeParameters_EEPROM5 &e5,
 #if HAS_ANFC()
                                          buddy::openprinttag::ToolTag::UIDHash openprinttag_uid_hash,
 #endif
                                          std::monostate) {
         return FilamentTypeParameters {
             .name = e1.name,
+            .color = e5.color(),
             .nozzle_temperature = static_cast<int16_t>(e1.nozzle_temperature),
             .nozzle_preheat_temperature = static_cast<int16_t>(e1.nozzle_preheat_temperature),
             .heatbed_temperature = e1.heatbed_temperature,
@@ -161,7 +163,7 @@ FilamentTypeParameters FilamentType::parameters() const {
         };
         static_assert(
             aggregate_arity<FilamentTypeParameters>()
-                == 6
+                == 7
                     + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                     + HAS_CHAMBER_API() * 3
                     + HAS_CHAMBER_FILTRATION_API() * 1
@@ -189,6 +191,8 @@ FilamentTypeParameters FilamentType::parameters() const {
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
                 config_store().user_filament_parameters_4.get(v.index),
 #endif
+                // EEPROM5 params (color) is adhoc-only
+                FilamentTypeParameters_EEPROM5 {},
 #if HAS_ANFC()
                 // It should only be possible to link OPT with AdHoc filaments
                 buddy::openprinttag::ToolTag::no_tag_hash,
@@ -209,6 +213,7 @@ FilamentTypeParameters FilamentType::parameters() const {
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
                 config_store().adhoc_filament_parameters_4.get(i),
 #endif
+                config_store().adhoc_filament_parameters_5.get(i),
 #if HAS_ANFC()
                 config_store().adhoc_filament_assigned_openprinttag.get(i),
 #endif
@@ -228,7 +233,7 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
     debug_assert(can_be_renamed_to(set.name));
     static_assert(
         aggregate_arity<FilamentTypeParameters>()
-            == 6
+            == 7
                 + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                 + HAS_CHAMBER_API() * 3
                 + HAS_CHAMBER_FILTRATION_API() * 1
@@ -277,6 +282,11 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
     static_assert(aggregate_arity<FilamentTypeParameters_EEPROM4>() == 1, "Revise the initializer");
 #endif
 
+    const FilamentTypeParameters_EEPROM5 e5 {
+        .encoded_color = FilamentTypeParameters_EEPROM5::encode_color(set.color),
+    };
+    static_assert(aggregate_arity<FilamentTypeParameters_EEPROM5>() == 1, "Revise the initializer");
+
     std::visit([&]<typename T>(const T &v) {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
             debug_assert(false);
@@ -292,6 +302,8 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
             config_store().user_filament_parameters_4.set(v.index, e4);
 #endif
+            // EEPROM5 (color) is adhoc-only
+            debug_assert(set.color == std::nullopt);
 #if HAS_ANFC()
             // It should only be possible to link OPT with AdHoc filaments
             debug_assert(set.openprinttag_uid_hash == buddy::openprinttag::ToolTag::no_tag_hash);
@@ -310,6 +322,7 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
             config_store().adhoc_filament_parameters_4.set(i, e4);
 #endif
+            config_store().adhoc_filament_parameters_5.set(i, e5);
 #if HAS_ANFC()
             config_store().adhoc_filament_assigned_openprinttag.set(i, set.openprinttag_uid_hash);
 #endif

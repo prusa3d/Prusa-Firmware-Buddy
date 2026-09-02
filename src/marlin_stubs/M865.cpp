@@ -115,7 +115,7 @@ void PrusaGcodeSuite::M865() {
 
     static_assert(
         aggregate_arity<FilamentTypeParameters>()
-            == 6
+            == 7 // TODO COLOR
                 + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                 + HAS_CHAMBER_API() * 3
                 + HAS_CHAMBER_FILTRATION_API() * 1

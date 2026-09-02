@@ -211,7 +211,7 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
 
 static_assert(
     aggregate_arity<FilamentTypeParameters>()
-        == 6
+        == 7 // TODO COLOR
             + HAS_FILAMENT_HEATBREAK_PARAM() * 1
             + HAS_CHAMBER_API() * 4
             + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
