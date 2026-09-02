@@ -87,6 +87,7 @@ struct FilamentParametersInfo {
 #endif
         MainField::hardness_shore_a,
         MainField::hardness_shore_d,
+        MainField::primary_color,
         MainField::tags,
         MainField::material_type>;
 

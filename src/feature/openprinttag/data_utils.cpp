@@ -127,7 +127,7 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
 
     static_assert(
         filament_type_parameter_count
-            == 8 // TODO COLOR
+            == 8
                 + HAS_CHAMBER_API() * 4
                 + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                 + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
@@ -178,6 +178,9 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
 
     // Grab tag UID from any request
     set.operator()<&Params::openprinttag_uid_hash>(req.request<MainField::material_type>().tool_tag().uid_hash());
+
+    // Color
+    load_to.operator()<MainField::primary_color, &Params::color>();
 
     // Nozzle temp
     {
@@ -288,6 +291,9 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
     unset_missing.operator()<&FilamentTypeParameters::chamber_min_temperature>();
     unset_missing.operator()<&FilamentTypeParameters::chamber_max_temperature>();
 #endif
+
+    // We never miss the color
+    unset_missing.operator()<&FilamentTypeParameters::color>();
 
     data_safe_to_use |= missing_parameters.none();
 }

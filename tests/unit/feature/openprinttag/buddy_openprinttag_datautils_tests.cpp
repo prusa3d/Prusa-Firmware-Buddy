@@ -309,7 +309,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AbbreviationInfo") {
 
 TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
     // If the requirements change, we probably want to update the tests
-    static_assert(FilamentParametersInfo::Requirements::size == 14); // TODO COLOR
+    static_assert(FilamentParametersInfo::Requirements::size == 14);
 
     SECTION("Temperature Averaging") {
         // The logic averages Min and Max to find the target print temperature
@@ -393,6 +393,21 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         CHECK(info.parameters.base_preset == PresetFilamentType::PLA);
     }
 
+    SECTION("Color") {
+        stub_data = StubData {
+            stub_field<MainField::material_type>(MaterialType::PLA),
+            stub_field<MainField::primary_color>(Color::from_rgb(0x12, 0x34, 0x56)),
+        };
+
+        MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        FilamentParametersInfo info { req };
+
+        CHECK(info.parameters.color == Color::from_rgb(0x12, 0x34, 0x56));
+        CHECK_FALSE(info.is_missing<&FilamentTypeParameters::color>());
+    }
+
     SECTION("Chamber") {
         // Must be defined statically, the StubData takes only a reference
         static constexpr std::array tags { MaterialTag::filtration_recommended };
@@ -462,5 +477,6 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         CHECK_FALSE(info.parameters.is_flexible);
         CHECK_FALSE(info.parameters.is_abrasive);
         CHECK(info.parameters.base_preset == PresetFilamentType::PLA);
+        CHECK_FALSE(info.parameters.color.has_value());
     }
 }
