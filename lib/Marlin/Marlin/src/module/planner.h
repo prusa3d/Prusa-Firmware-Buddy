@@ -729,6 +729,14 @@ class Planner {
     // Wait for busy(). Does not wait when draining!
     static void synchronize();
 
+    // Wait for processing(), so unlike synchronize() this also waits out a
+    // cancellation. Use it when the queues have to be genuinely empty rather
+    // than merely done with the current command - before driving the step queue
+    // directly, or before reading back machine state after an abort.
+    // Must be called from the Marlin thread: a cancellation only advances
+    // through idle(), so elsewhere this never returns.
+    static void wait_for_motion_finish();
+
     // Wait for busy(), then disable all steppers
     static void finish_and_disable();
 
@@ -848,6 +856,11 @@ class Planner {
     static bool stealth_mode_;
 
   private:
+    /// Pump idle() until pending() reports the queues settled, then verify the
+    /// phase stepping state. The predicate is what decides whether a
+    /// cancellation ends the wait - see the synchronization notes above.
+    static void wait_while(bool (*pending)());
+
     /**
      * Get the index of the next / previous block in the ring buffer
      */

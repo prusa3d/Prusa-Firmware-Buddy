@@ -1137,16 +1137,24 @@ bool Planner::busy() {
   return !draining() && processing();
 }
 
+void Planner::wait_while(bool (*pending)()) {
+  AutoRestore eb(emptying_buffer, true);
+  start_moving();
+  while (pending()) idle(true);
+#if HAS_PHASE_STEPPING()
+  phase_stepping::check_state();
+#endif // HAS_PHASE_STEPPING()
+}
+
 /**
  * Block until all buffered steps are executed / cleaned
  */
 void Planner::synchronize() {
-  AutoRestore eb(emptying_buffer, true);
-  start_moving();
-  while (busy()) idle(true);
-#if HAS_PHASE_STEPPING()
-  phase_stepping::check_state();
-#endif // HAS_PHASE_STEPPING()
+  wait_while([] { return busy(); });
+}
+
+void Planner::wait_for_motion_finish() {
+  wait_while([] { return processing(); });
 }
 
 /**
