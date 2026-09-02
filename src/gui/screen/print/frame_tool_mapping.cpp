@@ -954,33 +954,40 @@ void FrameToolMapping::show_details_menu() {
     const dialog_menu_virtual::Config config {
         .title = _("TOOL MAPPING"),
         .item_count = std::to_underlying(Item::_cnt),
-        .setup_f = [](int index, dialog_menu_virtual::MenuItem &item) {
-            switch (static_cast<Item>(index)) {
+        .setup_f = [](int index, dialog_menu_virtual::ItemVariant &variant) {
+            if (static_cast<Item>(index) == Item::return_) {
+                variant.emplace<MI_RETURN>();
+                return;
+            }
 
-            case Item::return_:
-                item.set_up_as_return();
-                break;
+            auto &item = variant.emplace<dialog_menu_virtual::MenuItem>();
+            const char *label = nullptr;
+
+            switch (static_cast<Item>(index)) {
 
             case Item::change_filaments:
                 item.SetIconId(&img::spool_16x16);
-                item.SetLabel(_("Change Filaments"));
+                label = N_("Change Filaments");
                 break;
 
             case Item::default_mapping:
-                item.SetLabel(_("Naive Mapping"));
+                label = N_("Naive Mapping");
                 break;
 
             case Item::clear_mapping:
-                item.SetLabel(_("Clear Mapping"));
+                label = N_("Clear Mapping");
                 break;
 
             case Item::auto_mapping:
-                item.SetLabel(_("Auto Mapping"));
+                label = N_("Auto Mapping");
                 break;
 
+            case Item::return_:
             case Item::_cnt:
                 bsod_unreachable();
             }
+
+            item.SetLabel(_(label));
         }
     };
 

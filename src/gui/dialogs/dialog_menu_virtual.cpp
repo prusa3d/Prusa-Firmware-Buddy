@@ -15,7 +15,7 @@ static_assert(sizeof(MenuItem) == 60);
 
 // This dialog gets allocated on the stack, so we want to have the WindowMenuVirtual as small as possible
 // This means ditching the default alloc buffer size for the extact MenuItem sizeof, at the cost of extra flash usage
-class Menu final : public WindowMenuVirtualSized<WindowMenuVirtualBase::default_item_buffer_size, sizeof(MenuItem)> {
+class Menu final : public MenuBase {
 
 public:
     Menu(window_t *parent, Rect16 rect, const Config &config)
@@ -39,8 +39,7 @@ public:
 
 protected:
     void setup_item(ItemVariant &variant, int index) final {
-        auto &item = variant.emplace<MenuItem>();
-        config.setup_f(index, item);
+        config.setup_f(index, variant);
     }
 
 public:
@@ -67,11 +66,6 @@ private:
     window_header_t header_;
     WindowExtendedMenu<Menu> menu_;
 };
-
-void MenuItem::set_up_as_return() {
-    SetLabel(_(MI_RETURN::label));
-    SetIconId(&img::folder_up_16x16);
-}
 
 void MenuItem::click(IWindowMenu &menu) {
     static_cast<Menu &>(menu).handle_item_click(*this);

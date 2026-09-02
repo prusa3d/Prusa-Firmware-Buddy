@@ -1,6 +1,7 @@
 #include "menu_item_select_menu.hpp"
 
 #include <gui/dialogs/dialog_menu_virtual.hpp>
+#include <MItem_tools.hpp>
 
 MenuItemSelectMenu::MenuItemSelectMenu(const string_view_utf8 &label)
     : IWindowMenuItem(label, 1) {}
@@ -109,10 +110,11 @@ void MenuItemSelectMenu::click(IWindowMenu &menu) {
             .title = GetLabel(),
             .item_count = item_count() + 1, // + return
             .focused_item = current_item_ + 1, // + return
-            .setup_f = [this](int index, dialog_menu_virtual::MenuItem &item) {
+            .setup_f = [this](int index, dialog_menu_virtual::ItemVariant &variant) {
                 if (index == 0) {
-                    item.set_up_as_return();
+                    variant.emplace<MI_RETURN>();
                 } else {
+                    auto &item = variant.emplace<dialog_menu_virtual::MenuItem>();
                     item.SetLabel(build_item_text(index - 1, item.params));
                 }
             },
