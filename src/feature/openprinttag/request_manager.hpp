@@ -18,6 +18,7 @@
 #include <utils/uncopyable.hpp>
 #include <variant>
 #include <utils/byte_utils.hpp>
+#include <utils/timing/rate_limiter.hpp>
 
 namespace buddy::openprinttag {
 
@@ -103,9 +104,15 @@ private:
 
         bool radio_enabled : 1 = false;
 
+        /// !!! Called while the mutex is not locked
+        /// Intended for async work that doesn't need to have the mutex locked, such as reading from modbus
+        /// However, the function can lock internally if it needs it
+        [[nodiscard]] bool poll_events_unlocked(anfc::modbus::Client &);
+
         [[nodiscard]] bool step(anfc::modbus::Client &);
 
-        [[nodiscard]] bool handle_event(anfc::modbus::Client &, const anfc::modbus::Event &);
+        /// @returns event id to accept
+        [[nodiscard]] std::optional<uint16_t> handle_event(const anfc::modbus::Event &);
 
         void on_request_done(RequestID, Bytes);
         void on_tag_detected(TagID, TagUID);
@@ -121,6 +128,9 @@ private:
     /// We could use different ID for each device, but having a global one
     /// helps with debugging a lot.
     uint16_t request_id = 0;
+
+    /// Rate-limits event polling
+    RateLimiter<uint32_t> event_poll_limiter_ms { 100 };
 
     /// This structure is used to keep additional info for requests which
     /// transitioned from pending state. We are keeping the info separate
@@ -139,6 +149,10 @@ private:
         /// This is in milliseconds since boot.
         /// This is used to handle timeouts.
         uint32_t sent_at;
+
+        [[nodiscard]] bool is_valid() const {
+            return request != nullptr;
+        }
     };
 
     /// We limit number of active requests.

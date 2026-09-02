@@ -75,18 +75,39 @@ Manager::~Manager() {
 }
 
 bool Manager::step(anfc::modbus::Client &client) {
-    std::lock_guard lock { mutex };
+    bool should_poll = false;
+    {
+        std::lock_guard lock { mutex };
 
-    check_timeouts();
+        check_timeouts();
 
-    return std::ranges::all_of(devices, [&client](DeviceState &device_state) {
-        return device_state.step(client);
-    });
+        const bool step_ok = std::ranges::all_of(devices, [&client](DeviceState &device_state) {
+            return device_state.step(client);
+        });
+        if (!step_ok) {
+            return false;
+        }
+        // Rate-limit the event polling when no active request
+        // the polling is expensive (7 ms) and we don't need to block that often
+        // Order is important - check the limiter even if there are no active requests
+        should_poll = event_poll_limiter_ms.check(ticks_ms()) || std::ranges::any_of(active_requests, &ActiveRequestEntry::is_valid);
+    }
+
+    if (should_poll) {
+        const bool poll_ok = std::ranges::all_of(devices, [&client](DeviceState &device_state) {
+            return device_state.poll_events_unlocked(client);
+        });
+        if (!poll_ok) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void Manager::on_request_done(RequestID request_id, Bytes raw_event_data) {
     for (auto &entry : active_requests) {
-        if (entry.request && entry.request_id == request_id) {
+        if (entry.is_valid() && entry.request_id == request_id) {
             entry.request->complete(raw_event_data);
             entry.request = nullptr;
             return;
@@ -156,7 +177,7 @@ void Manager::handle_pending_request(anfc::modbus::Client &client) {
         return;
     }
 
-    const auto active_entry = std::ranges::find_if(active_requests, [](const auto &e) { return e.request == nullptr; });
+    const auto active_entry = std::ranges::find_if(active_requests, [](const auto &e) { return !e.is_valid(); });
     if (active_entry == active_requests.end()) {
         // No free slot, try again later
         return;
@@ -185,6 +206,39 @@ void Manager::handle_pending_request(anfc::modbus::Client &client) {
     };
 }
 
+bool Manager::DeviceState::poll_events_unlocked(anfc::modbus::Client &client) {
+    if (!device) {
+        return true;
+    }
+
+    std::optional<uint16_t> accept_event_id;
+
+    // modbus_event, reduce scope
+    {
+        anfc::modbus::Event modbus_event;
+        modbus_event.size = 0;
+
+        if (!client.read(*device, modbus_event)) {
+            return false;
+        }
+
+        if (modbus_event.size != 0) {
+            std::lock_guard lock { manager->mutex };
+            accept_event_id = handle_event(modbus_event);
+        }
+    }
+
+    if (accept_event_id.has_value()) {
+        anfc::modbus::AcceptEvent accept_event;
+        serialize_accept_event(*accept_event_id, accept_event);
+        if (!client.write(*device, accept_event)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool Manager::DeviceState::step(anfc::modbus::Client &client) {
     if (!device) {
         return true;
@@ -209,20 +263,15 @@ bool Manager::DeviceState::step(anfc::modbus::Client &client) {
         }
     }
 
-    anfc::modbus::Event modbus_event;
-    if (!client.read(*device, modbus_event)) {
-        return false;
-    }
-
     manager->handle_pending_request(client);
     forget_lost_tag(client);
 
-    return handle_event(client, modbus_event);
+    return true;
 }
 
-bool Manager::DeviceState::handle_event(anfc::modbus::Client &client, const anfc::modbus::Event &modbus_event) {
+std::optional<uint16_t> Manager::DeviceState::handle_event(const anfc::modbus::Event &modbus_event) {
     if (modbus_event.size == 0) {
-        return true;
+        return std::nullopt;
     }
 
     // Deserialize event from modbus data
@@ -231,7 +280,7 @@ bool Manager::DeviceState::handle_event(anfc::modbus::Client &client, const anfc
     prusa3d_nfc_event_Event_1_0 event;
     size_t event_size = raw_event_data.size();
     if (prusa3d_nfc_event_Event_1_0_deserialize_(&event, reinterpret_cast<const uint8_t *>(raw_event_data.data()), &event_size) != 0) {
-        return true; // Ignore malformed events
+        return std::nullopt; // Ignore malformed events
     }
 
     // dispatch event to correct handler
@@ -276,9 +325,7 @@ bool Manager::DeviceState::handle_event(anfc::modbus::Client &client, const anfc
     };
 
     on_event(event.data);
-    anfc::modbus::AcceptEvent accept_event;
-    serialize_accept_event(event.event_id.value, accept_event);
-    return client.write(*device, accept_event);
+    return event.event_id.value;
 }
 
 RequestID Manager::make_request_id() {
@@ -320,7 +367,7 @@ void Manager::remove_request_nolock(Request &request) {
 void Manager::check_timeouts() {
     const auto now = ticks_ms();
     for (auto &entry : active_requests) {
-        if (entry.request && ticks_diff(now, entry.sent_at) > request_timeout_ms) {
+        if (entry.is_valid() && ticks_diff(now, entry.sent_at) > request_timeout_ms) {
             log_warning(OpenPrintTag, "request %d timed out", entry.request_id.to_underlying());
             entry.request->set_finished(std::unexpected(Request::Error::other));
             entry.request = nullptr;
