@@ -7,17 +7,17 @@
 #include <bit>
 #include <option/signature_oak.h>
 
+#include <utils/compact_optional.hpp>
+
 struct Color {
 
 public:
     static constexpr Color from_rgb(uint8_t r, uint8_t g, uint8_t b) {
-        return from_raw(b | (g << 8) | (r << 16));
+        return Color { .b = b, .g = g, .r = r, ._unused = 0 };
     }
 
     static constexpr Color from_raw(uint32_t raw) {
-        Color c;
-        c.raw = raw;
-        return c;
+        return Color { .raw = raw };
     }
 
     static Color mix(Color back, Color front, uint8_t front_alpha);
@@ -99,3 +99,5 @@ constexpr Color COLOR_BRAND = COLOR_ORANGE;
 #endif
 
 constexpr Color COLOR_DARK_KHAKI = Color::from_raw(0xDBD76B);
+
+using OptionalColor = CompactOptional<Color, COLOR_NONE>;

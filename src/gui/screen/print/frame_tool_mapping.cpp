@@ -207,7 +207,7 @@ void ColumnItem::printExtension(Rect16 extension_rect, Color color_text, Color c
         string_view_utf8 tool_name;
         CompactOptional<float, NAN> nozzle_diameter;
         FilamentTypeParameters::Name filament_name;
-        CompactOptional<Color, COLOR_NONE> color;
+        OptionalColor color;
     } data;
     StringViewUtf8Parameters<3> tool_name_buf;
 

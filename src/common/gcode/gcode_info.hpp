@@ -70,7 +70,7 @@ public:
         CompactOptional<float, NAN> filament_used_mm; /**< stores how much filament will be used for this print (distance) */
         CompactOptional<float, NAN> nozzle_diameter; /**< stores diameter of nozzle*/
 
-        CompactOptional<Color, COLOR_NONE> extruder_colour; /**< stores colour of extruder*/
+        OptionalColor extruder_colour; /**< stores colour of extruder*/
         FilamentTypeParameters::Name filament_name; /**< stores string representation of filament type */
 
         // Tristate::other represents std::nullopt/data not present in the gcode
