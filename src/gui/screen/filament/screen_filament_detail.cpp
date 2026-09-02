@@ -63,6 +63,11 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
     update_text();
 }
 
+//* MI_FILAMENT_COLOR
+MI_FILAMENT_COLOR::MI_FILAMENT_COLOR()
+    : MenuItemColor(_("Color")) {
+}
+
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
 
 MI_FILAMENT_BASE_PRESET::MI_FILAMENT_BASE_PRESET()

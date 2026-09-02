@@ -9,6 +9,7 @@
 #include <screen_menu.hpp>
 #include <numeric_input_config.hpp>
 #include <tool_index.hpp>
+#include <gui/menu_item/menu_item_color.hpp>
 
 #include <option/has_chamber_api.h>
 #include <option/has_filament_heatbreak_param.h>
@@ -42,6 +43,14 @@ public:
 protected:
     FilamentTypeParameters::Name value_;
     FilamentType filament_type_;
+};
+
+class MI_FILAMENT_COLOR final : public MenuItemColor {
+public:
+    static constexpr auto parameter_ptr = &FilamentTypeParameters::color;
+    static constexpr bool is_adhoc_only = true;
+
+    MI_FILAMENT_COLOR();
 };
 
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
@@ -184,6 +193,7 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_FILAMENT_NAME,
     MI_FILAMENT_VISIBLE,
+    MI_FILAMENT_COLOR,
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
     MI_FILAMENT_BASE_PRESET,
 #endif
@@ -211,7 +221,7 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
 
 static_assert(
     aggregate_arity<FilamentTypeParameters>()
-        == 7 // TODO COLOR
+        == 7
             + HAS_FILAMENT_HEATBREAK_PARAM() * 1
             + HAS_CHAMBER_API() * 4
             + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
