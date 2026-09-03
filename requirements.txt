@@ -18,3 +18,4 @@ setuptools~=70.1.0
 simple_parsing~=0.1.7
 tree-sitter~=0.23
 tree-sitter-cpp~=0.23
+virtualenv~=20.26

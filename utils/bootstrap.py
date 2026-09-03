@@ -19,6 +19,7 @@ import tarfile
 import venv
 import zipfile
 import stat
+import re
 from argparse import ArgumentParser
 from pathlib import Path
 from urllib.parse import urlparse
@@ -155,6 +156,49 @@ dependencies = {
         'version': '22acef8c6e248db2f04f65eebf4c2b470f4010c2',
         'url': 'https://github.com/prusa3d/CrashDebug/archive/22acef8c6e248db2f04f65eebf4c2b470f4010c2.zip',
     },
+    'esp8266-rtos-sdk': {
+        'version': 'a192988b7906680440213eefc730d99dec0ce237',
+        'url': 'https://github.com/espressif/ESP8266_RTOS_SDK/archive/a192988b7906680440213eefc730d99dec0ce237.zip',
+        'submodules': {
+            'components/lwip/lwip': 'https://github.com/espressif/esp-lwip/archive/4fd84abace0cd8a5a709c194fa54afb3cd39b3f7.zip',
+            'components/mbedtls/mbedtls': 'https://github.com/espressif/mbedtls/archive/9ef92c551eb8d92677034c3ec8078a8076febf41.zip',
+        },
+        'missing': ['coap', 'json', 'mqtt', 'wifi_provisioning'],
+        'version_txt': 'v3.4',
+    },
+    'esp-idf': {
+        'version': '5.0.3',
+        'url': 'https://github.com/espressif/esp-idf/archive/refs/tags/v5.0.3.zip',
+        'submodules': {
+            'components/bootloader/subproject/components/micro-ecc/micro-ecc':
+            'https://github.com/kmackay/micro-ecc/archive/d037ec89546fad14b5c4d5456c2e23a71e554966.zip',
+            'components/esp_phy/lib':
+            'https://github.com/espressif/esp-phy-lib/archive/3ccfd015eb69dccde8fce39827e90acb318f7b09.zip',
+            'components/esp_wifi/lib':
+            'https://github.com/espressif/esp32-wifi-lib/archive/9a2cbdc71044dd3f96ec828a9e88cea5bfd4efd0.zip',
+            'components/heap/tlsf':
+            'https://github.com/espressif/tlsf/archive/8c9cd0517adf99e363812e9a295dfe3898fdd345.zip',
+            'components/lwip/lwip':
+            'https://github.com/espressif/esp-lwip/archive/57c29648ff40e2a19a51683717928aaf766a0495.zip',
+            'components/mbedtls/mbedtls':
+            'https://github.com/espressif/mbedtls/archive/f5fca55508d9d18961b10824d5cf5d8338c087f6.zip',
+        },
+        'missing': [
+            'bt',
+            'cmock',
+            'esp_local_ctrl',
+            'ieee802154',
+            'json',
+            'mqtt',
+            'openthread',
+            'protobuf-c',
+            'protocomm',
+            'spiffs',
+            'unity',
+            'wifi_provisioning',
+        ],
+        'version_txt': 'v5.0.3',
+    },
 }
 # yapf: enable
 
@@ -259,6 +303,37 @@ def get_installed_pip_packages():
     return [(pkg['name'].lower(), pkg['version']) for pkg in data]
 
 
+def install_esp_sdk_tools(dependency, directory: Path):
+    print('Installing toolchain and Python environment for ' + directory.name)
+    specs = dependencies[dependency]
+    (directory / 'version.txt').write_text(specs['version_txt'] + '\n')
+    (directory /
+     'missing-components.txt').write_text('\n'.join(specs.get('missing', [])) +
+                                          '\n')
+    constraint = directory / 'pip-constraint.txt'
+    constraint.write_text('setuptools<81\n')
+    env = dict(os.environ,
+               IDF_TOOLS_PATH=str(directory / '.idf-tools'),
+               PIP_CONSTRAINT=str(constraint))
+    if dependency == 'esp8266-rtos-sdk':
+        install_args = []
+        env['PATH'] = os.pathsep.join([str(venv_bin_dir), env['PATH']])
+    else:
+        install_args = ['esp32']
+        env.pop('VIRTUAL_ENV', None)
+        env['PATH'] = os.pathsep.join(
+            [str(Path(sys.base_prefix) / 'bin'), env['PATH']])
+    try:
+        subprocess.run(['./install.sh', *install_args],
+                       cwd=str(directory),
+                       env=env,
+                       check=True)
+    except BaseException:
+        shutil.rmtree(directory, ignore_errors=True)
+        raise
+    shutil.rmtree(directory / '.idf-tools' / 'dist', ignore_errors=True)
+
+
 def install_dependency(dependency):
     specs = dependencies[dependency]
     installation_directory = directory_for_dependency(dependency,
@@ -281,6 +356,13 @@ def install_dependency(dependency):
             download_url(url=file, filename=installation_directory / basename)
     else:
         raise ('dependency is missing payload')
+
+    for path, submodule_url in sorted(specs.get('submodules', {}).items()):
+        download_and_unzip(url=submodule_url,
+                           directory=installation_directory / path)
+
+    if re.match(r'esp[0-9]*-', dependency):
+        install_esp_sdk_tools(dependency, installation_directory)
 
 
 def install_openocd_config_template():
@@ -381,13 +463,14 @@ def bootstrap(include_integration):
     if not os.path.exists(dependencies_dir):
         os.makedirs(dependencies_dir)
 
+    # The ESP SDKs create their Python environments with virtualenv from ours.
+    prepare_venv_if_needed(include_integration)
+    install_pip_packages(include_integration)
+
     for dependency in dependencies:
         if recommended_version_is_available(dependency):
             continue
         install_dependency(dependency)
-
-    prepare_venv_if_needed(include_integration)
-    install_pip_packages(include_integration)
 
     # also, install openocd config meant for customization
     install_openocd_config_template()
