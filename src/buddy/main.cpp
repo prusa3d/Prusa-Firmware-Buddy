@@ -39,7 +39,7 @@
 #include "timing.h"
 #include <buddy/filesystem.h>
 #include "adc.hpp"
-#include <buddy/logging.h>
+#include <buddy/logging.hpp>
 #include <i2c.hpp>
 #include <option/buddy_enable_connect.h>
 #include <option/has_power_panic.h>
@@ -458,7 +458,7 @@ extern "C" void main_cpp(void) {
     }
     bsod_mark_shown(); // BSOD would be shown, allow new BSOD dump
 
-    logging_init();
+    buddy::logging_init();
     TaskDeps::components_init();
 
 #if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()

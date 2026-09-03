@@ -1,6 +1,8 @@
+/// @file
+#include <buddy/logging.hpp>
+
 #include <stddef.h>
 
-#include <buddy/logging.h>
 #include <buddy/usb_device.hpp>
 
 #include <logging/log_dest_rtt.hpp>
@@ -8,6 +10,8 @@
 #include <logging/log_dest_usb.hpp>
 #include <logging/log_dest_file.hpp>
 #include <logging/log.hpp>
+
+namespace buddy {
 
 void logging_init() {
     static logging::Destination log_destination_rtt = {
@@ -38,3 +42,5 @@ void logging_init() {
     };
     log_destination_register(&log_destination_file);
 }
+
+} // namespace buddy
