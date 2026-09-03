@@ -250,8 +250,9 @@ static void main_task_code(void *) {
         prev_ch0 = ch0;
         prev_ch1 = ch1;
 
+        constexpr uint8_t max_consecutive_failures = 5;
         static uint8_t consecutive_failures = 0;
-        if (consecutive_failures >= 5) {
+        if (consecutive_failures >= max_consecutive_failures) {
             log_error(LDC1612, "Too many consecutive failures, resetting board");
             freertos::delay(100); // delay to propagate message before reset
             hal::reset();
@@ -315,7 +316,7 @@ static void main_task_code(void *) {
             }
         }
 
-        while (true) {
+        while (consecutive_failures < max_consecutive_failures) {
             const auto status = ldc.read_status();
             if (!status.has_value() || !has_pending_data(*status, ch0, ch1)) {
                 consecutive_failures++;
