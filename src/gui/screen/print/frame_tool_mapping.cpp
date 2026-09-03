@@ -500,12 +500,14 @@ std::optional<GcodeToolIndex> FrameToolMapping::suggest_gcode_tool_to_focus() co
 
 std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(ToolFocusMode focus_mode) const {
     // The lower the better
-    using Penalty = uint16_t;
+    using Penalty = uint32_t;
 
-    constexpr Penalty penalty_overridable_incompatibility = 1;
-    constexpr Penalty penalty_already_mapped = 256;
+    constexpr Penalty penalty_color_mismatch_max = 256;
+    constexpr Penalty penalty_overridable_incompatibility = 1u << 9;
+    constexpr Penalty penalty_already_mapped_flag = 1u << 30;
+
     // Cannot print - no point in offering at all
-    constexpr Penalty penalty_fatal_incompatibility = 1024;
+    constexpr Penalty penalty_fatal_incompatibility_flag = 1u << 31;
 
     std::optional<VirtualToolIndex> result;
     Penalty result_penalty = std::numeric_limits<Penalty>::max();
@@ -514,6 +516,9 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
         if (!item.virtual_tool.has_value()) {
             continue;
         }
+
+        const VirtualToolIndex virtual_tool = *item.virtual_tool;
+        const OptionalColor virtual_color = FilamentType::for_tool(virtual_tool).parameters().color;
 
         Penalty item_penalty = 0;
 
@@ -524,15 +529,24 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
 
         case MappingDisplayItem::Connection::spool_join:
         case MappingDisplayItem::Connection::main_tool:
-            item_penalty += penalty_already_mapped;
+            item_penalty |= penalty_already_mapped_flag;
             break;
         }
 
         if (const auto *gcode_tool = std::get_if<GcodeToolIndex>(&selected_tool_for_connecting_)) {
+            // Consider color match
+            const OptionalColor gcode_color = GCodeInfo::getInstance().get_extruder_info(*gcode_tool).extruder_colour;
+
+            if (virtual_color.has_value() && gcode_color.has_value()) {
+                item_penalty += static_cast<Penalty>(Color::perceptual_distance(*virtual_color, *gcode_color) * penalty_color_mismatch_max);
+            } else {
+                item_penalty += penalty_color_mismatch_max;
+            }
+
             // See how many GCode incompatibilities would the tool generate
             ToolMapper speculative_mapper;
             speculative_mapper = tool_mapper;
-            speculative_mapper.set_mapping(*gcode_tool, *item.virtual_tool);
+            speculative_mapper.set_mapping(*gcode_tool, virtual_tool);
 
             // Empty spool join, we don't care about it
             SpoolJoin speculative_spool_join;
@@ -543,8 +557,8 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
                 .spool_join = speculative_spool_join,
             });
 
-            // Increase item score based on how many checks it has failed
-            speculative_report.visit_failed_checks([virtual_tool = *item.virtual_tool, &item_penalty](const auto &failed_check) {
+            // Increase item penalty based on how many checks it has failed
+            speculative_report.visit_failed_checks([virtual_tool, &item_penalty](const auto &failed_check) {
                 // Only consider checks specific to the virtual tool
                 if (stdext::holds_value(failed_check.tool, virtual_tool)) {
                     using CompatibilityLevel = buddy::gcode_compatibility::CompatibilityLevel;
@@ -561,7 +575,7 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
                         break;
 
                     case CompatibilityLevel::fatal_incompatibility:
-                        item_penalty += penalty_fatal_incompatibility;
+                        item_penalty |= penalty_fatal_incompatibility_flag;
                         break;
                     }
                 }
@@ -572,7 +586,7 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
 
         if (item_penalty < result_penalty) {
             result_penalty = item_penalty;
-            result = *item.virtual_tool;
+            result = virtual_tool;
         }
     }
 
@@ -582,7 +596,7 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
         return result;
 
     case ToolFocusMode::compatible_only:
-        return result_penalty < std::min(penalty_already_mapped, penalty_fatal_incompatibility) ? result : std::nullopt;
+        return result_penalty < std::min(penalty_already_mapped_flag, penalty_fatal_incompatibility_flag) ? result : std::nullopt;
     }
 
     bsod_unreachable();
