@@ -1,2 +1,2 @@
-add_library(log_dev_null INTERFACE)
-target_include_directories(log_dev_null INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_library(log_dev_null STATIC src/log_dev_null.cpp)
+target_link_libraries(log_dev_null PUBLIC log_interface)
