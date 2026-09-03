@@ -2,4 +2,4 @@
 
 namespace anfc {
 void logging_init();
-}
+} // namespace anfc

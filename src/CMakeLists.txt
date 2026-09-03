@@ -112,12 +112,16 @@ elseif(BOARD STREQUAL "XBUDDY_EXTENSION")
 
 elseif(BOARD STREQUAL "ANFC")
   add_subdirectory(freertos)
-  add_subdirectory(logging)
   add_subdirectory(puppy/anfc)
   add_subdirectory(puppy/honeybee_shared)
   add_subdirectory(can)
 
-  target_link_libraries(firmware PRIVATE logging)
+  add_subdirectory(logging)
+  if(HAS_CYPHAL_LOGGING)
+    target_link_libraries(firmware PRIVATE logging)
+  else()
+    target_link_libraries(firmware PRIVATE log_dev_null)
+  endif()
 
 elseif(BOARD STREQUAL "TOOL_OFFSET_SENSOR")
   add_subdirectory(freertos)

@@ -6487,6 +6487,10 @@
                     "type": "STRING",
                     "value": "YES"
                 },
+                "HAS_CYPHAL_LOGGING": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -6543,6 +6547,10 @@
                     "value": "YES"
                 },
                 "NFC_BOARD_HAS_FILAMENT_SENSORS": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "HAS_CYPHAL_LOGGING": {
                     "type": "STRING",
                     "value": "YES"
                 },
@@ -6605,6 +6613,10 @@
                     "type": "STRING",
                     "value": "YES"
                 },
+                "HAS_CYPHAL_LOGGING": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -6661,6 +6673,10 @@
                     "value": "YES"
                 },
                 "NFC_BOARD_HAS_FILAMENT_SENSORS": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "HAS_CYPHAL_LOGGING": {
                     "type": "STRING",
                     "value": "YES"
                 },

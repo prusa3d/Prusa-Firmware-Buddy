@@ -325,7 +325,8 @@
                 "BOARD": "ANFC",
                 "CAN_BUS_TYPE": "PUB6",
                 "NFC_BOARD_HAS_LEFT_RIGHT_DETECTION_PIN": "YES",
-                "NFC_BOARD_HAS_FILAMENT_SENSORS": "YES"
+                "NFC_BOARD_HAS_FILAMENT_SENSORS": "YES",
+                "HAS_CYPHAL_LOGGING": "YES"
             }
         },
         {

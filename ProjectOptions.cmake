@@ -855,12 +855,6 @@ else()
 endif()
 
 set_feature_for_printers(HAS_CYPHAL_METRICS)
-
-# The anfc firmware is built against several different PRINTER values, so its Cyphal logging is
-# selected by the board instead. set_feature_for_printers() below honours this override.
-if(BOARD STREQUAL "ANFC" AND NOT DEFINED HAS_CYPHAL_LOGGING)
-  set(HAS_CYPHAL_LOGGING YES)
-endif()
 set_feature_for_printers(HAS_CYPHAL_LOGGING)
 
 # Set printer board
