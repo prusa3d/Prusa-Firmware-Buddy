@@ -1,5 +1,5 @@
 add_executable(nfcv_field_manager_tests test_field_manager.cpp)
 
-target_link_libraries(nfcv_field_manager_tests SG14 iso13239 nfcv nfcv_field_manager logging_stub)
+target_link_libraries(nfcv_field_manager_tests SG14 iso13239 nfcv nfcv_field_manager log_dev_null)
 
 add_catch_test(nfcv_field_manager_tests)

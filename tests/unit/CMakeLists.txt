@@ -20,11 +20,6 @@ link_libraries(bsod_catch)
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)
 
-# Discards log events. For tests of libraries that log; link it per-target rather than globally, so
-# it cannot collide with logging_tests, which compiles the real log.cpp.
-add_library(logging_stub STATIC "${CMAKE_CURRENT_SOURCE_DIR}/tests_include/logging_stub.cpp")
-target_link_libraries(logging_stub PUBLIC log_interface)
-
 # Prepend our stubbed libintl header to override the host's gettext
 include_directories(${CMAKE_SOURCE_DIR}/tests/stubs/host)
 # Global stubs for generated headers (e.g. option/signature_oak.h needed by color.hpp). color.hpp is

@@ -1,3 +1,3 @@
 add_executable(openprinttag_nfcv_tests opt_nfcv_tests.cpp)
-target_link_libraries(openprinttag_nfcv_tests openprinttag_nfcv logging_stub)
+target_link_libraries(openprinttag_nfcv_tests openprinttag_nfcv log_dev_null)
 add_catch_test(openprinttag_nfcv_tests)
