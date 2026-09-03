@@ -253,6 +253,14 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
       #if PRINTER_IS_PRUSA_COREONEL() && HAS_INDX()
         // on C1L INDX the detect point is partially in the first dock - we need to ensure that dock 0 is empty
         prusa_toolchanger.pick_tool_out_of_dock(PhysicalToolIndex::from_raw(0));
+
+        // It lies inside the dock area, where any X motion crashes into the docks
+        ScopeGuard exit_dock_area([&] {
+          if (current_position.y < Y_DOCK_PARKING_MIN_SAFE_POS) {
+            do_z_clearance(z_homing_height);
+            do_blocking_move_to_y(Y_DOCK_PARKING_MIN_SAFE_POS);
+          }
+        });
       #endif
 
       /**
