@@ -10,6 +10,9 @@
 #include <gui/auto_layout.hpp>
 #include <ScreenHandler.hpp>
 #include <utils/enum_array.hpp>
+#include <display.hpp>
+#include <gui_utils.hpp>
+#include <utils/optional_extensions.hpp>
 
 static_assert(HAS_LARGE_DISPLAY(), "This frame has been only done for a large display");
 
@@ -35,11 +38,39 @@ namespace {
 
 } // namespace
 
+WindowColoredSpool::WindowColoredSpool(window_t *parent)
+    : window_t(parent, Rect16 {}) {}
+
+void WindowColoredSpool::set_color(OptionalColor new_color) {
+    if (color_ == new_color) {
+        return;
+    }
+
+    color_ = new_color;
+    Invalidate();
+}
+
+const img::Resource &WindowColoredSpool::image() const {
+    return img::prusament_spool_white_100x100;
+}
+
+void WindowColoredSpool::unconditionalDraw() {
+    auto &img = image();
+    const auto rct = GetRect();
+    const Color back_color = GetBackColor();
+
+    display::draw_img(point_ui16_t::from_point(rct.TopLeft()), img, back_color, ropfn {});
+
+    constexpr auto swatch_size = 16;
+    const Rect16 swatch_rect = Rect16::fromLTRB(rct.Right() - swatch_size, rct.Top(), rct.Right(), rct.Top() + swatch_size);
+    draw_color_swatch(swatch_rect, Align_t::RightTop(), color_, back_color);
+}
+
 FrameOPTPrompt::FrameOPTPrompt(window_frame_t *parent, const string_view_utf8 &title)
     : window_frame_t { parent, GuiDefaults::RectScreenNoHeader }
     , title_(this, Rect16 {}, title, is_multiline::no)
     , title_line_(this, Rect16 {})
-    , spool_image_(this, Rect16 {}, &img::prusament_spool_white_100x100)
+    , spool_image_(this)
     , status_text_(this, Rect16 {}, is_multiline::no)
     , radio_(this, Rect16 {}) {
 
@@ -69,8 +100,8 @@ FrameOPTPrompt::FrameOPTPrompt(window_frame_t *parent, const string_view_utf8 &t
     {
         // Spool image was layouted as if it was the whole content - grab its rect and resize it accordingly
         const auto content_rect = spool_image_.GetRect();
-        const auto spool_img = spool_image_.resource();
-        spool_image_.SetRect(Rect16::fromLTWH(content_rect.Left() + 16, content_rect.Top(), spool_img->w, spool_img->h));
+        const auto spool_img = spool_image_.image();
+        spool_image_.SetRect(Rect16::fromLTWH(content_rect.Left() + 16, content_rect.Top(), spool_img.w, spool_img.h));
 
         const int16_t titles_x = spool_image_.GetRect().Right() + 24;
         const int16_t values_x = titles_x + 82;
@@ -119,6 +150,7 @@ void FrameOPTPrompt::scan() {
     using MultiRequest = MultiReadFieldRequest<
         MainField::material_name,
         MainField::brand_name,
+        MainField::primary_color,
         AmountsInfo::Requirements {},
         AbbreviationInfo::Requirements {}>;
 
@@ -158,6 +190,8 @@ void FrameOPTPrompt::scan() {
         AmountsInfo { req }.build_weight_str(sb);
         set_text(string_view_utf8::MakeRAM(sb.str()), detail_values_[Detail::weight]);
     }
+
+    spool_image_.set_color(to_optional(req.result<MainField::primary_color>()));
 
     // TODO something with status text
 }
