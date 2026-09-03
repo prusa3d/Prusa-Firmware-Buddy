@@ -1,11 +1,9 @@
-/**
- * @file MItem_filament.hpp
- * @brief menu items for filament menu
- */
+/// @file
 #pragma once
 
 #include <i_window_menu_item.hpp>
 #include <i18n.h>
+#include <gui/menu_item/menu_item_toggle_switch.hpp>
 
 class MI_LOAD : public IWindowMenuItem {
     constexpr static const char *const label = N_("Load Filament");
@@ -68,4 +66,12 @@ class MI_PURGE : public IWindowMenuItem {
 public:
     MI_PURGE();
     virtual void click(IWindowMenu &) override;
+};
+
+class MI_ASK_COLOR_ON_LOAD final : public MenuItemToggleSwitch {
+public:
+    MI_ASK_COLOR_ON_LOAD();
+
+protected:
+    void toggled([[maybe_unused]] Tristate previous_value) override;
 };

@@ -167,3 +167,12 @@ void MI_PURGE::click(IWindowMenu &) {
 #endif
     marlin_client::gcode("M701 L0 W2"); // load with distance 0 and return option
 }
+
+/*****************************************************************************/
+// MI_ASK_COLOR_ON_LOAD
+MI_ASK_COLOR_ON_LOAD::MI_ASK_COLOR_ON_LOAD()
+    : MenuItemToggleSwitch(config_store().load_ask_for_filament_color.get(), _("Ask Color On Load")) {}
+
+void MI_ASK_COLOR_ON_LOAD::toggled([[maybe_unused]] Tristate previous_value) {
+    config_store().load_ask_for_filament_color.set(value());
+}

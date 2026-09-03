@@ -3,6 +3,7 @@
 
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
+#include <MItem_filament.hpp>
 #include <basic_screen_menu.hpp>
 
 #include <option/has_tool_mapping.h>
@@ -22,6 +23,7 @@ using ScreenMenuUserInterface__ = BasicScreenMenu<
 #if HAS_TOOL_MAPPING()
     MI_TOOL_MAPPING_PRESET,
 #endif
+    MI_ASK_COLOR_ON_LOAD,
 #if HAS_ST7789_DISPLAY()
     // We could potentionally have MINI display without buzzer.
     // So we only allow sound control for ST7789

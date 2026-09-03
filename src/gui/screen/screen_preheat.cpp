@@ -25,6 +25,34 @@
 
 namespace {
 
+[[nodiscard]] bool should_ask_for_filament_color(PreheatMode mode) {
+    switch (mode) {
+    case PreheatMode::preheat:
+    case PreheatMode::unload:
+    case PreheatMode::purge:
+        return false;
+
+    case PreheatMode::standard_load:
+    case PreheatMode::change_load:
+    case PreheatMode::autoload:
+        switch (config_store().load_ask_for_filament_color.get().value) {
+
+        case Tristate::yes:
+            return true;
+
+        case Tristate::no:
+            return false;
+
+        case Tristate::other:
+            // By default, ask for colors only if multiple virtual tools are enabled
+            // Colors are handy for toolmapping distinction and such
+            return !VirtualToolIndex::single_enabled_tool().has_value();
+        }
+    }
+
+    bsod_unreachable();
+}
+
 using PreheatToolIndex = PreheatData::ToolIndex;
 
 class WindowMenuPreheat;
@@ -397,6 +425,30 @@ bool ScreenPreheat::handle_filament_selection(FilamentType filament_type, Prehea
     compat.generate_noclear(compat_args);
     if (!compat.gui_confirm_all_incompatibilities(Response::Cancel)) {
         return false;
+    }
+
+    if (should_ask_for_filament_color(mode)
+        // Don't ask for adhoc filaments - for those it should already be prefilled
+        && !filament_type.is_adhoc()
+        // Impossible to adhocise mutliple tools at once
+        && std::holds_alternative<VirtualToolIndex>(tool)
+        //
+    ) {
+        const auto virtual_tool = std::get<VirtualToolIndex>(tool);
+
+        const auto color_opt = MenuItemColor::color_prompt_dialog(_("FILAMENT COLOR"), OptionalColor { std::nullopt });
+        if (!color_opt.has_value()) {
+            // User cancelled the color selection
+            return false;
+        }
+
+        const OptionalColor color = *color_opt;
+        if (color.has_value()) {
+            filament_type = filament_type.to_pending_adhoc(virtual_tool);
+            filament_type.modify_parameters([color](auto &p) {
+                p.color = color;
+            });
+        }
     }
 
     marlin_client::FSM_response_variant(PhasesPreheat::user_temp_selection, FSMResponseVariant::make<FilamentType>(filament_type));
