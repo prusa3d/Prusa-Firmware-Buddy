@@ -44,7 +44,7 @@ std::expected<void, const char *> FilamentType::can_be_renamed_to(const std::str
     // Check for name collisions
     if (
         // Ad-hoc filaments can "override" standard ones, so we allow name collisions for them
-        !std::holds_alternative<AdHocFilamentType>(*this) && !std::holds_alternative<PendingAdHocFilamentType>(*this)
+        !is_adhoc()
 
         && std::ranges::any_of(all_filament_types, [&](FilamentType ft) {
                return (ft != *this) && (new_name == ft.parameters().name);

@@ -29,9 +29,6 @@ ScreenOPTFilamentDetail::ScreenOPTFilamentDetail(InfoParams params)
 
     // First scan needs to be delayed (cannot be in the constructor)
     scan_pending_ = true;
-
-    // Hide the "openprinttag linked" item, it would always be true and disabled, pointless/confusing
-    Item<screen_filament_detail::MI_FILAMENT_ASSIGNED_OPENPRINTTAG>().set_is_hidden(true);
 }
 
 ScreenOPTFilamentDetail::ScreenOPTFilamentDetail(PreheatModeParams params)

@@ -229,20 +229,34 @@ void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeP
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
         static constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, MI_CONFIRM>;
 
-        if constexpr (!is_utility_button) {
-            item.set_enabled(is_customizable);
-        };
+        bool set_hidden = false;
+
+        if constexpr (requires { T::is_adhoc_only; }) {
+            set_hidden |= !(
+                filament_type.is_adhoc()
+                // Special case when showing data from OPT without any filament linkage
+                // See ScreenOPTFilamentDetail
+                || std::holds_alternative<NoFilamentType>(filament_type));
+        }
+
+#if HAS_ANFC()
+        if constexpr (std::is_same_v<T, MI_FILAMENT_ASSIGNED_OPENPRINTTAG>) {
+            // MI_FILAMENT_ASSIGNED_OPENPRINTTAG doesn't have the NoFilament exception
+            // When showing data from OPT directly, linkage information is meaningless
+            set_hidden |= !filament_type.is_adhoc();
+        }
+#endif
 
 #if HAS_CHAMBER_API()
         if constexpr (requires { T::is_chamber_item; }) {
-            item.set_is_hidden(hide_chamber_items);
+            set_hidden |= hide_chamber_items;
         }
 #endif
 
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
         if constexpr (std::is_same_v<T, MI_FILAMENT_BASE_PRESET>) {
             // Presets have the base_preset set as identity. No point in showing it
-            item.set_is_hidden(std::holds_alternative<PresetFilamentType>(filament_type));
+            set_hidden |= std::holds_alternative<PresetFilamentType>(filament_type);
         }
 #endif
 
@@ -250,11 +264,17 @@ void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeP
             // pass
 
         } else if constexpr (std::is_same_v<T, MI_FILAMENT_VISIBLE>) {
-            item.set_is_hidden(!filament_type.is_visibility_customizable());
+            set_hidden |= !filament_type.is_visibility_customizable();
             item.set_value(filament_type.is_visible());
 
         } else if constexpr (true) {
             item.set_value(params.*(T::parameter_ptr));
+            item.set_enabled(is_customizable);
+        }
+
+        if constexpr (!is_utility_button) {
+            // Utility buttons have visibility managed separately
+            item.set_is_hidden(set_hidden);
         }
     });
 }

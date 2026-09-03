@@ -133,6 +133,7 @@ public:
 class MI_FILAMENT_ASSIGNED_OPENPRINTTAG final : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     static constexpr auto parameter_ptr = &FilamentTypeParameters::openprinttag_uid_hash;
+    static constexpr bool is_adhoc_only = true;
 
     MI_FILAMENT_ASSIGNED_OPENPRINTTAG();
 
