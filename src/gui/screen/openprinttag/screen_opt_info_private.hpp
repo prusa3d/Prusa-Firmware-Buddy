@@ -116,6 +116,8 @@ namespace {
         template <auto label, auto fmt, typename... Args>
         void add_fmt_item(std::type_identity_t<Args>... args);
 
+        void add_color_item(const char *label, OptionalColor color);
+
     private:
         /// If true, scan() will be called on the next loop event
         bool scan_pending_ = false;

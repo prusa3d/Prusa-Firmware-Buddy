@@ -16,6 +16,7 @@
 #include <img_resources.hpp>
 #include <feature/openprinttag/utils.hpp>
 #include <bsod/bsod.h>
+#include <utils/optional_extensions.hpp>
 
 namespace buddy::openprinttag {
 
@@ -230,6 +231,7 @@ bool ScreenOPTInfo::scan() {
     using MultiRequest = MultiReadFieldRequest<
         MainField::material_name,
         MainField::brand_name,
+        MainField::primary_color,
         AmountsInfo::Requirements {},
         AbbreviationInfo::Requirements {}>;
 
@@ -268,16 +270,19 @@ bool ScreenOPTInfo::scan() {
 
     AmountsInfo amounts { req };
     AbbreviationInfo type { req };
+    OptionalColor color = to_optional(req.result<MainField::primary_color>());
 
     // In the loaded mode, data in memory have precedence over what's in the tag
     if (mode_ == Mode::loaded) {
         const auto params = FilamentType::for_tool(tool_).parameters();
 
-        // "Fake" abbreviation from filament parameters
+        // "Fake" data from filament parameters
         type.abbreviation = std::string_view {
             type.abbreviation_buffer.begin(),
             std::string_view { params.name }.copy(type.abbreviation_buffer.data(), type.abbreviation_buffer.size())
         };
+
+        color = params.color;
     }
 
     auto &menu = this->menu.menu;
@@ -286,6 +291,10 @@ bool ScreenOPTInfo::scan() {
 
     if (auto val = req.result<MainField::material_name>()) {
         add_string_item(N_("Material Name"), *val, material_name_buffer_);
+    }
+
+    if (color.has_value()) {
+        add_color_item(N_("Color"), *color);
     }
 
     if (auto val = req.result<MainField::brand_name>()) {
@@ -341,6 +350,14 @@ void ScreenOPTInfo::add_fmt_item(std::type_identity_t<Args>... args) {
         snprintf(buf.data(), buf.size(), fmt, args...);
 #pragma GCC diagnostic pop
         iv.emplace<MenuItemInfo>(_(label), buf.data());
+    });
+}
+
+void ScreenOPTInfo::add_color_item(const char *label, OptionalColor color) {
+    menu.menu.data_items_.push_back([label, color](ItemVariant &iv) {
+        auto &item = iv.emplace<MenuItemColor>(_(label));
+        item.set_value(color);
+        item.set_is_editable(false);
     });
 }
 
