@@ -82,7 +82,6 @@ public:
     bool IsCaptured() const;
     bool IsCapturable() const;
     bool HasEnforcedCapture() const;
-    bool HasIcon() const;
     win_type_t GetType() const;
     bool IsDialog() const;
     bool ClosedOnTimeout() const;
@@ -130,8 +129,6 @@ public:
     Color GetBackColor() const;
     void SetRelativeSubwins() { flags.has_relative_subwins = true; }
     void SetRoundCorners() { flags.has_round_corners = true; }
-    void SetHasIcon();
-    void ClrHasIcon();
 
     void SetRedLayout();
     void SetBlackLayout();

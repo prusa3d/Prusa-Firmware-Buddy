@@ -79,15 +79,6 @@ void window_icon_t::unconditionalDraw() {
     unconditional_draw(this, pRes);
 }
 
-void window_icon_t::set_layout(ColorLayout lt) {
-    window_aligned_t::set_layout(lt);
-    if (lt == ColorLayout::black) {
-        ClrHasIcon(); // normal icon
-    } else {
-        SetHasIcon(); // alternative icon
-    }
-}
-
 /*****************************************************************************/
 // window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const img::Resource *res, ButtonCallback cb)

@@ -58,8 +58,7 @@ struct WindowFlags {
     bool has_relative_subwins : 1 = false; // 0F - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
     bool multiline : 1 = false; // 10 - multiline text affect window_text_t anf its children
     bool has_long_hold_screen_action : 1 = false; // 13 - screen will use default callback for long press
-    bool has_icon : 1 = false; // 14 - optional or alternative icon for window
-    bool has_round_corners : 1 = false; // 15 - window has round corners with default corner radius
+    bool has_round_corners : 1 = false; //< window has round corners with default corner radius
     bool check_overflow : 1 = true; ///< Assert that the text does not overflow (window_text only)
     union { // 18 .. 1F - 8bit variable used in child classes
         uint8_t align_data; // used in window_aligned_t
