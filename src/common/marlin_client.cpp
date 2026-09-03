@@ -63,12 +63,6 @@ static marlin_client_t *_client_ptr();
 
 static freertos::Mutex mutex;
 
-void init_maybe() {
-    if (!_client_ptr()) {
-        init();
-    }
-}
-
 void init() {
     // If the marlin has already been initialized, don't call init again
     debug_assert(!_client_ptr());

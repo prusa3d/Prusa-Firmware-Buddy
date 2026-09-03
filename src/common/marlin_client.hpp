@@ -21,10 +21,6 @@ namespace marlin_client {
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
 
-/// Initialize the client side for the current task if it hasn't been initialized yet
-/// Otherwise does nothing
-void init_maybe();
-
 // initialize client side, returns pointer to client structure
 void init();
 

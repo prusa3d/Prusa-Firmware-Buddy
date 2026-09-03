@@ -179,7 +179,8 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
         media_inserted_since_startup = (media_on_startup_detection_timeout != 0);
         media_inserted = true;
 
-        marlin_client::init_maybe();
+        // Do not initialize marlin_client here - it blocks and media error
+        // recovery doesn't even need it.
         marlin_client::try_recover_from_media_error();
         break;
     }
