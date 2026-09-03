@@ -263,7 +263,7 @@ static std::expected<TwoSpeedAnalysisResult, const char *> execute_and_analyze_s
     const char *label);
 
 static constexpr float position_tolerance = 0.01f;
-static constexpr uint8_t sensor_probe_attempts = 3;
+static constexpr uint8_t sensor_probe_attempts = 10;
 
 static float measure_sensor_true_z(const xyz_pos_t &probe_pos) {
     debug_assert(std::abs(current_position.x - probe_pos.x) < position_tolerance);
