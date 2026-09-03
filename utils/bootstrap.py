@@ -184,6 +184,28 @@ def download_url(url: str, filename: Path):
                     file.write(chunk)
 
 
+def extract_zip(archive: zipfile.ZipFile, directory: Path):
+    """Extract `archive` at `directory` with correct file permissions."""
+    for member in archive.infolist():
+        extracted = Path(archive.extract(member, path=directory))
+        mode = stat.S_IMODE(member.external_attr >> 16)
+        if not mode or member.is_dir():
+            continue
+        if extracted.stem == 'clang-format':
+            # clang-format is archived with missing exec bit
+            mode |= stat.S_IEXEC
+        os.chmod(extracted, mode)
+
+
+def extract_archive(filename: Path, directory: Path):
+    if filename.name.endswith(('.tar.bz2', '.tar.gz', '.tar.xz')):
+        with tarfile.open(filename) as obj:
+            obj.extractall(path=directory)
+    else:
+        with zipfile.ZipFile(filename, 'r') as obj:
+            extract_zip(obj, directory)
+
+
 def download_and_unzip(url: str, directory: Path):
     """Download a compressed file and extract it at `directory`."""
     extract_dir = directory.with_suffix('.temp')
@@ -202,15 +224,7 @@ def download_and_unzip(url: str, directory: Path):
     print('done')
     print('Extracting ' + file, end=" ")
 
-    # Check if tar or zip
-    if any(
-            url.endswith(ext)
-            for ext in ['.tar.bz2', '.tar.gz', '.tar.xz', 'tar.xzg']):
-        with tarfile.open(filename) as obj:
-            obj.extractall(path=extract_dir)
-    else:
-        with zipfile.ZipFile(filename, 'r') as obj:
-            obj.extractall(path=extract_dir)
+    extract_archive(filename, extract_dir)
 
     subdir = find_single_subdir(extract_dir)
     shutil.move(subdir, directory)
@@ -230,16 +244,6 @@ def run(*cmd):
                              check=True,
                              encoding='utf-8')
     return process.stdout.strip()
-
-
-def fix_executable_permissions(dependency, installation_directory):
-    to_fix = ('ninja', 'clang-format')
-    if dependency not in to_fix:
-        return
-    for fpath in installation_directory.iterdir():
-        if fpath.is_file and fpath.with_suffix('').name in to_fix:
-            st = os.stat(fpath)
-            os.chmod(fpath, st.st_mode | stat.S_IEXEC)
 
 
 def recommended_version_is_available(dependency):
@@ -277,8 +281,6 @@ def install_dependency(dependency):
             download_url(url=file, filename=installation_directory / basename)
     else:
         raise ('dependency is missing payload')
-
-    fix_executable_permissions(dependency, installation_directory)
 
 
 def install_openocd_config_template():
