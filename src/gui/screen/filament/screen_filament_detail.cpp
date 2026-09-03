@@ -199,31 +199,80 @@ MI_FILAMENT_VISIBLE::MI_FILAMENT_VISIBLE()
     : WI_ICON_SWITCH_OFF_ON_t(false, _("Visible")) {
 }
 
-// * MI_CONFIRM
-MI_CONFIRM::MI_CONFIRM()
-    : IWindowMenuItem(_("Confirm"), &img::ok_16x16) {}
-
-void MI_CONFIRM::click(IWindowMenu &) {
-    callback();
-}
-
 // * ScreenFilamentDetail
 ScreenFilamentDetail::ScreenFilamentDetail(FilamentType filament_type)
     : ScreenFilamentDetail(N_("FILAMENT DETAIL")) {
-    setup(filament_type);
+    setup(filament_type, SetupArgs {});
 }
 
 ScreenFilamentDetail::ScreenFilamentDetail(PreheatModeParams params)
     : ScreenFilamentDetail(N_("CUSTOM PARAMETERS")) {
 
-    setup(PendingAdHocFilamentType {});
+    setup(PendingAdHocFilamentType {}, SetupArgs {});
     setup_preheat_mode_confirm(params);
+}
+
+ScreenFilamentDetail::ScreenFilamentDetail(LoadedFilamentMode loaded_filament_mode)
+    : ScreenFilamentDetail(nullptr) {
+
+    const VirtualToolIndex tool = loaded_filament_mode.tool;
+    header.SetText(_("%c%i LOADED FILAMENT").formatted(title_params_, tool.compact_name_prefix_char, tool.display_index()));
+
+    filament_type_ = FilamentType::for_tool(tool);
+    if (!filament_type_) {
+        close_screen();
+        return;
+    }
+
+    const SetupArgs setup_args {
+        // This is "loaded filament" info
+        // Editing a non-adhoc filament type (say user preset)
+        // could result in changing the parameters to other loaded slots as well.
+        // Enforce cast to Adhoc filament through the "Customize" button
+        .force_disable_customizable = !filament_type_.is_adhoc(),
+    };
+    setup(filament_type_, setup_args);
+
+    // If the filament type is preset/user preset,
+    if (!filament_type_.is_adhoc()) {
+        auto &item = Item<MI_CALLBACK>();
+        item.SetLabel(_("Customize"));
+        item.set_is_hidden(false);
+        item.callback = [this, tool] {
+            const Response r = MsgBoxInfo(
+                _("Customize the loaded filament? Changes will apply to this slot only and will be lost on unload."),
+                { Response::Ok, Response::Cancel });
+            if (r != Response::Ok) {
+                return;
+            }
+
+            // Transfer to the new filament type
+            const FilamentType new_filament_type = AdHocFilamentType { .tool = tool };
+            const FilamentTypeParameters params = filament_type_.parameters();
+            new_filament_type.set_parameters(params);
+            config_store().set_filament_type(tool, new_filament_type);
+
+            // Silence the asserts; we are changing set_is_hidden after the menu has been first drawn
+            // which we shouldn't generally do because the system is not ready for that
+            // But here we (hopefully) know what we're doing
+            for (int i = 0; i < menu.menu.item_count(); i++) {
+                menu.menu.item_at(i)->Invalidate();
+            }
+
+            // Re-setup the GUI
+            filament_type_ = new_filament_type;
+            menu.menu.move_focus_to_index(std::nullopt);
+            menu.menu.set_scroll_offset(0);
+            setup(filament_type_, params, SetupArgs {});
+            Item<MI_CALLBACK>().set_is_hidden(true);
+            Invalidate();
+        };
+    }
 }
 
 ScreenFilamentDetail::ScreenFilamentDetail(const char *title)
     : ScreenMenu(_(title)) {
-
-    Item<MI_CONFIRM>().set_is_hidden();
+    Item<MI_CALLBACK>().set_is_hidden();
 }
 
 ScreenFilamentDetail::~ScreenFilamentDetail() {
@@ -232,10 +281,14 @@ ScreenFilamentDetail::~ScreenFilamentDetail() {
     }
 }
 
-void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeParameters &params) {
+void ScreenFilamentDetail::setup(FilamentType filament_type, SetupArgs args) {
+    setup(filament_type, filament_type.parameters(), args);
+}
+
+void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeParameters &params, SetupArgs args) {
     filament_type_ = filament_type;
 
-    const bool is_customizable = filament_type.is_customizable();
+    const bool is_customizable = filament_type.is_customizable() && !args.force_disable_customizable;
 
 #if HAS_CHAMBER_API()
     const bool hide_chamber_items = !chamber().capabilities().temperature_control_generally();
@@ -244,7 +297,7 @@ void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeP
     Item<MI_FILAMENT_NAME>().set_params(BuildFilamentNameWithInfoParams(filament_type, params));
 
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
-        static constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, MI_CONFIRM>;
+        static constexpr bool is_utility_button = ::is_utility_button<T>;
 
         bool set_hidden = false;
 
@@ -301,7 +354,7 @@ void ScreenFilamentDetail::save_changes() {
     FilamentTypeParameters params;
 
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
-        static constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, MI_CONFIRM>;
+        static constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, MI_CALLBACK>;
 
         if constexpr (is_utility_button) {
             // pass
@@ -323,12 +376,10 @@ void ScreenFilamentDetail::save_changes() {
     }
 }
 
-void ScreenFilamentDetail::setup(FilamentType filament_type) {
-    setup(filament_type, filament_type.parameters());
-}
-
-void screen_filament_detail::ScreenFilamentDetail::setup_preheat_mode_confirm(PreheatModeParams params) {
-    auto &confirm_item = Item<MI_CONFIRM>();
+void ScreenFilamentDetail::setup_preheat_mode_confirm(PreheatModeParams params) {
+    auto &confirm_item = Item<MI_CALLBACK>();
+    confirm_item.SetLabel(_("Confirm"));
+    confirm_item.SetIconId(&img::ok_16x16);
     confirm_item.set_is_hidden(false);
     confirm_item.callback = [this, params] {
         // handle_filament_selection is reading from the filament parameters for checking, so we need to update them

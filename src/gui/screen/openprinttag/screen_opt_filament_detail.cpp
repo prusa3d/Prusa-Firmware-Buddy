@@ -59,7 +59,7 @@ bool ScreenOPTFilamentDetail::scan() {
     FilamentParametersInfo params { req };
 
     FilamentType filament_type = preheat_mode_ ? FilamentType { FilamentType::pending_adhoc } : FilamentType { FilamentType::none };
-    setup(filament_type, params.parameters);
+    setup(filament_type, params.parameters, SetupArgs {});
 
     static constexpr IWindowMenuItem::ColorScheme missing_item_color_scheme {
         .text = {
@@ -70,9 +70,7 @@ bool ScreenOPTFilamentDetail::scan() {
 
     // Indicate what parameters were missing on the NFC tag
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
-        static constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, screen_filament_detail::MI_CONFIRM>;
-
-        if constexpr (is_utility_button || std::is_same_v<T, screen_filament_detail::MI_FILAMENT_VISIBLE>) {
+        if constexpr (screen_filament_detail::is_utility_button<T> || std::is_same_v<T, screen_filament_detail::MI_FILAMENT_VISIBLE>) {
             // pass
         } else {
             item.set_color_scheme(params.is_missing<T::parameter_ptr>() ? &missing_item_color_scheme : nullptr);
@@ -83,7 +81,7 @@ bool ScreenOPTFilamentDetail::scan() {
         MsgBoxWarning(_("Some of the parameters on the OpenPrintTag were missing or invalid. Please revise the highlighted fields."), Responses_Ok);
 
     } else if (preheat_mode_) {
-        menu.menu.move_focus_to_index(menu.menu.GetIndex(Item<screen_filament_detail::MI_CONFIRM>()));
+        menu.menu.move_focus_to_index(menu.menu.GetIndex(Item<screen_filament_detail::MI_CALLBACK>()));
     }
 
     return true;

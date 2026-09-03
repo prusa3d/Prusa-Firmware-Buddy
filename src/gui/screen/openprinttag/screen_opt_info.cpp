@@ -186,7 +186,7 @@ void WindowMenuOPTInfo::setup_item(ItemVariant &variant, int index) {
                 break;
 
             case Mode::loaded:
-                creator = ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(FilamentType::for_tool(screen_->tool_));
+                creator = ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(ScreenFilamentDetail::LoadedFilamentMode(screen_->tool_));
                 break;
             }
 

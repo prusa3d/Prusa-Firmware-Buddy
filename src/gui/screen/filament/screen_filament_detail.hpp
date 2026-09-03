@@ -10,6 +10,7 @@
 #include <numeric_input_config.hpp>
 #include <tool_index.hpp>
 #include <gui/menu_item/menu_item_color.hpp>
+#include <window_menu_callback_item.hpp>
 
 #include <option/has_chamber_api.h>
 #include <option/has_filament_heatbreak_param.h>
@@ -181,12 +182,8 @@ public:
     MI_FILAMENT_VISIBLE();
 };
 
-class MI_CONFIRM final : public IWindowMenuItem {
-public:
-    MI_CONFIRM();
-    void click(IWindowMenu &) override;
-    stdext::inplace_function<void()> callback;
-};
+/// Utility button, hidden by default, used for various purposes
+using MI_CALLBACK = WithConstructorArgs<WindowMenuCallbackItem, nullptr, nullptr>;
 
 using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
@@ -215,7 +212,7 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
 #if HAS_ANFC()
     MI_FILAMENT_ASSIGNED_OPENPRINTTAG,
 #endif
-    MI_CONFIRM //
+    MI_CALLBACK //
     >;
 
 static_assert(
@@ -231,6 +228,9 @@ static_assert(
     ,
     "Revise ScreenFilamentDetail");
 
+template <typename T>
+inline constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, MI_CALLBACK>;
+
 /// Management of a specified filament type
 class ScreenFilamentDetail : public ScreenFilamentDetail_ {
 public:
@@ -243,6 +243,10 @@ public:
         PreheatMode mode;
     };
 
+    struct LoadedFilamentMode {
+        VirtualToolIndex tool;
+    };
+
 public:
     ScreenFilamentDetail(FilamentType filament_type);
 
@@ -250,12 +254,19 @@ public:
     /// The added "Confirm" button sends the response to the Preheat FSM
     ScreenFilamentDetail(PreheatModeParams preheat_mode);
 
+    /// Shows details for the filament loaded to the specified tool
+    ScreenFilamentDetail(LoadedFilamentMode loaded_filament_mode);
+
     ~ScreenFilamentDetail();
 
 public:
+    struct SetupArgs {
+        bool force_disable_customizable : 1 = false;
+    };
+
     /// Fills the screen with the provided data
-    void setup(FilamentType filament_type, const FilamentTypeParameters &params);
-    void setup(FilamentType filament_type);
+    void setup(FilamentType filament_type, const FilamentTypeParameters &params, SetupArgs args);
+    void setup(FilamentType filament_type, SetupArgs args);
 
     void save_changes();
 
@@ -266,6 +277,7 @@ protected:
 
 protected:
     FilamentType filament_type_;
+    StringViewUtf8Parameters<4> title_params_;
 };
 
 }; // namespace screen_filament_detail

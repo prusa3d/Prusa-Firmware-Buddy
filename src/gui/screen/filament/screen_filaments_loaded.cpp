@@ -54,7 +54,7 @@ void MI_LOADED_FILAMENT::click(IWindowMenu &) {
 #if HAS_ANFC()
         Screens::Access()->Open(buddy::openprinttag::screen_opt_info_loaded_creator(tool_));
 #else
-        Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(EncodedFilamentType(filament_type_)));
+        Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(ScreenFilamentDetail::LoadedFilamentMode { .tool = tool_ }));
 #endif
     }
 }
