@@ -114,6 +114,14 @@ bool GcodeReaderCommon::range_valid(size_t start, size_t end) const {
     // Cap them into the range of the file to the range of the total file
     end = std::min(validity->total_size, end);
 
+    // The medium may hold less than the transfer claims valid: littlefs files
+    // grow as the download progresses, but our file handle only sees the size
+    // from the time of open. Reads past the handle's view must report
+    // OUT_OF_RANGE (leading to a reader reopen), not hit an unexpected EOF.
+    if (end > medium_size) {
+        return false;
+    }
+
     auto inside = [&](const auto &part) -> bool {
         if (part.has_value()) {
             return start >= part->start && end <= part->end;

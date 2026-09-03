@@ -261,9 +261,9 @@ void Transfer::update_backup(bool force) {
     last_backup_update_ms = ticks_ms();
     last_backup_update_bytes = size;
 
-    if (is_printable && !already_notified && partial_file->supports_random_write()) {
-        // Early notification for print-while-downloading — only for USB/FAT
-        // where the file is preallocated and concurrent read+write works.
+    if (is_printable && !already_notified) {
+        // Early notification for print-while-downloading — a print started
+        // before the data is available waits for it.
         notify_created();
     }
 }

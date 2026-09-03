@@ -37,7 +37,7 @@ PrusaPackGcodeReader::PrusaPackGcodeReader(unique_file_ptr &&f, const struct sta
     e2ee::IdentityCheckLevel identity_check_lvl
 #endif
     )
-    : GcodeReaderCommon(std::move(f))
+    : GcodeReaderCommon(std::move(f), stat_info.st_size)
     , allow_decryption(allow_decryption)
 #if HAS_E2EE_SUPPORT()
     , identity_check_lvl(identity_check_lvl)

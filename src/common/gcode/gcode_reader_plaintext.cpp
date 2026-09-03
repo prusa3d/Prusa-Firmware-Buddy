@@ -9,7 +9,7 @@
 #include <utils/byte_utils.hpp>
 
 PlainGcodeReader::PlainGcodeReader(unique_file_ptr &&f, const struct stat &stat_info)
-    : GcodeReaderCommon(std::move(f)) {
+    : GcodeReaderCommon(std::move(f), stat_info.st_size) {
     this->ptr_stream_getc = static_cast<stream_getc_type>(&PlainGcodeReader::stream_getc_impl);
     file_size = stat_info.st_size;
 }
