@@ -90,10 +90,10 @@ constexpr float MAX_Z_OFFSET_DIFFERENCE = 0.4f;
 /// If exceeded, the print is not allowed to continue
 constexpr float MAX_XY_OFFSET_DIFFERENCE = 0.4f;
 
-// Fallback temperatures if no filament is loaded
+// Fallback cleaning temperature if no filament is loaded
 constexpr int16_t DEFAULT_CLEANING_TEMP = 220;
-constexpr int16_t DEFAULT_Z_PROBING_TEMP = 170;
-constexpr int16_t DEFAULT_XY_PROBING_TEMP = 170;
+constexpr int16_t DEFAULT_Z_PROBING_TEMP = 150;
+constexpr int16_t DEFAULT_XY_PROBING_TEMP = 150;
 #else
     #error "No tool offset calibration config for this printer"
 #endif
@@ -128,7 +128,6 @@ private:
 
 /// Get nozzle temperatures for a physical tool from its loaded filament.
 /// Uses tool mapping to find the gcode tool, then looks up the filament type.
-/// xy_probing temp is set to a default since it does not depend on used filament or tool
 ToolTemperatures get_tool_temperatures(PhysicalToolIndex physical_tool) {
     const auto virtual_tool = stdext::get_optional<VirtualToolIndex>(physical_tool.currently_selected_virtual_tool());
     const FilamentType filament = virtual_tool.has_value() ? FilamentType::for_tool_heuristic(*virtual_tool) : FilamentType::none;
@@ -136,7 +135,7 @@ ToolTemperatures get_tool_temperatures(PhysicalToolIndex physical_tool) {
     if (filament != FilamentType::none) {
         const auto params = filament.parameters();
 #if HAS_NOZZLE_CLEANER()
-        return { params.nozzle_temperature, params.nozzle_preheat_temperature, DEFAULT_XY_PROBING_TEMP };
+        return { params.nozzle_temperature, std::min<int16_t>(params.nozzle_preheat_temperature, DEFAULT_Z_PROBING_TEMP), DEFAULT_XY_PROBING_TEMP };
 #elif HAS_NOZZLE_CLEANER_LITE()
         // The lite cleaner cleans at the preheat temperature and rests on the
         // touchpoint until the cool-down temperature; Z probing then runs at
@@ -232,8 +231,7 @@ bool prepare_tool(PhysicalToolIndex tool, [[maybe_unused]] tool_offset_calibrati
         mapi::park(mapi::get_parking_position(mapi::ParkPosition::nozzle_cleaner_exit));
     } else {
         // Calibration context: nozzle was cleaned by the user and Z is not probed here. Heat
-        // straight to the XY-probing temperature (lower than the Z-probing temperature, so no
-        // cool-down needed afterwards).
+        // straight to the XY-probing temperature.
         set_temp_and_wait_reached(tool, temps.xy_probing);
     }
 #elif HAS_NOZZLE_CLEANER_LITE()
