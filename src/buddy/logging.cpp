@@ -1,8 +1,6 @@
 /// @file
 #include <buddy/logging.hpp>
 
-#include <buddy/usb_device.hpp>
-
 #include <logging/log_dest_rtt.hpp>
 #include <logging/log_dest_syslog.hpp>
 #include <logging/log_dest_usb.hpp>
