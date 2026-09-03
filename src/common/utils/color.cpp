@@ -1,6 +1,7 @@
 #include "color.hpp"
 
 #include <array>
+#include <cmath>
 
 #include <str_utils.hpp>
 
@@ -36,6 +37,24 @@ Color Color::mix(Color back, Color front, uint8_t front_alpha) {
     result.g = (front_alpha * front.g + front_alpha_inv * back.g) >> 8;
     result.r = (front_alpha * front.r + front_alpha_inv * back.r) >> 8;
     return result;
+}
+
+float Color::perceptual_distance(Color a, Color b) {
+    // Channel weights in 1/256 units, sliding with how red the two colors are.
+    // Empirical fit of human perception, see https://www.compuphase.com/cmetric.htm
+    const auto compute_dist_sq = [](Color a2, Color b2) -> uint32_t {
+        const int32_t r_mean = (int32_t(a2.r) + b2.r) / 2;
+        const int32_t dr = int32_t(a2.r) - b2.r;
+        const int32_t dg = int32_t(a2.g) - b2.g;
+        const int32_t db = int32_t(a2.b) - b2.b;
+
+        return (512 + r_mean) * dr * dr + 1024 * dg * dg + (767 - r_mean) * db * db;
+    };
+
+    constexpr float max_dist_sq = float(compute_dist_sq(Color ::from_rgb(0, 0, 0), Color::from_rgb(255, 255, 255)));
+    constexpr float max_dist_sq_inv = 1.0f / max_dist_sq;
+
+    return std::sqrt(float(compute_dist_sq(a, b)) * max_dist_sq_inv);
 }
 
 std::optional<Color> Color::from_string(const std::string_view &str) {

@@ -22,6 +22,11 @@ public:
 
     static Color mix(Color back, Color front, uint8_t front_alpha);
 
+    /// How different the two colors look to a human.
+    /// 0 == identical, 1 == completely different (black vs white).
+    /// Cheap weighted RGB distance, not anything precise.
+    static float perceptual_distance(Color a, Color b);
+
     /// Looks up the \p str in the color table and returns an appropriate color.
     /// If the string starts with '#', interprets it as a hex value
     /// If the \p str is not in the color table, interprets it as a decimal string and tries to construct a color from that
