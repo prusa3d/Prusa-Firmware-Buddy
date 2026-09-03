@@ -210,7 +210,7 @@ void ColumnItem::printExtension(Rect16 extension_rect, Color color_text, Color c
         FilamentTypeParameters::Name filament_name;
         OptionalColor color;
     } data;
-    StringViewUtf8Parameters<3> tool_name_buf;
+    VirtualToolIndex::CompactDisplayName tool_name;
 
     // Determine the data to display
     switch (type_) {
@@ -222,9 +222,10 @@ void ColumnItem::printExtension(Rect16 extension_rect, Color color_text, Color c
         }
 
         const auto &ei = GCodeInfo::getInstance().get_extruder_info(*gcode_tool);
+        tool_name = gcode_tool->compact_display_name();
 
         data = Data {
-            .tool_name = gcode_tool->compact_display_name(tool_name_buf),
+            .tool_name = string_view_utf8::MakeRAM(tool_name),
             .nozzle_diameter = ei.nozzle_diameter,
             .filament_name = ei.filament_name,
             .color = ei.extruder_colour,
@@ -239,9 +240,10 @@ void ColumnItem::printExtension(Rect16 extension_rect, Color color_text, Color c
         }
 
         const auto physical_tool = virtual_tool->to_physical();
+        tool_name = virtual_tool->compact_display_name();
 
         data = Data {
-            .tool_name = virtual_tool->compact_display_name(tool_name_buf),
+            .tool_name = string_view_utf8::MakeRAM(tool_name),
             .nozzle_diameter = CompactOptional<float, NAN> { config_store().get_nozzle_diameter(physical_tool) },
             .filament_name = config_store().get_filament_type(*virtual_tool).parameters().name,
             .color = std::nullopt, // TODO: Support loaded filament colors
@@ -859,8 +861,7 @@ void FrameToolMapping::update_status_text(ShowGuide show_guide) {
                 failed_check->tool, //
                 [](NoTool) {}, //
                 [&](auto tool) {
-                    StringViewUtf8Parameters<4> params;
-                    sb.append_string_view(tool.compact_display_name(params)); //
+                    sb.append_std_string_view(tool.compact_display_name()); //
                 });
 
             sb.append_string(": ");

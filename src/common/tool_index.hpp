@@ -13,15 +13,35 @@
 #include <utils/overloaded_visitor.hpp>
 #include <printers.h>
 #include <string_view_utf8.hpp>
+#include <utils/string_builder.hpp>
+#include <utils/string/inplace_string.hpp>
 
 #include <option/has_tool_mapping.h>
 #if HAS_TOOL_MAPPING()
 class ToolMapper;
 #endif
 
-class StringBuilder;
-
 #include "tool_index_iterator.hpp"
+
+// Use XXXToolIndex::count instead
+// This is only necessary to prevent dependency loops within this header
+namespace tool_index_private {
+#if EXTRUDERS > 1
+// EXTRUDERS - 1 index represents NoTool picked
+static_assert(EXTRUDERS > 2);
+inline constexpr uint8_t virtual_tool_index_count = EXTRUDERS - 1;
+#else
+inline constexpr uint8_t virtual_tool_index_count = EXTRUDERS;
+#endif
+
+#if HOTENDS > 1
+// HOTENDS - 1 index represents NoTool picked
+static_assert(HOTENDS > 2);
+inline constexpr uint8_t physical_tool_index_count = HOTENDS - 1;
+#else
+inline constexpr uint8_t physical_tool_index_count = HOTENDS;
+#endif
+}; // namespace tool_index_private
 
 template <const int count_, typename Extension>
 struct ToolIndex;
@@ -35,25 +55,7 @@ struct PhysicalToolIndexExtension;
 /// - XL has (up to) 5 physical tools
 /// - INDX has a lot if physical tools (even though only one nozzle can be heated at a time)
 /// - MINI, MKx, C1 (non-index) have a single physical tool
-#if HOTENDS > 1
-// HOTENDS - 1 index represents NoTool picked
-static_assert(HOTENDS > 2);
-using PhysicalToolIndex = ToolIndex<HOTENDS - 1, PhysicalToolIndexExtension>;
-#else
-using PhysicalToolIndex = ToolIndex<HOTENDS, PhysicalToolIndexExtension>;
-#endif
-
-// Use VirtualToolIndex::count instead
-// This is only necessary to share the value between GcodeToolIndex and VirtualToolIndex forward declarations
-namespace tool_index_private {
-#if EXTRUDERS > 1
-// EXTRUDERS - 1 index represents NoTool picked
-static_assert(EXTRUDERS > 2);
-static constexpr uint8_t virtual_tool_index_count = EXTRUDERS - 1;
-#else
-static constexpr uint8_t virtual_tool_index_count = EXTRUDERS;
-#endif
-}; // namespace tool_index_private
+using PhysicalToolIndex = ToolIndex<tool_index_private::physical_tool_index_count, PhysicalToolIndexExtension>;
 
 struct VirtualToolIndexExtension;
 
@@ -164,8 +166,16 @@ public:
     /// @returns display name of the tool - something like "Slot 1" or "Tool 1"
     string_view_utf8 display_name(StringViewUtf8ParamBase &params) const;
 
-    /// @returns compact display name of the tool - something like "S1" or "T1"
-    string_view_utf8 compact_display_name(StringViewUtf8ParamBase &params) const;
+    static_assert(count_ < 100);
+    using CompactDisplayName = InplaceString<4>;
+
+    /// @returns compact display name of the tool - something like "F1" or "T1"
+    CompactDisplayName compact_display_name() const {
+        CompactDisplayName result;
+        auto sb = StringBuilder::from_ptr(result.data(), result.capacity());
+        sb.append_printf("%c%i", Extension::compact_name_prefix_char, display_index());
+        return result;
+    }
 
     /// Allow simpler conversion to integer when using StrongIndexArray
     /// @note pass-by-reference is needed to avoid circular dependencies
@@ -226,6 +236,8 @@ private:
 };
 
 struct PhysicalToolIndexExtension {
+    static constexpr char compact_name_prefix_char = 'T';
+
     /// @returns virtual tool currently assigned to @p this physical tool
     std::variant<VirtualToolIndex, NoTool> currently_selected_virtual_tool() const;
 
@@ -249,6 +261,13 @@ struct PhysicalToolIndexExtension {
 };
 
 struct VirtualToolIndexExtension {
+    // For multi-tool printers with 1:1 mapping between virtual and physica tools, introducing some extra slots/indexing would just confuse the users.
+    // So in that case, refer to the virtual tools same as to the physical ones, because they're are 1:1.
+    static constexpr char compact_name_prefix_char = //
+        (tool_index_private::physical_tool_index_count == tool_index_private::virtual_tool_index_count)
+        ? PhysicalToolIndexExtension::compact_name_prefix_char
+        : 'F';
+
     PhysicalToolIndex to_physical() const;
 
     /// Builds details about the virtual tool (things like loaded filament, nozzle diameter, ...)
@@ -270,6 +289,8 @@ struct VirtualToolIndexExtension {
 };
 
 struct GcodeToolIndexExtension {
+    static constexpr char compact_name_prefix_char = 'G';
+
     /// @returns VirtualToolIndex corresponding to the GCodeToolIndex, if there is any
     /// Will return NoTool if no tool is mapped
     std::variant<VirtualToolIndex, ToolNotMapped> to_virtual() const;

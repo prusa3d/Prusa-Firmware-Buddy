@@ -1,12 +1,8 @@
-/**
- * @file footer_item_multitool.cpp
- */
-
+/// @file
 #include "footer_item_multitool.hpp"
 #include "marlin_client.hpp"
 #include "img_resources.hpp"
 #include "i18n.h"
-#include "string_builder.hpp"
 #include <device/board.h>
 
 #include <option/has_toolchanger.h>
@@ -41,13 +37,11 @@ int FooterItemCurrentTool::static_readValue() {
 }
 
 string_view_utf8 FooterItemCurrentTool::static_makeView(int value) {
-    static std::array<char, 4> buff;
+    static VirtualToolIndex::CompactDisplayName str;
     if (value >= 0) {
-        StringViewUtf8Parameters<4> params;
-        VirtualToolIndex::from_raw(value).compact_display_name(params).copyToRAM(buff);
+        str = VirtualToolIndex::from_raw(value).compact_display_name();
     } else {
-        StringBuilder b(buff);
-        b.append_char('-');
+        str = "-";
     }
-    return string_view_utf8::MakeRAM(buff.data());
+    return string_view_utf8::MakeRAM(str.data());
 }
