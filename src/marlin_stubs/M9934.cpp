@@ -24,11 +24,11 @@ void PrusaGcodeSuite::M9934() {
 
     static_assert(multi_filament_change::gcode_command == GCodeCommand { .letter = 'M', .codenum = 9934 });
 
-    const auto config = multi_filament_change::config_from_gcode(parser);
+    const auto config = multi_filament_change::Config::from_gcode(parser);
     if (!config) {
         return;
     }
 
-    multi_filament_change::execute(*config);
+    config->execute();
 }
 /** @}*/

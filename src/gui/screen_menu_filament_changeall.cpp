@@ -105,12 +105,12 @@ bool MI_ActionSelect::on_item_selected(const OnItemSelectedArgs &args) {
         auto new_config = menu.configuration();
 
         // Skip reminders here, show them only on the final screen confirmation
-        if (!gui_config_confirm_incompatibilities(new_config_item, AllTools {}, Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder)) {
+        if (!new_config_item.gui_confirm_incompatibilities(AllTools {}, Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder)) {
             return false;
         }
 
         for (auto tool : VirtualToolIndex::all().skip_all_disabled()) {
-            auto &config_item = new_config[tool];
+            auto &config_item = new_config.items[tool];
 
             // Keep the color
             const auto orig_color = config_item.color;
@@ -122,7 +122,7 @@ bool MI_ActionSelect::on_item_selected(const OnItemSelectedArgs &args) {
 
     } else {
         // Skip reminders here, show them only on the final screen confirmation
-        if (!gui_config_confirm_incompatibilities(new_config_item, std::get<VirtualToolIndex>(tool_filter_), Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder)) {
+        if (!new_config_item.gui_confirm_incompatibilities(std::get<VirtualToolIndex>(tool_filter_), Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder)) {
             return false;
         }
 
@@ -147,7 +147,7 @@ MenuMultiFilamentChange::MenuMultiFilamentChange(window_t *parent, const Rect16 
 MultiFilamentChangeConfig MenuMultiFilamentChange::configuration() const {
     return [&]<size_t... ix>(std::index_sequence<ix...>) {
         return MultiFilamentChangeConfig {
-            ConfigItem { container.Item<WithConstructorArgs<MI_ActionSelect, ix>>().config() }...
+            .items { ConfigItem { container.Item<WithConstructorArgs<MI_ActionSelect, ix>>().config() }... },
         };
     }(std::make_index_sequence<VirtualToolIndex::count>());
 }
@@ -155,7 +155,7 @@ MultiFilamentChangeConfig MenuMultiFilamentChange::configuration() const {
 void MenuMultiFilamentChange::set_configuration(const MultiFilamentChangeConfig &set) {
     // Set the correct indexes for the actions
     stdext::visit_sequence<VirtualToolIndex::count>([&]<size_t ix>() {
-        container.Item<WithConstructorArgs<MI_ActionSelect, ix>>().set_config(set[VirtualToolIndex::from_raw(ix)]);
+        container.Item<WithConstructorArgs<MI_ActionSelect, ix>>().set_config(set.items[VirtualToolIndex::from_raw(ix)]);
     });
 }
 
@@ -170,7 +170,7 @@ void MenuMultiFilamentChange::windowEvent(window_t *sender, GUI_event_t event, v
             container.Item<WithConstructorArgs<MI_ActionSelect, MI_ActionSelect::SetAllToMode {}>>().Click(*this);
 
             const auto config = configuration();
-            if (std::ranges::all_of(config, [](const ConfigItem &item) { return item.action == Action::keep; })) {
+            if (std::ranges::all_of(config.items, [](const ConfigItem &item) { return item.action == Action::keep; })) {
                 // Cancelled or "Don't change" picked - nothing to apply, return to the parent menu
                 Screens::Access()->close_screen();
                 return;
@@ -212,12 +212,12 @@ bool MenuMultiFilamentChange::carry_out_changes() {
     // Note: This potentially duplicates warnings raised by manually changing the items
     // But the config could have been pre-filled, so better to sometimes warn twice than sometimes not at all
     const auto config = configuration();
-    if (!gui_config_confirm_incompatibilities(config, Response::Cancel)) {
+    if (!config.gui_confirm_incompatibilities(Response::Cancel)) {
         return false;
     }
 
     ArrayStringBuilder<MAX_CMD_SIZE> sb;
-    multi_filament_change::config_to_gcode(config, sb);
+    config.to_gcode(sb);
     marlin_client::gcode(sb.str());
     return true;
 }
@@ -234,7 +234,7 @@ ScreenChangeAllFilaments::ScreenChangeAllFilaments()
 
 ScreenChangeAllFilaments::ScreenChangeAllFilaments(SetupForPrint)
     : ScreenChangeAllFilaments {} {
-    menu.menu.set_configuration(multi_filament_change::config_from_current_print_setup());
+    menu.menu.set_configuration(multi_filament_change::Config::from_current_print_setup());
     menu.menu.close_screen_on_media_disconnect_ = true;
 }
 
@@ -243,7 +243,7 @@ ScreenChangeAllFilaments::ScreenChangeAllFilaments(SetupUnloadAll)
 
     multi_filament_change::Config config;
     for (auto tool : VirtualToolIndex::all().skip_all_disabled()) {
-        config[tool].action = multi_filament_change::Action::unload;
+        config.items[tool].action = multi_filament_change::Action::unload;
     }
     menu.menu.set_configuration(config);
 

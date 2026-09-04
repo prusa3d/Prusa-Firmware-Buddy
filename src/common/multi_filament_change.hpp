@@ -28,41 +28,44 @@ struct ConfigItem {
     Action action = Action::keep;
     EncodedFilamentType new_filament = FilamentType::none;
     CompactOptional<Color, COLOR_NONE> color;
+
+    /// Pops up warnings for potential filament incompatibilities
+    /// @returns false if the user pressed abort_response at any point
+    /// @param skip_level Skips incompatibilities with the provided compatibility level and better
+    /// !!! To be executed only from the GUI thread
+    [[nodiscard]] bool gui_confirm_incompatibilities(std::variant<VirtualToolIndex, AllTools> tools, Response abort_response, buddy::compatibility_checks::CompatibilityLevel skip_level = buddy::compatibility_checks::CompatibilityLevel::fully_compatible) const;
 };
 
-using Config = StrongIndexArray<ConfigItem, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static>;
+struct Config {
+    /// Constructs a MultiFilamentChange screen configuration based on current print setup - that is GCodeInfo, ToolMapping and SpoolJoin
+    /// That is, it suggests changing filaments so that they would match the current configuration for the print
+    static Config from_current_print_setup();
+
+    /// Constructs a MultiFilamentChange configuration from gcode parameters
+    static std::optional<Config> from_gcode(GCodeBasicParser &parser);
+
+    /// Generates a MultiFilamentChange gcode from the provided configuration
+    void to_gcode(StringBuilder &sb) const;
+
+    /// Executes a multi filament change
+    /// !!! To be called only from the marlin thread
+    void execute() const;
+
+    /// Pops up warnings for potential filament incompatibilities
+    /// @returns false if the user pressed abort_response at any point
+    /// @param skip_level Skips incompatibilities with the provided compatibility level and better
+    /// !!! To be executed only from the GUI thread
+    [[nodiscard]] bool gui_confirm_incompatibilities(Response abort_response, buddy::compatibility_checks::CompatibilityLevel skip_level = buddy::compatibility_checks::CompatibilityLevel::fully_compatible) const;
+
+    using Items = StrongIndexArray<ConfigItem, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static>;
+    Items items;
+};
 
 /// GCode command used to represent the gcode
 inline constexpr GCodeCommand gcode_command {
     .letter = 'M',
     .codenum = 9934,
 };
-
-/// Constructs a MultiFilamentChange screen configuration based on current print setup - that is GCodeInfo, ToolMapping and SpoolJoin
-/// That is, it suggests changing filaments so that they would match the current configuration for the print
-Config config_from_current_print_setup();
-
-/// Constructs a MultiFilamentChange configuration from gcode parameters
-std::optional<Config> config_from_gcode(GCodeBasicParser &parser);
-
-/// Generates a MultiFilamentChange gcode from the provided configuration
-void config_to_gcode(const Config &config, StringBuilder &sb);
-
-/// Pops up warnings for potential filament incompatibilities
-/// @returns false if the user pressed abort_response at any point
-/// @param skip_level Skips incompatibilities with the provided compatibility level and better
-/// !!! To be executed only from the GUI thread
-[[nodiscard]] bool gui_config_confirm_incompatibilities(const ConfigItem &config, std::variant<VirtualToolIndex, AllTools> tools, Response abort_response, buddy::compatibility_checks::CompatibilityLevel skip_level = buddy::compatibility_checks::CompatibilityLevel::fully_compatible);
-
-/// Pops up warnings for potential filament incompatibilities
-/// @returns false if the user pressed abort_response at any point
-/// @param skip_level Skips incompatibilities with the provided compatibility level and better
-/// !!! To be executed only from the GUI thread
-[[nodiscard]] bool gui_config_confirm_incompatibilities(const Config &config, Response abort_response, buddy::compatibility_checks::CompatibilityLevel skip_level = buddy::compatibility_checks::CompatibilityLevel::fully_compatible);
-
-/// Executes a multi filament change
-/// !!! To be called only from the marlin thread
-void execute(const Config &config);
 
 } // namespace multi_filament_change
 
