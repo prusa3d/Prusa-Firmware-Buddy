@@ -44,6 +44,7 @@ std::optional<Color> Color::from_string(const std::string_view &str) {
     }
 
     if (Color c; str.starts_with('#') && from_chars_light(str.begin() + 1, str.end(), c.raw, 16).ec == std::errc {}) {
+        c._unused = 0;
         return c;
     }
 
@@ -56,6 +57,7 @@ std::optional<Color> Color::from_string(const std::string_view &str) {
 
     // Otherwise treat as number for legacy reasons
     if (Color c; from_chars_light(str.begin(), str.end(), c.raw).ec == std::errc {}) {
+        c._unused = 0;
         return c;
     }
 
