@@ -11,5 +11,5 @@ ToolMappingPreset default_tool_mapping_preset() {
         return static_cast<ToolMappingPreset>(stored);
     }
 
-    return ToolMappingPreset::direct;
+    return ToolMappingPreset::smart;
 }
