@@ -139,6 +139,14 @@ void Config::to_gcode(StringBuilder &sb) const {
     debug_assert(olen == base64_data_length);
 }
 
+void Config::set_all_loaded_to_unload() {
+    for (VirtualToolIndex tool : VirtualToolIndex::all().skip_all_disabled()) {
+        if (FilamentType::for_tool(tool)) {
+            items[tool].action = Action::unload;
+        }
+    }
+}
+
 void Config::execute() const {
     // If we have nothing to do, we can exit right now
     if (std::ranges::all_of(items, [](const auto &i) { return i.action == Action::keep; })) {

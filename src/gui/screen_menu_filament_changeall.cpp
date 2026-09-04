@@ -112,6 +112,12 @@ bool MI_ActionSelect::on_item_selected(const OnItemSelectedArgs &args) {
         for (auto tool : VirtualToolIndex::all().skip_all_disabled()) {
             auto &config_item = new_config.items[tool];
 
+            // Don't set to unload tools that are already unloaded
+            if (new_config_item.action == Action::unload && !FilamentType::for_tool(tool)) {
+                config_item.action = Action::keep;
+                continue;
+            }
+
             // Keep the color
             const auto orig_color = config_item.color;
             config_item = new_config_item;
@@ -242,9 +248,7 @@ ScreenChangeAllFilaments::ScreenChangeAllFilaments(SetupUnloadAll)
     : ScreenChangeAllFilaments {} {
 
     multi_filament_change::Config config;
-    for (auto tool : VirtualToolIndex::all().skip_all_disabled()) {
-        config.items[tool].action = multi_filament_change::Action::unload;
-    }
+    config.set_all_loaded_to_unload();
     menu.menu.set_configuration(config);
 
     // Preselect apply-changes, all should be clear

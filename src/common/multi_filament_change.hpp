@@ -47,6 +47,9 @@ struct Config {
     /// Generates a MultiFilamentChange gcode from the provided configuration
     void to_gcode(StringBuilder &sb) const;
 
+    /// Sets all tools that have a filament loaded to unload
+    void set_all_loaded_to_unload();
+
     /// Executes a multi filament change
     /// !!! To be called only from the marlin thread
     void execute() const;
