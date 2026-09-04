@@ -6575,7 +6575,7 @@ msgstr "RE-CHAUFFER"
 
 #: src/common/client_response_texts.hpp:86
 msgid "REMAP"
-msgstr "RÉATTRIBUER"
+msgstr "CHANGER"
 
 #: src/common/client_response_texts.hpp:88
 msgid "REMOVE"
