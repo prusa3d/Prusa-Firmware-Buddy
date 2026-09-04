@@ -104,6 +104,10 @@ if(HAS_FILAMENT_TRACKER)
   add_subdirectory(filament_tracker)
 endif()
 
+if(HAS_TOOL_MAPPING)
+  add_subdirectory(tool_mapping)
+endif()
+
 add_subdirectory(compatibility_checks)
 add_subdirectory(factory_reset)
 add_subdirectory(motor_current_profile)

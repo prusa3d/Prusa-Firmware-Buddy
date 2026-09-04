@@ -413,20 +413,7 @@ FrameToolMapping::FrameToolMapping(window_frame_t *parent)
 
     if (!tool_mapper.is_enabled()) {
         // The mapper has not been set up -> set up the default config
-        // resets 1-1, 2-2 etc
-        tool_mapper.reset();
-
-        // And disable all unused/invalid tools
-        for (auto gcode_tool : GcodeToolIndex::all()) {
-            auto virtual_tool = stdext::get_optional<VirtualToolIndex>(tool_mapper.to_virtual(gcode_tool));
-            if (
-                !GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()
-                || (virtual_tool.has_value() && !virtual_tool->is_enabled()) //
-            ) {
-                tool_mapper.set_unassigned(gcode_tool);
-            }
-        }
-        tool_mapper.set_enable(true);
+        apply_tool_mapping_preset(default_tool_mapping_preset());
     }
 
     update_config();
@@ -699,6 +686,7 @@ void FrameToolMapping::update_config() {
 }
 
 void FrameToolMapping::update_mapping() {
+    mapping_update_scheduled_ = false;
     items_.clear();
 
     const auto original_focused_tool = this->focused_tool();
@@ -893,7 +881,6 @@ void FrameToolMapping::update_scroll() {
 
 void FrameToolMapping::windowEvent(window_t *sender, GUI_event_t event, void *const param) {
     if (mapping_update_scheduled_) {
-        mapping_update_scheduled_ = false;
         update_mapping();
     }
 
@@ -946,8 +933,8 @@ void FrameToolMapping::show_details_menu() {
     enum class Item : uint8_t {
         return_,
         change_filaments,
-        auto_mapping,
-        default_mapping,
+        smart_mapping,
+        direct_mapping,
         clear_mapping,
         _cnt
     };
@@ -971,16 +958,16 @@ void FrameToolMapping::show_details_menu() {
                 label = N_("Change Filaments");
                 break;
 
-            case Item::default_mapping:
-                label = N_("Naive Mapping");
+            case Item::direct_mapping:
+                label = N_("Direct Mapping");
                 break;
 
             case Item::clear_mapping:
                 label = N_("Clear Mapping");
                 break;
 
-            case Item::auto_mapping:
-                label = N_("Auto Mapping");
+            case Item::smart_mapping:
+                label = N_("Smart Mapping");
                 break;
 
             case Item::return_:
@@ -1012,24 +999,33 @@ void FrameToolMapping::show_details_menu() {
         Screens::Access()->Open<ScreenChangeAllFilaments, ScreenChangeAllFilaments::SetupForPrint {}>();
         break;
 
-    case Item::default_mapping:
-        spool_join.reset();
-        tool_mapper = ToolMapper::default_mapping;
-        mapping_update_scheduled_ = true;
+    case Item::direct_mapping:
+        apply_tool_mapping_preset(ToolMappingPreset::direct);
         break;
 
     case Item::clear_mapping:
-        spool_join.reset();
-        tool_mapper = ToolMapper::empty_mapping;
-        mapping_update_scheduled_ = true;
+        apply_tool_mapping_preset(ToolMappingPreset::empty);
         break;
 
-    case Item::auto_mapping:
-        spool_join.reset();
-        tool_mapper = ToolMapper::empty_mapping;
+    case Item::smart_mapping:
+        apply_tool_mapping_preset(ToolMappingPreset::smart);
+        break;
 
+    case Item::_cnt:
+        bsod_unreachable();
+    }
+}
+
+void FrameToolMapping::apply_tool_mapping_preset(ToolMappingPreset preset) {
+    spool_join.reset();
+    tool_mapper = ToolMapper::empty_mapping;
+
+    switch (preset) {
+
+    case ToolMappingPreset::smart:
         // We need to update mapping every step, the suggest_virtual_tool_to_focus is counting for it to be up to date
         update_mapping();
+
         for (const auto gcode_tool : GcodeToolIndex::all()) {
             if (!GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()) {
                 continue;
@@ -1045,9 +1041,27 @@ void FrameToolMapping::show_details_menu() {
         select_tool_for_connecting(NoTool {});
         break;
 
-    case Item::_cnt:
+    case ToolMappingPreset::direct:
+        for (auto gcode_tool : GcodeToolIndex::all()) {
+            static_assert(VirtualToolIndex::count == GcodeToolIndex::count);
+            auto virtual_tool = VirtualToolIndex::from_raw(gcode_tool.to_raw());
+            if (
+                GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()
+                && virtual_tool.is_enabled() //
+            ) {
+                tool_mapper.set_mapping(gcode_tool, virtual_tool);
+            }
+        }
+        break;
+
+    case ToolMappingPreset::empty:
+        break;
+
+    case ToolMappingPreset::_cnt:
         bsod_unreachable();
     }
+
+    update_mapping();
 }
 
 } // namespace screen_tool_mapping

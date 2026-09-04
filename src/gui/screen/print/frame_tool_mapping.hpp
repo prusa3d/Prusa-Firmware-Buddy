@@ -10,6 +10,7 @@
 #include <radio_button.hpp>
 #include <window_colored_rect.hpp>
 #include <feature/compatibility_checks/gcode_compatibility.hpp>
+#include <feature/tool_mapping/tool_mapping_preset.hpp>
 #include <window_menu_bar.hpp>
 
 namespace screen_tool_mapping {
@@ -234,6 +235,9 @@ private:
     /// Updates menu items.
     /// Necessary to call after each remapping
     void update_mapping();
+
+    /// Discards the current mapping and sets up the one described by \p preset
+    void apply_tool_mapping_preset(ToolMappingPreset preset);
 
     /// Called when a button in the bottom row is clicked
     void on_button_click(Response response);
