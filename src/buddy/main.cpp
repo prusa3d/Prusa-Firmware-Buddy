@@ -318,6 +318,15 @@ extern "C" void main_cpp(void) {
     // Required time is at least 6us. We use 2ms to force pause of at least 1ms
     freertos::delay(2);
 
+#if RTT_METRICS_ENABLED()
+    // Started here rather than at the end of this function, where the other tasks are, because it
+    // is a consumer and its producers are already running: the ADC samples from now on, while
+    // networking -- which the old placement waited for -- comes up much later. Started that late,
+    // the queues simply overflow across the whole of boot. It depends on nothing but FreeRTOS and
+    // SEGGER, both of which are up.
+    create_task("rtt_metrics", rtt_metrics_task, TASK_PRIORITY_RTT_METRICS_TASK, task_stack.rtt_metrics, task_control_block.rtt_metrics);
+#endif
+
     // Initialize tool/hotend AFTER the ADC is ready — on HT-capable builds the
     // LocalHotend ctor reads the ADC to detect the NTC vs PT1000 hotend.
     // ISR ordering (BFW-8126): Hotend is accessed from the Marlin temperature ISR, so
@@ -599,10 +608,6 @@ extern "C" void main_cpp(void) {
     TaskDeps::wait(TaskDeps::Tasks::syslog);
     logging::syslog_reconfigure();
     metrics_reconfigure();
-
-#if RTT_METRICS_ENABLED()
-    create_task("rtt_metrics", rtt_metrics_task, TASK_PRIORITY_RTT_METRICS_TASK, task_stack.rtt_metrics, task_control_block.rtt_metrics);
-#endif
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
