@@ -47,6 +47,7 @@
 #include <footer_items_heaters.hpp>
 #include <footer_line.hpp>
 #include <freertos/critical_section.hpp>
+#include <utils/enum_array.hpp>
 #include <utils/string_builder.hpp>
 #include <netdev.h>
 #include <wui.h>
@@ -84,6 +85,10 @@
 #if HAS_E2EE_SUPPORT()
     #include <e2ee/e2ee.hpp>
 #endif // HAS_E2EE_SUPPORT()
+
+#if HAS_TOOL_MAPPING()
+    #include <feature/tool_mapping/tool_mapping_preset.hpp>
+#endif
 
 namespace {
 
@@ -751,6 +756,33 @@ MI_FILAMENT_CHANGE_PREHEAT_ALL::MI_FILAMENT_CHANGE_PREHEAT_ALL()
 void MI_FILAMENT_CHANGE_PREHEAT_ALL::OnChange(size_t old_index) {
     config_store().filament_change_preheat_all.set(!old_index);
 }
+
+#if HAS_TOOL_MAPPING()
+static constexpr EnumArray<ToolMappingPreset, const char *, ToolMappingPreset::_cnt> tool_mapping_preset_names {
+    { ToolMappingPreset::smart, N_("Smart") },
+    { ToolMappingPreset::direct, N_("Direct") },
+    { ToolMappingPreset::empty, N_("Empty") },
+};
+
+MI_TOOL_MAPPING_PRESET::MI_TOOL_MAPPING_PRESET()
+    : MenuItemSelectMenu(_("Default Tool Mapping")) //
+{
+    set_current_item(std::to_underlying(default_tool_mapping_preset()));
+}
+
+int MI_TOOL_MAPPING_PRESET::item_count() const {
+    return static_cast<int>(tool_mapping_preset_names.size());
+}
+
+string_view_utf8 MI_TOOL_MAPPING_PRESET::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
+    return _(tool_mapping_preset_names[index]);
+}
+
+bool MI_TOOL_MAPPING_PRESET::on_item_selected(const OnItemSelectedArgs &args) {
+    config_store().tool_mapping_preset.set(args.new_index);
+    return true;
+}
+#endif
 
 MI_SET_READY::MI_SET_READY()
     : IWindowMenuItem(_(label), &img::set_ready_16x16, connect_client::MarlinPrinter::is_printer_ready() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {

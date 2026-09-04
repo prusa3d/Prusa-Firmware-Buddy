@@ -5,6 +5,8 @@
 #include "MItem_tools.hpp"
 #include <basic_screen_menu.hpp>
 
+#include <option/has_tool_mapping.h>
+
 #include <option/has_touch.h>
 #if HAS_TOUCH()
     #include "MItem_touch.hpp"
@@ -17,6 +19,9 @@ using ScreenMenuUserInterface__ = BasicScreenMenu<
     MI_PRINT_PROGRESS_TIME,
     MI_TIMEOUT,
     MI_FILAMENT_CHANGE_PREHEAT_ALL,
+#if HAS_TOOL_MAPPING()
+    MI_TOOL_MAPPING_PRESET,
+#endif
 #if HAS_ST7789_DISPLAY()
     // We could potentionally have MINI display without buzzer.
     // So we only allow sound control for ST7789

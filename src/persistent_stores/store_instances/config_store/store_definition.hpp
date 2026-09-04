@@ -2,6 +2,7 @@
 #include <inc/MarlinConfigPre.h>
 
 #include <bitset>
+#include <utility>
 
 #include <utils/array_extensions.hpp>
 #include <utils/storage/encoded_bitset.hpp>
@@ -34,6 +35,7 @@
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_mmu2.h>
 #include <option/has_toolchanger.h>
+#include <option/has_tool_mapping.h>
 #include <option/has_tool_offset_sensor.h>
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
@@ -116,6 +118,10 @@
 #include <option/has_side_fsensor_remap.h>
 #if HAS_SIDE_FSENSOR_REMAP()
     #include <feature/filament_sensor/filament_sensors_remap_data.hpp>
+#endif
+
+#if HAS_TOOL_MAPPING()
+    #include <feature/tool_mapping/tool_mapping_preset.hpp>
 #endif
 
 namespace config_store_ns {
@@ -422,6 +428,12 @@ struct CurrentStore
 #endif
     // Should we verify gcode (CRC & similar)?
     StoreItem<bool, true, ItemFlag::features, journal::hash("Verify Gcode")> verify_gcode;
+
+#if HAS_TOOL_MAPPING()
+    /// Mapping the tool mapping screen starts with when the print has no mapping set up yet.
+    /// Out of range = default
+    StoreItem<uint8_t, 255, ItemFlag::features, journal::hash("Tool Mapping Preset")> tool_mapping_preset;
+#endif
 
     StoreItem<bool, true, ItemFlag::user_interface, journal::hash("Run LEDs")> run_leds;
     StoreItem<bool, defaults::heat_entire_bed, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Heat Entire Bed")> heat_entire_bed;
