@@ -21,7 +21,7 @@ Overloaded(Ts...) -> Overloaded<Ts...>; // CTAD
 ///     ...
 /// );
 template <typename Variant, typename... Matchers>
-decltype(auto) match(Variant &&v, Matchers &&...matchers) {
+constexpr decltype(auto) match(Variant &&v, Matchers &&...matchers) {
     return std::visit(
         Overloaded { std::forward<Matchers>(matchers)... },
         std::forward<Variant>(v));

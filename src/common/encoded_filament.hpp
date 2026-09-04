@@ -4,6 +4,7 @@
 
 #include <filament.hpp>
 #include <bsod/bsod.h>
+#include <utils/overloaded_visitor.hpp>
 
 struct EncodedFilamentType {
 
@@ -24,26 +25,15 @@ public:
     constexpr EncodedFilamentType(const EncodedFilamentType &) = default;
 
     constexpr EncodedFilamentType(const FilamentType &ft) {
-        static constexpr auto visitor = []<typename T>(const T &v) -> uint8_t {
-            if constexpr (std::is_same_v<T, PresetFilamentType>) {
-                // 0 is for FilamentType::none
-                return static_cast<uint8_t>(v) + 1;
-
-            } else if constexpr (std::is_same_v<T, UserFilamentType>) {
-                return v.index + user_filaments_offset;
-
-            } else if constexpr (std::is_same_v<T, AdHocFilamentType>) {
-                return v.tool.to_raw() + adhoc_filaments_offset;
-
-            } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
-                return pending_adhoc_filament_value;
-
-            } else if constexpr (std::is_same_v<T, NoFilamentType>) {
-                return 0;
-            }
-        };
-
-        data = std::visit(visitor, ft);
+        data = match(
+            ft, //
+            // +1 -> 0 is for FilamentType::none
+            [](PresetFilamentType v) -> uint8_t { return static_cast<uint8_t>(v) + 1; }, //
+            [](UserFilamentType v) -> uint8_t { return v.index + user_filaments_offset; }, //
+            [](AdHocFilamentType v) -> uint8_t { return v.tool.to_raw() + adhoc_filaments_offset; }, //
+            [](PendingAdHocFilamentType) -> uint8_t { return pending_adhoc_filament_value; }, //
+            [](NoFilamentType) -> uint8_t { return 0; } //
+        );
     }
 
     static constexpr EncodedFilamentType from_data(uint8_t data) {
