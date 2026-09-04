@@ -152,7 +152,16 @@ function(pack_firmware target)
     DEPENDS "${bin_firmware_path}" ${bbf_deps}
     )
 
-  add_custom_target(${target}-bbf ALL DEPENDS "${bbf_firmware_path}")
+  if(DEFINED UNITTESTS_ENABLE AND UNITTESTS_ENABLE)
+    set(bbf_in_all)
+  else()
+    set(bbf_in_all ALL)
+  endif()
+  add_custom_target(
+    ${target}-bbf
+    ${bbf_in_all}
+    DEPENDS "${bbf_firmware_path}"
+    )
 endfunction()
 
 function(add_link_dependency target file_path)

@@ -426,7 +426,7 @@ if(RESOURCES)
     )
 endif()
 
-add_subdirectory(src)
+add_subdirectory(src EXCLUDE_FROM_ALL)
 
 target_compile_options(
   firmware
@@ -617,6 +617,8 @@ if(DSDL_TRANSPILE)
   transpile_dsdl()
 endif()
 
-if(NOT DEFINED UNITTESTS_ENABLE OR NOT UNITTESTS_ENABLE)
+if(DEFINED UNITTESTS_ENABLE AND UNITTESTS_ENABLE)
+  set_target_properties(firmware PROPERTIES EXCLUDE_FROM_ALL ON)
+else()
   set_target_properties(firmware PROPERTIES EXCLUDE_FROM_ALL OFF)
 endif()
