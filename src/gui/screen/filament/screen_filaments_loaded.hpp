@@ -25,8 +25,10 @@ public:
 protected:
     virtual void click(IWindowMenu &) override;
     virtual void Loop() override;
+    void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
 private:
+    OptionalColor color_;
     std::array<char, 48> label_buffer_;
     VirtualToolIndex tool_;
     FilamentType filament_type_;
