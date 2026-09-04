@@ -17,7 +17,7 @@ namespace {
         .linear_heat_capacity_J_C_m = 0,
     };
 
-    constexpr EnumArray<PresetFilamentType, FilamentParameters, PresetFilamentType::_count> preset_parameters {
+    constexpr PresetFilamentParametersT<FilamentParameters> preset_parameters {
         {
             PresetFilamentType::PLA,
             FilamentParameters {

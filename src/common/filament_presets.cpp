@@ -13,7 +13,7 @@
 #endif
 
 // These temperatures correspond to slicer defaults for MBL.
-constexpr const EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentType::_count> preset_filament_parameters_constexpr {
+constexpr PresetFilamentParameters preset_filament_parameters_constexpr {
     {
         PresetFilamentType::PLA,
         FilamentTypeParameters {
@@ -246,7 +246,7 @@ constexpr const EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFila
 #endif
 };
 
-constinit const EnumArray<PresetFilamentType, FilamentTypeParameters, PresetFilamentType::_count> preset_filament_parameters = preset_filament_parameters_constexpr;
+constinit const PresetFilamentParameters preset_filament_parameters = preset_filament_parameters_constexpr;
 
 #ifndef UNITTESTS
 
@@ -260,6 +260,13 @@ consteval void sanity_check_preset() {
             std::abort();
         }
     };
+
+    // Check that no filament appears twice in the preset list
+    const size_t in_preset_list_times = std::ranges::count(preset_filament_types, type);
+    check(in_preset_list_times <= 1);
+    if (in_preset_list_times == 0) {
+        return;
+    }
 
     const FilamentTypeParameters &params = preset_filament_parameters_constexpr[type];
 
@@ -296,7 +303,7 @@ static_assert(
     []<size_t... i>(std::index_sequence<i...>) {
         (sanity_check_preset<static_cast<PresetFilamentType>(i)>(), ...);
         return true;
-    }(std::make_index_sequence<std::to_underlying(PresetFilamentType::_count)>()));
+    }(std::make_index_sequence<std::to_underlying(PresetFilamentType::_count_sparse)>()));
 
 } // namespace
 

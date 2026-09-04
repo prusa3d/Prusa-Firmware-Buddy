@@ -1,5 +1,7 @@
 #pragma once
 
+#include "encoded_filament.hpp"
+
 #include <utils/string/inplace_string.hpp>
 #include <utils/color555.hpp>
 
@@ -72,10 +74,11 @@ struct __attribute__((packed)) FilamentTypeParameters_EEPROM4 {
 
 public:
     static constexpr uint8_t none_base_preset = 0xff;
+    static_assert(std::to_underlying(PresetFilamentType::_count_sparse) < none_base_preset);
     uint8_t base_preset = none_base_preset;
 
     FilamentTypeParameters::BasePreset decode_base_preset() const {
-        return base_preset == none_base_preset ? FilamentTypeParameters::BasePreset { std::nullopt } : static_cast<PresetFilamentType>(base_preset);
+        return EncodedFilamentType::preset_filament_type_from_enum_value(base_preset);
     }
 
     static uint8_t encode_base_preset(FilamentTypeParameters::BasePreset preset) {

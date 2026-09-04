@@ -13,8 +13,8 @@ constinit const FilamentList all_filament_types = [] {
     FilamentList r;
 
     // Preset filaments first
-    for (size_t i = 0; i < static_cast<size_t>(PresetFilamentType::_count); i++) {
-        r.push_back(static_cast<PresetFilamentType>(i));
+    for (auto ft : preset_filament_types) {
+        r.push_back(ft);
     }
 
     for (uint8_t i = 0; i < user_filament_type_count; i++) {
@@ -47,9 +47,8 @@ void generate_filament_list(FilamentList &list, const GenerateFilamentListConfig
         static_assert(std::is_same_v<FilamentType_, std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType, PendingAdHocFilamentType>>);
 
         const auto is_preset_filament_visible = config_store().visible_preset_filament_types.get();
-        for (size_t i = 0; i < static_cast<size_t>(PresetFilamentType::_count); i++) {
-            const auto ft = static_cast<PresetFilamentType>(i);
-            is_filament_visible_bitset.set(EncodedFilamentType(ft).data, is_preset_filament_visible.test(i));
+        for (auto ft : preset_filament_types) {
+            is_filament_visible_bitset.set(EncodedFilamentType(ft).data, is_preset_filament_visible.test(std::to_underlying(ft)));
         }
 
         const auto is_user_filament_visible = config_store().visible_user_filament_types.get();
@@ -92,6 +91,10 @@ void generate_filament_list(FilamentList &list, const GenerateFilamentListConfig
     /// NoTool (the default filter) accepts everything; a single virtual tool must support it;
     /// AllTools requires every enabled virtual tool's hotend to support it.
     const auto append_filament = [&](FilamentType ft) {
+        if (!ft) {
+            return;
+        }
+
         const uint8_t ix = EncodedFilamentType(ft).data;
         if (is_filament_in_list_bitset.test(ix)) {
             return;

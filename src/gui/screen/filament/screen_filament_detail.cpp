@@ -77,22 +77,29 @@ MI_FILAMENT_BASE_PRESET::MI_FILAMENT_BASE_PRESET()
 MI_FILAMENT_BASE_PRESET::T MI_FILAMENT_BASE_PRESET::value() const {
     const auto i = current_item();
     debug_assert(i >= 0);
-    return i == 0 ? T(std::nullopt) : static_cast<PresetFilamentType>(i - 1);
+    return i == 0 ? T(std::nullopt) : preset_filament_types[i - 1];
 }
 
 void MI_FILAMENT_BASE_PRESET::set_value(T set) {
-    set_current_item(set.has_value() ? static_cast<int>(set.value()) + 1 : 0);
+    int new_item_index = 0;
+    if (set.has_value()) {
+        if (auto ix = stdext::index_of_opt(preset_filament_types, *set)) {
+            new_item_index = *ix + 1;
+        }
+    }
+
+    set_current_item(new_item_index);
 }
 
 int MI_FILAMENT_BASE_PRESET::item_count() const {
-    return static_cast<int>(PresetFilamentType::_count) + 1; // + "None"
+    return preset_filament_types.size() + 1; // + "None"
 }
 
 string_view_utf8 MI_FILAMENT_BASE_PRESET::build_item_text(int index, StringViewUtf8ParamBase &) const {
     if (index == 0) {
         return _("None");
     } else {
-        return string_view_utf8::MakeCPUFLASH(preset_filament_parameters[index - 1].name);
+        return string_view_utf8::MakeCPUFLASH(preset_filament_parameters[preset_filament_types[index - 1]].name);
     }
 }
 
