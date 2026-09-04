@@ -25,10 +25,7 @@ void change_extended_printer_type(PrinterModel new_model, [[maybe_unused]] Chang
     auto &store = config_store();
 
     [[maybe_unused]] const auto old_index = store.extended_printer_type.get();
-    const auto new_index = stdext::index_of(extended_printer_type_model, new_model);
-    if (new_index == extended_printer_type_model.size()) {
-        bsod_unreachable();
-    }
+    const auto new_index = stdext::index_of_opt(extended_printer_type_model, new_model).value();
 
     [[maybe_unused]] const auto gcode = [](const char *fmt, auto... args) {
         if (marlin_server::is_marlin_server_thread()) {

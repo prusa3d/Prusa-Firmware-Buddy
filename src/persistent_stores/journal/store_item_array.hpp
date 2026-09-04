@@ -211,8 +211,8 @@ struct JournalItemLegacyArray : public JournalItemArrayBase<JournalItemLegacyArr
 
 public:
     inline void check_init(uint16_t id, const Bytes &data) {
-        if (const auto index = stdext::index_of(hashed_ids, id); index != hashed_ids.size()) {
-            this->init(index, data);
+        if (const auto index = stdext::index_of_opt(hashed_ids, id)) {
+            this->init(*index, data);
         }
     }
 

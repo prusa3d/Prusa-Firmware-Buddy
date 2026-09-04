@@ -128,15 +128,15 @@ namespace migrations {
         std::array<NewItem::value_type, VirtualToolIndex::count> filament_types;
 
         auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
-            const auto ix = stdext::index_of(deprecated_ids::loaded_filament_type, static_cast<uint16_t>(header.id));
-            if (ix >= filament_types.size()) {
+            const auto ix = stdext::index_of_opt(deprecated_ids::loaded_filament_type, static_cast<uint16_t>(header.id));
+            if (!ix.has_value()) {
                 return;
             }
 
             EncodedFilamentType ft;
             debug_assert(header.len == sizeof(ft));
             memcpy(&ft, buffer.data(), sizeof(ft));
-            filament_types[ix] = ft;
+            filament_types[*ix] = ft;
         };
         backend.read_items_for_migrations(callback);
 
