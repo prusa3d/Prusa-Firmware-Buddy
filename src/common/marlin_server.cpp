@@ -3707,7 +3707,7 @@ static void _server_update_vars() {
 
     if (const bool media = usb_host::is_media_inserted(); marlin_vars().media_inserted != media) {
         marlin_vars().media_inserted = media;
-        _send_notify_event(marlin_vars().media_inserted ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
+        _send_notify_event(media ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
     }
 
     const auto duration = marlin_vars().print_duration.get();
