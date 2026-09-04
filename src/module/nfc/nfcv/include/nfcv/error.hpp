@@ -3,6 +3,8 @@
 #include <expected>
 #include <cstdint>
 
+#include <bsod/bsod.h>
+
 namespace nfcv {
 /// Common error type for all the implementations and interface
 /// Feel free to extended the values
@@ -68,6 +70,6 @@ constexpr const char *to_str(Error error) {
     case Error::unknown:
         return "unknown";
     }
-    return "?";
+    bsod_unreachable();
 }
 } // namespace nfcv
