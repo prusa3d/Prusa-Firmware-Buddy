@@ -11,7 +11,6 @@ include(cmake/Tar.cmake)
 
 # Needded for nunavut
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-set_property(GLOBAL PROPERTY EXCLUDE_FROM_ALL ON)
 
 project(
   Buddy
