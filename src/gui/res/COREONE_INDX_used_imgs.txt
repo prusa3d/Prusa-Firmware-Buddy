@@ -110,7 +110,6 @@ resume_80x80_disabled.png
 resume_80x80_focused.png
 resume_80x80.png
 selftest_16x16.png
-serial_printing_172x138.png
 set_ready_16x16.png
 set_ready_80x80_disabled.png
 set_ready_80x80_focused.png
