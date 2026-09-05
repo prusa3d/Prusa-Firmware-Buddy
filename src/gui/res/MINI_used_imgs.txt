@@ -84,7 +84,6 @@ resume_64x64_disabled.png
 resume_64x64_focused.png
 resume_64x64.png
 selftest_16x16.png
-serial_printing_172x138.png
 set_ready_16x16.png
 set_ready_64x64_disabled.png
 set_ready_64x64_focused.png
