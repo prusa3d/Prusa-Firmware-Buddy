@@ -925,6 +925,12 @@ void panic_loop() {
 std::atomic<bool> ac_fault_enabled = false;
 
 void check_ac_fault_at_startup() {
+    // Retry with settling delay: the AC power monitoring circuit
+    // may transiently assert fault during power-on. Genuine faults
+    // persist; transients clear within the retry window.
+    for (int i = 0; i < 5 && power_panic::is_ac_fault_active(); ++i) {
+        delay_ms(200);
+    }
     if (power_panic::is_ac_fault_active()) {
         fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
     }
