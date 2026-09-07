@@ -11,6 +11,11 @@
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
 
+#include <option/has_gantry_squareness_check.h>
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    #include <feature/indx_gantry_squareness/indx_gantry_squareness.hpp>
+#endif
+
 #include <fsm/manual_belt_tuning_phases.hpp>
 #include <common/marlin_server.hpp>
 #include <bsod/bsod.h>
@@ -21,6 +26,7 @@
 #include <Marlin/src/module/motion.h>
 
 #include <cmath>
+#include <optional>
 
 using namespace marlin_server;
 using namespace manual_belt_tuning;
@@ -50,15 +56,13 @@ public:
     }
 
     Result run_from_gantry() {
-        MicrostepRestorer microstep_restorer;
         disable_all_steppers();
         fsm_change(PhaseManualBeltTuning::check_x_gantry);
-        if (wait_for_continue(PhaseManualBeltTuning::check_x_gantry)) {
-            fsm_change(PhaseManualBeltTuning::homing_wait);
-        } else {
+        if (!wait_for_continue(PhaseManualBeltTuning::check_x_gantry)) {
             return Result::abort;
         }
 
+        fsm_change(PhaseManualBeltTuning::homing_wait);
         enable_all_steppers();
         if (!GcodeSuite::G28_no_parser(true, true, false, { .precise = false })) {
             return Result::abort;
@@ -74,6 +78,9 @@ public:
             return Result::abort;
         }
 
+        // In optional so the microsteps can be restored before the final squareness check
+        std::optional<MicrostepRestorer> microstep_restorer(std::in_place);
+
         // Taken from M958::setup_axis
         // enable all axes to have the same state as printing
         enable_all_steppers();
@@ -86,7 +93,7 @@ public:
             .axis_flag = STEP_EVENT_FLAG_STEP_X | STEP_EVENT_FLAG_STEP_Y | STEP_EVENT_FLAG_Y_DIR, // Vibrate the toolhead front and back
         };
 
-        if (!vibrator.setup(microstep_restorer)) {
+        if (!vibrator.setup(*microstep_restorer)) {
             return Result::abort;
         }
 
@@ -161,7 +168,6 @@ public:
             // Adjust tensioners
             switch (wait_for_response(PhaseManualBeltTuning::adjust_tensioners)) {
             case Response::Continue:
-                fsm_change(PhaseManualBeltTuning::finished);
                 break;
             case Response::Adjust:
                 continue; // Restart measurements from top belt
@@ -173,6 +179,17 @@ public:
             }
             break;
         }
+
+#if HAS_GANTRY_SQUARENESS_CHECK()
+        // Restore microsteps for the homing moves of the squareness check
+        microstep_restorer.reset();
+
+        // The tensioner adjustment can move the belts on the pulleys - verify
+        // again, with the squareness wizard FSM popping up over this one
+        indx_gantry_squareness::run_wizard();
+#endif
+
+        fsm_change(PhaseManualBeltTuning::finished);
         return Result::pass;
     }
 

@@ -20,7 +20,7 @@ constexpr const char link_begin_calib[] = "prusa.io/core-belt-calibration";
 constexpr const char *txt_title_begin = N_("Let's calibrate your belt tension");
 constexpr const char *txt_desc_begin = N_("Before we begin, scan the QR code for the guide. You'll also need an Allen key.");
 // Checking if X-axis gantry is correctly lined up PHASE: check_x_gantry
-constexpr const char link_belt_calib_gantry[] = "prusa.io/core-belt-calibration-gantry";
+constexpr const char link_belt_calib_gantry[] = "prusa.io/core-belt-calibration";
 constexpr const char *txt_title_gantry = N_("Check the gantry squareness");
 #if HAS_INDX()
 constexpr const char *txt_desc_gantry = N_("Move printhead to the back. Check there's no gap between gantry and tensioner on both ends. If there is, follow the guide.");
