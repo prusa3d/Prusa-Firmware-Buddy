@@ -24,7 +24,7 @@ public:
     virtual StreamRestoreInfo get_restore_info() override { return {}; }
     virtual void set_restore_info(const StreamRestoreInfo &) override {}
 
-    // Tries to parse the given comment (already stripped of the ; at the front) as a thumbnail start.
+    // Tries to parse the given comment (including the leading "; ") as a thumbnail start.
     //
     // If successful, provides the details.
     static std::optional<ThumbnailDetails> thumbnail_details(GcodeBuffer::String comment);
