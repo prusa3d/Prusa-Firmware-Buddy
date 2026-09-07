@@ -65,4 +65,17 @@ void system_core_init(void) {
     if (HAL_RCCEx_PeriphCLKConfig(&periph_clk_init) != HAL_OK) {
         bsod_system();
     }
+
+    // Let's protect low memory addresses. Nothing should ever read them.
+    // If something does, it is most certainly a memory corruption and we
+    // should crash early.
+    MPU->RNR = 0;
+    MPU->RBAR = 0x00000000;
+    MPU->RASR = MPU_RASR_XN_Msk
+        | (ARM_MPU_AP_NONE << MPU_RASR_AP_Pos)
+        | (ARM_MPU_REGION_SIZE_1MB << MPU_RASR_SIZE_Pos)
+        | MPU_RASR_ENABLE_Msk;
+    MPU->CTRL = MPU_CTRL_ENABLE_Msk | MPU_CTRL_PRIVDEFENA_Msk;
+    __DSB();
+    __ISB();
 }
