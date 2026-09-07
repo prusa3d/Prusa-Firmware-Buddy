@@ -46,6 +46,17 @@ public:
         uint16_t height;
         unsigned long num_bytes;
         ImgType type;
+
+        [[nodiscard]] bool matches(uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger) const {
+            if (type != expected_type) {
+                return false;
+            }
+            if (allow_larger) {
+                return expected_width <= width && expected_height <= height;
+            } else {
+                return expected_width == width && expected_height == height;
+            }
+        }
     };
 
     using StreamRestoreInfo = GCodeReaderStreamRestoreInfo;

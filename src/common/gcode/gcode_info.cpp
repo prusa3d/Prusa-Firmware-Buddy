@@ -493,7 +493,7 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment, bool plaintext_gcodes
     if (plaintext_gcodes) {
         if (const auto details = PlainGcodeReader::thumbnail_details(comment); details != std::nullopt) {
             auto check = [&](uint16_t w_exp, uint16_t h_exp, bool &has_thumbnail) {
-                if (details->width == w_exp && details->height == h_exp && details->type == IGcodeReader::ImgType::QOI) {
+                if (details->matches(w_exp, h_exp, IGcodeReader::ImgType::QOI, false)) {
                     has_thumbnail = true;
                 }
             };

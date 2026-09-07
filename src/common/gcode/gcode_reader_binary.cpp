@@ -266,7 +266,7 @@ void PrusaPackGcodeReader::generate_index(Index &out, bool ignore_crc) {
                 return IterateResult_t::Continue;
             }
             for (auto &thumb : out.thumbnails) {
-                if (thumb.w == details->width && thumb.h == details->height && thumb.type == details->type) {
+                if (details->matches(thumb.w, thumb.h, thumb.type, false)) {
                     thumb.position = header.get_position();
                     break;
                 }
@@ -766,14 +766,7 @@ AbstractByteReader *PrusaPackGcodeReader::stream_thumbnail_start(uint16_t expect
         if (!details.has_value()) {
             return IterateResult_t::Continue;
         }
-        if (details->type != params.expected_type) {
-            // Other format than what we want
-            return IterateResult_t::Continue;
-        }
-
-        if (params.expected_height == details->height && params.expected_width == details->width) {
-            return IterateResult_t::Return;
-        } else if (params.allow_larger && params.expected_height <= details->height && params.expected_width <= details->width) {
+        if (details->matches(params.expected_width, params.expected_height, params.expected_type, params.allow_larger)) {
             return IterateResult_t::Return;
         } else {
             return IterateResult_t::Continue;

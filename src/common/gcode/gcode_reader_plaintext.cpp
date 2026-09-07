@@ -47,17 +47,7 @@ AbstractByteReader *PlainGcodeReader::stream_thumbnail_start(uint16_t expected_w
         if (!details.has_value()) {
             continue;
         }
-        const bool match = [&] {
-            if (expected_type != details->type) {
-                return false;
-            }
-            if (allow_larger) {
-                return expected_width <= details->width && expected_height <= details->height;
-            } else {
-                return expected_width == details->width && expected_height == details->height;
-            }
-        }();
-        if (match) {
+        if (details->matches(expected_width, expected_height, expected_type, allow_larger)) {
             stream_mode_ = StreamMode::thumbnail;
             thumbnail_reader.gcode_reader = this;
             thumbnail_reader.thumbnail_size = details->num_bytes;
