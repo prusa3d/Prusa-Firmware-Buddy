@@ -58,7 +58,6 @@ public:
         return sampleTimestamp;
     }
 
-    // Return the HAL ticks timestamp (us) of the last read value
     Channel GetCurrentChannel() const {
         return currentChannel;
     }

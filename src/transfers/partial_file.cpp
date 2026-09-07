@@ -134,7 +134,7 @@ size_t PartialFile::get_offset(UsbhMscRequest::SectorNbr sector_nbr) {
 }
 
 bool PartialFile::write_current_sector() {
-    assert(current_sector != nullptr);
+    debug_assert(current_sector != nullptr);
     log_debug(transfers, "Sending sector over USB %" PRIu32 " (%.20s)", current_sector->sector_nbr, current_sector->data);
     if (lseek(file_lock, 0, SEEK_SET) == -1) {
         // Safety measure. It is possible that between creation of this
@@ -236,7 +236,7 @@ size_t PartialFile::allowed_sectors() const {
 }
 
 bool PartialFile::advance_written(size_t by) {
-    assert(current_sector);
+    debug_assert(current_sector);
     const auto next_offset = current_offset + by;
     const auto next_sector_nbr = get_sector_nbr(next_offset);
     if (next_offset > state.total_size) {
@@ -265,7 +265,7 @@ bool PartialFile::write(const uint8_t *data, size_t size) {
 
         if (holds_alternative<WouldBlock>(buffer)) {
             // We ask for blocking mode
-            assert(0);
+            debug_assert(0);
             return false;
         } else if (holds_alternative<WriteError>(buffer)) {
             return false;
@@ -274,13 +274,13 @@ bool PartialFile::write(const uint8_t *data, size_t size) {
             return false;
         }
         // else -> we got a buffer
-        assert(holds_alternative<BufferAndSizes>(buffer));
+        debug_assert(holds_alternative<BufferAndSizes>(buffer));
         const auto buff = get<BufferAndSizes>(buffer);
 
         const size_t buffer_remaining = buff.size - buff.offset;
         const size_t write_size = std::min(size, buffer_remaining);
-        assert(buffer_remaining > 0);
-        assert(write_size > 0);
+        debug_assert(buffer_remaining > 0);
+        debug_assert(write_size > 0);
         memcpy(buff.buffer + buff.offset, data, write_size);
 
         if (!advance_written(write_size)) {
@@ -445,7 +445,7 @@ void PartialFile::SectorPool::release(uint32_t slot) {
 }
 
 bool PartialFile::SectorPool::sync(uint32_t avoid, bool force) {
-    assert(avoid <= size);
+    debug_assert(avoid <= size);
 
     // We flush the whole queue by blocking all the slots for ourselves before
     // returning them back. When we have them all, none can be in flight.
@@ -482,7 +482,7 @@ void PartialFile::release_file() {
 }
 
 uint32_t PartialFile::SectorPool::get_available_slot() const {
-    assert(is_available_slot());
+    debug_assert(is_available_slot());
     return std::countr_one(slot_mask);
 }
 

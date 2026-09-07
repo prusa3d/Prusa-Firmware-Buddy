@@ -30,6 +30,8 @@
 #include "../../module/endstops.h"
 #include "../../module/planner.h"
 #include "../../module/stepper.h" // for various
+#include <option/has_crash_detection.h>
+#include <option/has_switchable_homing_calibration.h>
 
 #if HAS_MULTI_HOTEND
   #include "../../module/tool_change.h"
@@ -48,7 +50,7 @@
   #include "../../feature/motordriver_util.h"
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
   #include "../../feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -58,12 +60,6 @@
 #endif
 
 #include "../../module/probe.h"
-
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "../../feature/bltouch.h"
-#endif
-
 #include "../../lcd/ultralcd.h"
 
 #if ENABLED(EXTENSIBLE_UI)
@@ -76,12 +72,10 @@
   #include "../../lcd/e3v2/proui/dwin.h"
 #endif
 
-#if ENABLED(LASER_FEATURE)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "../../feature/spindle_laser.h"
-#endif
-
+#include <printers.h>
+#include <option/has_indx.h>
 #include <option/has_dwarf.h>
+#include <option/has_print_sheet_detection.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
   #include <module/prusa/toolchanger.h>
@@ -142,9 +136,9 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
     const float fr_mm_s = SQRT(sq(homing_feedrate(X_AXIS)) + sq(homing_feedrate(Y_AXIS)));
 
     #if ENABLED(SENSORLESS_HOMING)
-      #if ENABLED(CRASH_RECOVERY)
+      #if HAS_CRASH_DETECTION()
         Crash_Temporary_Deactivate ctd;
-      #endif // ENABLED(CRASH_RECOVERY)
+      #endif
 
       sensorless_t stealth_states {
         NUM_AXIS_LIST(
@@ -156,7 +150,7 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
         , 0
       };
 
-      #if ENABLED(CRASH_RECOVERY)
+      #if HAS_CRASH_DETECTION()
         // Technically we should call end_sensorless_homing_per_axis() after
         // the move, but what follows is homing anyway, so it's not needed.
         crash_s.start_sensorless_homing_per_axis(X_AXIS);
@@ -177,7 +171,7 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
     }
 
     #if ENABLED(SENSORLESS_HOMING)
-      #if ANY(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
+      #if ENABLED(ENDSTOPS_ALWAYS_ON_DEFAULT) || HAS_CRASH_DETECTION()
         UNUSED(stealth_states);
       #else
         // #error dead code found by automatic analyses (see BFW-5461)
@@ -204,7 +198,7 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
     constexpr xy_float_t safe_homing_xy = { Z_SAFE_HOMING_X_POINT, Z_SAFE_HOMING_Y_POINT };
     #if HAS_HOME_OFFSET
       xy_float_t okay_homing_xy = safe_homing_xy;
-      okay_homing_xy -= home_offset;
+      okay_homing_xy -= home_offset.xy();
     #else
       // #error dead code found by automatic analyses (see BFW-5461)
       constexpr xy_float_t okay_homing_xy = safe_homing_xy;
@@ -239,7 +233,7 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
     return true;
   }
 
-  #if ENABLED(DETECT_PRINT_SHEET)
+  #if HAS_PRINT_SHEET_DETECTION()
     /**
      * @brief Detect print sheet
      *
@@ -256,6 +250,11 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
         auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
       #endif
 
+      #if PRINTER_IS_PRUSA_COREONEL() && HAS_INDX()
+        // on C1L INDX the detect point is partially in the first dock - we need to ensure that dock 0 is empty
+        prusa_toolchanger.pick_tool_out_of_dock(PhysicalToolIndex::from_raw(0));
+      #endif
+
       /**
        * Move the Z probe (or just the nozzle) to the sheet
        * detect point
@@ -264,7 +263,7 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
       constexpr xy_float_t sheet_detect_xy = { DETECT_PRINT_SHEET_X_POINT, DETECT_PRINT_SHEET_Y_POINT };
       #if HAS_HOME_OFFSET
         xy_float_t okay_homing_xy = sheet_detect_xy;
-        okay_homing_xy -= home_offset;
+        okay_homing_xy -= home_offset.xy();
       #else
         // #error dead code found by automatic analyses (see BFW-5461)
         constexpr xy_float_t okay_homing_xy = safe_homing_xy;
@@ -293,7 +292,7 @@ bool corexy_refine_during_G28(float fr_mm_s, const G28Flags &flags);
 
       return true;
     }
-  #endif // DETECT_PRINT_SHEET
+  #endif
 
 #endif // Z_SAFE_HOMING
 
@@ -359,7 +358,7 @@ void GcodeSuite::G28() {
     // #error dead code found by automatic analyses (see BFW-5461)
     flags.simulate = parser.seen('S');
   #endif
-  #if ENABLED(DETECT_PRINT_SHEET)
+  #if HAS_PRINT_SHEET_DETECTION()
     flags.check_sheet = !parser.boolval('P');
   #endif
   flags.precise = !parser.seen('I'); // do not perform precise refinement
@@ -369,7 +368,7 @@ void GcodeSuite::G28() {
     X = Y = Z = true;
   }
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     const bool all_axes = (X && Y && Z);
     if (all_axes) {
       // Skip all recovery when homing all axes
@@ -496,14 +495,6 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
   #endif
 
   TERN_(BD_SENSOR, bdl.config_state = 0);
-
-  /**
-   * Set the laser power to false to stop the planner from processing the current power setting.
-   */
-  #if ENABLED(LASER_FEATURE)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    planner.laser_inline.status.isPowered = false;
-  #endif
 
   #if ENABLED(FULL_REPORT_TO_HOST_FEATURE)
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -674,7 +665,6 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
     if((trigger_states & (1 << EndstopEnum::Z_MAX)) && !should_home_at_all(Z_AXIS) && axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise)) {
       raise_redscreen(ErrCode::ERR_UNDEF, "Unexpected Z MAX endstop trigger", "G28");
     }
-    TERN_(BLTOUCH, bltouch.init());
   }
 
   // Diagonal move first if both are homing
@@ -787,7 +777,7 @@ bool GcodeSuite::G28_no_parser(bool X, bool Y, bool Z, const G28Flags& flags) {
       #if ENABLED(Z_SAFE_HOMING)
         failed = !home_z_safely();
 
-        #if ENABLED(DETECT_PRINT_SHEET)
+        #if HAS_PRINT_SHEET_DETECTION()
         if (!failed && flags.check_sheet) {
           PrintStatusMessageGuard status_guard;
           status_guard.update<PrintStatusMessage::detecting_steel_sheet>({});
@@ -961,6 +951,7 @@ RefineResult corexy_calibrate_homing_during_G28(float xy_mm_s, const G28Flags &f
     return RefineResult::calibrate_from_menu;
   }
 
+#if HAS_SWITCHABLE_HOMING_CALIBRATION()
   Tristate calibration_approved = flags.force_calibrate ? Tristate::yes : config_store().auto_recalibrate_precise_homing.get();
 
   // Prompt the user that we would like to do the calibration (if the calibration was not triggered from gcode)
@@ -989,6 +980,10 @@ RefineResult corexy_calibrate_homing_during_G28(float xy_mm_s, const G28Flags &f
 
     }
   }
+#else
+  // The calibration is not user-configurable, run it whenever needed
+  const Tristate calibration_approved = Tristate::yes;
+#endif
 
   // Regardless of whether the calibration will run or not, reset homing instability history
   // In both cases, we want a clean slate so that the user is not bothered with "please recalibrate" right away

@@ -9,6 +9,7 @@
 #include <device/board.h>
 #include "buddy/priorities_config.h"
 #include <interrupt_disabler.hpp>
+#include <bsod/bsod.h>
 
 #define DISABLE_HB_0  0x00000001
 #define DISABLE_HB_1  0x00000002

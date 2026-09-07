@@ -50,9 +50,14 @@
 #endif
 
 #include <option/has_psu_fan.h>
+#include <bsod/bsod.h>
 #if HAS_PSU_FAN()
     #include <puppies/ac_controller.hpp>
 #endif
+
+#include <common/printer_model.hpp>
+#include <option/has_cpu_fan.h>
+#include <option/has_xl_can.h>
 
 LOG_COMPONENT_REF(Selftest);
 
@@ -91,6 +96,16 @@ constexpr std::uint8_t percentage_to_pwm(std::uint8_t target_percentage) {
 // Then continue with 40% PWM to test if 40% is enough to start spinning.
 constexpr uint8_t pwm_100_percent = percentage_to_pwm(100);
 constexpr uint8_t pwm_40_percent = percentage_to_pwm(40);
+
+/// Runtime print-fan RPM range selector. On XL, returns XL or XLS range
+/// based on extended printer type; elsewhere returns print_fan_range.
+inline const FanRPMRange &current_print_fan_range() {
+#if PRINTER_IS_PRUSA_XL()
+    return (PrinterModelInfo::current().model == PrinterModel::xls) ? print_fan_range_xls : print_fan_range_xl;
+#else
+    return print_fan_range;
+#endif
+}
 
 class FanSelfTestWizard {
 public:
@@ -320,6 +335,12 @@ private:
 #if HAS_PSU_FAN()
         config_store().psu_fan_selftest_result.set(TestResult::unknown);
 #endif
+#if HAS_CPU_FAN()
+        config_store().cpu_fan_selftest_result.set(TestResult::unknown);
+#endif
+#if HAS_XL_CAN()
+        config_store().bed_mcu_fan_selftest_result.set(TestResult::unknown);
+#endif
     }
 
     void set_low_speed_fan_range() {
@@ -355,7 +376,7 @@ private:
 #endif
 #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
             case FanType::xbe_chamber: {
-                assert(fan->get_desc_num() < buddy::puppies::XBuddyExtension::FAN_CNT);
+                debug_assert(fan->get_desc_num() < buddy::puppies::XBuddyExtension::FAN_CNT);
                 auto res = config_store().xbe_fan_test_results.get();
                 res.fans[fan->get_desc_num()] = fan->test_result();
                 config_store().xbe_fan_test_results.set(res);
@@ -365,7 +386,7 @@ private:
 #if HAS_BED_FAN()
             case FanType::bed: {
                 static_assert(bed_fan::SelftestResult::fan_count == 2, "Adjust the fan result structure");
-                assert(fan->get_desc_num() < bed_fan::SelftestResult::fan_count);
+                debug_assert(fan->get_desc_num() < bed_fan::SelftestResult::fan_count);
                 auto res = config_store().bed_fan_selftest_result.get();
                 res.fans[fan->get_desc_num()] = fan->test_result();
                 config_store().bed_fan_selftest_result.set(res);
@@ -377,8 +398,18 @@ private:
                 config_store().psu_fan_selftest_result.set(fan->test_result());
                 break;
 #endif
+#if HAS_CPU_FAN()
+            case FanType::cpu:
+                config_store().cpu_fan_selftest_result.set(fan->test_result());
+                break;
+#endif
+#if HAS_XL_CAN()
+            case FanType::bed_mcu:
+                config_store().bed_mcu_fan_selftest_result.set(fan->test_result());
+                break;
+#endif
             case FanType::_count:
-                assert(false);
+                debug_assert(false);
             }
 
             if (fan->is_failed()) {
@@ -443,7 +474,7 @@ void M1978() {
 #else
     auto print_fans = [&]<size_t... ix>(std::index_sequence<ix...>) {
         return StrongIndexArray<CommonFanHandler, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> {
-            CommonFanHandler(FanType::print, ix, print_fan_range, &Fans::print(PhysicalToolIndex::from_raw(ix)), print_low_fan_range)...
+            CommonFanHandler(FanType::print, ix, current_print_fan_range(), &Fans::print(PhysicalToolIndex::from_raw(ix)), print_low_fan_range)...
         };
     }(std::make_index_sequence<PhysicalToolIndex::count>());
 
@@ -467,6 +498,26 @@ void M1978() {
 
 #if XL_ENCLOSURE_SUPPORT()
     CommonFanHandler xl_enclosure_fan(FanType::xl_enclosure, 0, benevolent_fan_range, &Fans::enclosure());
+#endif
+#if HAS_CPU_FAN()
+    // CPU cooling fan exists physically only on the XLS sandwich board; on plain XL the
+    // pin is unconnected and the controller never spins it. Construct unconditionally
+    // (HAS_CPU_FAN is master-board-level) but include in the test only on XLS.
+    CommonFanHandler cpu_fan(FanType::cpu, 0, cpu_fan_range, &Fans::cpu());
+    if (has_board_fans()) {
+        fan_container[container_index++] = &cpu_fan;
+    }
+#endif
+#if HAS_XL_CAN()
+    // Modular Bed cooling fan lives on the XL-CAN bridge, present only on XLS.
+    // Construct unconditionally (HAS_XL_CAN is master-board-level) but include in
+    // the test only on XLS. A bridge that failed to enumerate (MbResetCheck::
+    // uncontrolled - boot continues with only the XlCanWiringSuspected warning)
+    // then fails the test on zero RPM samples rather than dropping the fan from it.
+    BedMcuFanHandler bed_mcu_fan(bed_mcu_fan_range, benevolent_fan_range);
+    if (has_board_fans()) {
+        fan_container[container_index++] = &bed_mcu_fan;
+    }
 #endif
 #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     std::array xbe_fans {
@@ -519,7 +570,7 @@ void M1978() {
     fan_container[container_index++] = &psu_fan;
 #endif
 
-    assert(container_index && container_index <= fan_container.size());
+    debug_assert(container_index && container_index <= fan_container.size());
 
     auto wizard = FanSelfTestWizard(
         PhasesFansSelftest::test_100_percent,

@@ -3,7 +3,6 @@
 #include <resources/tarball_internal.hpp>
 
 #include <algorithm>
-#include <cassert>
 #include <cerrno>
 #include <fcntl.h>
 #include <logging/log.hpp>
@@ -11,6 +10,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <utility>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Resources);
 
@@ -185,8 +185,8 @@ private:
     }
 
     [[nodiscard]] bool refill() {
-        assert(input_buffer.empty());
-        assert(remaining);
+        debug_assert(input_buffer.empty());
+        debug_assert(remaining);
 
         const size_t batch = std::min<size_t>(remaining, scratch_buffer.size());
         const ssize_t r = ::read(fd, scratch_buffer.data(), batch);
@@ -201,8 +201,8 @@ private:
     }
 
     [[nodiscard]] bool process_header() {
-        assert(!input_buffer.empty());
-        assert(out_fd == -1);
+        debug_assert(!input_buffer.empty());
+        debug_assert(out_fd == -1);
 
         // consume header
         const std::span<uint8_t> header = input_buffer.first(block_size);
@@ -265,8 +265,8 @@ private:
     }
 
     [[nodiscard]] bool process_content() {
-        assert(!input_buffer.empty());
-        assert(out_fd != -1);
+        debug_assert(!input_buffer.empty());
+        debug_assert(out_fd != -1);
 
         const size_t n = std::min<size_t>(out_remaining, input_buffer.size());
         const ssize_t w = ::write(out_fd, input_buffer.data(), n);

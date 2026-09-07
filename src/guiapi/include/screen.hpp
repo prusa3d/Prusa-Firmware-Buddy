@@ -18,7 +18,8 @@ class screen_t : public window_frame_t {
     CompactRAMPointer<window_t> last_dialog;
 
 public:
-    screen_t(window_t *parent = nullptr, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_printing_t close_on_print = is_closed_on_printing_t::yes);
+    screen_t();
+    screen_t(window_t *parent, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_printing_t close_on_print = is_closed_on_printing_t::yes);
     ~screen_t();
 
     /// Closes the screen

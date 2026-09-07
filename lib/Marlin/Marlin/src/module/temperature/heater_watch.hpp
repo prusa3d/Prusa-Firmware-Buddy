@@ -6,7 +6,6 @@
 #include <core/millis_t.h>
 #include <wiring_time.h>
 #include <module/temperature/temp_defines.hpp>
-#include <error_codes.hpp>
 
 /// Sanity-checks that a heater makes progress toward its target temperature.
 ///
@@ -28,9 +27,6 @@ public:
         /// Minimum target-current temperature difference for the watch to engage
         int16_t min_temp_diff;
 
-        /// Error code to raise if the watch fails
-        ErrCode error_code;
-
         /// Inverts the checking logic
         /// !!! If true, temp_increase and min_temp_diff should probably be negative
         bool watch_cooling_instead = false;
@@ -43,9 +39,9 @@ public:
     /// target_temp <= 0 disarms.
     void arm(int16_t target_temp);
 
-    /// Tick: captures baseline when pending, fires fatal_error if the period
-    /// elapses without sufficient progress.
-    void update(float current_temp);
+    /// Tick: captures baseline when pending, checks progress when the period elapses.
+    /// @returns true when the watch fired; the caller is expected to raise its error
+    [[nodiscard]] bool update(float current_temp);
 
     /// @returns true when armed (pending or watching).
     bool is_running() const {

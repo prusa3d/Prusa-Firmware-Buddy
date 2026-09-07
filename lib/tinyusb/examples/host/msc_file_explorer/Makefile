@@ -1,10 +1,9 @@
-include ../../make.mk
+include ../../../hw/bsp/family_support.mk
 
 FATFS_PATH = lib/fatfs/source
 
 INC += \
 	src \
-	$(TOP)/hw \
 	$(TOP)/$(FATFS_PATH) \
 	$(TOP)/lib/embedded-cli \
 
@@ -13,7 +12,7 @@ EXAMPLE_SOURCE = \
   src/main.c \
   src/msc_app.c \
 
-SRC_C += $(addprefix $(CURRENT_PATH)/, $(EXAMPLE_SOURCE))
+SRC_C += $(addprefix $(EXAMPLE_PATH)/, $(EXAMPLE_SOURCE))
 
 # FatFS source
 SRC_C += \
@@ -24,4 +23,4 @@ SRC_C += \
 # suppress warning caused by fatfs
 CFLAGS += -Wno-error=cast-qual
 
-include ../../rules.mk
+include ../../../hw/bsp/family_rules.mk

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <utility>
+#include <cstddef>
 
 /// Useful for fold expressions
 /// @example FoldHelper{ 0, std::max<size_t> } + ... + index_sequence).result
@@ -23,6 +24,16 @@ struct FoldHelper {
 template <typename BinaryOperation, typename Arg1, typename... Args>
 constexpr auto accumulate_arguments(BinaryOperation op, Arg1 &&arg1, Args &&...args) {
     return (FoldHelper { .result = std::forward<Arg1>(arg1), .f = op } + ... + std::forward<Args>(args)).result;
+}
+
+/// @returns value of the nth argument
+template <size_t n, typename Arg0, typename... Args>
+[[gnu::always_inline]] constexpr auto nth_argument(Arg0 &&arg0, Args &&...args) {
+    if constexpr (n == 0) {
+        return std::forward<Arg0>(arg0);
+    } else {
+        return nth_argument<n - 1>(std::forward<Args>(args)...);
+    }
 }
 
 /// A class that is implicitly castable to any other class using the class default constructor

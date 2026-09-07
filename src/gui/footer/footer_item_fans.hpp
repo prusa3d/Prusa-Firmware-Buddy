@@ -1,8 +1,6 @@
-/**
- * @file footer_item_fans.hpp
- * @brief axis position related footer items
- */
+/// @file
 #pragma once
+
 #include "ifooter_item.hpp"
 
 /**

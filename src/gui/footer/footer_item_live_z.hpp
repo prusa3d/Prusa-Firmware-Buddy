@@ -1,9 +1,6 @@
-/**
- * @file footer_item_live_z.hpp
- * @brief footer item displaying filament type
- */
-
+/// @file
 #pragma once
+
 #include "ifooter_item.hpp"
 #include "filament.hpp"
 

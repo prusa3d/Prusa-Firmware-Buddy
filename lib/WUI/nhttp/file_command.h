@@ -2,8 +2,7 @@
 
 #include "status_page.h"
 
-// Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
-#include "../../src/gui/file_list_defs.h"
+#include <buddy/filename_defs.hpp>
 
 #include <http/types.h>
 
@@ -26,7 +25,7 @@ private:
      */
     static const constexpr size_t BUFFER_LEN = 25;
     std::array<uint8_t, BUFFER_LEN> buffer;
-    char filename[FILE_PATH_BUFFER_LEN];
+    char filename[filename_defs::path_buffer_size];
     size_t buffer_used = 0;
     size_t content_length;
     bool can_keep_alive;

@@ -14,10 +14,10 @@ static StandardMotorCurrentProfile current_profile_state = StandardMotorCurrentP
 
 static MotorCurrentProfile get_fw_default_profile() {
     return {
-        .x = get_default_rms_current_ma_x(),
-        .y = get_default_rms_current_ma_y(),
-        .z = get_default_rms_current_ma_z(),
-        .e = get_default_rms_current_ma_e(),
+        .x = get_rms_current_ma_x(),
+        .y = get_rms_current_ma_y(),
+        .z = get_rms_current_ma_z(),
+        .e = get_rms_current_ma_e(),
     };
 }
 
@@ -32,7 +32,16 @@ const MotorCurrentProfile &buddy::standard_motor_current_profile(StandardMotorCu
     case StandardMotorCurrentProfile::increased_e: {
         static const MotorCurrentProfile p = [] {
             auto p = get_fw_default_profile();
-            p.e = 650;
+            p.e = std::max<uint16_t>(p.e, 650);
+            return p;
+        }();
+        return p;
+    }
+
+    case StandardMotorCurrentProfile::decreased_e_flex: {
+        static const MotorCurrentProfile p = [] {
+            auto p = get_fw_default_profile();
+            p.e = std::min<uint16_t>(p.e, 450);
             return p;
         }();
         return p;

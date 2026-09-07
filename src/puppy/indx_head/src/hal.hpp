@@ -10,7 +10,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <utility>
 
 namespace hal {
@@ -33,7 +33,7 @@ void set_safe_state();
 
 namespace rs485 {
     void init();
-    std::span<std::byte> maybe_transmit_and_then_receive(std::span<std::byte> data);
+    WritableBytes maybe_transmit_and_then_receive(WritableBytes data);
 } // namespace rs485
 
 struct CheckedTemperatureReading {
@@ -48,7 +48,9 @@ namespace i2c {
     /// Returns ambient and object temperatures
     CheckedTemperatureReading read_tpis_temperature();
     void set_led_pwm(uint8_t r, uint8_t g, uint8_t b);
-    void set_led_mode(indx_head::leds::Mode mode);
+    void set_led_fade(uint16_t interval_ms);
+
+    void trigger_delayed_request();
 } // namespace i2c
 
 namespace tim {

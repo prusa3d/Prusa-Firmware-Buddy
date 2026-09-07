@@ -136,10 +136,24 @@ void MenuItemSelectMenu::force_set_current_item(int set) {
         return;
     }
 
+    auto old_extension_width = extension_width;
+
     current_item_ = set;
     value_ = build_item_text(set, value_params_);
     extension_width = resource_font(value_font)->w * (value_.computeNumUtf8Chars() + (GuiDefaults::MenuSwitchHasBrackets ? 2 : 0));
-    InValidateExtension();
+
+    // When we do only InValidateExtension(), we only 'delete' text with new extension_width
+    // when new width is shorter, we leave part of the old text on screen, so that is why Invalidate()
+    // is needed to redraw the whole element
+    if (old_extension_width > extension_width) {
+        Invalidate();
+    } else {
+        InValidateExtension();
+    }
+}
+
+Color MenuItemSelectMenu::resolved_value_text_color(Color base_color) const {
+    return (is_focused() && IsEnabled()) ? GuiDefaults::ColorSelected : base_color;
 }
 
 void MenuItemSelectMenu::printExtension(Rect16 extension_rect, Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
@@ -177,8 +191,7 @@ void MenuItemSelectMenu::printExtension(Rect16 extension_rect, Color color_text,
         extension_rect = Rect16::fromLTRB(extension_rect.Left() + font_w, extension_rect.Top(), extension_rect.EndPoint().x - font_w, extension_rect.EndPoint().y);
     }
 
-    const auto text_color = (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text;
-    render_text_align(extension_rect, value_, value_font, color_back, text_color, {}, Align_t::Center(), false);
+    render_text_align(extension_rect, value_, value_font, color_back, resolved_value_text_color(color_text), {}, Align_t::Center(), false);
 }
 
 void MenuItemSelectMenu::click(IWindowMenu &menu) {

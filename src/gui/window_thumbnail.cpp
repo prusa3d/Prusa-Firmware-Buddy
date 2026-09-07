@@ -5,6 +5,7 @@
 #include "window_thumbnail.hpp"
 #include "gcode_reader_interface.hpp"
 #include "display.hpp"
+#include <bsod/bsod.h>
 
 //-------------------------- Thumbnail --------------------------------------
 
@@ -37,7 +38,7 @@ WindowProgressThumbnail::WindowProgressThumbnail(window_t *parent, Rect16 rect, 
 }
 
 Rect16::Left_t WindowProgressThumbnail::get_old_left() {
-    assert(old_allowed_width < Width()); // currently unsupported otherwise
+    debug_assert(old_allowed_width < Width()); // currently unsupported otherwise
     const auto cur_rect { GetRect() };
     // center image by moving left by half of the difference of the widths
     return cur_rect.Left() + (cur_rect.Width() - old_allowed_width) / 2;

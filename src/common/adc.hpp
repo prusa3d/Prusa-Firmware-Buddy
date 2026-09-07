@@ -9,7 +9,7 @@
 #include "MarlinPin.h"
 #include <device/hal.h>
 #include <limits>
-#include <cassert>
+#include <bsod/bsod.h>
 
 /*
 ADC channels, ranks, ...
@@ -211,7 +211,7 @@ public:
 
     void init() {
         // Ensure ADC is initialized to 12bit resolution for shifts to make sense
-        assert(adc.Init.Resolution == ADC_RESOLUTION_12B);
+        debug_assert(adc.Init.Resolution == ADC_RESOLUTION_12B);
 
         HAL_ADC_Init(&adc);
 #if BOARD_IS_DWARF()
@@ -469,7 +469,7 @@ inline uint16_t hwId1() { return PowerHWIDAndTempMux.get_channel(AdcChannel::hw_
 inline uint16_t hwId2() { return PowerHWIDAndTempMux.get_channel(AdcChannel::hw_id_2); };
 inline uint16_t splitterTemp() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::splitter_temp); };
 inline uint16_t side_filament_sensor(AdcChannel::SideFilamnetSensorsAndTempMux channel) {
-    assert(channel >= AdcChannel::sfs1 && channel <= AdcChannel::sfs6);
+    debug_assert(std::to_underlying(channel) >= std::to_underlying(AdcChannel::sfs1) && std::to_underlying(channel) <= std::to_underlying(AdcChannel::sfs6));
     return SFSAndTempMux.get_channel(channel);
 }
 inline uint16_t sideFilamentSensor1() { return SFSAndTempMux.get_channel(AdcChannel::sfs1); };

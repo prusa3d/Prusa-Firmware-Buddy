@@ -29,8 +29,19 @@
 #if CFG_TUH_ENABLED && (CFG_TUSB_MCU == OPT_MCU_RP2040) && CFG_TUH_RPI_PIO_USB
 
 #include "pico.h"
+
 #include "pio_usb.h"
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 #include "pio_usb_ll.h"
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 //--------------------------------------------------------------------+
 // INCLUDE
@@ -55,8 +66,9 @@ bool hcd_configure(uint8_t rhport, uint32_t cfg_id, const void *cfg_param) {
   return true;
 }
 
-bool hcd_init(uint8_t rhport) {
+bool hcd_init(uint8_t rhport, const tusb_rhport_init_t* rh_init) {
   (void) rhport;
+  (void) rh_init;
 
   // To run USB SOF interrupt in core1, call this init in core1
   pio_usb_host_init(&pio_host_cfg);
@@ -113,12 +125,17 @@ void hcd_int_disable(uint8_t rhport) {
 //--------------------------------------------------------------------+
 
 bool hcd_edpt_open(uint8_t rhport, uint8_t dev_addr, tusb_desc_endpoint_t const *desc_ep) {
-  hcd_devtree_info_t dev_tree;
-  hcd_devtree_get_info(dev_addr, &dev_tree);
-  bool const need_pre = (dev_tree.hub_addr && dev_tree.speed == TUSB_SPEED_LOW);
+  tuh_bus_info_t bus_info;
+  tuh_bus_info_get(dev_addr, &bus_info);
+  bool const need_pre = (bus_info.hub_addr && bus_info.speed == TUSB_SPEED_LOW);
 
   uint8_t const pio_rhport = RHPORT_PIO(rhport);
   return pio_usb_host_endpoint_open(pio_rhport, dev_addr, (uint8_t const *) desc_ep, need_pre);
+}
+
+bool hcd_edpt_close(uint8_t rhport, uint8_t daddr, uint8_t ep_addr) {
+  uint8_t const pio_rhport = RHPORT_PIO(rhport);
+  return pio_usb_host_endpoint_close(pio_rhport, daddr, ep_addr);
 }
 
 bool hcd_edpt_xfer(uint8_t rhport, uint8_t dev_addr, uint8_t ep_addr, uint8_t *buffer, uint16_t buflen) {
@@ -182,14 +199,6 @@ void __no_inline_not_in_flash_func(pio_usb_host_irq_handler)(uint8_t root_id) {
   root_port_t *rport = PIO_USB_ROOT_PORT(root_id);
   uint32_t const ints = rport->ints;
 
-  if ( ints & PIO_USB_INTS_CONNECT_BITS ) {
-    hcd_event_device_attach(tu_rhport, true);
-  }
-
-  if ( ints & PIO_USB_INTS_DISCONNECT_BITS ) {
-    hcd_event_device_remove(tu_rhport, true);
-  }
-
   if ( ints & PIO_USB_INTS_ENDPOINT_COMPLETE_BITS ) {
     handle_endpoint_irq(rport, XFER_RESULT_SUCCESS, &rport->ep_complete);
   }
@@ -200,6 +209,14 @@ void __no_inline_not_in_flash_func(pio_usb_host_irq_handler)(uint8_t root_id) {
 
   if ( ints & PIO_USB_INTS_ENDPOINT_ERROR_BITS ) {
     handle_endpoint_irq(rport, XFER_RESULT_FAILED, &rport->ep_error);
+  }
+
+  if ( ints & PIO_USB_INTS_CONNECT_BITS ) {
+    hcd_event_device_attach(tu_rhport, true);
+  }
+
+  if ( ints & PIO_USB_INTS_DISCONNECT_BITS ) {
+    hcd_event_device_remove(tu_rhport, true);
   }
 
   // clear all

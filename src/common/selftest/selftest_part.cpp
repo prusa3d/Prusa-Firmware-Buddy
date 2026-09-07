@@ -9,6 +9,7 @@
 #include "i_selftest.hpp"
 #include "selftest_log.hpp"
 #include "utility_extensions.hpp"
+#include <bsod/bsod.h>
 
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);

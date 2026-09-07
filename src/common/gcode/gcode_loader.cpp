@@ -5,6 +5,7 @@
 #include <logging/log.hpp>
 #include <gcode_reader_any.hpp>
 #include <utils/string_builder.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(MarlinServer);
 

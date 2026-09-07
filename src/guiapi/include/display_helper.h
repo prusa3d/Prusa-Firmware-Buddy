@@ -11,8 +11,6 @@
 #include <string_view_utf8.hpp>
 #include <fonts.hpp>
 
-uint32_t get_char_position_in_font(unichar c, const font_t *pf);
-
 /**
  * @brief Calculate text size without knowing the rectangle
  * @param string                    translated string

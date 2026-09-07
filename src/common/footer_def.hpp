@@ -11,6 +11,7 @@
 #include <guiconfig/guiconfig.h>
 #include <array>
 #include <option/has_side_fsensor.h>
+#include <option/filament_sensor.h>
 #include <option/has_mmu2.h>
 #include <option/has_sheet_profiles.h>
 #include <option/has_chamber_api.h>
@@ -109,9 +110,11 @@ inline constexpr std::array item_list {
         Item::chamber_temp,
 #endif
 
-        // Filament sensors
+    // Filament sensors
+#if !FILAMENT_SENSOR_IS_NO()
         Item::f_s_value,
         Item::f_sensor,
+#endif
         Item::speed,
 #if HAS_SIDE_FSENSOR()
         Item::f_sensor_side,

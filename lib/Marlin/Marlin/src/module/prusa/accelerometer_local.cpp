@@ -1,18 +1,64 @@
 #include "accelerometer.h"
-#include <optional>
 #include "accelerometer_local.hpp"
 
+#include <atomic>
+#include <optional>
+
 #include <option/has_local_accelerometer.h>
+#include <printers.h>
 #include <hwio_pindef.h>
 #include <freertos/timing.hpp>
 
 static_assert(HAS_LOCAL_ACCELEROMETER());
 
 #include <lis2dh12_poller.hpp>
-
-static std::optional<LIS2DH12Poller> g_local_accelerometer_poller;
+#include <bsod/bsod.h>
 
 using namespace accelerometer;
+
+namespace {
+// Single-owner guard
+std::atomic<bool> s_borrowed = false;
+} // namespace
+
+#if PRINTER_IS_PRUSA_MK3_5()
+// MK3.5 repurposes the fan-tach pin as the accelerometer.
+static std::optional<LIS2DH12Poller> g_local_accelerometer_poller;
+
+static LIS2DH12Poller &poller() {
+    return g_local_accelerometer_poller.value();
+}
+#else
+// Boards with a dedicated CS pin run one always-on poller:
+// set up once at boot and left sampling continuously
+static LIS2DH12Poller &poller() {
+    static LIS2DH12Poller instance { spi_handle_accelerometer, buddy::hw::acellCs, &htim9 };
+    return instance;
+}
+#endif
+
+// (Re)detect the accelerometer if it is not currently good.
+static void ensure_setup() {
+    if (poller().hw_good()) {
+        return;
+    }
+    constexpr int RETRIES = 5;
+    for (int i = 0; i < RETRIES; i++) {
+        if (poller().setup_accelerometer()) {
+            break;
+        }
+        freertos::delay(10);
+    }
+}
+
+void prusa_accelerometer_local_init() {
+#if PRINTER_IS_PRUSA_MK3_5()
+    // No-op: the poller is created/destroyed per PrusaAccelerometer on MK3.5.
+#else
+    ensure_setup();
+    poller().hw_start();
+#endif
+}
 
 PrusaAccelerometer::PrusaAccelerometer()
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -20,60 +66,56 @@ PrusaAccelerometer::PrusaAccelerometer()
     , output_pin { output_enabler.pin() }
 #endif
 {
-    if (g_local_accelerometer_poller.has_value()) {
+    if (s_borrowed.exchange(true)) {
         bsod("Multiple access to local accelerometer");
     }
-#if PRINTER_IS_PRUSA_MK3_5()
-    g_local_accelerometer_poller.emplace(spi_handle_accelerometer, output_pin, &htim9);
-#else
-    g_local_accelerometer_poller.emplace(spi_handle_accelerometer, buddy::hw::acellCs, &htim9);
-#endif
 
-    constexpr int RETRIES = 5;
-    for (int i = 0; i < RETRIES; i++) {
-        if (g_local_accelerometer_poller->setup_accelerometer()) {
-            g_local_accelerometer_poller->start();
-            break;
-        }
-        freertos::delay(10);
-    }
-    // We cannot throw exceptions, hence prevent object construction. However,
-    // this is OK as all readings will fail with communication error.
+#if PRINTER_IS_PRUSA_MK3_5()
+    // Per-session poller.
+    g_local_accelerometer_poller.emplace(spi_handle_accelerometer, output_pin, &htim9);
+    ensure_setup();
+    poller().hw_start();
+#else
+    // Re-detect before session.
+    ensure_setup();
+#endif
+    // Re-baseline for this session..
+    poller().begin_session();
 }
 
 PrusaAccelerometer::~PrusaAccelerometer() {
-    g_local_accelerometer_poller->stop();
+#if PRINTER_IS_PRUSA_MK3_5()
+    // Free tach pin.
+    poller().stop();
     g_local_accelerometer_poller.reset();
+#endif
+    s_borrowed = false;
 }
 
 void PrusaAccelerometer::clear() {
-    auto sample = g_local_accelerometer_poller->get_sample();
-    while (sample.has_value()) {
-        sample = g_local_accelerometer_poller->get_sample();
-    }
-    g_local_accelerometer_poller->clear_overflow();
+    poller().clear();
 }
 
 accelerometer::Error PrusaAccelerometer::get_error() const {
-    if (!g_local_accelerometer_poller->hw_good()) {
+    if (!poller().hw_good()) {
         return accelerometer::Error::communication;
     }
-    if (g_local_accelerometer_poller->overflow_count() > 0) {
+    if (poller().overflow()) {
         return accelerometer::Error::overflow_sensor;
     }
     return accelerometer::Error::none;
 }
 
 float PrusaAccelerometer::get_sampling_rate() const {
-    return g_local_accelerometer_poller->get_sampling_rate();
+    return poller().get_sampling_rate();
 }
 
 PrusaAccelerometer::GetSampleResult PrusaAccelerometer::get_sample(RawAcceleration &raw_acceleration) {
-    if (!g_local_accelerometer_poller->hw_good() || g_local_accelerometer_poller->overflow_count() > 0) {
+    if (!poller().hw_good() || poller().overflow()) {
         return GetSampleResult::error;
     }
 
-    auto sample = g_local_accelerometer_poller->get_sample();
+    auto sample = poller().get_sample();
     if (!sample.has_value()) {
         return GetSampleResult::buffer_empty;
     }
@@ -83,9 +125,9 @@ PrusaAccelerometer::GetSampleResult PrusaAccelerometer::get_sample(RawAccelerati
 }
 
 void prusa_accelerometer_handle_polling() {
-    g_local_accelerometer_poller->polling_routine();
+    poller().polling_routine();
 }
 
 void prusa_accelerometer_handle_spi_finish() {
-    g_local_accelerometer_poller->spi_finish_routine();
+    poller().spi_finish_routine();
 }

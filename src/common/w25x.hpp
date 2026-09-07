@@ -159,7 +159,7 @@ private:
     void unlock_bus();
     void lock_erase();
     void unlock_erase();
-    bool try_lock_erase();
+    [[nodiscard]] bool try_lock_erase();
 
     void select();
     void deselect();

@@ -44,6 +44,11 @@
 #include "MarlinPin.h"
 #include <module/motion.h>
 #include "../../../../src/common/adc.hpp"
+#include <option/has_expansion_joints_gen_2.h>
+#include <option/board_is_master_board.h>
+#if BOARD_IS_MASTER_BOARD()
+#include <config_store/store_instance.hpp>
+#endif
 #include "../marlin_stubs/skippable_gcode.hpp"
 #include <module/temperature/steady_state_hotend.hpp>
 #include <module/temperature/temp_defines.hpp>
@@ -129,6 +134,12 @@ LOG_COMPONENT_REF(MarlinServer);
 // Rough estimate of room temperature
 static constexpr float room_temperature = 25.0f;
 
+#if HAS_EXPANSION_JOINTS_GEN_2()
+// Expansion Joints Gen 2 allow faster heat absorption time
+static constexpr float ejg2_frame_soak_min_target = 85.0f;
+static constexpr float ejg2_frame_heatup_speedup = 2.0f;
+#endif
+
 Temperature thermalManager;
 
 /**
@@ -154,44 +165,6 @@ Temperature thermalManager;
 
 // public:
 
-#if FAN_COUNT > 0
-
-  std::array<uint8_t, FAN_COUNT> Temperature::fan_speed {};
-  std::array<uint8_t, FAN_COUNT> Temperature::applied_fan_speed {};
-
-  uint16_t Temperature::get_fan_speed(const uint8_t target) {
-    return target < FAN_COUNT ? fan_speed[target] : 0;
-  }
-  /**
-   * Set the print fan speed for a target extruder
-   * @note You need to call apply_fan_speeds() either from planner or elsewhere to actually use the configured fan speed.
-   * Set the print fan speed for a target FAN
-   * !!! NOT EXTRUDER !!! THERMAL MANAGER DOES NOT WORK WITH NON-ACTIVE EXTRUDER FANS
-   * See BFW-6365
-   */
-  void Temperature::set_fan_speed(uint8_t target, uint16_t speed) {
-
-    NOMORE(speed, 255U);
-
-    // @@TODO hotfix for driving of the front fan (index 1) even with the MMU code
-    // It is yet unknown if there are any side effects of commenting out this piece of code.
-    // The singlenozzle_fan_speed is only used in tool_change and only in a part, which is not compiled
-    // in our configuration.
-//    #if ENABLED(SINGLENOZZLE)
-//      if (target != active_extruder) {
-//        if (target < EXTRUDERS) singlenozzle_fan_speed[target] = speed;
-//        return;
-//      }
-//      target = 0; // Always use fan index 0 with SINGLENOZZLE
-//    #endif
-
-    if (target >= FAN_COUNT) return;
-
-    fan_speed[target] = speed;
-  }
-
-#endif // FAN_COUNT > 0
-
 #if HAS_TEMP_BOARD
   board_info_t Temperature::temp_board; // = { 0 }
 
@@ -210,7 +183,6 @@ Temperature thermalManager;
     .temp_increase = WATCH_BED_TEMP_INCREASE,
     .period_s = WATCH_BED_TEMP_PERIOD,
     .min_temp_diff = WATCH_BED_TEMP_INCREASE + TEMP_BED_HYSTERESIS + 1,
-    .error_code = ErrCode::ERR_TEMPERATURE_BED_PREHEAT_ERROR,
   };
 
   HeaterWatch watch_bed { watch_bed_config };
@@ -441,8 +413,13 @@ void Temperature::manage_heater() {
 
   millis_t ms = millis();
 
+  // non-managed hotends are skipped here, so BaseHotend::manage() and the protections it runs don't each re-check it. 
+  // On non-INDX printers is_thermally_managed() is always true, so this is the full loop.
   for (auto tool : PhysicalToolIndex::all()) {
-    Hotend::for_tool(tool).manage();
+    auto &hotend = Hotend::for_tool(tool);
+    if (hotend.is_thermally_managed()) {
+      hotend.manage();
+    }
   }
 
   #if HAS_HEATED_BED
@@ -453,7 +430,9 @@ void Temperature::manage_heater() {
     #endif
 
     #if WATCH_BED
-      watch_bed.update(degBed());
+      if (watch_bed.update(degBed())) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_BED_PREHEAT_ERROR);
+      }
     #endif // WATCH_BED
 
     do {
@@ -465,7 +444,9 @@ void Temperature::manage_heater() {
       #endif
 
       #if HAS_THERMALLY_PROTECTED_BED
-        thermal_runaway_bed.step(temp_bed.celsius, temp_bed.target, H_BED, THERMAL_PROTECTION_BED_PERIOD, THERMAL_PROTECTION_BED_HYSTERESIS);
+        if (thermal_runaway_bed.step(temp_bed.celsius, temp_bed.target, THERMAL_PROTECTION_BED_PERIOD, THERMAL_PROTECTION_BED_HYSTERESIS)) {
+          _temp_error(H_BED, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY_BED));
+        }
       #endif
 
       {
@@ -498,12 +479,21 @@ void Temperature::manage_fans() {
   #if HAS_POWER_PANIC()
     if(power_panic::ac_fault_triggered) {
       // Override anything any gcode might have ever set
-      applied_fan_speed.fill(0);
+      applied_print_fan_speed = 0;
     }
   #endif
 
   #if HAS_FAN0
-    analogWrite(FAN0_PIN, applied_fan_speed[0]);
+    // Apply the active tool's print-fan PWM mapping (e.g. the HT hotend's high-temperature clamp)
+    // at the fan-drive point, re-evaluated continuously as the nozzle heats (not only at M106).
+    // manage_fans() runs on every Marlin instance: on local-fan boards (COREONE/COREONEL, the only
+    // HT targets) analogWrite() drives the physical pin here. On boards whose print fan lives on a
+    // Dwarf puppy (XL/iX) this maps the value the master sends over ModBus; the puppy's own
+    // manage_fans() then applies its mapping at its pin, so a mapping installed on exactly one side
+    // takes effect once, end-to-end. Default is identity; NoTool -> DummyHotend -> identity, so this
+    // is a no-op until a hotend installs a mapping.
+    const Hotend &print_hotend = Hotend::for_tool(PhysicalToolIndex::currently_selected());
+    analogWrite(FAN0_PIN, print_hotend.config().print_fan_pwm_mapping(print_hotend, PWM255 { applied_print_fan_speed }).value);
   #endif
   #if HAS_FAN1
     analogWrite(FAN1_PIN, applied_fan_speed[1]);
@@ -677,6 +667,11 @@ void Temperature::updateTemperaturesFromRawValues() {
         // cold bed. With a bed already partially warmed, the time is
         // proportionally shorter.
         float step = (0.06f + (100.0f - temp_bed.celsius) * 0.0015f) * dt;
+#if HAS_EXPANSION_JOINTS_GEN_2()
+        if (config_store().ejg2_installed.get()) {
+          step *= ejg2_frame_heatup_speedup;
+        }
+#endif
         bed_frame_est_celsius += std::clamp(temp_bed.celsius - bed_frame_est_celsius, -step, step);
       }
     }
@@ -1113,7 +1108,7 @@ void Temperature::isr() {
       Hotend::for_tool(tool).set_nozzle_target_temp(celsius);
     }
 
-    bool Temperature::wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling/*=true*/, bool fan_cooling/*=false*/) {      
+    bool Temperature::wait_for_hotend(const uint8_t target_extruder, WaitForHotendParams params) {      
       const auto target_tool = PhysicalToolIndex::from_raw_notool(target_extruder);
 #if HAS_INDX()
       // The INDX is unable to read temperature of a tool that isn't picked.
@@ -1125,6 +1120,17 @@ void Temperature::isr() {
 #endif
 
       Hotend &hotend = Hotend::for_tool(target_tool);
+
+      // M109 C<temp> waits for a temperature threshold without changing the
+      // hotend target. Capped by the regular target wait so an unreachable
+      // wait_temp can't block forever.
+      const auto target_reached = [&]() {
+        const auto current = hotend.nozzle_temp();
+        if (params.early_return_temperature.has_value() && current.has_value() && current.value() >= *params.early_return_temperature) {
+          return true;
+        }
+        return hotend.is_nozzle_temp_reached();
+      };
 
       #if BOARD_IS_MASTER_BOARD()
         // Keep all heaters on while we're waiting for temperatures
@@ -1144,9 +1150,9 @@ void Temperature::isr() {
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
 
       /// !!! PRINT FAN IS ALWAYS FAN 0
-      const uint8_t fan_speed_at_start = get_fan_speed(0);
+      const uint8_t fan_speed_at_start = get_print_fan_speed();
       ScopeGuard fan_restore_guard = [&] {
-        thermalManager.set_fan_speed(0, fan_speed_at_start);
+        thermalManager.set_print_fan_speed(fan_speed_at_start);
       };
 
       PrintStatusMessageGuard statusGuard;
@@ -1159,16 +1165,20 @@ void Temperature::isr() {
 
         // Target temperature might be changed during the loop
         if (target_temp != degTargetHotend(target_extruder)) {
-          wants_to_cool = hotend.nozzle_target_temp() < hotend.nozzle_temp();
-          target_temp = degTargetHotend(target_extruder);
+          if (const auto current = hotend.nozzle_temp(); current.has_value()) {
+            wants_to_cool = hotend.nozzle_target_temp() < current.value();
+            target_temp = degTargetHotend(target_extruder);
 
-          // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
-          if (no_wait_for_cooling && wants_to_cool) break;
+            // Exit if S<lower>, continue if S<higher>, R<lower>, or R<higher>
+            if (params.no_wait_for_cooling && wants_to_cool) break;
 
-          // If fan_cooling is enabled, assist the cooling/heating with the print fan
-          // !!! ONLY WORKS FOR ACTIVE EXTRUDER - PRINT FAN IS ALWAYS FAN 0
-          if (fan_cooling && active_extruder == target_extruder)
-            thermalManager.set_fan_speed(0, wants_to_cool ? 255 : 0);
+            // If fan_cooling is enabled, assist the cooling/heating with the print fan
+            // !!! ONLY WORKS FOR ACTIVE EXTRUDER - PRINT FAN IS ALWAYS FAN 0
+            if (params.fan_cooling && active_extruder == target_extruder)
+              thermalManager.set_print_fan_speed(wants_to_cool ? 255 : 0);
+          }
+          // If current reading is missing, leave target_temp stale so the
+          // next iteration re-enters this branch and retries with fresh data.
         }
 
         now = millis();
@@ -1185,7 +1195,7 @@ void Temperature::isr() {
         idle(true);
 
         const float temp = degHotend(target_extruder);
-        statusGuard.update<PrintStatusMessage::waiting_for_hotend_temp>({.progress{ .current = temp, .target = target_temp }, .tool=target_extruder});
+        statusGuard.update<PrintStatusMessage::waiting_for_hotend_temp>({.progress{ .current = temp, .target = params.early_return_temperature.value_or(target_temp) }, .tool=target_extruder});
 
         // Prevent a wait-forever situation if R is misused i.e. M109 R0
         if (wants_to_cool) {
@@ -1197,7 +1207,7 @@ void Temperature::isr() {
             old_temp = temp;
           }
         }
-      } while (wait_for_heatup && !hotend.is_nozzle_temp_reached());
+      } while (wait_for_heatup && !target_reached());
 
       return wait_for_heatup;
     }
@@ -1396,8 +1406,14 @@ void Temperature::isr() {
           return;
         }
 
-        if (temp_bed.target <= room_temperature) {
-          log_info(MarlinServer, "Absorbing heat: target lower than room temp, continuing");
+        float soak_min_target = room_temperature;
+#if HAS_EXPANSION_JOINTS_GEN_2()
+        if (config_store().ejg2_installed.get()) {
+          soak_min_target = ejg2_frame_soak_min_target;
+        }
+#endif
+        if (temp_bed.target <= soak_min_target) {
+          log_info(MarlinServer, "Absorbing heat: target below soak threshold %.0f, continuing", (double)soak_min_target);
           return;
         }
 

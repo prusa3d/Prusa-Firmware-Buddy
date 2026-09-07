@@ -1,8 +1,7 @@
 #pragma once
 
 #include <freertos/mutex.hpp>
-// Why is the FILE_PATH_BUFFER_LEN in gui?
-#include <gui/file_list_defs.h>
+#include <buddy/filename_defs.hpp>
 
 #include <array>
 #include <atomic>
@@ -131,7 +130,7 @@ public:
 private:
     mutable Mutex mutex;
 
-    std::array<char, FILE_PATH_BUFFER_LEN + FILE_NAME_MAX_LEN> path {};
+    std::array<char, filename_defs::path_buffer_size + filename_defs::max_filename_length> path {};
     Type type {};
     Incident incident {};
     std::optional<uint32_t> command_id;

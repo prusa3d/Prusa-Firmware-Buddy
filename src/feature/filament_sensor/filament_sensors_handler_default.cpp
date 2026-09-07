@@ -7,6 +7,7 @@
 
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <config_store/store_definition.hpp>
+#include <bsod/bsod.h>
 
 #if FILAMENT_SENSOR_IS_ADC()
     #include "filament_sensor_adc.hpp"
@@ -70,7 +71,7 @@ void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     static MedianFilter filter;
 
     FSensorADC *sensor = extruder_filament_sensor(tool_index);
-    assert(sensor);
+    debug_assert(sensor);
 
     sensor->set_filtered_value_from_IRQ(filter.filter(fs_raw_value) ? fs_raw_value : FSensorADCEval::filtered_value_not_ready);
 }

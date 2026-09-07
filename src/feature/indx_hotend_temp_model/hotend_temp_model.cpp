@@ -5,7 +5,6 @@
 #include <raii/scope_guard.hpp>
 
 #include <feature/filament_tracker/filament_tracker.hpp>
-#include <tool/hotend/hotend.hpp>
 #include <config_store/store_instance.hpp>
 #include <feature/chamber/chamber.hpp>
 #include <puppies/INDX.hpp>
@@ -13,6 +12,7 @@
 #include <marlin_server.hpp>
 #include <module/stepper.h>
 #include <metric.h>
+#include <bsod/bsod.h>
 
 // We have this constant on two places because of modules isolation, make sure they have the same value
 static_assert(indx::HotendThermalModel::hotend_induction_efficiency == buddy::puppies::Indx::hotend_induction_efficiency);
@@ -23,12 +23,14 @@ METRIC_DEF(metric_indx_thermal_model, "indx_tm", METRIC_VALUE_CUSTOM, 500, METRI
 namespace buddy {
 
 INDXHotendTempModel &hotend_temp_model() {
-    assert(osThreadGetId() == marlin_server::server_task);
+    debug_assert(osThreadGetId() == marlin_server::server_task);
     static INDXHotendTempModel instance;
     return instance;
 }
 
-void INDXHotendTempModel::step() {
+bool INDXHotendTempModel::step() {
+    // step should never be called with invalid tool
+    debug_assert(!std::holds_alternative<NoTool>(managed_tool_));
     auto &indx_head = buddy::puppies::indx;
     const auto now_ms = freertos::millis();
 
@@ -37,7 +39,7 @@ void INDXHotendTempModel::step() {
 
     if (!step_limiter_ms_.check(now_ms)) {
         // Limit the step interval
-        return;
+        return false;
     }
 
     float final_compensation_c = 0;
@@ -47,21 +49,6 @@ void INDXHotendTempModel::step() {
     ScopeGuard compensation_sg = [&] {
         indx_head.set_hotend_temp_compensation(final_compensation_c);
     };
-
-    const auto virtual_tool = VirtualToolIndex::currently_selected_opt();
-    if (!virtual_tool.has_value()) {
-        // Reset state once we pick a tool
-        is_initialized_ = false;
-        return;
-    }
-
-    if (!Hotend::for_tool(virtual_tool->to_physical()).is_thermally_managed()) {
-        // Suspend while the nozzle isn't thermally managed (e.g. parked mid-toolchange, when the
-        // head has no nozzle). The measured temperature legitimately drops when the nozzle is
-        // removed, which would otherwise read as a runaway against the modelled temp.
-        is_initialized_ = false;
-        return;
-    }
 
     // For multi-stepper tracking we'd need a different approach
     const AxisEnum e_axis = E0_AXIS;
@@ -78,28 +65,17 @@ void INDXHotendTempModel::step() {
     const auto print_fan_pwm = static_cast<uint8_t>(indx_head.get_fan_pwm(0));
 
     const auto e_steps = stepper.position_from_startup(e_axis);
-    const auto current_filament = FilamentType::for_tool(*virtual_tool);
-
-    // !!! MUST be read after everything else from the puppy to avoid race conditions
-    // This being the last thing is intended to catch indx head resets mid read
-    const auto puppy_reset_count = indx_head.get_reset_counter();
+    const auto current_filament = FilamentType::for_tool(managed_tool_);
 
     ScopeGuard last_sg = [&] {
         last_e_steps_ = e_steps;
         last_filament_ = current_filament;
-        last_puppy_reset_count_ = puppy_reset_count;
     };
 
-    if (!temps_valid || (puppy_reset_count != last_puppy_reset_count_)) {
-        // Either the puppy has been reset (which invalidates readings)
-        // or the readings have not yet become valid after indx heat boot
-        // We can't continue, wait till everything is valid
-
-        // Reset all models
+    if (!temps_valid) {
+        // Readings not yet valid after indx head boot — wait. (Head resets re-init via reset().)
         is_initialized_ = false;
-
-        // Some of the readings are invalid - reinitialize the model when they become valid
-        return;
+        return false;
     }
 
     if (current_filament != last_filament_) {
@@ -123,11 +99,11 @@ void INDXHotendTempModel::step() {
 
         // Wait one more step so that we can get a step proper step delta
         // last_sg ensures the last_XX members are properly initialized next round
-        return;
+        return false;
     }
 
     if (filament_data_update_pending_) {
-        const auto heuristic_filament = FilamentType::for_tool_heuristic(*virtual_tool);
+        const auto heuristic_filament = FilamentType::for_tool_heuristic(managed_tool_);
         indx::FilamentParameters new_params;
 
         if (heuristic_filament == FilamentType::none) {
@@ -217,13 +193,23 @@ void INDXHotendTempModel::step() {
             // Colder model temperature does not pose a safety problem
             // Colder absolute temperatures also do not pose a safety problem
             if (model_temp_C > 200 && model_temp_C > ref_temp_C + 60) {
-                fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_THERMAL_RUNAWAY);
+                return true;
             }
         }
     }
+
+    return false;
 }
 
-void INDXHotendTempModel::reset_state() {
+void INDXHotendTempModel::set_tool(std::variant<VirtualToolIndex, NoTool> tool) {
+    debug_assert(managed_tool_ != tool);
+    managed_tool_ = tool;
+    // Model re-initializes lazily on the next step()
+    is_initialized_ = false;
+    buddy::puppies::indx.set_hotend_temp_compensation(0);
+}
+
+void INDXHotendTempModel::reset() {
     is_initialized_ = false;
 }
 

@@ -10,6 +10,7 @@ class window_text_t : public IWindowText {
 
 public:
     window_text_t() = default;
+    window_text_t(window_t *parent, Rect16 rect, const string_view_utf8 &txt, is_multiline multiline);
     window_text_t(window_t *parent, Rect16 rect, is_multiline multiline, is_closed_on_click_t close = is_closed_on_click_t::no, const string_view_utf8 &txt = string_view_utf8::MakeNULLSTR());
 
 public:
@@ -27,9 +28,6 @@ public:
     void set_check_overflow(bool set) {
         flags.check_overflow = set;
     }
-
-    /// \returns whether the text would overflow the rectangle
-    bool check_text_overflow() const;
 
     /// Automatically selects the largest font that would not case overflow of the text
     void auto_select_font(Font largest = Font::largest_available, Font smallest = Font::small);

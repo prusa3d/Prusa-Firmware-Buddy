@@ -33,8 +33,7 @@ constexpr const char *txt_help = N_("To learn how to change XL enclosure filter,
 }; // namespace
 
 ScreenChangeFilter::ScreenChangeFilter()
-    : screen_t()
-    , header(this)
+    : header(this)
     , description(this, descr_rect, is_multiline::yes)
     , help(this, help_rect, is_multiline::yes)
     , qr(this, qr_rect, Align_t::RightTop(), qr_link)
@@ -49,22 +48,18 @@ ScreenChangeFilter::ScreenChangeFilter()
 
     help.SetAlignment(Align_t::LeftTop());
     help.SetText(_(txt_help));
-}
 
-void ScreenChangeFilter::windowEvent([[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, void *param) {
-    switch (event) {
-    case GUI_event_t::CHILD_CLICK:
-        switch (event_conversion_union { .pvoid = param }.response) {
+    radio.set_callback([](Response r) {
+        switch (r) {
+
         case Response::Done:
             // Reset EEPROM variable holding HEPA filter expiration counter (600h)
             buddy::chamber_filtration().change_filter();
             break;
+
         default:
             break;
         }
         Screens::Access()->Close();
-        break;
-    default:
-        break;
-    }
+    });
 }

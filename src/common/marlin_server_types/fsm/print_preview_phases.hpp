@@ -15,6 +15,8 @@ enum class PhasesPrintPreview : PhaseUnderlyingType {
     new_firmware_available,
     gcode_incompatible_warning,
     gcode_incompatible_fatal,
+    filament_incompatible_warning,
+    filament_incompatible_fatal,
     filament_not_inserted,
 #if HAS_MMU2()
     mmu_filament_inserted,
@@ -28,6 +30,8 @@ enum class PhasesPrintPreview : PhaseUnderlyingType {
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
     wastebin_overfill_warning, ///< The print is likely to overfill the nozzle-cleaner wastebin
+    wastebin_emptying, ///< Parking and dropping the bed so the nozzle cleaner can be emptied
+    wastebin_emptied_returning, ///< The nozzle cleaner has been emptied, the printer is moving back
 #endif
     file_error, ///< Something is wrong with the gcode file
     _last = file_error
@@ -57,13 +61,10 @@ inline constexpr EnumArray<PhasesPrintPreview, PhaseResponses, CountPhases<Phase
         { PhasesPrintPreview::new_firmware_available, {
                                                           Response::Continue,
                                                       } },
-        { PhasesPrintPreview::gcode_incompatible_warning, {
-                                                              Response::Abort,
-                                                              Response::Print,
-                                                          } },
-        { PhasesPrintPreview::gcode_incompatible_fatal, {
-                                                            Response::Abort,
-                                                        } },
+        { PhasesPrintPreview::gcode_incompatible_warning, { Response::Abort, Response::Print } }, //
+        { PhasesPrintPreview::gcode_incompatible_fatal, { Response::Abort } }, //
+        { PhasesPrintPreview::filament_incompatible_warning, { Response::Abort, Response::Ignore } }, //
+        { PhasesPrintPreview::filament_incompatible_fatal, { Response::Abort } }, //
         { PhasesPrintPreview::filament_not_inserted, {
                                                          Response::Yes,
                                                          Response::No,
@@ -97,6 +98,8 @@ inline constexpr EnumArray<PhasesPrintPreview, PhaseResponses, CountPhases<Phase
                                                              Response::Ignore,
                                                              Response::Empty,
                                                          } },
+        { PhasesPrintPreview::wastebin_emptying, {} }, //
+        { PhasesPrintPreview::wastebin_emptied_returning, {} }, //
 #endif
         { PhasesPrintPreview::file_error, {
                                               Response::Abort,
@@ -104,3 +107,13 @@ inline constexpr EnumArray<PhasesPrintPreview, PhaseResponses, CountPhases<Phase
 };
 
 } // namespace ClientResponses
+
+namespace fsm_print_preview {
+
+struct FilamentIncompatibleData {
+    uint8_t encoded_filament;
+    uint8_t target_virtual_tool;
+    bool assume_filament_already_inserted : 1;
+};
+
+} // namespace fsm_print_preview

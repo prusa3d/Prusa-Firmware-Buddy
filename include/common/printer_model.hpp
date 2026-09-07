@@ -11,22 +11,23 @@ using GCodeCheckPrinterModelCode = uint16_t;
 /// Printer model enum is stored in EEPROM as last booted FW model. Order is important and should not change.
 enum class PrinterModel : uint8_t {
     mk3 = 0,
-    mk3s,
-    mk3_5,
-    mk3_5s,
-    mk3_9,
-    mk3_9s,
-    mk4,
-    mk4s,
-    mini,
-    xl,
-    xl_dev_kit,
-    ix,
-    coreone,
-    coreonel,
-    coreone_indx,
-    coreonel_indx,
-    coreone_oak,
+    mk3s = 1,
+    mk3_5 = 2,
+    mk3_5s = 3,
+    mk3_9 = 4,
+    mk3_9s = 5,
+    mk4 = 6,
+    mk4s = 7,
+    mini = 8,
+    xl = 9,
+    xl_dev_kit = 10,
+    ix = 11,
+    coreone = 12,
+    coreonel = 13,
+    coreone_indx = 14,
+    coreonel_indx = 15,
+    coreone_oak = 16,
+    xls = 17,
 
     _cnt
 };
@@ -37,6 +38,7 @@ enum class PrinterModelCompatibilityGroup : uint8_t {
     mk4,
     mk4s,
     xl,
+    xls,
     ix,
     mini,
     coreone,
@@ -68,6 +70,9 @@ public:
 
     // Compatibility mode for running a MK4(non-S) gcode (or older)
     bool mk4_compatibility_mode : 1 = false;
+
+    /// Compatibility mode for running an XL gcode on XLS (fan scaling)
+    bool xl_compatibility_mode : 1 = false;
 
     /// Compatibility mode for running a non-chamber gcode
     bool chamber_compatibility_mode : 1 = false;
@@ -103,8 +108,17 @@ public:
     /// String identifying the model for GCode checks
     const char *id_str;
 
+    /// String identifying the model for the user
+    /// Defaults to id_str if not set
+    const char *display_str_override = nullptr;
+
     inline uint16_t error_code_prefix() const {
         return usb_pid;
+    }
+
+    /// String identifying the model for the user
+    inline const char *display_str() const {
+        return display_str_override ?: id_str;
     }
 
 public:

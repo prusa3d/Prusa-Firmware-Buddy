@@ -6,7 +6,7 @@
 
 #include <optional>
 
-#include <common/marlin_server_types/client_fsm_types.h>
+#include <common/marlin_server_types/client_fsm_types.hpp>
 #include <common/marlin_server_types/marlin_server_state.h>
 #include <common/marlin_server_types/warning_type.hpp>
 

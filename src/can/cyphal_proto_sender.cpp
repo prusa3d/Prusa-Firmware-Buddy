@@ -1,10 +1,11 @@
 #include "cyphal_proto_sender.hpp"
 #include "cyphal_task.hpp"
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
 int8_t ProtoSender::dummy_serialize([[maybe_unused]] const uint8_t *const obj, [[maybe_unused]] uint8_t *const buffer, size_t *const inout_buffer_size_bytes) {
-    assert(inout_buffer_size_bytes != nullptr);
+    debug_assert(inout_buffer_size_bytes != nullptr);
     *inout_buffer_size_bytes = 0;
     return 0;
 }

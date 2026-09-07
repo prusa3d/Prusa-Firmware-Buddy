@@ -3,11 +3,16 @@
     "configurations": [
         {
             "name": "Launch Buddy",
+            "presentation": {
+                "group": "1_Buddy",
+                "order": 1
+            },
             "cwd": "${workspaceRoot}",
             "executable": "${command:cmake.buildDirectory}/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "openOCDPreConfigLaunchCommands": [
                 "set bbf_over_debugger_path ${command:cmake.buildDirectory}/firmware.bbf"
@@ -46,17 +51,23 @@
                         "noprompt": true,
                         "type": "console",
                         "logfile": "heap_instrumentation.txt"
-                    }
+                    },
+
                 ]
             }
         },
         {
             "name": "Attach to Buddy",
+            "presentation": {
+                "group": "1_Buddy",
+                "order": 2
+            },
             "cwd": "${workspaceRoot}",
             "executable": "${command:cmake.buildDirectory}/firmware",
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "openOCDPreConfigLaunchCommands": [
                 "set bbf_over_debugger_path ${command:cmake.buildDirectory}/firmware.bbf"
@@ -91,12 +102,65 @@
             }
         },
         {
+            // Same as "Launch Buddy" but also shows the RTT metrics channel.
+            // Requires a firmware built with RTT_METRICS_ENABLED (on by default in debug builds).
+            "name": "Launch Buddy (RTT metrics)",
+            "cwd": "${workspaceRoot}",
+            "executable": "${command:cmake.buildDirectory}/firmware",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
+            "gdbPath": "gdb-multiarch",
+            "openOCDPreConfigLaunchCommands": [
+                "set bbf_over_debugger_path ${command:cmake.buildDirectory}/firmware.bbf"
+            ],
+            "configFiles": [
+                "${workspaceRoot}/utils/debug/buddy.cfg",
+            ],
+            "toolchainPrefix": "arm-none-eabi",
+            "device": "STM32F427ZI",
+            // swd file is disabled, it is known to cause issues in some cases. Enable it if you need to see register view.
+            //"svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32F427.svd",
+            "rtos": "FreeRTOS",
+            "breakAfterReset": false,
+            "preLaunchTask": "Backup current ELF",
+            "liveWatch": {
+                "enabled": true,
+            },
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console",
+                        "logfile": "${command:cmake.buildDirectory}/rtt_log.txt"
+                    },
+                    {
+                        "label": "RTT metrics",
+                        "port": 2,
+                        "noprompt": true,
+                        "type": "console",
+                        "logfile": "rtt_metrics.txt"
+                    }
+                ]
+            }
+        },
+        {
             "name": "Launch Dwarf",
             "cwd": "${workspaceRoot}",
             "executable": "${command:cmake.buildDirectory}/dwarf-build/firmware",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "configFiles": [
                 "${workspaceRoot}/utils/debug/dwarf.cfg",
@@ -106,7 +170,7 @@
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32G07x.svd",
             "rtos": "FreeRTOS",
             "presentation": {
-                "group": "XL Puppies",
+                "group": "2_XL Puppies",
             },
             "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
             "rttConfig": {
@@ -134,6 +198,7 @@
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "configFiles": [
                 "${workspaceRoot}/utils/debug/dwarf.cfg",
@@ -167,6 +232,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "configFiles": [
                 "${workspaceRoot}/utils/debug/modularbed.cfg",
@@ -176,7 +242,7 @@
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-40327a4d2dff0992682be2872aaa6e096f35d2f4/STM32G07x.svd",
             "rtos": "FreeRTOS",
             "presentation": {
-                "group": "XL Puppies",
+                "group": "2_XL Puppies",
             },
             "preLaunchTask": "Wait 2", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
         },
@@ -187,6 +253,7 @@
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "configFiles": [
                 "${workspaceRoot}/utils/debug/modularbed.cfg",
@@ -213,7 +280,7 @@
             "svdFile": "${workspaceRoot}/.dependencies/cmsis-svd-c0-ce4b873ae4a471cf28d7a7c9c69ded252d949672/STM32C092.svd",
             "rtos": "FreeRTOS",
             "presentation": {
-                "group": "XL Puppies",
+                "group": "2_XL Puppies",
             },
             "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
             "rttConfig": {
@@ -308,6 +375,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "postLaunchCommands": [
                 "set $pc = &Reset_Handler"
@@ -345,6 +413,7 @@
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "configFiles": [
                 "${workspaceRoot}/utils/debug/xbuddy_extension.cfg",
@@ -384,6 +453,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "postLaunchCommands": [
                 "set $pc = &Reset_Handler"
@@ -442,6 +512,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "postLaunchCommands": [
                 "set $pc = &Reset_Handler"
@@ -480,6 +551,7 @@
             "request": "attach",
             "type": "cortex-debug",
             "servertype": "openocd",
+            "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.3.1/bin",
             "gdbPath": "gdb-multiarch",
             "configFiles": [
                 "${workspaceRoot}/utils/debug/tool_offset_sensor.cfg",
@@ -568,7 +640,7 @@
                 "Launch ModularBed"
             ],
             "presentation": {
-                "group": "XL Puppies",
+                "group": "2_XL Puppies",
             },
             "preLaunchTask": ""
         }

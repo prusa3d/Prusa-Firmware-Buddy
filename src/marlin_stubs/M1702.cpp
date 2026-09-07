@@ -7,7 +7,7 @@
 #include <module/temperature.h>
 
 #include <common/cold_pull.hpp>
-#include <client_fsm_types.h>
+#include <client_fsm_types.hpp>
 #include <client_response.hpp>
 #include <common/marlin_server.hpp>
 #include <raii/auto_restore.hpp>
@@ -31,6 +31,7 @@
 #endif
 
 #include <optional>
+#include <bsod/bsod.h>
 
 namespace PrusaGcodeSuite {
 
@@ -102,7 +103,7 @@ namespace {
             return PhasesColdPull::prepare_filament;
     #endif
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
     }
 
@@ -148,7 +149,7 @@ namespace {
             case Response::_none:
                 break;
             default:
-                bsod("Invalid phase encountered.");
+                bsod_unreachable();
             }
 
             idle(true); // Still do one event-loop in case the MMU stop took too long.
@@ -185,7 +186,7 @@ namespace {
         case Response::Abort:
             return PhasesColdPull::cleanup;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
     }
 
@@ -206,7 +207,7 @@ namespace {
         case Response::Abort:
             return PhasesColdPull::cleanup;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
     }
 
@@ -225,7 +226,7 @@ namespace {
         case Response::Abort:
             return PhasesColdPull::cleanup;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
     }
 
@@ -262,19 +263,12 @@ namespace {
             bsod("no virtual tool to load");
         }
 
-        filament_gcodes::M701_load(
-            PresetFilamentType::PLA,
-            std::nullopt,
-            Z_AXIS_LOAD_POS,
-            RetAndCool_t::Return,
-            *active_tool,
-    #if HAS_MMU2()
-            MMU2::FILAMENT_UNKNOWN,
-    #else
-            -1,
-    #endif
-            std::nullopt,
-            filament_gcodes::ResumePrint_t::No);
+        filament_gcodes::M701_load(filament_gcodes::M701LoadArgs {
+            .filament_to_be_loaded = PresetFilamentType::PLA,
+            .z_min_pos = Z_AXIS_LOAD_POS,
+            .op_preheat = RetAndCool_t::Return,
+            .virtual_tool = *active_tool,
+        });
         planner.resume_queuing(); // HACK for planner.quick_stop(); in Pause::check_user_stop()
 
         switch (PreheatStatus::ConsumeResult()) {
@@ -317,8 +311,8 @@ namespace {
             marlin_server::fsm_change(PhasesColdPull::cool_down, data.fsm_data);
         };
 
-        const auto fan_speed_stored = Temperature::fan_speed[0];
-        thermalManager.set_fan_speed(0, 240);
+        const auto fan_speed_stored = Temperature::print_fan_speed;
+        thermalManager.set_print_fan_speed(240);
 
         switch (wait_while_with_progress(PhasesColdPull::cool_down, COOLING_TIMEOUT_MILLIS, too_hot, progress)) {
         case Response::Abort:
@@ -326,9 +320,9 @@ namespace {
         case Response::_none:
             break;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
-        thermalManager.set_fan_speed(0, fan_speed_stored);
+        thermalManager.set_print_fan_speed(fan_speed_stored);
         return PhasesColdPull::heat_up;
     }
 
@@ -357,7 +351,7 @@ namespace {
         case Response::_none:
             break;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
 
         return true;
@@ -414,7 +408,7 @@ namespace {
         case Response::Continue:
             break;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
 
         return PhasesColdPull::cleanup;
@@ -425,7 +419,7 @@ namespace {
         case Response::Finish:
             break;
         default:
-            bsod("Invalid phase encountered.");
+            bsod_unreachable();
         }
 
         return PhasesColdPull::finish;
@@ -480,7 +474,7 @@ namespace {
         case PhasesColdPull::finish:
             break;
         }
-        bsod("Invalid phase encountered.");
+        bsod_unreachable();
     }
 
 } // namespace

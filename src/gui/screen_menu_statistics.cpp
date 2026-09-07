@@ -125,9 +125,9 @@ constexpr std::array stats {
 #endif
 #if HAS_TOOLCHANGER()
         Stat {
-            .title = N_("Tool changes"),
+            .title = N_("Tool Changes"),
             .fmt_f = [](StringBuilder &sb) { sb.append_printf("%" PRIu32, Odometer_s::instance().get_toolpick_all()); },
-            .submenu = &substat_screen_config<extruded_filament_substat>,
+            .submenu = &substat_screen_config<toolchanges_substat>,
         },
 #endif
         Stat {

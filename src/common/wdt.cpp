@@ -3,6 +3,7 @@
 #include "wdt.hpp"
 #include "config.h"
 #include <buddy/priorities_config.h>
+#include <bsod/bsod.h>
 
 #ifndef _DEBUG
     #define WDT_IWDG_ENABLED

@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <bitset>
+#include <utils/byte_utils.hpp>
 
 using namespace modbus;
 
@@ -45,7 +46,7 @@ public:
         return Status::Ok;
     }
 
-    virtual Status read_coils(uint16_t first_address, uint16_t no_coils, std::span<std::byte> out) override {
+    virtual Status read_coils(uint16_t first_address, uint16_t no_coils, WritableBytes out) override {
         if (first_address + no_coils >= coils.size()) {
             return Status::IllegalAddress;
         }
@@ -60,7 +61,7 @@ public:
         return Status::Ok;
     }
 
-    virtual Status write_coils(uint16_t first_address, uint16_t no_coils, std::span<const std::byte> in) override {
+    virtual Status write_coils(uint16_t first_address, uint16_t no_coils, Bytes in) override {
         if (first_address + no_coils >= coils.size()) {
             return Status::IllegalAddress;
         }
@@ -73,7 +74,7 @@ public:
     }
 };
 
-std::span<const std::byte> safe_transaction_handle(Dispatch &dispatch, std::span<std::byte> in, std::span<std::byte> out) {
+Bytes safe_transaction_handle(Dispatch &dispatch, WritableBytes in, WritableBytes out) {
 
     // We assume this is true due to allocator that gives data to vector.
     // If not, we'll have to manually fix this in the tests (eg. the failure
@@ -141,7 +142,7 @@ struct ModbusMessageBuilder {
         return *this;
     }
 
-    std::span<std::byte> view() {
+    WritableBytes view() {
         return std::span(data);
     }
 

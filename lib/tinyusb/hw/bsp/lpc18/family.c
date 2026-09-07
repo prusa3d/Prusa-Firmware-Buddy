@@ -24,43 +24,28 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   manufacturer: NXP
+*/
+
 #include "chip.h"
 #include "bsp/board_api.h"
 #include "board.h"
 
-#ifdef BOARD_TUD_RHPORT
-  #define PORT_SUPPORT_DEVICE(_n)  (BOARD_TUD_RHPORT == _n)
-#else
-  #define PORT_SUPPORT_DEVICE(_n)  0
-#endif
-
-#ifdef BOARD_TUH_RHPORT
-  #define PORT_SUPPORT_HOST(_n)    (BOARD_TUH_RHPORT == _n)
-#else
-  #define PORT_SUPPORT_HOST(_n)    0
-#endif
+extern void USB0_IRQHandler(void);
+extern void USB1_IRQHandler(void);
+extern void SysTick_Handler(void);
+void SystemInit(void);
 
 //--------------------------------------------------------------------+
 // USB Interrupt Handler
 //--------------------------------------------------------------------+
 void USB0_IRQHandler(void) {
-  #if PORT_SUPPORT_DEVICE(0)
-  tud_int_handler(0);
-  #endif
-
-  #if PORT_SUPPORT_HOST(0)
-  tuh_int_handler(0, true);
-  #endif
+  tusb_int_handler(0, true);
 }
 
 void USB1_IRQHandler(void) {
-  #if PORT_SUPPORT_DEVICE(1)
-  tud_int_handler(1);
-  #endif
-
-  #if PORT_SUPPORT_HOST(1)
-  tuh_int_handler(1, true);
-  #endif
+  tusb_int_handler(1, true);
 }
 
 //--------------------------------------------------------------------+
@@ -98,6 +83,8 @@ void board_init(void) {
   // 1ms tick timer
   SysTick_Config(SystemCoreClock / 1000);
 #elif CFG_TUSB_OS == OPT_OS_FREERTOS
+  // Explicitly disable systick to prevent its ISR from running before scheduler start
+  SysTick->CTRL &= ~1U;
   // If freeRTOS is used, IRQ priority is limit by max syscall ( smaller is higher )
   NVIC_SetPriority(USB0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
   NVIC_SetPriority(USB1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
@@ -118,13 +105,8 @@ void board_init(void) {
   Chip_UART_TXEnable(UART_DEV);
 
   //------------- USB -------------//
-#if PORT_SUPPORT_DEVICE(0) || PORT_SUPPORT_HOST(0)
   Chip_USB0_Init();
-#endif
-
-#if PORT_SUPPORT_DEVICE(1) || PORT_SUPPORT_HOST(1)
   Chip_USB1_Init();
-#endif
 }
 
 //--------------------------------------------------------------------+
@@ -146,12 +128,16 @@ int board_uart_read(uint8_t *buf, int len) {
 
 int board_uart_write(void const *buf, int len) {
   uint8_t const *buf8 = (uint8_t const *) buf;
-  for (int i = 0; i < len; i++) {
-    while ((Chip_UART_ReadLineStatus(UART_DEV) & UART_LSR_THRE) == 0) {}
-    Chip_UART_SendByte(UART_DEV, buf8[i]);
+  int count = 0;
+  while (count < len) {
+    if (Chip_UART_ReadLineStatus(UART_DEV) & UART_LSR_THRE) {
+      Chip_UART_SendByte(UART_DEV, buf8[count]);
+      count++;
+    } else {
+      break;
+    }
   }
-
-  return len;
+  return count;
 }
 
 #if CFG_TUSB_OS == OPT_OS_NONE
@@ -161,7 +147,7 @@ void SysTick_Handler(void) {
   system_ticks++;
 }
 
-uint32_t board_millis(void) {
+uint32_t tusb_time_millis_api(void) {
   return system_ticks;
 }
 

@@ -2,6 +2,7 @@
 
 #include "Marlin/src/module/prusa/toolchanger.h"
 #include "Marlin/src/module/stepper.h"
+#include <utils/algorithm_extensions.hpp>
 #include <buddy/bootstrap_state.hpp>
 #include <cmsis_os.h>
 #include <common/bsod.h>
@@ -10,6 +11,7 @@
 #include <logging/log.hpp>
 #include <option/has_toolchanger.h>
 #include <tasks.hpp>
+#include <option/has_indx.h>
 
 #include <option/has_dwarf.h>
 #if HAS_DWARF()
@@ -46,6 +48,18 @@
 #if HAS_XBUDDY_EXTENSION()
     #include <puppies/xbuddy_extension_bootstrap.hpp>
     #include <puppies/xbuddy_extension.hpp>
+#endif
+
+#include <option/has_xl_can.h>
+#if HAS_XL_CAN()
+    #include <puppies/xl_can.hpp>
+    #include <puppies/xl_can_bootstrap.hpp>
+    #include <common/extended_printer_type.hpp>
+    #include <config_store/store_instance.hpp>
+#endif
+
+#if HAS_TOOL_OFFSET_SENSOR()
+    #include <puppies/cyphal_bridge_host.hpp>
 #endif
 
 #include <option/has_mmu2.h>
@@ -98,15 +112,6 @@ namespace {
 
 static std::atomic<bool> stop_request = false; // when this is set to true, puppy task will gracefully stop its execution
 
-#if HAS_PUPPY_BOOTSTRAP()
-static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::BootstrapResult minimal_config, [[maybe_unused]] PuppyModbus &bus) {
-    // boostrap first
-    log_info(Puppies, "Starting bootstrap");
-    PuppyBootstrap puppy_bootstrap { PuppyModbus::share_buffer() };
-    return puppy_bootstrap.run(minimal_config);
-}
-#endif
-
 static void puppy_run_timeout() {
 #if PUPPY_TASK_DEBUG()
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -135,6 +140,34 @@ static void xbuddy_extension_verify_running(PuppyModbus &bus) {
 }
 #endif
 
+#if HAS_TOOL_OFFSET_SENSOR()
+[[nodiscard]] bool is_tool_offset_sensor_required() {
+    #if PRINTER_IS_PRUSA_XL()
+    return xl_can.is_enabled() && prusa_toolchanger.get_num_enabled_tools() > 1;
+    #elif HAS_INDX()
+    return true;
+    #else
+        #error
+    #endif
+}
+#endif
+
+#if HAS_XL_CAN()
+static bool xl_can_requires_reset = false;
+static void xl_can_verify_running(PuppyModbus &bus) {
+    constexpr auto timeout_ms = 200;
+    const auto start_ms = ticks_ms();
+    for (;;) {
+        if (xl_can.ping(bus) != CommunicationStatus::ERROR) {
+            return;
+        }
+        if (ticks_diff(ticks_ms(), start_ms) > timeout_ms) {
+            puppy_run_timeout();
+        }
+    }
+}
+#endif
+
 #if HAS_PUPPY_BOOTSTRAP()
 static void verify_puppies_running(PuppyModbus &bus) {
     // wait for all the puppies to be reacheable
@@ -147,7 +180,7 @@ static void verify_puppies_running(PuppyModbus &bus) {
     do {
         bool modular_bed_ok = true;
     #if HAS_PUPPY_MODULARBED()
-        modular_bed_ok = !modular_bed.is_enabled() || (modular_bed.ping(bus) != CommunicationStatus::ERROR);
+        modular_bed_ok = modular_bed.ping(bus) != CommunicationStatus::ERROR;
     #endif
 
         uint8_t num_dwarfs_ok = 0, num_dwarfs_dead = 0;
@@ -167,12 +200,17 @@ static void verify_puppies_running(PuppyModbus &bus) {
         indx_head_ok = buddy::puppies::indx.ping(bus) != CommunicationStatus::ERROR;
     #endif
 
-        if (num_dwarfs_dead == 0 && modular_bed_ok && indx_head_ok) {
+        bool xl_can_ok = true;
+    #if HAS_XL_CAN()
+        xl_can_ok = !buddy::puppies::xl_can.is_enabled() || (buddy::puppies::xl_can.ping(bus) != CommunicationStatus::ERROR);
+    #endif
+
+        if (num_dwarfs_dead == 0 && modular_bed_ok && indx_head_ok && xl_can_ok) {
             log_info(Puppies, "All puppies are reacheable. Continuing");
             return;
         } else if (ticks_diff(reacheability_wait_start + WAIT_TIME, ticks_ms()) > 0) {
-            log_info(Puppies, "Puppies not ready (dwarfs_num: %d/%d, bed: %i, indx: %i), waiting another 200 ms",
-                num_dwarfs_ok, num_dwarfs_ok + num_dwarfs_dead, static_cast<int>(modular_bed_ok), static_cast<int>(indx_head_ok));
+            log_info(Puppies, "Puppies not ready (dwarfs_num: %d/%d, bed: %i, indx: %i, xl_can: %i), waiting another 200 ms",
+                num_dwarfs_ok, num_dwarfs_ok + num_dwarfs_dead, static_cast<int>(modular_bed_ok), static_cast<int>(indx_head_ok), static_cast<int>(xl_can_ok));
             osDelay(200);
             continue;
         } else {
@@ -268,7 +306,6 @@ static void puppy_task_loop(PuppyModbus &bus) {
                 for (int active_fifo_attempts = 5; more && active_fifo_attempts > 0; active_fifo_attempts--) {
                     if (buddy::puppies::indx.pull_fifo(bus, more) == CommunicationStatus::ERROR) {
                         log_error(Puppies, "Loop exit: indx.pull_fifo() ERROR");
-                        ++buddy::puppies::indx.fifo_error_count;
     #if !PUPPY_TASK_DEBUG()
                         return;
     #endif
@@ -279,7 +316,6 @@ static void puppy_task_loop(PuppyModbus &bus) {
                 CommunicationStatus status = indx.refresh(bus);
                 if (status == CommunicationStatus::ERROR) {
                     log_error(Puppies, "Loop exit: indx.refresh() ERROR");
-                    ++buddy::puppies::indx.refresh_error_count;
     #if !PUPPY_TASK_DEBUG()
                     return;
     #endif
@@ -294,9 +330,25 @@ static void puppy_task_loop(PuppyModbus &bus) {
                 CommunicationStatus status = xbuddy_extension.refresh(bus);
                 if (status == CommunicationStatus::ERROR) {
                     log_error(Puppies, "Loop exit: xbuddy_extension.refresh() ERROR");
-                    ++xbuddy_extension.refresh_error_count;
     #if !PUPPY_TASK_DEBUG()
                     xbe_requires_reset = true;
+                    return;
+    #endif
+                }
+
+                worked |= status == CommunicationStatus::OK;
+            }
+#endif
+#if HAS_XL_CAN()
+            if (xl_can.is_enabled()) {
+                CommunicationStatus status = xl_can.refresh(bus);
+                if (status == CommunicationStatus::ERROR) {
+                    log_error(Puppies, "Loop exit: xl_can.refresh() ERROR");
+    #if !PUPPY_TASK_DEBUG()
+                    // Force re-bootstrap of the bridge on recovery; otherwise MB
+                    // stays held in reset (PC13) and never re-enumerates. Mirrors
+                    // xbe_requires_reset above.
+                    xl_can_requires_reset = true;
                     return;
     #endif
                 }
@@ -315,7 +367,7 @@ static void puppy_task_loop(PuppyModbus &bus) {
             }
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
-            {
+            if (tool_offset_sensor.is_enabled()) {
                 CommunicationStatus status = tool_offset_sensor.refresh(bus);
                 if (status == CommunicationStatus::ERROR) {
                     return;
@@ -384,6 +436,13 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
 
 #endif
 
+#if HAS_XL_CAN()
+    if (xl_can.is_enabled() && xl_can.initial_scan(bus) == CommunicationStatus::ERROR) {
+        xl_can_requires_reset = true;
+        return false;
+    }
+#endif
+
 #if HAS_PUPPY_MODULARBED()
     if (modular_bed.initial_scan(bus) == CommunicationStatus::ERROR) {
         return false;
@@ -397,7 +456,7 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()
-    if (tool_offset_sensor.initial_scan(bus) == CommunicationStatus::ERROR) {
+    if (is_tool_offset_sensor_required() && tool_offset_sensor.initial_scan(bus) == CommunicationStatus::ERROR) {
         return false;
     }
 #endif
@@ -442,17 +501,24 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()
+// The sensor sits behind whichever puppy hosts the Cyphal bridge (xBE on INDX,
+// the XL-CAN bridge on XLS); both drive bridge-led firmware flashing. The
+// function pumps the bridge host's refresh + sensor refresh and reports flash
+// progress until the sensor reaches ready.
 [[nodiscard]] static bool wait_for_tool_offset_sensor(PuppyModbus &bus) {
-    // Tool offset sensor is vital part of the printer, there is no upper limit
-    // on how long we are willing to wait for the bootstrap.
+    constexpr int32_t absent_timeout_ms = 2000;
+    uint32_t timeout_start_ms = ticks_ms();
+
+    // On a multitool the sensor is a vital part of the printer, there is no
+    // upper limit on how long we are willing to wait for the bootstrap.
     for (;;) {
         // At this point, puppy_task_loop() is not yet running, so we must
-        // manually call refresh() on puppies. Without this, XBE can't make
+        // manually call refresh() on puppies. Without this, the bridge can't make
         // progress while flashing/veryfing TOOL_OFFSET_SENSOR. It would also stop sending
         // healthy heartbeats which would in turn put TOOL_OFFSET_SENSOR into safe state.
         // We should run this as often as possible to minimize time when
-        // XBE is waiting for firmware chunk.
-        if (xbuddy_extension.refresh(bus) == CommunicationStatus::ERROR) {
+        // the bridge is waiting for firmware chunk.
+        if (cyphal_bridge_host().refresh(bus) == CommunicationStatus::ERROR) {
             return false;
         }
         if (tool_offset_sensor.refresh(bus) == CommunicationStatus::ERROR) {
@@ -462,16 +528,23 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
         using xbuddy_extension::NodeState;
         switch (tool_offset_sensor.get_node_state()) {
         case NodeState::unknown:
+            if (ticks_diff(ticks_ms(), timeout_start_ms) > absent_timeout_ms) {
+                log_info(Puppies, "Tool offset sensor not detected, single tool -> continuing without it");
+                return false;
+            }
             bootstrap_state_set(0, BootstrapStage::tool_offset_sensor_unknown);
             break;
         case NodeState::verify:
+            timeout_start_ms = ticks_ms();
             bootstrap_state_set(0, BootstrapStage::tool_offset_sensor_verify);
             break;
         case NodeState::flash:
-            bootstrap_state_set(xbuddy_extension.get_flash_progress_percent(), BootstrapStage::tool_offset_sensor_flash);
+            timeout_start_ms = ticks_ms();
+            bootstrap_state_set(cyphal_bridge_host().get_flash_progress_percent(), BootstrapStage::tool_offset_sensor_flash);
             break;
         case NodeState::ready:
             bootstrap_state_set(0, BootstrapStage::tool_offset_sensor_ready);
+            tool_offset_sensor.set_enabled(true);
             return true;
         }
     }
@@ -507,6 +580,7 @@ void run() {
 #if HAS_PUPPY_BOOTSTRAP()
     // by default, we want one modular bed and one dwarf
     PuppyBootstrap::BootstrapResult minimal_puppy_config = PuppyBootstrap::MINIMAL_PUPPY_CONFIG;
+    PuppyBootstrap puppy_bootstrap { PuppyModbus::share_buffer() };
 #endif
 
     do {
@@ -532,16 +606,85 @@ void run() {
         xbe_requires_reset = false;
 #endif
 
+#if HAS_XL_CAN()
+        // Probe for the XL-CAN bridge on first boot; the result determines
+        // whether this is an XLS (bridge present) or plain XL (absent). On XLS
+        // the bridge is brought to app mode here before the standard
+        // PuppyBootstrap loop, mirroring the xBE → INDX_HEAD bring-up above.
+        // On plain XL the bridge and tool-offset-sensor stay disabled.
+        if (first_run) {
+            BootloaderProtocol bootloader_protocol { PuppyModbus::share_buffer().data() };
+            xl_can.set_enabled(xl_can_probe(bootloader_protocol));
+            xl_type_detection_result = XLTypeDetectionResult::ok;
+        }
+        if (xl_can.is_enabled() && (first_run || xl_can_requires_reset)) {
+            {
+                BootloaderProtocol bootloader_protocol { PuppyModbus::share_buffer().data() };
+                xl_can_bootstrap(bootloader_protocol);
+            }
+            xl_can_verify_running(bus);
+            // Bridge enters app with PC13 LOW (hal::mmu::init) = MB reset
+            // edge network disarmed. Arming happens inside puppy bootstrap:
+            // write_dock_reset_pin() holds the MODULAR_BED H write for
+            // mb_reset_arm_hold_ms before the reset edge, on every round.
+            xl_can_requires_reset = false;
+
+    #if HAS_PUPPY_BOOTSTRAP()
+            if (first_run) {
+                constexpr auto xls_index = stdext::index_of(extended_printer_type_model, PrinterModel::xls);
+                if (config_store().extended_printer_type.get() != xls_index) {
+                    // Do NOT set the printer type here - we're in a bootstrap retry loop, wait for the final result
+                    // Setting the printer type handled by the reader
+                    xl_type_detection_result = XLTypeDetectionResult::detected_as_xls;
+                }
+            }
+    #endif
+        }
+#endif
+
+#if HAS_XL_CAN() && HAS_PUPPY_BOOTSTRAP() && HAS_PUPPY_MODULARBED()
+        // Bridge absent on first run: determine variant via MB reset controllability check,
+        // or trust the stored type when it already says XL.
+        if (first_run && !xl_can.is_enabled()) {
+            constexpr auto xl_index = stdext::index_of(extended_printer_type_model, PrinterModel::xl);
+            if (config_store().extended_printer_type.get() == xl_index) {
+                // Steady-state plain XL boot: trust the stored type, skip the check.
+                log_info(Puppies, "Bridge absent, stored type is XL — no controllability check");
+            } else {
+                // Stored type is XLS (or unknown default): need to verify the reset line.
+                const PuppyBootstrap::MbResetCheck check = puppy_bootstrap.check_mb_reset_controllable();
+                switch (check) {
+                case PuppyBootstrap::MbResetCheck::controlled:
+                    // Master GPIO controls MB reset → genuine plain XL.
+                    log_info(Puppies, "MB reset controllability: controlled — setting printer type to XL");
+
+                    // Do NOT set the printer type here - we're in a bootstrap retry loop, wait for the final result
+                    // Setting the printer type handled by the reader
+                    xl_type_detection_result = XLTypeDetectionResult::detected_as_xl;
+                    break;
+                case PuppyBootstrap::MbResetCheck::uncontrolled:
+                    // Reset line not reaching MB → XLS with dead/unplugged bridge.
+                    log_info(Puppies, "MB reset controllability: uncontrolled — check XL-CAN cabling");
+                    xl_type_detection_result = XLTypeDetectionResult::wiring_suspected;
+                    // Keep stored type; boot continues without bridge.
+                    break;
+                case PuppyBootstrap::MbResetCheck::no_mb:
+                    // No MB found; normal bootstrap will fatal with PUPPY_NOT_RESPONDING.
+                    log_info(Puppies, "MB reset controllability: no MB found");
+                    break;
+                }
+            }
+        }
+#endif
+
 #if HAS_PUPPY_BOOTSTRAP()
         // reset and flash the puppies
-        auto bootstrap_result = bootstrap_puppies(minimal_puppy_config, bus);
+        log_info(Puppies, "Starting bootstrap");
+        const auto bootstrap_result = puppy_bootstrap.run(minimal_puppy_config);
+
         // once some puppies are detected, consider this minimal puppy config (do no allow disconnection of puppy while running)
         minimal_puppy_config = bootstrap_result;
 
-    #if HAS_PUPPY_MODULARBED()
-        // set what puppies are connected
-        modular_bed.set_enabled(bootstrap_result.is_dock_occupied(Dock::MODULAR_BED));
-    #endif
     #if HAS_DWARF()
         for (const auto dwarf_dock : DWARFS) {
             auto dwarf_index = to_dwarf_index(dwarf_dock);
@@ -552,6 +695,9 @@ void run() {
             }
         }
     #endif
+        // No set_enabled() for the bridge here: it is deliberately absent
+        // from DOCKS, so is_dock_occupied(Dock::XL_CAN) is always false and
+        // would clobber the flag the probe set before puppy bootstrap.
 
         // wait for puppies to boot up, ensure they are running
         verify_puppies_running(bus);
@@ -578,7 +724,7 @@ void run() {
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()
-            if (!wait_for_tool_offset_sensor(bus)) {
+            if (is_tool_offset_sensor_required() && !wait_for_tool_offset_sensor(bus)) {
                 break; // go to puppy recovery
             }
 #endif

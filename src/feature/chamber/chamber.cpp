@@ -58,7 +58,7 @@ Chamber &chamber() {
 }
 
 void Chamber::step() {
-    assert(osThreadGetId() == marlin_server::server_task);
+    debug_assert(osThreadGetId() == marlin_server::server_task);
 
     std::lock_guard _lg(mutex_);
 
@@ -164,6 +164,8 @@ std::optional<Temperature> Chamber::target_temperature() const {
 }
 
 std::optional<Temperature> Chamber::set_target_temperature(std::optional<Temperature> target) {
+    debug_assert(marlin_server::is_marlin_server_thread());
+
     // Wake up heaters if they are timed out
     buddy::safety_timer().reset_restore_nonblocking();
 
@@ -220,6 +222,18 @@ void Chamber::manage_ventilation_state(std::optional<Temperature> fil_target) {
         vent_state_ = target_state;
         break;
     }
+}
+
+void Chamber::close_vents_after_print() {
+    if (vent_state_ != VentState::open) {
+        return;
+    }
+
+    if (config_store().get_vent_control() != VentControl::automatic) {
+        return;
+    }
+
+    automatic_chamber_vents::execute_control(VentState::closed);
 }
 #endif
 

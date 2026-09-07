@@ -8,7 +8,8 @@
 
 #include <option/has_anfc.h>
 #if HAS_ANFC()
-    #include <feature/openprinttag/tool_tag.hpp>
+    #include <feature/openprinttag/utils.hpp>
+    #include <gui/screen/openprinttag/screen_opt_info.hpp>
 #endif
 
 MI_LOADED_FILAMENT::MI_LOADED_FILAMENT(DisplayFormat display_format, uint8_t tool)
@@ -50,29 +51,18 @@ void MI_LOADED_FILAMENT::click(IWindowMenu &) {
     if (should_open_submenu_) {
         Screens::Access()->Open<ScreenLoadedFilaments>();
     } else {
+#if HAS_ANFC()
+        Screens::Access()->Open(buddy::openprinttag::screen_opt_info_loaded_creator(tool_));
+#else
         Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(EncodedFilamentType(filament_type_)));
+#endif
     }
 }
 
 void MI_LOADED_FILAMENT::Loop() {
 #if HAS_ANFC()
     if (!should_open_submenu_) {
-        using buddy::openprinttag::ToolTag;
-        const auto ephemeral_tag = ToolTag::for_tool_ephemeral(tool_);
-        const auto assigned_tag = ToolTag::for_tool_assigned(tool_);
-
-        if (filament_type_ != FilamentType::none && ephemeral_tag != assigned_tag) {
-            // Assigned OpenPrintTag is different to what is currently present
-            SetIconId(&img::openprinttag_orange_16x16);
-
-        } else if (ephemeral_tag.has_value()) {
-            // Tool has a tag assigned and it is present
-            SetIconId(&img::openprinttag_white_16x16);
-
-        } else {
-            // No tag present && no tag assigned
-            SetIconId(nullptr);
-        }
+        SetIconId(buddy::openprinttag::tool_tag_status_icon(tool_));
     }
 #endif
 }

@@ -6,6 +6,7 @@
 #include <option/has_mmu2_over_uart.h>
 #include <option/has_puppies.h>
 #include <option/has_tmc_uart.h>
+#include <bsod/bsod.h>
 
 #if HAS_ESP()
     #include <espif.h>

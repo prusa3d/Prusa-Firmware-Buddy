@@ -1,9 +1,4 @@
-/**
- * @file printer_selftest.hpp
- * @author Radek Vana
- * @brief MK4 selftest header in special MK4 directory
- * @date 2021-09-30
- */
+/// @file
 #pragma once
 
 typedef enum {

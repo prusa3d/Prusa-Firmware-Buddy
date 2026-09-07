@@ -1,5 +1,5 @@
 #include "sha256_multiuse.hpp"
-#include <cassert>
+#include <bsod/bsod.h>
 
 namespace e2ee {
 
@@ -13,7 +13,7 @@ SHA256MultiuseHash::~SHA256MultiuseHash() {
 }
 
 void SHA256MultiuseHash::get_hash(uint8_t *buffer, [[maybe_unused]] size_t buffer_size) {
-    assert(buffer_size == e2ee::HASH_SIZE);
+    debug_assert(buffer_size == e2ee::HASH_SIZE);
     mbedtls_sha256_finish_ret(&sha256_ctx, buffer);
     reset();
 }

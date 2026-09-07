@@ -23,7 +23,6 @@
 
 // clang-format off
 
-#include <buddy/filename_defs.h>
 #include <option/has_crash_detection.h>
 #include <option/has_pause.h>
 #include <option/has_power_panic.h>
@@ -170,11 +169,6 @@
         #define Z_TRIPLE_ENDSTOPS_ADJUSTMENT3 0
     #endif
 #endif
-
-
-// Activate a solenoid on the active extruder with M380. Disable all with M381.
-// Define SOL0_PIN, SOL1_PIN, etc., for each extruder that has a solenoid.
-//#define EXT_SOLENOID
 
 // @section homing
 
@@ -354,12 +348,8 @@
  *  The power on motor currents are set by:
  *    PWM_MOTOR_CURRENT - used by MINIRAMBO & ULTIMAIN_2
  *                         known compatible chips: A4982
- *    DIGIPOT_MOTOR_CURRENT - used by BQ_ZUM_MEGA_3D, RAMBO & SCOOVO_X9H
- *                         known compatible chips: AD5206
  *    DAC_MOTOR_CURRENT_DEFAULT - used by PRINTRBOARD_REVF & RIGIDBOARD_V2
  *                         known compatible chips: MCP4728
- *    DIGIPOT_I2C_MOTOR_CURRENTS - used by 5DPRINT, AZTEEG_X3_PRO, AZTEEG_X5_MINI_WIFI, MIGHTYBOARD_REVE
- *                         known compatible chips: MCP4451, MCP4018
  *
  *  Motor currents can also be set by M907 - M910 and by the LCD.
  *    M907 - applies to all.
@@ -367,31 +357,7 @@
  *    M909, M910 & LCD - only PRINTRBOARD_REVF & RIGIDBOARD_V2
  */
 //#define PWM_MOTOR_CURRENT { 1300, 1300, 1250 }          // Values in milliamps
-//#define DIGIPOT_MOTOR_CURRENT { 135,135,135,135,135 }   // Values 0-255 (RAMBO 135 = ~0.75A, 185 = ~1A)
 //#define DAC_MOTOR_CURRENT_DEFAULT { 70, 80, 90, 80 }    // Default drive percent - X, Y, Z, E axis
-
-// Use an I2C based DIGIPOT (e.g., Azteeg X3 Pro)
-//#define DIGIPOT_I2C
-#if ENABLED(DIGIPOT_I2C) && !defined(DIGIPOT_I2C_ADDRESS_A)
-    /**
-   * Common slave addresses:
-   *
-   *                        A   (A shifted)   B   (B shifted)  IC
-   * Smoothie              0x2C (0x58)       0x2D (0x5A)       MCP4451
-   * AZTEEG_X3_PRO         0x2C (0x58)       0x2E (0x5C)       MCP4451
-   * AZTEEG_X5_MINI_WIFI         0x58              0x5C        MCP4451
-   * MIGHTYBOARD_REVE      0x2F (0x5E)                         MCP4018
-   */
-    #define DIGIPOT_I2C_ADDRESS_A 0x2C // unshifted slave address for first DIGIPOT
-    #define DIGIPOT_I2C_ADDRESS_B 0x2D // unshifted slave address for second DIGIPOT
-#endif
-
-//#define DIGIPOT_MCP4018          // Requires library from https://github.com/stawel/SlowSoftI2CMaster
-#define DIGIPOT_I2C_NUM_CHANNELS 8 // 5DPRINT: 4     AZTEEG_X3_PRO: 8     MKS SBASE: 5
-// Actual motor currents in Amps. The number of entries must match DIGIPOT_I2C_NUM_CHANNELS.
-// These correspond to the physical drivers, so be mindful if the order is changed.
-#define DIGIPOT_I2C_MOTOR_CURRENTS \
-    { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 } //  AZTEEG_X3_PRO
 
 //===========================================================================
 //=============================Additional Features===========================
@@ -645,57 +611,26 @@
             { -50, 1500 / 60.F}, \
         }
 
-    #define PAUSE_PARK_RETRACT_FEEDRATE 40 // (mm/s) Initial retract feedrate.
+    #define PARK_PAUSE_PRIME_LENGTH 4 // (mm) Length of a priming "poop".
+
     /**
      * (mm) Initial retract.
      * This retract is done immediately, before parking the nozzle.
      */
-    #define PAUSE_PARK_RETRACT_LENGTH 8
+    #define STANDARD_RETRACT_LENGTH 8
 #if HAS_INDX()
-    #define FILAMENT_CHANGE_UNLOAD_FEEDRATE 15 // (mm/s) Unload filament feedrate. Needs to be slower for INDX.
+    #define FILAMENT_CHANGE_UNLOAD_LENGTH 55 // (mm) Total lenght for filament unload (For Bowden: full length of the tube + nozzle).
+    #define FILAMENT_CHANGE_SLOW_LOAD_LENGTH 15 // (mm) length of slow inser, set to 0 to skip slow load.
+    #define FILAMENT_CHANGE_FAST_LOAD_LENGTH 25 // (mm) from extruder gear to nozzle (For Bowden: full length of the tube + nozzle).
 #else
-    #define FILAMENT_CHANGE_UNLOAD_FEEDRATE 25 // (mm/s) Unload filament feedrate. This can be pretty fast.
+    #define FILAMENT_CHANGE_UNLOAD_LENGTH 105 // (mm) Total lenght for filament unload (For Bowden: full length of the tube + nozzle).
+    #define FILAMENT_CHANGE_SLOW_LOAD_LENGTH 40 // (mm) length of slow inser, set to 0 to skip slow load.
+    #define FILAMENT_CHANGE_FAST_LOAD_LENGTH 20 // (mm) from extruder gear to nozzle (For Bowden: full length of the tube + nozzle).
 #endif
+
     #define FILAMENT_CHANGE_UNLOAD_ACCEL 25 // (mm/s^2) Lower acceleration may allow a faster feedrate.
-    /**
-     * (mm) The length of filament for a complete unload.
-     * For Bowden, the full length of the tube and nozzle.
-     * For direct drive, the full length of the nozzle.
-     * Set to 0 for manual unloading.
-     */
-#if HAS_INDX()
-    #define FILAMENT_CHANGE_UNLOAD_LENGTH 55
-#else
-    #define FILAMENT_CHANGE_UNLOAD_LENGTH 105
-#endif
-#if HAS_INDX()
-    #define FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE 10 // (mm/s) Slow move when starting load.
-#else
-    #define FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE 6 // (mm/s) Slow move when starting load.
-#endif
-    /**
-     * (mm) Slow length, to allow time to insert material.
-     * 0 to disable start loading and skip to fast load only
-     */
-#if HAS_INDX()
-        #define FILAMENT_CHANGE_SLOW_LOAD_LENGTH 15
-        #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE 15 // (mm/s) Load filament feedrate. Needs to be slower for INDX.
-#else
-        #define FILAMENT_CHANGE_SLOW_LOAD_LENGTH 40
-        #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE 25 // (mm/s) Load filament feedrate. This can be pretty fast.
-#endif
-     #define FILAMENT_CHANGE_FAST_LOAD_ACCEL 25 // (mm/s^2) Lower acceleration may allow a faster feedrate.
-    /**
-     * (mm) Load length of filament, from extruder gear to nozzle.
-     * For Bowden, the full length of the tube and nozzle.
-     * For direct drive, the full length of the nozzle.
-     */
-#if HAS_INDX()
-        #define FILAMENT_CHANGE_FAST_LOAD_LENGTH 25
-#else
-        #define FILAMENT_CHANGE_FAST_LOAD_LENGTH 20
-#endif
-    #define ADVANCED_PAUSE_PURGE_FEEDRATE 3 // (mm/s) Extrude feedrate (after loading). Should be slower than load feedrate.
+    #define FILAMENT_CHANGE_FAST_LOAD_ACCEL 25 // (mm/s^2) Lower acceleration may allow a faster feedrate.
+
     #define ADVANCED_PAUSE_PURGE_LENGTH 40 // (mm) Length to extrude after loading.
 #endif
 
@@ -972,8 +907,7 @@
  * Provides crash detection during printing and proper crash recovery.
  * Sensorless homing must be turned on and sensitivities set accordingly.
  */
-#define CRASH_RECOVERY HAS_CRASH_DETECTION()
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #define CRASH_STALL_GUARD { 2, 2 }    // internal value representing sensitivity
     #define CRASH_MAX_PERIOD { 210, 210 } // (steps per tick) - reciprocal value of minimal speed
     #define CRASH_FILTER (false)          // Stallguard filtering for crash detection
@@ -985,8 +919,7 @@
  * Recovery from power failure. This is a distinct implementation from
  * POWER_LOSS_RECOVERY specific to Prusa printers.
  */
-#define POWER_PANIC HAS_POWER_PANIC()
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
     #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
 
@@ -1079,53 +1012,6 @@
 #endif // HAS_TRINAMIC
 
 // @section extras
-
-/**
- * Spindle & Laser control
- *
- * Add the M3, M4, and M5 commands to turn the spindle/laser on and off, and
- * to set spindle speed, spindle direction, and laser power.
- *
- * SuperPid is a router/spindle speed controller used in the CNC milling community.
- * Marlin can be used to turn the spindle on and off. It can also be used to set
- * the spindle speed from 5,000 to 30,000 RPM.
- *
- * You'll need to select a pin for the ON/OFF function and optionally choose a 0-5V
- * hardware PWM pin for the speed control and a pin for the rotation direction.
- *
- * See http://marlinfw.org/docs/configuration/laser_spindle.html for more config details.
- */
-//#define SPINDLE_LASER_ENABLE
-#if ENABLED(SPINDLE_LASER_ENABLE)
-
-    #define SPINDLE_LASER_ENABLE_INVERT false // set to "true" if the on/off function is reversed
-    #define SPINDLE_LASER_PWM true // set to true if your controller supports setting the speed/power
-    #define SPINDLE_LASER_PWM_INVERT true // set to "true" if the speed/power goes up when you want it to go slower
-    #define SPINDLE_LASER_POWERUP_DELAY 5000 // delay in milliseconds to allow the spindle/laser to come up to speed/power
-    #define SPINDLE_LASER_POWERDOWN_DELAY 5000 // delay in milliseconds to allow the spindle to stop
-    #define SPINDLE_DIR_CHANGE true // set to true if your spindle controller supports changing spindle direction
-    #define SPINDLE_INVERT_DIR false
-    #define SPINDLE_STOP_ON_DIR_CHANGE true // set to true if Marlin should stop the spindle before changing rotation direction
-
-/**
-   *  The M3 & M4 commands use the following equation to convert PWM duty cycle to speed/power
-   *
-   *  SPEED/POWER = PWM duty cycle * SPEED_POWER_SLOPE + SPEED_POWER_INTERCEPT
-   *    where PWM duty cycle varies from 0 to 255
-   *
-   *  set the following for your controller (ALL MUST BE SET)
-   */
-
-    #define SPEED_POWER_SLOPE 118.4
-    #define SPEED_POWER_INTERCEPT 0
-    #define SPEED_POWER_MIN 5000
-    #define SPEED_POWER_MAX 30000 // SuperPID router controller 0 - 30,000 RPM
-
-//#define SPEED_POWER_SLOPE      0.3922
-//#define SPEED_POWER_INTERCEPT  0
-//#define SPEED_POWER_MIN       10
-//#define SPEED_POWER_MAX      100      // 0-100%
-#endif
 
 /**
  * Auto-report temperatures with M155 S<seconds>

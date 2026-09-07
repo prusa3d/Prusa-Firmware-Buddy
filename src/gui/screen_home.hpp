@@ -32,7 +32,6 @@ private:
 
     bool usbInserted;
     bool event_in_progress { false };
-    bool first_event { true };
     static bool need_check_wifi_credentials;
     MediaState_t media_event { MediaState_t::unknown };
 
@@ -70,7 +69,5 @@ private:
     void printBtnDis();
     void filamentBtnSetState();
 
-    void on_enter();
-    void handle_crash_dump();
     void handle_wifi_credentials();
 };

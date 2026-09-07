@@ -4,12 +4,12 @@
 #include <algorithm_scale.hpp>
 #include <bsod/bsod.h>
 
-PrintFanType get_print_fan_type(size_t extruder_nr) {
-    return config_store().print_fan_type.get(extruder_nr);
+PrintFanType get_print_fan_type(PhysicalToolIndex tool) {
+    return config_store().print_fan_type.get(tool.to_raw());
 }
 
-void set_print_fan_type(size_t extruder_nr, PrintFanType pft) {
-    return config_store().print_fan_type.set(extruder_nr, pft);
+void set_print_fan_type(PhysicalToolIndex tool, PrintFanType pft) {
+    return config_store().print_fan_type.set(tool.to_raw(), pft);
 }
 
 #if PRINTER_IS_PRUSA_XL()
@@ -30,6 +30,10 @@ uint16_t print_fan_remap_pwm(PrintFanType pft, uint16_t original_pwm) {
         auto remapped_pwm = scale<uint32_t>(original_pwm, 20 * 255 / 100, 100 * 255 / 100, 40 * 255 / 100, 100 * 255 / 100);
 
         return remapped_pwm;
+    }
+    case PrintFanType::LDO_D5015G08B05X71: {
+        // LDO blower for XLS - no need for remapping, XLS has its own print profiles
+        return original_pwm;
     }
     case PrintFanType::_cnt: {
         break;

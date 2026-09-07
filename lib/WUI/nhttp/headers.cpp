@@ -1,6 +1,5 @@
 #include "headers.h"
 
-#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -8,6 +7,7 @@
 #include <sys/stat.h>
 #include <inttypes.h> // PRIu* macros (not available in <cinttypes>)
 #include <mbedtls/sha256.h>
+#include <bsod/bsod.h>
 
 using http::ConnectionHandling;
 using http::ContentType;
@@ -63,7 +63,7 @@ const StatusText &StatusText::find(Status status) {
 
 size_t write_headers(uint8_t *buffer, size_t buffer_len, Status status, ContentType content_type, ConnectionHandling handling, std::optional<uint64_t> content_length, std::optional<uint32_t> etag, const char *const *extra_hdrs) {
     // Always leave space for the body-newline separator
-    assert(buffer_len > 2);
+    debug_assert(buffer_len > 2);
     buffer_len -= 2;
 
     char *buf = reinterpret_cast<char *>(buffer);

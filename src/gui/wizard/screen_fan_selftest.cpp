@@ -8,6 +8,7 @@
 #include <window_wizard_progress.hpp>
 #include <window_text.hpp>
 #include <status_footer.hpp>
+#include <common/printer_model.hpp>
 
 #include <option/has_indx.h>
 #include <option/has_toolchanger.h>
@@ -39,6 +40,8 @@
 
 #include <option/has_bed_fan.h>
 #include <option/has_psu_fan.h>
+#include <option/has_cpu_fan.h>
+#include <option/has_xl_can.h>
 
 using namespace fan_selftest;
 
@@ -80,6 +83,12 @@ static constexpr const char *en_text_bed_fan = N_("Bed fans");
 #endif
 #if HAS_PSU_FAN()
 static constexpr const char *en_text_psu_fan = N_("PSU fan");
+#endif
+#if HAS_CPU_FAN()
+static constexpr const char *en_text_cpu_fan = N_("CPU fan");
+#endif
+#if HAS_XL_CAN()
+static constexpr const char *en_text_bed_mcu_fan = N_("Bed MCU fan");
 #endif
 
 #if PRINTER_IS_PRUSA_MK3_5()
@@ -137,6 +146,18 @@ namespace frame {
 #if HAS_PSU_FAN()
         window_text_t psu_fan_label;
         WindowIconOkNgArray psu_fan_icons;
+#endif
+
+#if HAS_CPU_FAN()
+        window_text_t cpu_fan_label;
+        window_icon_t cpu_fan_label_icon;
+        WindowIconOkNgArray cpu_fan_icons;
+#endif
+
+#if HAS_XL_CAN()
+        window_text_t bed_mcu_fan_label;
+        window_icon_t bed_mcu_fan_label_icon;
+        WindowIconOkNgArray bed_mcu_fan_icons;
 #endif
 
         void show_results() {
@@ -207,6 +228,16 @@ namespace frame {
 #if HAS_PSU_FAN()
             process_fan_result(config_store().psu_fan_selftest_result.get(), psu_fan_icons, 0);
 #endif
+#if HAS_CPU_FAN()
+            if (PrinterModelInfo::current().model == PrinterModel::xls) {
+                process_fan_result(config_store().cpu_fan_selftest_result.get(), cpu_fan_icons, 0);
+            }
+#endif
+#if HAS_XL_CAN()
+            if (PrinterModelInfo::current().model == PrinterModel::xls) {
+                process_fan_result(config_store().bed_mcu_fan_selftest_result.get(), bed_mcu_fan_icons, 0);
+            }
+#endif
 
 #if HAS_SWITCHED_FAN_TEST()
             if (switched_fans) {
@@ -258,6 +289,16 @@ namespace frame {
 #if HAS_PSU_FAN()
             , psu_fan_label { parent, Rect16( col_texts, row_7, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_psu_fan) }
             , psu_fan_icons { make_fan_icon_array(parent, row_7, 1) }
+#endif
+#if HAS_CPU_FAN()
+            , cpu_fan_label { parent, Rect16(col_texts, row_5, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_cpu_fan) }
+            , cpu_fan_label_icon { parent, &img::cpu_16x16, point_i16_t({ WizardDefaults::col_0, row_5 }) }
+            , cpu_fan_icons { make_fan_icon_array(parent, row_5, 1) }
+#endif
+#if HAS_XL_CAN()
+            , bed_mcu_fan_label { parent, Rect16(col_texts, row_6, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_bed_mcu_fan) }
+            , bed_mcu_fan_label_icon { parent, &img::fan_16x16, point_i16_t({ WizardDefaults::col_0, row_6 }) }
+            , bed_mcu_fan_icons { make_fan_icon_array(parent, row_6, 1) }
 #endif
         // clang-format on
         {
@@ -319,6 +360,25 @@ namespace frame {
     #error Enclosure filtration fan selftest should be implemented
 
 #endif /* HAS_CHAMBER_API() */
+
+#if HAS_CPU_FAN()
+            // CPU fan only physically exists on XLS; hide the row on plain XL.
+            if (PrinterModelInfo::current().model != PrinterModel::xls) {
+                cpu_fan_label.Hide();
+                cpu_fan_label_icon.Hide();
+                cpu_fan_icons.Hide();
+            }
+#endif
+
+#if HAS_XL_CAN()
+            // Modular Bed cooling fan lives on the XL-CAN bridge, present only
+            // on XLS; hide the row on plain XL.
+            if (PrinterModelInfo::current().model != PrinterModel::xls) {
+                bed_mcu_fan_label.Hide();
+                bed_mcu_fan_label_icon.Hide();
+                bed_mcu_fan_icons.Hide();
+            }
+#endif
 
             switch (phase) {
             case PhasesFansSelftest::test_100_percent:

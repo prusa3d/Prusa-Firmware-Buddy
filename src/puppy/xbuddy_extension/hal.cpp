@@ -1,23 +1,30 @@
 /// @file
 #include "hal.hpp"
 
-#include "extension_variant.h"
+#include "option/extension_variant.h"
 #include "hal_clock.hpp"
 #include "hal_ext_fs.hpp"
-#include "hal_gpio_expander.hpp"
-#include "hal_mmu.hpp"
+#include "hal_mmu_port.hpp"
 #include "hal_pub.hpp"
 #include "hal_rs485.hpp"
 #include "hal_rng.hpp"
 #include "hal_usb.hpp"
 #include <array>
 #include <bitset>
-#include <cassert>
 #include <freertos/timing.hpp>
 #include <stm32h5xx_hal.h>
 #include <stm32h5xx_ll_gpio.h>
 
 #include <utils/timing/timer_event_period_tracker.hpp>
+
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include "hal_mmu.hpp"
+#endif
+
+#if HAS_GPIO_EXPANDER()
+    #include "hal_gpio_expander.hpp"
+#endif
 
 // Default prescaler for our timers.
 // 6 MHz clock (30 MHz peripheral clock, *2 to timer, /10 prescaler)
@@ -25,7 +32,9 @@ static constexpr uint32_t default_prescaler = 10;
 
 extern "C" void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
     hal::rs485::msp_init(huart);
+#if HAS_MMU2()
     hal::mmu::msp_init(huart);
+#endif
 }
 
 extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
@@ -34,12 +43,16 @@ extern "C" void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 
 extern "C" void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
     hal::rs485::rx_callback(huart, size);
+#if HAS_MMU2()
     hal::mmu::rx_callback(huart, size);
+#endif
 }
 
 extern "C" void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     hal::rs485::tx_callback(huart);
+#if HAS_MMU2()
     hal::mmu::tx_callback(huart);
+#endif
 }
 
 extern "C" void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
@@ -70,7 +83,7 @@ extern "C" void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
 
 static void tim1_postinit() {
     __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**TIM2 GPIO Configuration
+    /**TIM1 GPIO Configuration
     PA8     ------> TIM1_CH1
     PA9     ------> TIM1_CH2
     PA10    ------> TIM1_CH3
@@ -122,7 +135,9 @@ static void tim3_postinit() {
     PB0     ------> TIM3_CH3
     */
     GPIO_InitTypeDef GPIO_InitStruct {
-        .Pin = GPIO_PIN_6 | GPIO_PIN_7,
+        .Pin = GPIO_PIN_7
+            | (PA6_PIN_DRIVES_W_LED() ? GPIO_PIN_6 : 0) //
+        ,
         .Mode = GPIO_MODE_AF_PP,
         .Pull = GPIO_NOPULL,
         .Speed = GPIO_SPEED_FREQ_LOW,
@@ -220,8 +235,10 @@ static void tim3_init() {
     __HAL_RCC_TIM3_FORCE_RESET();
     __HAL_RCC_TIM3_RELEASE_RESET();
 
+#if PA6_PIN_DRIVES_W_LED()
     // channel 1 settings
     TIM3->CCMR1 |= (TIM_OCMODE_PWM1 << 0) | TIM_CCMR1_OC1PE;
+#endif
 
     // channel 2 settings
     TIM3->CCMR1 |= (TIM_OCMODE_PWM2 << 8) | TIM_CCMR1_OC2PE;
@@ -230,7 +247,9 @@ static void tim3_init() {
     TIM3->CCMR2 |= (TIM_OCMODE_PWM2 << 0) | TIM_CCMR2_OC3PE;
 
     // enable output of channels
-    TIM3->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E;
+    TIM3->CCER = TIM_CCER_CC2E | TIM_CCER_CC3E
+        | (PA6_PIN_DRIVES_W_LED() ? TIM_CCER_CC1E : 0) //
+        ;
 
     // 6 MHz clock (30 MHz peripheral clock, *2 to timer, /10 prescaler)
     TIM3->PSC = default_prescaler - 1;
@@ -364,8 +383,16 @@ void hal::init() {
     tim3_postinit();
     MX_ADC1_Init();
     hal::rs485::init();
+    hal::mmu_port::init();
+#if HAS_MMU2()
     hal::mmu::init();
+#endif
+#if EXTENSION_IS_XL_CAN()
+    hal::fan_power::init();
+#endif
+#if HAS_GPIO_EXPANDER()
     hal::gpio_expander::init();
+#endif
 
     hal::usb::init();
 #if EXTENSION_IS_IX()
@@ -524,6 +551,51 @@ uint32_t hal::fan3::get_rpm() {
     return tim1_period_to_rpm(tim1_cc3);
 }
 
+#if EXTENSION_IS_XL_CAN()
+
+void hal::fan_power::init() {
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+
+    // Park the gate off before switching PA6 to output: the board pull-up
+    // holds the active-low EN high (off) from MCU reset until here, and
+    // pre-loading ODR makes the mode switch glitch-free.
+    enable_pin_set(false);
+    constexpr GPIO_InitTypeDef enable {
+        .Pin = GPIO_PIN_6,
+        .Mode = GPIO_MODE_OUTPUT_PP,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = 0,
+    };
+    static_assert(PA6_PIN_DRIVES_FAN_POWER());
+    HAL_GPIO_Init(GPIOA, &enable);
+
+    // Open-drain fault from the TPS2041C, board 10k pull-up.
+    constexpr GPIO_InitTypeDef fault {
+        .Pin = GPIO_PIN_13,
+        .Mode = GPIO_MODE_INPUT,
+        .Pull = GPIO_NOPULL,
+        .Speed = GPIO_SPEED_FREQ_LOW,
+        .Alternate = 0,
+    };
+    static_assert(!HAS_GPIO_EXPANDER(), "PB13 is used by the GPIO expander");
+    HAL_GPIO_Init(GPIOB, &fault);
+}
+
+void hal::fan_power::enable_pin_set(bool enabled) {
+    static_assert(PA6_PIN_DRIVES_FAN_POWER());
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, enabled ? GPIO_PIN_RESET : GPIO_PIN_SET);
+}
+
+bool hal::fan_power::fault_pin_get() {
+    static_assert(!HAS_GPIO_EXPANDER(), "PB13 is used by the GPIO expander");
+    return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13) == GPIO_PIN_RESET;
+}
+
+#endif
+
+#if PA6_PIN_DRIVES_W_LED()
 void hal::w_led::set_pwm(DutyCycle duty_cycle) {
     TIM3->CCR1 = duty_cycle;
 }
@@ -539,6 +611,7 @@ void hal::w_led::set_frequency(uint16_t freq) {
 
     TIM3->PSC = prescaler - 1;
 }
+#endif
 
 void hal::rgbw_led::set_r_pwm(DutyCycle duty_cycle) {
     TIM2->CCR4 = duty_cycle;

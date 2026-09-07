@@ -1,6 +1,7 @@
 #include "window_line_connector.hpp"
 
 #include "display.hpp"
+#include <bsod/bsod.h>
 
 window_line_connector::window_line_connector(window_t *parent, Rect16 rect)
     : window_aligned_t(parent, rect) {
@@ -29,7 +30,7 @@ void window_line_connector::unconditionalDraw() {
     display::fill_rect(this_rect, COLOR_BLACK);
 
     // horizontal mode not yet implemented
-    assert(parent_side == ParentSide::left || parent_side == ParentSide::right);
+    debug_assert(parent_side == ParentSide::left || parent_side == ParentSide::right);
 
     // ps -> parent side, cs -> child side
     const auto [ps_shared_coord, cs_shared_coord] = [&]() -> std::pair<uint16_t, uint16_t> {
@@ -43,7 +44,7 @@ void window_line_connector::unconditionalDraw() {
         case ParentSide::right:
             return std::make_pair(this_rect.Right(), this_rect.Left());
         }
-        assert(false);
+        debug_assert(false);
         return std::make_pair(0, 0);
     }();
 

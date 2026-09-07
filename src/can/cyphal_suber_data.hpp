@@ -10,7 +10,7 @@
 
 #include <FreeRTOS.h>
 #include <semphr.h>
-#include <assert.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -95,7 +95,7 @@ public:
      * @return data and metadata or nullopt if timeout
      */
     [[nodiscard]] std::optional<std::pair<T, Meta>> get_data_meta_timeout(TickType_t mutex_timeout, size_t index = 0) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex(mutex_timeout);
         if (lock.is_locked() == false) {
             return std::nullopt;
@@ -109,9 +109,9 @@ public:
      * @return data and metadata
      */
     [[nodiscard]] std::pair<T, Meta> get_data_meta(size_t index = 0) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex();
-        assert(lock.is_locked());
+        debug_assert(lock.is_locked());
         return std::pair<T, Meta>(data[index], meta[index]);
     }
 
@@ -122,7 +122,7 @@ public:
      * @return data or nullopt if timeout
      */
     [[nodiscard]] std::optional<T> get_data_timeout(TickType_t mutex_timeout, size_t index = 0) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex(mutex_timeout);
         if (lock.is_locked() == false) {
             return std::nullopt;
@@ -136,9 +136,9 @@ public:
      * @return data
      */
     [[nodiscard]] T get_data(size_t index = 0) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex();
-        assert(lock.is_locked());
+        debug_assert(lock.is_locked());
         return data[index];
     }
 
@@ -150,7 +150,7 @@ public:
      * @return true if set, false if mutex timeout
      */
     bool set_data(const T &data_, size_t index = 0, TickType_t mutex_timeout = portMAX_DELAY) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex(mutex_timeout);
         if (lock.is_locked() == false) {
             return false;
@@ -169,7 +169,7 @@ public:
      * @return return from transformer if applied, false if mutex timeout
      */
     [[nodiscard]] bool transform_data(std::function<bool(T &data)> transformer, size_t index = 0, TickType_t mutex_timeout = portMAX_DELAY) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex(mutex_timeout);
         if (lock.is_locked() == false) {
             return false;
@@ -188,7 +188,7 @@ public:
      * @return true if set, false if mutex timeout
      */
     bool set_node_id(size_t index, CanardNodeID node_id, TickType_t mutex_timeout = portMAX_DELAY) {
-        assert(index < SOURCES);
+        debug_assert(index < SOURCES);
         auto lock = cyphal_task.lock_subers_mutex(mutex_timeout);
         if (lock.is_locked() == false) {
             return false;

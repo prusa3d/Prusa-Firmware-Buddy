@@ -50,8 +50,11 @@ private:
     DynamicIndexMapping<items> index_mapping;
     FilamentList filament_list;
 
+    /// Tool(s) the filament list is filtered for (hotend compatibility):
+    /// AllTools for the "Set All To" item, a specific tool otherwise.
+    const std::variant<VirtualToolIndex, AllTools> tool_filter_;
+
     bool has_filament_loaded : 1 = false;
-    bool set_all_to_mode : 1 = false;
 };
 
 class MI_ApplyChanges : public IWindowMenuItem {
@@ -89,11 +92,14 @@ protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 private:
-    void carry_out_changes();
+    [[nodiscard]] bool carry_out_changes();
 
 private:
     MenuMultiFilamentChange_::Container container;
     bool close_screen_on_media_disconnect_ = false;
+
+    /// Open the "Set All To" picker on the next LOOP event (deferred from ScreenChangeAllFilaments(SetupLoadAll))
+    bool set_all_to_picker_pending_ = false;
 };
 
 } // namespace multi_filament_change
@@ -110,4 +116,7 @@ public:
 
     struct SetupUnloadAll {};
     ScreenChangeAllFilaments(SetupUnloadAll);
+
+    struct SetupLoadAll {};
+    ScreenChangeAllFilaments(SetupLoadAll);
 };

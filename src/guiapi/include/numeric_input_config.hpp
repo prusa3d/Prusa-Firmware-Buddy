@@ -57,5 +57,13 @@ public:
     }
 };
 
+/// Owns a NumericInputConfig by value so a WiSpin subclass can supply a per-instance,
+/// dynamically-computed config. WiSpin keeps its config by reference, so a subclass that needs
+/// a computed (e.g. per-tool) config derives from this holder *before* WiSpin — the holder is
+/// then constructed first and outlives the WiSpin subobject that references it.
+struct NumericInputConfigHolder {
+    NumericInputConfig owned_config;
+};
+
 /// Similar to monostate
 struct SpecialNumericValue {};

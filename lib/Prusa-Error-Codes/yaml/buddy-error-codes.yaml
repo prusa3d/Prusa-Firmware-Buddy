@@ -31,13 +31,6 @@ Errors:
     gui_layout: "warning_dialog"
     approved: true
 
-  - code: "XX101"
-    printers: [XL]
-    title: "TOOLCHANGER ERROR"
-    text: "Check all tools if they are properly parked or picked."
-    id: "TOOLCHANGER"
-    approved: true
-
   - code: "XX102"
     printers: [iX, COREONE, COREONE_INDX, COREONEL, COREONEL_INDX]
     title: "PRECISE HOMING FAILED"
@@ -265,41 +258,46 @@ Errors:
     printers: [COREONE_INDX, COREONEL_INDX]
     title: "Tool lost"
     text: "The tool was not detected during operation. The printer must rehome before continuing."
-    id: "NOZZLE_MISMATCH_TOOL_LOST"
+    id: "NOZZLE_MISMATCH_TOOL_LOST_OLD"
     gui_layout: "warning_dialog"
     approved: true
+    deprecated: true
 
   - code: "XX125"
     printers: [COREONE_INDX, COREONEL_INDX]
     title: "Tool pickup failed"
     text: "The tool was not detected after pickup."
-    id: "NOZZLE_MISMATCH_PICKUP_FAILED"
+    id: "NOZZLE_MISMATCH_PICKUP_FAILED_OLD"
     gui_layout: "warning_dialog"
     approved: true
+    deprecated: true
 
   - code: "XX126"
     printers: [COREONE_INDX, COREONEL_INDX]
     title: "Retry pickup"
     text: "Make sure the tool is properly seated in the dock, then press Continue."
-    id: "NOZZLE_MISMATCH_PICKUP_RETRY"
+    id: "NOZZLE_MISMATCH_PICKUP_RETRY_OLD"
     gui_layout: "warning_dialog"
     approved: true
+    deprecated: true
 
   - code: "XX127"
     printers: [COREONE_INDX, COREONEL_INDX]
     title: "Tool park failed"
     text: "The tool is still detected after parking."
-    id: "NOZZLE_MISMATCH_PARK_FAILED"
+    id: "NOZZLE_MISMATCH_PARK_FAILED_OLD"
     gui_layout: "warning_dialog"
     approved: true
+    deprecated: true
 
   - code: "XX128"
     printers: [COREONE_INDX, COREONEL_INDX]
     title: "Retry parking"
     text: "Make sure the dock is accessible and empty, then press Continue."
-    id: "NOZZLE_MISMATCH_PARK_RETRY"
+    id: "NOZZLE_MISMATCH_PARK_RETRY_OLD"
     gui_layout: "warning_dialog"
     approved: true
+    deprecated: true
 
   - code: "XX129"
     printers: [COREONE_INDX, COREONEL_INDX]
@@ -310,7 +308,7 @@ Errors:
     approved: true
 
   - code: "XX130"
-    printers: [COREONE_INDX, COREONEL_INDX]
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Tool Offset Failed"
     text: "Tool offset calibration failed. Make sure the nozzle and the sensor are clean.\nCaution: the nozzle may be hot."
     id: "TOOL_OFFSET_CALIBRATION_FAILED"
@@ -318,7 +316,7 @@ Errors:
     approved: true
 
   - code: "XX131"
-    printers: [COREONE_INDX, COREONEL_INDX]
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Unsafe Z Tool Offset"
     text: "The measured Z offset exceeds the safe limit. Make sure the nozzle and the sensor are clean.\nCaution: the nozzle may be hot."
     id: "TOOL_OFFSET_UNSAFE_Z_DEVIATION"
@@ -327,14 +325,14 @@ Errors:
 
   - code: "XX132"
     printers: [COREONE_INDX, COREONEL_INDX]
-    title: "Vent Area Obstruction"
-    text: "An unexpected obstruction was detected in the vent control area."
+    title: "Dock Area Obstruction"
+    text: "An unexpected obstruction was detected in the dock area."
     id: "UNEXPECTED_TOOL"
     gui_layout: "red_screen"
     approved: true
 
   - code: "XX133"
-    printers: [COREONE_INDX, COREONEL_INDX]
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Unsafe XY Tool Offset"
     text: "The measured XY offset exceeds the safe limit. Make sure the nozzle and the sensor are clean.\nCaution: the nozzle may be hot."
     id: "TOOL_OFFSET_UNSAFE_XY"
@@ -342,10 +340,86 @@ Errors:
     approved: true
 
   - code: "XX134"
-    printers: [COREONE_INDX, COREONEL_INDX]
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Unsafe Sensor Position"
     text: "The tool offset sensor position exceeds the safe limit. Make sure the nozzle and the sensor are clean.\nCaution: the nozzle may be hot."
     id: "TOOL_OFFSET_UNSAFE_SENSOR_XY"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX135"
+    printers: [XL, COREONE_INDX, COREONEL_INDX]
+    title: "TOOLCHANGER ERROR"
+    text: "Check all tools if they are properly parked or picked."
+    id: "TOOLCHANGER"
+    gui_layout: "red_screen"
+    approved: true
+
+  - code: "XX136"
+    printers: [XL, COREONE_INDX, COREONEL_INDX]
+    title: "CALIBRATE DOCK FROM MENU"
+    text: "Please run Dock Position Calibration from the Calibrations menu. Continuing can result in homing shifts and toolcrashes."
+    id: "DOCK_CALIBRATION_FROM_MENU_NEEDED"
+    gui_layout: "red_screen"
+    approved: true
+
+  - code: "XX137"
+    printers: [COREONE_INDX, COREONEL_INDX]
+    title: "Tool lost"
+    text: "The tool was not detected during operation. Motors are disabled. Put the tool back to its dock, then press Continue."
+    id: "NOZZLE_MISMATCH_TOOL_LOST"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX138"
+    printers: [COREONE_INDX, COREONEL_INDX]
+    title: "Tool pickup failed"
+    text: "The tool was not detected after pickup. Motors are disabled. Make sure the tool is in its dock, then press Retry."
+    id: "NOZZLE_MISMATCH_PICKUP_FAILED"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX139"
+    printers: [COREONE_INDX, COREONEL_INDX]
+    title: "Tool park failed"
+    text: "The tool is still detected after parking. Motors are disabled. Make sure the dock is empty, then press Retry."
+    id: "NOZZLE_MISMATCH_PARK_FAILED"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX140"
+    printers: [COREONE, COREONEL]
+    title: "HOTEND BURN RISK"
+    text: "The nozzle is very hot. Close the door to prevent burns."
+    action: []
+    id: "HOTEND_BURN_RISK"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX141"
+    printers: [XL]
+    title: "Printer Type Set to XL+"
+    text: "XL-CAN bridge detected. Printer type has been set to Prusa XL+. Settings have been updated."
+    id: "PRINTER_DETECTED_AS_XLS"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX142"
+    printers: [XL]
+    title: "Printer Type Set to XL"
+    text: "No XL-CAN bridge found. Printer type has been set to Original Prusa XL. Settings have been updated."
+    id: "PRINTER_DETECTED_AS_XL"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX143"
+    printers: [XL]
+    title: "Check XL-CAN Connection"
+    text: "XL-CAN bridge is not responding and the Modular Bed reset is not under printer control. Cabling or board failure."
+    id: "XL_CAN_WIRING_SUSPECTED"
+    type: WARNING
     gui_layout: "warning_dialog"
     approved: true
 
@@ -1005,6 +1079,14 @@ Errors:
     title: "AC CONTROLLER FAULT"
     text: "Power supply unit is operating outside of specification."
     id: "AC_CONTROLLER_PSU_NOK"
+    gui_layout: "red_screen"
+    approved: true
+
+  - code: "XX340"
+    printers: [COREONE_INDX, COREONEL_INDX]
+    title: "HEATER COIL FAULT"
+    text: "A problem with the heater coil has been detected. Visually inspect the coil on the INDX Head. If it appears damaged, please contact support."
+    id: "INDX_HEAD_COIL_FAULTY"
     gui_layout: "red_screen"
     approved: true
 
@@ -1927,7 +2009,7 @@ Errors:
     type: "CONNECT"
     gui_layout: "warning_dialog"
     approved: true
- 
+
   - code: "XX850"
     printers: [COREONE_INDX, COREONEL_INDX]
     title: "Nozzle Cleaner Full"
@@ -1950,6 +2032,17 @@ Errors:
     title: "Empty Nozzle Cleaner"
     text: "Empty the nozzle cleaner, then press Done."
     id: "NOZZLE_CLEANER_EMPTY"
+    type: "CONNECT"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  # - code: "XX853" REMOVED
+
+  - code: "XX854"
+    printers: [iX, MK4, COREONE, COREONE_INDX, COREONEL, COREONEL_INDX, MK3.5, MINI, XL]
+    title: "Incompatible filament"
+    text: "The filament is not compatible with the current printer hardware setup."
+    id: "FILAMENT_INCOMPATIBLE"
     type: "CONNECT"
     gui_layout: "warning_dialog"
     approved: true

@@ -1,7 +1,10 @@
 #include "numeric_input_config.hpp"
 
+#include <variant>
+
 #include <option/has_chamber_api.h>
 #include <option/has_heatbreak_temp.h>
+#include <tool_index.hpp>
 
 namespace numeric_input_config {
 
@@ -11,11 +14,17 @@ static constexpr NumericInputConfig network_port = {
     .max_value = 65535,
 };
 
-/// Numeric config for setting the nozzle temperature: 0 - max temp, 0 = Off
-extern const NumericInputConfig nozzle_temperature;
+/// Numeric config for setting the nozzle temperature: 0 - max temp, 0 = Off.
+/// Returned by value: the caller must own it (e.g. via NumericInputConfigHolder). Different
+/// tools may have different max temps, so a shared-static instance would be unsafe when several
+/// per-tool spin items coexist.
+/// @param tool A specific tool, or AllTools for the range covering every installed hotend.
+NumericInputConfig nozzle_temperature(std::variant<PhysicalToolIndex, AllTools> tool);
 
-/// Numeric config for setting nozzle temperature for a filament type - EXTRUDE_MINTEMP - maxtemp
-extern const NumericInputConfig filament_nozzle_temperature;
+/// Numeric config for a filament type's nozzle temperature: EXTRUDE_MINTEMP - max temp.
+/// Returned by value, see nozzle_temperature().
+/// @param tool A specific tool, or AllTools for the range covering every installed hotend.
+NumericInputConfig filament_nozzle_temperature(std::variant<PhysicalToolIndex, AllTools> tool);
 
 extern const NumericInputConfig bed_temperature;
 

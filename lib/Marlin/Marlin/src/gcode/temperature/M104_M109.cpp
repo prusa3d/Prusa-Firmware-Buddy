@@ -87,12 +87,14 @@ void GcodeSuite::M104() {
  *
  *#### Usage
  *
- *    M109 [ S | R | D | F | T ]
+ *    M109 [ S | R | C | D | F | T ]
  *
  * #### Parameters
  *
  * - `S` - Wait for extruder(s) to reach temperature. Waits only when heating.
  * - `R` - Wait for extruder(s) to reach temperature. Waits when heating and cooling.
+ * - `C` - Wait until the hotend reaches this temperature without changing the target.
+ *         Waits only when heating, at most as long as a regular target wait.
  * - `D` - Display temperature (otherwise actual temp will be displayed)
  * - `F` - Autotemp flag.
  * - `T` - Tool
@@ -108,7 +110,8 @@ void GcodeSuite::M109() {
     .wait_heat = parser.seenval('S'),
     .wait_heat_or_cool = parser.seenval('R'),
     .autotemp = parser.boolval('F'),
-    .display_temp = parser.seenval('D') ? std::optional<float>(parser.value_celsius()) : std::nullopt
+    .display_temp = parser.seenval('D') ? std::optional<float>(parser.value_celsius()) : std::nullopt,
+    .early_return_temperature = parser.seenval('C') ? std::optional<float>(parser.value_celsius()) : std::nullopt,
   };
   M109_no_parser(*tool, flags);
 }
@@ -133,8 +136,8 @@ void M109_no_parser(PhysicalToolIndex tool, const M109Flags& flags) {
     }
   }
 
-  if (set_temp) {
-    (void)thermalManager.wait_for_hotend(tool, no_wait_for_cooling, flags.autotemp);
+  if (set_temp || flags.early_return_temperature.has_value()) {
+    (void)thermalManager.wait_for_hotend(tool, { .no_wait_for_cooling = no_wait_for_cooling, .fan_cooling = flags.autotemp, .early_return_temperature = flags.early_return_temperature });
   }
 
   return;

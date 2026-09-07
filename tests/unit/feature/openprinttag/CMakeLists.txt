@@ -45,6 +45,7 @@ add_executable(
   ${OPT_SRC}/filament_usage_tracker/filament_usage_tracker.cpp
   ${OPT_SRC}/detail/requests_multi_base.cpp
   ${OPT_SRC}/tool_tag.cpp
+  ${OPT_SRC}/data_utils.cpp
   filament_usage_tracker_tests.cpp
   )
 target_include_directories(

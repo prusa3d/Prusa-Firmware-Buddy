@@ -31,6 +31,8 @@
   #include <metric.h>
 #endif
 
+#include <option/has_dwarf.h>
+#include <option/has_toolchanger.h>
 #include <option/has_planner.h>
 #if HAS_PLANNER()
   #include <module/stepper.h>
@@ -1243,6 +1245,13 @@ void test_tmc_connection(const bool test_x, const bool test_y, const bool test_z
 
 static void initial_test_tmc_connection(AxisEnum axis) {
   auto& stepper = stepper_axis(axis);
+  // Do not test remotely connected stepper drivers
+  // Remotely connected stepper drivers are tested individually by the dwarf/puppies
+  // using this same code, but as local
+  if (stepper.get_connection() == TMCStepper::Connection::Remote) {
+    return;
+  }
+
   const auto reg = stepper.DRV_STATUS();
   if(reg == 0xFFFFFFFF || reg == 0) {
     bsod("TMC error %i (0x%08lx)", (int)axis, (unsigned long)reg);

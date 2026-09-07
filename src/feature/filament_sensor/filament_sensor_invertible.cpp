@@ -6,6 +6,7 @@
 #include <option/has_fsensor_invertible.h>
 #include <option/has_side_fsensor_invertible.h>
 #include <feature/filament_sensor/calibrator/filament_sensor_calibrator_invertible.hpp>
+#include <bsod/bsod.h>
 
 FilamentSensorState FSensorInvertible::inverted_state(FilamentSensorState state, bool inverted) {
     if (!inverted) {
@@ -52,7 +53,10 @@ void FSensorInvertible::load_settings() {
 }
 
 void FSensorInvertible::cycle() {
-    if (!is_calibrated_) {
+    if (raw_state_.load() == FilamentSensorState::NotConnected) {
+        // A disconnected sensor cannot be calibrated nor read; not-connected takes priority over not-calibrated.
+        state = FilamentSensorState::NotConnected;
+    } else if (!is_calibrated_) {
         state = FilamentSensorState::NotCalibrated;
     } else {
         state = inverted_state(raw_state_, is_inverted_);

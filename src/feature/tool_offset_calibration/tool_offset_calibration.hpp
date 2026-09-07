@@ -6,8 +6,12 @@
 
 #include <feature/contactless_offset/contactless_offset.hpp>
 #include <tool_index.hpp>
+#include <option/tool_offset_sensor_geometry.h>
 
 namespace tool_offset_calibration {
+
+/// Relative Z raise to get the nozzle clear of the bed/sensor after a failure or abort
+inline constexpr float FAILURE_Z_RAISE = 5.0f;
 
 /// Context in which the calibration is being run.
 /// In `Calibration` mode (e.g. selftest / cleaner-calibration wizard) the caller has prompted the
@@ -47,10 +51,30 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context = Context::Print,
 /// @return true if calibration was successful
 bool calibrate_xy_offset(PhysicalToolIndex tool, const tool_offset::ProbingConfig &config, Context context = Context::Print);
 
+#if TOOL_OFFSET_SENSOR_GEOMETRY_IS_SINGLE_COIL()
 /// Overwrite the sensor position in `config` with the calibrated value from the
 /// config store, unless that value differs from the default by more than
 /// `sensor_position_error_threshold` (in which case the default is kept and an
 /// error is logged).
+///
+/// Single-coil only: the store holds one sensor position, while dual-coil has a
+/// separate coil per axis (TODO WP5.4: per-coil storage + migration).
 void apply_stored_sensor_position(tool_offset::ProbingConfig &config);
+#else
+/// Dual-coil counterpart of apply_stored_sensor_position: shift both coils and
+/// the Z-probe spot in `config` by the stored whole-sensor displacement, clamped
+/// so all shifted geometry stays within travel. A corrupt stored value (component
+/// over `sensor_displacement_error_threshold`) is reset to zero.
+/// @return the displacement actually applied
+xy_pos_t apply_stored_sensor_displacement(tool_offset::ProbingConfig &config);
+#endif
+
+/// True iff the contactless tool-offset hardware is reachable in this
+/// build/runtime configuration. The xlBuddy master image is shared between
+/// plain XL (no bridge, no sensor) and XLS (bridge + sensor on dock 9), so
+/// the compile-time HAS_TOOL_OFFSET_SENSOR() flag isn't sufficient on its
+/// own — the sensor driver discriminates at runtime via the bridge presence
+/// flag set by the puppy bootstrap.
+[[nodiscard]] bool is_hardware_available();
 
 } // namespace tool_offset_calibration

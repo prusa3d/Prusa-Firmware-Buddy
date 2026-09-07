@@ -23,6 +23,7 @@
 #endif
 
 #include <option/has_puppy_modularbed.h>
+#include <bsod/bsod.h>
 #if HAS_PUPPY_MODULARBED()
     #include "puppies/modular_bed.hpp"
 #endif
@@ -34,7 +35,7 @@ static SelftestHeaters_t resultHeaters;
 
 #if HAS_TEMP_HEATBREAK_CONTROL
 static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
-    assert(h.m_config.type == heater_type_t::Nozzle);
+    debug_assert(h.m_config.type == heater_type_t::Nozzle);
     const float temp = thermalManager.degHeatbreak(h.m_config.tool_nr);
     if ((temp > h.m_config.heatbreak_max_temp) || (temp < h.m_config.heatbreak_min_temp)) {
         resultHeaters.noz[h.m_config.tool_nr].heatbreak_error = true;
@@ -191,7 +192,7 @@ bool phaseHeaters(std::array<IPartHandler *, PhysicalToolIndex::count> &pNozzles
         }
     }
     if (just_finished_bed) {
-        assert(pBed && *pBed);
+        debug_assert(pBed && *pBed);
         eeres.set_bed_heater((*pBed)->GetResult());
     }
     config_store().selftest_result.set(eeres);
@@ -204,7 +205,7 @@ bool phaseHeaters(std::array<IPartHandler *, PhysicalToolIndex::count> &pNozzles
     }
 
     if (just_finished_bed) {
-        assert(pBed && *pBed);
+        debug_assert(pBed && *pBed);
 #if HAS_PUPPY_MODULARBED()
         buddy::puppies::modular_bed.set_enable_bedlet_connected_check(false);
 #endif

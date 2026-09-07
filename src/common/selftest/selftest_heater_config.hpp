@@ -9,7 +9,9 @@
 #include <cstdint>
 #include "fanctl.hpp"
 #include "client_response.hpp"
+#include <option/has_heaters_selftest_gcode.h>
 #include "selftest_heaters_type.hpp"
+#include <tool/hotend/hotend.hpp>
 
 #if PRINTER_IS_PRUSA_XL()
     #define HAS_SELFTEST_POWER_CHECK()        1
@@ -28,9 +30,9 @@ enum class heater_type_t {
 // using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct HeaterConfig_t {
     using type_evaluation = SelftestHeater_t;
-    using FanCtlFnc = CFanCtlCommon &(*)(size_t);
+    using FanCtlFnc = CFanCtlCommon &(*)(PhysicalToolIndex);
     static constexpr SelftestParts part_type = SelftestParts::Heaters;
-    using temp_getter = float (*)();
+    using temp_getter = Hotend::OptionalTemperature (*)();
     using temp_setter = void (*)(int);
     const char *partname;
     heater_type_t type;
@@ -55,6 +57,18 @@ struct HeaterConfig_t {
     float heater_full_load_min_W { 0 };
     float heater_full_load_max_W { 0 };
     uint32_t min_pwm_to_measure { 0 };
+
+    /// INDX nozzle only: deadline for reaching target-temp residency. The thermal protections
+    /// (thermal model, heater watch) trip long before this on a broken heater; the deadline is
+    /// just a backstop, so it can be generous.
+    uint32_t heat_timeout_ms { 0 };
 };
+
+#if HAS_HEATERS_SELFTEST_GCODE()
+// Per-variant heater configs for the gcode-based heater selftest (M1987). Each non-XL
+// selftest_<VARIANT>.cpp defines these, reusing its existing Config_Heater* values.
+HeaterConfig_t nozzle_heater_config();
+HeaterConfig_t bed_heater_config();
+#endif
 
 }; // namespace selftest

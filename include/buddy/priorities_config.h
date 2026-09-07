@@ -56,6 +56,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_USB_MSC_WORKER_HIGH osPriorityRealtime
     #define TASK_PRIORITY_USB_MSC_WORKER_LOW  osPriorityNormal
     #define TASK_PRIORITY_DISPLAY_TASK        osPriorityNormal
+    #define TASK_PRIORITY_RTT_METRICS_TASK    osPriorityNormal
     #define TASK_PRIORITY_ESP_UPDATE          osPriorityNormal
     #define TASK_PRIORITY_LOG_TASK            osPriorityNormal
     #define TASK_PRIORITY_TCPIP_THREAD        osPriorityBelowNormal

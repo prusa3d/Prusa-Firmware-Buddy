@@ -15,6 +15,7 @@
 #include "footer_item_input_shaper.hpp"
 #include "footer_item_chamber_temp.hpp"
 #include <option/has_mmu2.h>
+#include <option/filament_sensor.h>
 #include <option/has_sheet_profiles.h>
 #include <option/has_chamber_api.h>
 #include <option/has_wastebin_fill_tracking.h>
@@ -46,11 +47,13 @@ using FooterItemMappings = TypeList< //
     FooterItemMappingRec<FooterItemNone, Item::none>,
     FooterItemMappingRec<FooterItemBed, Item::bed>,
     FooterItemMappingRec<FooterItemFilament, Item::filament>,
+#if !FILAMENT_SENSOR_IS_NO()
     FooterItemMappingRec<FooterItemFSValue, Item::f_s_value>,
+    FooterItemMappingRec<FooterItemFSensor, Item::f_sensor>,
+#endif
 #if HAS_SIDE_FSENSOR()
     FooterItemMappingRec<FooterItemFSValueSide, Item::f_s_value_side>,
 #endif
-    FooterItemMappingRec<FooterItemFSensor, Item::f_sensor>,
     FooterItemMappingRec<FooterItemSpeed, Item::speed>,
     FooterItemMappingRec<FooterItemAxisX, Item::axis_x>,
     FooterItemMappingRec<FooterItemAxisY, Item::axis_y>,

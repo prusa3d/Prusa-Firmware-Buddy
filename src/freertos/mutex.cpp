@@ -1,11 +1,11 @@
 #include <freertos/mutex.hpp>
 
-#include <cassert>
 #include <cstdlib>
 
 // FreeRTOS.h must be included before semphr.h
 #include <FreeRTOS.h>
 #include <semphr.h>
+#include <bsod/bsod.h>
 
 namespace freertos {
 
@@ -23,7 +23,7 @@ Mutex::Mutex() {
 
 Mutex::~Mutex() {
 #if INCLUDE_xSemaphoreGetMutexHolder == 1
-    assert(xSemaphoreGetMutexHolder(SemaphoreHandle_t(handle)) == nullptr);
+    debug_assert(xSemaphoreGetMutexHolder(SemaphoreHandle_t(handle)) == nullptr);
 #endif
     vSemaphoreDelete(SemaphoreHandle_t(handle));
 }
@@ -37,7 +37,7 @@ void Mutex::unlock() {
         // and we might have gotten here sooner due to task switching and lock failing
         if (xQueueGetMutexHolder(handle) == xTaskGetCurrentTaskHandle() && xSemaphoreGive(handle) != pdTRUE) {
             // Since the semaphore was obtained correctly, this should never happen.
-            std::abort();
+            bsod_unreachable();
         }
 
     } else
@@ -45,7 +45,7 @@ void Mutex::unlock() {
     {
         if (xSemaphoreGive(handle) != pdTRUE) {
             // Since the semaphore was obtained correctly, this should never happen.
-            std::abort();
+            bsod_unreachable();
         }
     }
 }
@@ -67,7 +67,7 @@ void Mutex::lock() {
         {
             static_assert(INCLUDE_vTaskSuspend);
             // Since we are waiting forever and have task suspension, this should never happen.
-            std::abort();
+            bsod_unreachable();
         }
     }
 }

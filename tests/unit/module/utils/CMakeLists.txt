@@ -81,3 +81,10 @@ add_catch_test(compact_optional_tests)
 add_executable(debouncer_tests debouncer_tests.cpp)
 target_include_directories(debouncer_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/module/utils/buddy_utils)
 add_catch_test(debouncer_tests)
+
+# bitset_utils_tests
+add_executable(bitset_utils_tests bitset_utils_tests.cpp)
+target_include_directories(
+  bitset_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/module/utils/buddy_utils
+  )
+add_catch_test(bitset_utils_tests)

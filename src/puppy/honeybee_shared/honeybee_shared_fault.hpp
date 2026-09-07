@@ -4,6 +4,7 @@
 #include <utility>
 
 #include <prusa3d/common/SharedFault_1_0.h>
+#include <bsod/bsod.h>
 
 namespace puppy::fault {
 ///@brief enumeration of shared faults that puppies can have
@@ -57,7 +58,7 @@ static constexpr E from_shared(SharedFault fault) {
     case SharedFault::_shared_first: // Remove if this code is covered by some real value
         break;
     }
-    assert(false);
+    debug_assert(false);
     return E::unknown;
     static_assert(std::to_underlying(SharedFault::_shared_first) > std::to_underlying(E::_specific_last));
 }

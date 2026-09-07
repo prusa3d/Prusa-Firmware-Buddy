@@ -1,0 +1,6 @@
+add_executable(nozzle_thermal_compensation_tests nozzle_thermal_compensation_tests.cpp)
+target_include_directories(
+  nozzle_thermal_compensation_tests PRIVATE stub_include ${CMAKE_SOURCE_DIR}/src
+  )
+target_link_libraries(nozzle_thermal_compensation_tests buddy_utils)
+add_catch_test(nozzle_thermal_compensation_tests)

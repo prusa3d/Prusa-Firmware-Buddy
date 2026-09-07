@@ -1,4 +1,5 @@
 #include "secret.hpp"
+#include <bsod/bsod.h>
 
 #ifndef UNITTESTS
     #include <buddy/memory.hpp>
@@ -14,7 +15,7 @@ void PrivacyProtection::reg(void *ptr, size_t size) {
             return;
         }
     }
-    assert(false);
+    debug_assert(false);
 }
 
 void PrivacyProtection::unreg(void *ptr) {
@@ -28,7 +29,7 @@ void PrivacyProtection::unreg(void *ptr) {
             }
         }
     }
-    assert(false);
+    debug_assert(false);
 }
 
 // Intentionally not locking, scheduler is already disabled at this point

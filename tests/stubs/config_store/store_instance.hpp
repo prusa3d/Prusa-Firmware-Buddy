@@ -40,6 +40,16 @@ struct ConfigStore {
         }
     };
 
+    struct Uint8Zero {
+        uint8_t get() const {
+            return 0;
+        }
+        void set(uint8_t) {
+        }
+    };
+
+    Uint8Zero file_sort;
+
     HostName hostname;
     BoolTrue verify_gcode;
 

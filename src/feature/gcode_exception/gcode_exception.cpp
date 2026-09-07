@@ -1,6 +1,5 @@
 #include "gcode_exception.hpp"
 
-#include <cassert>
 #include <algorithm>
 
 #include <module/planner.h>
@@ -32,7 +31,7 @@ void GCodeExceptionManager::throw_at(GCodeExceptionHandlerBase *handler) {
 
 bool GCodeExceptionManager::finish_unwinding_unhandled_exception() {
     // Global resume should never happen while there is any handler active
-    assert(handlers_.empty());
+    debug_assert(handlers_.empty());
 
     if (!is_unwinding_unhandled_exception_) {
         return false;
@@ -42,7 +41,7 @@ bool GCodeExceptionManager::finish_unwinding_unhandled_exception() {
 
     // This should never fail
     [[maybe_unused]] const auto resume_result = maybe_finish_unwinding();
-    assert(resume_result);
+    debug_assert(resume_result);
 
     return true;
 }
@@ -74,7 +73,7 @@ bool GCodeExceptionManager::maybe_finish_unwinding() {
     if (PreciseStepping::stopping()) {
         // If stop_pending hasn't been processed yet, do so now before new moves are processed
         PreciseStepping::loop();
-        assert(!PreciseStepping::stopping());
+        debug_assert(!PreciseStepping::stopping());
     }
 
     // Allow planning new moves

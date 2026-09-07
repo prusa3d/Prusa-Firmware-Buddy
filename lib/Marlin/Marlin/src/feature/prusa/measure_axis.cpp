@@ -12,6 +12,7 @@
 
 #include "measure_axis.h"
 #include "../motordriver_util.h"
+#include <option/has_crash_detection.h>
 
 #if ENABLED(AXIS_MEASURE)
 
@@ -53,7 +54,7 @@ Measure_axis::Measure_axis(bool measure_x, bool measure_y, xy_bool_t invert_dir,
 void Measure_axis::quick_home_start() {
     #if ENABLED(QUICK_HOME)
     // Pretend the current position is 0,0
-    current_position.set(0.0, 0.0);
+    current_position.set(0.0f, 0.0f);
     sync_plan_position();
 
     int axis_home_dir[2];
@@ -91,7 +92,7 @@ void Measure_axis::quick_home_start() {
 void Measure_axis::quick_home_finish() {
     #if ENABLED(QUICK_HOME)
     endstops.validate_homing_move();
-    current_position.set(0.0, 0.0);
+    current_position.set(0.0f, 0.0f);
     sync_plan_position();
         #if ENABLED(SENSORLESS_HOMING)
     LOOP_XY(axis)
@@ -162,7 +163,7 @@ void Measure_axis::save_length(AxisEnum axis) {
 }
 
 void Measure_axis::finish() {
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
     crash_s.activate();
     #endif
     sync_plan_position();
@@ -237,7 +238,7 @@ void Measure_axis::state_finish() {
         mp = reset_acceleration_if(default_acceleration);
         endstops.enable(true); //< Enable endstops for homing moves
         current = reset_current_if(default_current);
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
         crash_s.deactivate();
     #endif
         break;

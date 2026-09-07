@@ -26,56 +26,43 @@
     #include <MItem_steel_sheets.hpp>
 #endif
 
-using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN
-#if HAS_TOOLCHANGER()
-    ,
-    MI_PICK_PARK_TOOL
-#endif
-    ,
-    MI_MOVE_AXIS, MI_TEMPERATURE, MI_AUTO_HOME
-
+using ScreenMenuControlSpec = ScreenMenu<EFooter::On,
+    MI_RETURN,
 #if BUDDY_ENABLE_CONNECT()
-    ,
-    MI_SET_READY
+    MI_SET_READY,
 #endif
-
+    MI_TEMPERATURE_AND_FANS,
+    MI_AUTO_HOME,
+#if HAS_TOOLCHANGER()
+    MI_PICK_PARK_TOOL,
+#endif
+    MI_MOVE_AXIS,
+    MI_DISABLE_MOTORS,
 #if HAS_SHEET_PROFILES()
-    ,
-    MI_CURRENT_SHEET_PROFILE
+    MI_CURRENT_SHEET_PROFILE,
 #endif
-
 #if HAS_INDX()
-    ,
-    MI_FIX_STUCK_NOZZLE
+    MI_FIX_STUCK_NOZZLE,
 #endif
-    ,
-    MI_DISABLE_STEP, MI_LIVE_ADJUST_Z
-
+    MI_LIVE_ADJUST_Z,
 #if XL_ENCLOSURE_SUPPORT()
-    ,
-    MI_ENCLOSURE_ENABLE, MI_ENCLOSURE
+    MI_ENCLOSURE_ENABLE,
+    MI_ENCLOSURE,
 #endif
-
 #if HAS_COLDPULL()
-    ,
-    MI_COLD_PULL
+    MI_COLD_PULL,
 #endif
-
 #if HAS_MMU2()
-    ,
-    MI_MMU_LOAD_TEST_FILAMENT
+    MI_MMU_LOAD_TEST_FILAMENT,
 #endif
-
 #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
-    ,
-    MI_MESH_BED, MI_BED_LEVEL_CORRECTION
+    MI_MESH_BED,
+    MI_BED_LEVEL_CORRECTION,
 #endif
-
 #if HAS_SELFTEST()
-    ,
-    MI_SELFTEST_SNAKE
+    MI_SELFTEST_SNAKE,
 #endif
-    >;
+    MI_ALWAYS_HIDDEN>;
 
 class ScreenMenuControl : public ScreenMenuControlSpec {
 public:

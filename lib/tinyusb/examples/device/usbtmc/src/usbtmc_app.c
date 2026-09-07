@@ -28,6 +28,7 @@
 #include "tusb.h"
 #include "bsp/board_api.h"
 #include "main.h"
+#include "usbtmc_app.h"
 
 #if (CFG_TUD_USBTMC_ENABLE_488)
 static usbtmc_response_capabilities_488_t const
@@ -99,7 +100,7 @@ usbtmc_response_capabilities_488_t const *
 #else
 usbtmc_response_capabilities_t const *
 #endif
-tud_usbtmc_get_capabilities_cb()
+tud_usbtmc_get_capabilities_cb(void)
 {
   return &tud_usbtmc_app_capabilities;
 }
@@ -161,7 +162,7 @@ bool tud_usbtmc_msg_data_cb(void *data, size_t len, bool transfer_complete)
   return true;
 }
 
-bool tud_usbtmc_msgBulkIn_complete_cb()
+bool tud_usbtmc_msgBulkIn_complete_cb(void)
 {
   if((buffer_tx_ix == buffer_len) || idnQuery) // done
   {
@@ -208,19 +209,19 @@ void usbtmc_app_task_iter(void) {
   case 0:
     break;
   case 1:
-    queryDelayStart = board_millis();
+    queryDelayStart = tusb_time_millis_api();
     queryState = 2;
     break;
   case 2:
-    if( (board_millis() - queryDelayStart) > resp_delay) {
-      queryDelayStart = board_millis();
+    if( (tusb_time_millis_api() - queryDelayStart) > resp_delay) {
+      queryDelayStart = tusb_time_millis_api();
       queryState=3;
       status |= 0x10u; // MAV
       status |= 0x40u; // SRQ
     }
     break;
   case 3:
-    if( (board_millis() - queryDelayStart) > resp_delay) {
+    if( (tusb_time_millis_api() - queryDelayStart) > resp_delay) {
       queryState = 4;
     }
     break;

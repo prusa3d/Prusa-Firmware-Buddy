@@ -11,7 +11,6 @@
     #include "nhttp/networking_benchmark_selector.h"
 #endif
 
-#include <cassert>
 #include <cstring>
 
 using std::nullopt;

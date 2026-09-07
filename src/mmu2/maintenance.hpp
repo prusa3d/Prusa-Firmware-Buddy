@@ -1,6 +1,6 @@
 #pragma once
 
-#include <client_fsm_types.h>
+#include <client_fsm_types.hpp>
 
 #include <optional>
 

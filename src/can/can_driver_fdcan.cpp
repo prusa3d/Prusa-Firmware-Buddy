@@ -1,7 +1,6 @@
 #include "can_driver_fdcan.hpp"
 
 #include <device/peripherals.hpp>
-#include <assert.h>
 #include <bsod.h>
 #include <timing.h>
 
@@ -43,7 +42,7 @@ FdcanDriver &FdcanDriver::get_driver(FDCAN_HandleTypeDef *hfdcan_isr) {
 
     // Interrupts are enabled only for matching drivers
     /// @note If another FDCAN uses interrupts and doesn't use FdcanDriver, this needs to be changed.
-    assert(driver != nullptr);
+    debug_assert(driver != nullptr);
 
     return *driver;
 }
@@ -65,7 +64,7 @@ void FdcanDriver::start(bool automatic_retransmission_enable) {
                 | FDCAN_IT_ERROR_LOGGING_OVERFLOW,
             full_tx_location_mask())
         != HAL_OK) {
-        assert(false);
+        debug_assert(false);
     }
 
     // 29 bit messages to FIFO 0, 11 bit and remote messages discard
@@ -75,7 +74,7 @@ void FdcanDriver::start(bool automatic_retransmission_enable) {
             FDCAN_REJECT_REMOTE,
             FDCAN_REJECT_REMOTE)
         != HAL_OK) {
-        assert(false);
+        debug_assert(false);
     }
 
     // Set automatic retransmission of frames that are not acked or fail to transmit
@@ -87,14 +86,14 @@ void FdcanDriver::start(bool automatic_retransmission_enable) {
 
     // Start CAN HAL
     if (HAL_FDCAN_Start(&hfdcan) != HAL_OK) {
-        assert(false);
+        debug_assert(false);
     }
 }
 
 void FdcanDriver::set_automatic_retransmission(bool enable) {
     // Stop the CAN peripheral to get to INIT state where configuration can be changed
     if (HAL_FDCAN_Stop(&hfdcan) != HAL_OK) {
-        assert(false);
+        debug_assert(false);
     }
 
     // Set automatic retransmission of frames that are not acked or fail to transmit
@@ -106,16 +105,16 @@ void FdcanDriver::set_automatic_retransmission(bool enable) {
 
     // Start the CAN peripheral again
     if (HAL_FDCAN_Start(&hfdcan) != HAL_OK) {
-        assert(false);
+        debug_assert(false);
     }
 }
 
 bool FdcanDriver::send(const CanardFrame &frame, bool store_timestamp) {
     // Check maximal length
-    assert(frame.payload_size <= 64);
+    debug_assert(frame.payload_size <= 64);
 
     // Check that the allocated buffer is rounded up, otherwise HAL would access invalid memory
-    assert(frame.payload_size == CanardCANDLCToLength[CanardCANLengthToDLC[frame.payload_size]]);
+    debug_assert(frame.payload_size == CanardCANDLCToLength[CanardCANLengthToDLC[frame.payload_size]]);
 
     // If this is the last remaining hardware queue slot, use it only if it has higher priority than last frame
     if (uint32_t free_level = HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan); free_level == 0
@@ -142,7 +141,7 @@ bool FdcanDriver::send(const CanardFrame &frame, bool store_timestamp) {
     if (store_timestamp) {
         TxHeader.TxEventFifoControl = FDCAN_STORE_TX_EVENTS;
         uint8_t to_write = (tx_timestamp_to_write.exchange(0) + 1) & 0xff; // Clear what to write and increment, to prevent race
-        assert(to_write != 0); // Wrapped around without getting one timestamp
+        debug_assert(to_write != 0); // Wrapped around without getting one timestamp
         TxHeader.MessageMarker = to_write;
         tx_timestamp_to_write = to_write;
     } else {

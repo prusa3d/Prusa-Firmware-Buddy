@@ -1,0 +1,7 @@
+.idea/
+.vs/
+.vscode/
+build/
+cmake-build-*
+CTestConfig.cmake
+Testing/

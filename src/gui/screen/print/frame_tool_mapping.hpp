@@ -9,7 +9,7 @@
 #include <window_text.hpp>
 #include <radio_button.hpp>
 #include <window_colored_rect.hpp>
-#include <gcode_compatibility.hpp>
+#include <feature/compatibility_checks/gcode_compatibility.hpp>
 #include <window_menu_bar.hpp>
 
 namespace screen_tool_mapping {

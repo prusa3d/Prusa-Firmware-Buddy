@@ -6,10 +6,15 @@
 class StandardFFFPhysicalToolBase : public PhysicalTool {
 
 public:
-    bool supports_filament(const FilamentTypeParameters &filament) const override;
+#if BOARD_IS_MASTER_BOARD()
+    void filament_compatibility_report(FilamentCompatibilityReport &report, const FilamentCompatibilityReportGenerateArgs &args) const override;
+#endif
 
 protected:
-    explicit StandardFFFPhysicalToolBase(Hotend &hotend);
+    explicit StandardFFFPhysicalToolBase(PhysicalToolIndex tool_index, Hotend &hotend);
+
+protected:
+    const PhysicalToolIndex tool_index_;
 };
 
 template <typename Hotend>
@@ -17,7 +22,7 @@ class StandardFFFPhysicalTool final : public StandardFFFPhysicalToolBase {
 
 public:
     explicit StandardFFFPhysicalTool(PhysicalToolIndex tool_index, const Hotend::Config *hotend_config)
-        : StandardFFFPhysicalToolBase(hotend_)
+        : StandardFFFPhysicalToolBase(tool_index, hotend_)
         , hotend_(tool_index, hotend_config) {}
 
     Hotend &hotend() { return hotend_; }

@@ -46,12 +46,16 @@ add_subdirectory(host)
 add_subdirectory(feature)
 add_subdirectory(${PRINTER})
 
-if(HAS_NOZZLE_CLEANER)
+if(HAS_NOZZLE_CLEANER OR HAS_NOZZLE_CLEANER_LITE)
   target_sources(firmware PRIVATE G12.cpp)
 endif()
 
 if(HAS_SELFTEST)
   target_sources(firmware PRIVATE G162.cpp G163.cpp M1978.cpp M1981.cpp)
+endif()
+
+if(HAS_HEATERS_SELFTEST_GCODE)
+  target_sources(firmware PRIVATE M1987.cpp)
 endif()
 
 if(HAS_LEDS)
@@ -99,7 +103,7 @@ if(HAS_DOOR_SENSOR_CALIBRATION)
 endif()
 
 if(HAS_INDX)
-  target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp M1985.cpp)
+  target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp)
 endif()
 
 if(HAS_WASTEBIN_FILL_TRACKING)
@@ -107,7 +111,7 @@ if(HAS_WASTEBIN_FILL_TRACKING)
 endif()
 
 if(HAS_TOOL_OFFSET_SENSOR)
-  target_sources(firmware PRIVATE G427.cpp)
+  target_sources(firmware PRIVATE G427.cpp M1985.cpp)
 endif()
 
 if(HAS_PRECISE_HOMING_COREXY)
@@ -132,4 +136,8 @@ endif()
 
 if(HAS_TOOLCHANGER OR HAS_MMU2)
   target_sources(firmware PRIVATE M9934.cpp)
+endif()
+
+if(HAS_CRASH_DETECTION)
+  target_sources(firmware PRIVATE M9944.cpp)
 endif()

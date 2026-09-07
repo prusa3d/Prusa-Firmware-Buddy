@@ -2,7 +2,7 @@
 
 add_library(buddy_utils OBJECT)
 
-target_link_libraries(buddy_utils PUBLIC SG14 random)
+target_link_libraries(buddy_utils PUBLIC SG14 random byte_utils)
 target_include_directories(buddy_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(filters)

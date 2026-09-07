@@ -7,6 +7,7 @@
 #include <feature/filament_tracker/filament_tracker.hpp>
 #include <freertos/timing.hpp>
 #include <set>
+#include <utils/byte_utils.hpp>
 
 using namespace buddy;
 using namespace buddy::openprinttag;
@@ -82,8 +83,12 @@ void Request::issue() {
 void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void WriteFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 
-void ReadFloatFieldRequest::complete(std::span<const std::byte>) {}
-void WriteFloatFieldRequest::complete(std::span<const std::byte>) {}
+void ReadFloatFieldRequest::complete(Bytes) {}
+void WriteFloatFieldRequest::complete(Bytes) {}
+
+Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
+    return std::nullopt;
+}
 
 std::optional<ToolTag> ToolTag::for_tool_assigned(VirtualToolIndex tool) {
     auto it = assigned_tags.find(tool.to_raw());
@@ -92,6 +97,10 @@ std::optional<ToolTag> ToolTag::for_tool_assigned(VirtualToolIndex tool) {
     } else {
         return std::nullopt;
     }
+}
+
+std::optional<ToolTag> ToolTag::for_tool_ephemeral(VirtualToolIndex tool) {
+    return for_tool_assigned(tool);
 }
 
 /// Does one step for all tools

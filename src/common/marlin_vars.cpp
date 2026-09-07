@@ -1,8 +1,6 @@
 #include "marlin_vars.hpp"
 #include <random/random.h>
 
-#include <cassert>
-
 void marlin_vars_t::lock() {
     mutex.lock();
 }

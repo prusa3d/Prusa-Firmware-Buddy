@@ -8,16 +8,16 @@
 #include <timing.h>
 #include <config_store/store_instance.hpp>
 #include <utils/string_builder.hpp>
+#include <gui/menu_item/menu_item_utils.hpp>
 
 #include <option/has_toolchanger.h>
+#include <bsod/bsod.h>
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
     #include <gui/dialogs/dialog_tool_select.hpp>
 #endif
 
 namespace {
-
-bool enqueued = false; // Used to avoid multiple M600 enqueue
 
 bool inject(VirtualToolIndex tool) {
     StringViewUtf8Parameters<8> params;
@@ -32,7 +32,6 @@ bool inject(VirtualToolIndex tool) {
         return false;
     }
     marlin_client::inject(GCodeLiteral("M600 P T%.0f", static_cast<float>(tool.to_raw())));
-    enqueued = true;
     return true;
 }
 
@@ -44,7 +43,6 @@ MI_M600::MI_M600()
         (prusa_toolchanger.is_toolchanger_enabled()) ? expands_t::yes :
 #endif
                                                      expands_t::no) {
-    set_icon_position(IconPosition::before_extension);
 }
 
 void MI_M600::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -62,31 +60,14 @@ void MI_M600::click([[maybe_unused]] IWindowMenu &window_menu) {
     match(
         marlin_vars().active_extruder.get(),
         [](VirtualToolIndex virtual_tool) { inject(virtual_tool); },
-        [](NoTool) { assert(false); /* theoretically reachable edge case - do nothing */ });
+        [](NoTool) { debug_assert(false); /* theoretically reachable edge case - do nothing */ });
 }
 
 void MI_M600::Loop() {
-    update_enqueued_icon();
-    handle_enable_state();
-}
-
-void MI_M600::update_enqueued_icon() {
-    if (enqueued) {
-        SetIconId(img::spinner_16x16_animated());
-    } else {
-        SetIconId(nullptr);
-    }
-}
-
-void MI_M600::handle_enable_state() {
-
-    // This is a little bit of a hack - instead of checking if M600 was executed
-    // we are checking if nothing is in the inject queue, which is much weaker assumption
-    // We need more proper information dumping from marlin server about queue to be able to do it the correct way
-    if (marlin_vars().inject_queue_empty) {
-        enqueued = false;
-    }
-    // M600 during printing is enabled the moment after first layer started printing
-    // M600 is incompatible with initializing gcodes such as G29 a G28
-    set_enabled(!enqueued && (marlin_vars().max_printed_z > 0));
+    loop_gcode_inject_menu_item(*this,
+        {
+            .update_enabled = true,
+            .update_icon = true,
+            .enabled = marlin_vars().max_printed_z > 0,
+        });
 }

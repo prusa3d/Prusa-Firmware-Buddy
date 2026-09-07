@@ -9,6 +9,7 @@
     #include "module/prusa/toolchanger.h"
 #endif
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 namespace selftest {
 

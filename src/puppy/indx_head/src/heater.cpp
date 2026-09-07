@@ -196,8 +196,14 @@ void InductionHeater::heater_control(int32_t target_centideg, int32_t current_ce
     update(pwr_i);
 }
 
-fpm::fixed_16_16 InductionHeater::current_duty_cycle_sq() const {
-    return current_power == 0 ? fpm::fixed_16_16 { 0 } : intervalLUT[current_power - 1].duty_cycle_sq;
+uint8_t InductionHeater::current_pwm() const {
+    if (current_power == 0) {
+        return 0;
+    }
+    constexpr auto full_power = intervalLUT[max_power - 1].duty_cycle_sq;
+    const auto current = intervalLUT[current_power - 1].duty_cycle_sq;
+    constexpr auto scaling_factor = 255 / full_power;
+    return static_cast<uint8_t>(current * scaling_factor);
 }
 
 bool InductionHeater::should_measure() const {
@@ -330,7 +336,7 @@ void InductionHeater::ramp_isr() {
 
 void InductionHeater::ringdown_analysis(void) {
     const uint8_t nulls_cnt = 10;
-    uint16_t nulls[nulls_cnt];
+    uint16_t nulls[nulls_cnt]; // zero-crossing positions in CPU cycles
     uint8_t nulls_index = 0;
 
     const uint8_t peaks_cnt = nulls_cnt;
@@ -350,9 +356,10 @@ void InductionHeater::ringdown_analysis(void) {
         }
         // find zero crossings to determine frequency
         if (nulls_index < nulls_cnt && sample_buffer[i] <= dcOffset && sample_buffer[i + 1] > dcOffset) {
-            // Linear interpolate to find zero crossing with subsample precision
-            uint16_t k = (dcOffset - sample_buffer[i]) / (sample_buffer[i + 1] - sample_buffer[i]);
-            nulls[nulls_index] = i + k;
+            // Linear-interpolate the zero crossing with sub-sample precision, but stay
+            // in integer math. Resolution is one MCU cycle.
+            nulls[nulls_index] = i * ADC_SAMPLE_CYCLES
+                + (dcOffset - sample_buffer[i]) * ADC_SAMPLE_CYCLES / (sample_buffer[i + 1] - sample_buffer[i]);
             nulls_index++;
         }
 
@@ -379,6 +386,7 @@ void InductionHeater::ringdown_analysis(void) {
         analysis.status = RingdownAnalysisStatus::NOT_ENOUGH_PEAKS;
         last_analysis = analysis;
         app::set_nozzle_present(indx_head::NozzlePresence::unknown);
+        app::set_ringdown_decay(0);
         return; // invalid data, can't continue
     }
 
@@ -419,7 +427,7 @@ void InductionHeater::ringdown_analysis(void) {
         interval += nulls[i + 1] - nulls[i];
     }
 
-    interval = (interval / avg_peaks) * ADC_SAMPLE_CYCLES; // interval in CPU cycles
+    interval = interval / avg_peaks; // interval in CPU cycles
     analysis.interval = interval;
 
     if (ringdown_analysis_sanity_check(analysis)) {
@@ -440,6 +448,7 @@ void InductionHeater::ringdown_analysis(void) {
     }
 
     last_analysis = analysis;
+    app::set_ringdown_decay(static_cast<int16_t>(analysis.decay * 1000.0f));
 }
 
 bool InductionHeater::ringdown_analysis_sanity_check(RingdownAnalysis &result) {

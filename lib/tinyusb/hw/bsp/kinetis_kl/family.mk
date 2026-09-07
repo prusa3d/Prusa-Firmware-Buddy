@@ -1,16 +1,20 @@
 SDK_DIR = hw/mcu/nxp/mcux-sdk
-DEPS_SUBMODULES += $(SDK_DIR) lib/CMSIS_5
 
 MCU_DIR = $(SDK_DIR)/devices/$(MCU)
 include $(TOP)/$(BOARD_PATH)/board.mk
 CPU_CORE ?= cortex-m0plus
 
 CFLAGS += \
+  -D__STARTUP_CLEAR_BSS \
   -DCFG_TUSB_MCU=OPT_MCU_KINETIS_KL \
 
 LDFLAGS += \
   -Wl,--defsym,__stack_size__=0x400 \
   -Wl,--defsym,__heap_size__=0
+
+LDFLAGS += \
+  -nostartfiles \
+  -specs=nosys.specs -specs=nano.specs \
 
 SRC_C += \
 	src/portable/nxp/khci/dcd_khci.c \

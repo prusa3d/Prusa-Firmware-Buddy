@@ -7,13 +7,14 @@
 #include <ranges>
 
 #include <puppies/puppy_constants.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Puppies);
 
 namespace buddy::puppies::crash_dump {
 std::optional<puppy_crash_dump::FWDescriptor>
 fetch_fw_descriptor(std::span<uint8_t> buffer, BootloaderProtocol &flasher, const char *puppy_name) {
-    assert(buffer.size() >= puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
+    debug_assert(buffer.size() >= puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
 
     if (auto st = flasher.read_flash_cmd(puppy_crash_dump::APP_DESCRIPTOR_OFFSET, buffer.data(), puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
         st != BootloaderProtocol::COMMAND_OK) {

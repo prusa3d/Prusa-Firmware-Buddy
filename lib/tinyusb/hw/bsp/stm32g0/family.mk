@@ -1,5 +1,4 @@
 ST_FAMILY = g0
-DEPS_SUBMODULES += lib/CMSIS_5 hw/mcu/st/cmsis_device_$(ST_FAMILY) hw/mcu/st/stm32$(ST_FAMILY)xx_hal_driver
 
 ST_CMSIS = hw/mcu/st/cmsis_device_$(ST_FAMILY)
 ST_HAL_DRIVER = hw/mcu/st/stm32$(ST_FAMILY)xx_hal_driver
@@ -14,12 +13,15 @@ CFLAGS += \
   -DCFG_TUSB_MCU=OPT_MCU_STM32G0
 
 # GCC Flags
-CFLAGS_GCC += \
+CFLAGS += \
   -flto \
-  -nostdlib -nostartfiles
 
 # suppress warning caused by vendor mcu driver
-CFLAGS_GCC += -Wno-error=cast-align
+CFLAGS += -Wno-error=cast-align
+
+LDFLAGS += \
+  -nostdlib -nostartfiles \
+  --specs=nosys.specs --specs=nano.specs
 
 # -----------------
 # Sources & Include
@@ -27,6 +29,8 @@ CFLAGS_GCC += -Wno-error=cast-align
 
 SRC_C += \
 	src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c \
+	src/portable/st/stm32_fsdev/hcd_stm32_fsdev.c \
+	src/portable/st/stm32_fsdev/fsdev_common.c \
 	$(ST_CMSIS)/Source/Templates/system_stm32$(ST_FAMILY)xx.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_cortex.c \

@@ -2,6 +2,7 @@
 #include "printer.hpp"
 
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(connect);
 
@@ -119,7 +120,7 @@ namespace {
                 }
             }
         }
-        assert(0);
+        debug_assert(0);
         return BackgroundResult::Failure;
     }
 

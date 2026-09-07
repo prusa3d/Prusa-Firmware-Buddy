@@ -2,7 +2,6 @@ include(QoiGenerator.cmake)
 #
 # Common Functions
 #
-set(generate_hash_file_py "${CMAKE_SOURCE_DIR}/utils/resources/generate_hash_file.py")
 set(resources_include_dir "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 function(add_resource source_path install_path)
@@ -13,26 +12,6 @@ function(add_gzip_resource source_path install_path)
   set(gzip_file_path "${CMAKE_CURRENT_BINARY_DIR}/gzipped${install_path}")
   gzip_file("${source_path}" "${gzip_file_path}")
   add_resource("${gzip_file_path}" "${install_path}")
-endfunction()
-
-function(add_header_with_revision revision_name binary_hash_file)
-  # generate header with the hash
-  set(header_hash_file "${resources_include_dir}/resources/revision_${revision_name}.hpp")
-  add_custom_command(
-    OUTPUT "${header_hash_file}"
-    COMMAND
-      "${Python3_EXECUTABLE}" "${generate_hash_file_py}" "--header-variable-name" "${revision_name}"
-      "--header-namespace-name" "buddy::resources::revision" "${binary_hash_file}"
-      "${header_hash_file}"
-    DEPENDS "${binary_hash_file}" "${generate_hash_file_py}"
-    VERBATIM
-    )
-
-  # set dependency on the main target
-  add_custom_target(
-    resources-header-${revision_name} DEPENDS "${header_hash_file}" qoi_generated_files
-    )
-  add_dependencies(firmware resources-header-${revision_name})
 endfunction()
 
 #
@@ -100,6 +79,9 @@ if(PUPPY_FLASH_FW)
   if(HAS_XBUDDY_EXTENSION)
     add_resource("${XBUDDY_EXTENSION_BINARY_PATH}" "/puppies/fw-xbuddy-extension.bin")
   endif()
+  if(HAS_XL_CAN)
+    add_resource("${XL_CAN_BINARY_PATH}" "/puppies/fw-xl_can.bin")
+  endif()
   if(HAS_AC_CONTROLLER)
     add_resource("${AC_CONTROLLER_BINARY_PATH}" "/puppies/fw-ac_controller.bin")
   endif()
@@ -121,6 +103,7 @@ add_gzip_resource("web/main.b41402ed4d6d019ca007.js" "/web/main.b41402ed4d6d019c
 add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
 # add languages
+set(compile_mo_py "${CMAKE_SOURCE_DIR}/utils/translations_and_fonts/compile_mo.py")
 if(${TRANSLATIONS_ENABLED})
   foreach(LANG ${LANGUAGES_AVAILABLE})
     if(${ENABLE_TRANSLATION_${LANG}})
@@ -129,9 +112,9 @@ if(${TRANSLATIONS_ENABLED})
       set(MO_FILE "${CMAKE_CURRENT_BINARY_DIR}/${LANG}.mo")
       add_custom_command(
         OUTPUT ${MO_FILE}
-        COMMAND msgfmt ${PO_FILE} -o ${MO_FILE}
-        DEPENDS ${PO_FILE}
-        COMMENT "Generating ${MO_FILE} from ${PO_FILE}"
+        COMMAND "${Python3_EXECUTABLE}" "${compile_mo_py}" --input ${PO_FILE} --output ${MO_FILE}
+                --binary "${firmware_without_digest_bin}"
+        DEPENDS ${PO_FILE} "${compile_mo_py}" "${firmware_without_digest_bin}"
         VERBATIM
         )
       add_custom_target(generate_mo_${LANG} ALL DEPENDS ${MO_FILE})
@@ -155,10 +138,6 @@ if(BOOTLOADER_UPDATE)
   add_tar_image(bootloader-tarball)
   tar_image_add_file(bootloader-tarball "${bootloader_bin}" "/bootloader.bin")
   tar_image_build(bootloader-tarball)
-  get_target_property(bootloader_tar bootloader-tarball TAR_IMAGE_LOCATION)
-  set(bootloader_tar_digest "${bootloader_tar}.sha256")
-  sha256_file("${bootloader_tar}" "${bootloader_tar_digest}")
-  add_header_with_revision(bootloader "${bootloader_tar_digest}")
 
   # parse bootloader version
   string(REGEX MATCH "([0-9]+)\.([0-9]+)\.([0-9]+)" result "${bootloader_version_str}")
@@ -223,7 +202,3 @@ if(HAS_MMU2)
 endif()
 
 tar_image_build(resources-tarball)
-get_target_property(resources_tar resources-tarball TAR_IMAGE_LOCATION)
-set(resources_tar_digest "${resources_tar}.sha256")
-sha256_file("${resources_tar}" "${resources_tar_digest}")
-add_header_with_revision(standard "${resources_tar_digest}")

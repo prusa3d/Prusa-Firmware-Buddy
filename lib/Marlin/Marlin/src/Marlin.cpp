@@ -82,29 +82,9 @@
   #include "feature/host_actions.h"
 #endif
 
-#if ENABLED(DIGIPOT_I2C)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "feature/digipot/digipot.h"
-#endif
-
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "feature/bltouch.h"
-#endif
-
 #if ENABLED(NOZZLE_LOAD_CELL)
   #include "loadcell.hpp"
   #include "feature/prusa/e-stall_detector.h"
-#endif
-
-#if HAS_SERVOS
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "module/servo.h"
-#endif
-
-#if HAS_CUTTER
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "feature/spindle_laser.h"
 #endif
 
 #if ENABLED(G38_PROBE_TARGET)
@@ -320,7 +300,7 @@ void manage_inactivity() {
     }
   #else /* HAS_PLANNER() */
     // Apply fan speeds manually, because it is done in the planner.check_axes_activity()
-    thermalManager.apply_fan_speeds();
+    thermalManager.apply_print_fan_speed();
   #endif /* HAS_PLANNER() */
 
   #if PIN_EXISTS(FET_SAFETY)
@@ -341,9 +321,6 @@ void manage_inactivity() {
  * @param waiting
  *   @par @c true Caller is waiting for some event, release CPU to other tasks.
  *   @par @c false Caller has more data to process, do not release CPU.
- * @param no_stepper_sleep
- *   @par @c true Keep steppers from disabling on timeout
- *   @par @c false Allow steppers to release (and lose position) on timeout
  */
 void idle(bool waiting) {
   #if HAS_PLANNER()
@@ -361,11 +338,6 @@ void idle(bool waiting) {
   manage_inactivity();
 
   thermalManager.manage_heater();
-
-  #ifdef HAL_IDLETASK
-    // #error dead code found by automatic analyses (see BFW-5461)
-    HAL_idletask();
-  #endif
 
   #if HAS_AUTO_REPORTING
     if (!suspend_auto_report) {
@@ -388,7 +360,12 @@ void idle(bool waiting) {
     if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), ! stepper.motor_direction(E_AXIS))){
         // E-motor stall has been detected, issue a modified M600
         SERIAL_ECHOLNPGM("E-motor stall detected");
-        queue.inject_P(PSTR("M1601"));
+
+        const auto virtual_tool = VirtualToolIndex::currently_selected_opt();
+        if (!virtual_tool.has_value()) {
+            bsod("EStall without a tool");
+        }
+        marlin_server::gcode_interrupt(GCodeLiteral{"M1601 V%.0f", (float) virtual_tool->to_raw()});
     }
   #endif
 
@@ -409,7 +386,6 @@ void idle(bool waiting) {
  *    • photo pin
  *    • servos
  *    • LCD controller
- *    • Digipot I2C
  *    • Z probe sled
  *    • status LEDs
  */
@@ -526,30 +502,6 @@ void setup() {
     #endif
   #endif /* HAS_PLANNER() */
 
-  #if HAS_SERVOS
-    // #error dead code found by automatic analyses (see BFW-5461)
-    servo_init();
-  #endif
-
-  #if HAS_Z_SERVO_PROBE
-    // #error dead code found by automatic analyses (see BFW-5461)
-    servo_probe_init();
-  #endif
-
-  #if HAS_CUTTER
-    // #error dead code found by automatic analyses (see BFW-5461)
-    cutter.init();
-  #endif
-
-  #if ENABLED(COOLANT_MIST)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    OUT_WRITE(COOLANT_MIST_PIN, COOLANT_MIST_INVERT);   // Init Mist Coolant OFF
-  #endif
-  #if ENABLED(COOLANT_FLOOD)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    OUT_WRITE(COOLANT_FLOOD_PIN, COOLANT_FLOOD_INVERT); // Init Flood Coolant OFF
-  #endif
-
   #if HAS_BED_PROBE
     endstops.enable_z_probe(false);
   #endif
@@ -557,16 +509,6 @@ void setup() {
   #if HAS_STEPPER_RESET
     // #error dead code found by automatic analyses (see BFW-5461)
     enableStepperDrivers();
-  #endif
-
-  #if ENABLED(DIGIPOT_I2C)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    digipot_i2c_init();
-  #endif
-
-  #if EITHER(Z_PROBE_SLED, SOLENOID_PROBE) && HAS_SOLENOID_1
-    // #error dead code found by automatic analyses (see BFW-5461)
-    OUT_WRITE(SOL1_PIN, LOW); // OFF
   #endif
 
   #if HAS_HOME
@@ -582,11 +524,6 @@ void setup() {
     // #error dead code found by automatic analyses (see BFW-5461)
       if (PWM_PIN(CASE_LIGHT_PIN)) SET_PWM(CASE_LIGHT_PIN); else SET_OUTPUT(CASE_LIGHT_PIN);
     update_case_light();
-  #endif
-
-  #if ENABLED(BLTOUCH)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    bltouch.init(/*set_voltage=*/true);
   #endif
 
   #if ENABLED(USE_WATCHDOG)

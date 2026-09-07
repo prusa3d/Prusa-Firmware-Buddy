@@ -22,6 +22,7 @@
 #include <config_store/store_instance.hpp>
 #include <common/selftest_result.hpp>
 #include <selftest/selftest_invocation.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_DEF(DockCalibration, logging::Severity::info);
 
@@ -100,7 +101,7 @@ private:
 
     /// Bitmask of docks selected for calibration
     std::bitset<PhysicalToolIndex::count> selected_docks;
-    static_assert(PhysicalToolIndex::count <= 8, "selected_docks is transferred as uint8_t via FSMResponseVariant");
+    static_assert(PhysicalToolIndex::count <= 8, "dock actions are transferred as a DockSelection via FSMResponseVariant");
 
     Result run_inner() {
         // Intro
@@ -109,12 +110,19 @@ private:
             return Result::aborted;
         }
 
-        // A picked tool gets parked automatically during the preamble; when that's not
-        // possible (unknown tool or uncalibrated dock), ask the user to remove it manually
-        const auto picked_tool = PhysicalToolIndex::currently_selected_opt();
-        const bool nozzle_present = buddy::puppies::indx.get_nozzle_present().value_or(false);
-        const bool can_auto_park = picked_tool.has_value() && picked_tool->is_enabled();
-        if ((picked_tool.has_value() || nozzle_present) && !can_auto_park) {
+        // A picked tool gets parked automatically during the preamble (to the default dock
+        // position when its dock is not calibrated yet); ask for manual removal only when
+        // a nozzle is detected but the firmware doesn't know which tool it is
+        auto picked_tool = PhysicalToolIndex::currently_selected_opt();
+        const auto nozzle_present = buddy::puppies::indx.get_nozzle_present();
+        if (picked_tool && nozzle_present == std::optional(false)) {
+            // The sensor definitively says the head is empty — the picked-tool state is stale
+            log_warning(DockCalibration, "Tool #%u believed picked but no nozzle detected, correcting to no tool", picked_tool->to_raw());
+            prusa_toolchanger.set_active_extruder(NoTool {});
+            prusa_toolchanger.persist_last_picked_tool(NoTool {}, /*override_always=*/true);
+            picked_tool.reset();
+        }
+        if (!picked_tool && nozzle_present.value_or(false)) {
             fsm_change(PhaseDockCalibration::remove_tool);
             if (wait_for_response(PhaseDockCalibration::remove_tool) == Response::Abort) {
                 return Result::aborted;
@@ -157,33 +165,53 @@ private:
         }
         {
             const auto response = marlin_server::wait_for_response_variant(PhaseDockCalibration::select_docks);
-            if (const auto *raw_mask = response.value_maybe<uint8_t>()) {
-                selected_docks = std::bitset<PhysicalToolIndex::count>(*raw_mask);
-            } else {
+            const auto *sel = response.value_maybe<DockSelection>();
+            if (!sel) {
                 return Result::aborted;
             }
 
+            // Invalidate selected docks
+            if (sel->invalidate) {
+                auto calibrated_mask = config_store().indx_dock_calibrated_mask.get();
+                for (auto tool : PhysicalToolIndex::all()) {
+                    if (sel->invalidate & (1 << tool.to_raw())) {
+                        calibrated_mask.reset(tool.to_raw());
+                    }
+                }
+                config_store().indx_dock_calibrated_mask.set(calibrated_mask);
+            }
+
+            selected_docks = std::bitset<PhysicalToolIndex::count>(sel->calibrate);
             if (selected_docks.none()) {
                 return Result::aborted;
             }
         }
 
-        // Park the picked tool (if any) so the head is empty for calibration
-        if (!mapi::calibration_preamble(mapi::CalibrationPreambleToolPolicy::ensure_parked, [&](mapi::CalibrationPreambleStep step) {
+        const mapi::CalibrationPreamble preamble {
+            .tool_policy = mapi::CalibrationPreamble::ToolPolicy::ensure_parked,
+            .on_step = [&](mapi::CalibrationPreamble::Step step) {
                 switch (step) {
-                case mapi::CalibrationPreambleStep::moving_away:
+                case mapi::CalibrationPreamble::Step::moving_away:
                     fsm_change(PhaseDockCalibration::moving_away);
                     break;
-                case mapi::CalibrationPreambleStep::parking_tool:
+                case mapi::CalibrationPreamble::Step::parking_tool:
                     fsm_change(PhaseDockCalibration::parking_tool);
                     break;
-                case mapi::CalibrationPreambleStep::homing:
+                case mapi::CalibrationPreamble::Step::homing:
                     fsm_change(PhaseDockCalibration::homing);
                     break;
-                case mapi::CalibrationPreambleStep::picking_tool:
+                case mapi::CalibrationPreamble::Step::picking_tool:
                     bsod_unreachable();
                 }
-            })) {
+            },
+        };
+
+        // Park the picked tool (if any) so the head is empty for calibration
+        const bool preamble_ok = preamble.run();
+
+        // A failed park reconciles the picked-tool state with the sensor on bail-out, so no tool
+        // picked anymore means the park succeeded and only its verification hiccuped — carry on
+        if (!preamble_ok && PhysicalToolIndex::currently_selected_opt()) {
             // Park failed — the tool is still on the head; ask the user to remove it manually
             fsm_change(PhaseDockCalibration::remove_tool);
             if (wait_for_response(PhaseDockCalibration::remove_tool) == Response::Abort) {
@@ -323,8 +351,7 @@ private:
 
             // Convert AB stepper difference to XY mm (CoreXY transform)
             // Dock position = home position + (position_before - position_after)
-            MachinePosXY diff;
-            corexy_ab_to_xy(position_before - position_after, diff);
+            const MachinePosXY diff = corexy_ab_to_xy(position_before - position_after);
 
             const PrusaToolInfo measured = {
                 .dock_x = diff.x + current_position.x,

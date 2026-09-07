@@ -1,7 +1,8 @@
 #include "auto_layout.hpp"
+#include <bsod/bsod.h>
 
 void layout_vertical_stack(const Rect16 &rect, std::span<window_t *> windows, std::span<const StackLayoutItem> items) {
-    assert(windows.size() == items.size());
+    debug_assert(windows.size() == items.size());
 
     int minimum_size = 0;
     float remaining_stretch_ratio_sum = 0;
@@ -36,7 +37,7 @@ void layout_vertical_stack(const Rect16 &rect, std::span<window_t *> windows, st
         minimum_size += item.margin_bottom;
     });
 
-    assert(rect.Height() >= minimum_size);
+    debug_assert(rect.Height() >= minimum_size);
     int remaining_stretch_space = rect.Height() - minimum_size;
 
     // Second pass - lay out

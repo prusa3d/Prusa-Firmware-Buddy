@@ -54,7 +54,9 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 //  FIXME: remove fixed lengths once the printer specs are finalized
 const AxisConfig_t selftest::Config_XAxis = {
     .partname = "X-Axis",
-    .length = X_BED_SIZE - CSelftestPart_Axis::EXTRA_LEN_MM,
+    // The test overshoots by EXTRA_LEN_MM to hit the axis end; cancel it, the collision
+    // would unlock a picked tool. +2 is margin against length_min lost to step rounding.
+    .length = X_BED_SIZE - CSelftestPart_Axis::EXTRA_LEN_MM + 2,
     .fr_table_fw = XYfr_table,
     .fr_table_bw = XYfr_table,
     .length_min = X_BED_SIZE,
@@ -68,7 +70,9 @@ const AxisConfig_t selftest::Config_XAxis = {
 
 const AxisConfig_t selftest::Config_YAxis = {
     .partname = "Y-Axis",
-    .length = Y_BED_SIZE - CSelftestPart_Axis::EXTRA_LEN_MM,
+    // Same cancellation as on X, here to stay clear of the toolchanger; XL has no Y end
+    // to hit. +2 is margin against length_min lost to step rounding.
+    .length = Y_BED_SIZE - CSelftestPart_Axis::EXTRA_LEN_MM + 2,
     .fr_table_fw = XYfr_table,
     .fr_table_bw = XYfr_table,
     .length_min = Y_BED_SIZE,
@@ -139,7 +143,7 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .partname = "Bed",
     .type = heater_type_t::Bed,
     .tool_nr = PhysicalToolIndex::from_raw(0),
-    .getTemp = []() { return thermalManager.temp_bed.celsius; },
+    .getTemp = []() -> Hotend::OptionalTemperature { return thermalManager.temp_bed.celsius; },
     .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
     .get_pid = []() { return PID_t {}; },
     .set_pid = [](const PID_t &) {},

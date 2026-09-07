@@ -15,9 +15,9 @@
  */
 #include <http_req_automaton.h>
 
-#include <cassert>
 #include <cstring>
 #include <cmath>
+#include <bsod/bsod.h>
 
 extern "C" {
 
@@ -96,7 +96,7 @@ ExecutionControl RequestParser::event(Event event) {
         create_folder = true;
         return ExecutionControl::Continue;
     case Names::Url:
-        assert(boundary_size == 0);
+        debug_assert(boundary_size == 0);
         if (url_size < url.size()) {
             url[url_size++] = event.payload;
             return ExecutionControl::Continue;
@@ -382,7 +382,7 @@ namespace {
 
     void hash_to_string(std::array<uint8_t, MD5_SIZE> hash, char *str, [[maybe_unused]] size_t str_size) {
         // + 1 for the '\0'
-        assert(str_size >= 2 * hash.size() + 1);
+        debug_assert(str_size >= 2 * hash.size() + 1);
         for (size_t i = 0; i < hash.size(); i++) {
             sprintf(str + i * 2, "%02x", hash[i]);
         }

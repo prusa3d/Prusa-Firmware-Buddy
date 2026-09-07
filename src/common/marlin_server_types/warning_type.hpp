@@ -3,6 +3,9 @@
 #include "client_response.hpp"
 #include <guiconfig/guiconfig.h>
 #include <option/has_chamber_vents.h>
+#include <option/has_dwarf.h>
+#include <option/has_power_panic.h>
+#include <option/has_print_sheet_detection.h>
 #include <option/has_remote_bed.h>
 #include <option/has_chamber_filtration_api.h>
 #include <option/xbuddy_extension_variant.h>
@@ -13,13 +16,26 @@
 #include <option/has_mmu2.h>
 #include <option/has_human_interactions.h>
 #include <option/has_anfc.h>
+#include <option/has_tool_offset_pin_calibration.h>
 #include <option/has_tool_offset_sensor.h>
 #include <option/has_indx.h>
 #include <option/has_wastebin_fill_tracking.h>
+#include <option/has_ht_hotend.h>
+#include <option/has_ceiling_clearance.h>
+#include <option/has_chamber_api.h>
+#include <option/has_emergency_stop.h>
+#include <option/has_uneven_bed_prompt.h>
+#include <option/xl_enclosure_support.h>
 
 enum class WarningType : uint32_t {
 #if HAS_EMERGENCY_STOP()
     DoorOpen,
+#endif
+#if HAS_HT_HOTEND()
+    /// Burn risk warning: door is open and nozzle is above burn_warning_temp.
+    /// Independent of emergency stop (a single-Z printer with a door + HT hotend still
+    /// needs it); every HT printer has a door sensor, so HAS_HT_HOTEND() is the right gate.
+    HotendBurnRisk,
 #endif
     HotendFanError,
     PrintFanError,
@@ -46,11 +62,11 @@ enum class WarningType : uint32_t {
     SelftestNotSuccessfullyCompleted,
     ActionSelftestRequired,
 #endif
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     HeatbedColdAfterPP,
 #endif
     HeatBreakThermistorFail,
-#if ENABLED(CALIBRATION_GCODE)
+#if HAS_TOOL_OFFSET_PIN_CALIBRATION()
     NozzleDoesNotHaveRoundSection,
 #endif
     BuddyMCUMaxTemp,
@@ -68,7 +84,7 @@ enum class WarningType : uint32_t {
 #if XL_ENCLOSURE_SUPPORT()
     EnclosureFanError,
 #endif
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
     SteelSheetNotDetected,
 #endif
     NotDownloaded,
@@ -111,10 +127,6 @@ enum class WarningType : uint32_t {
     HotendOffsetUnsafeSensorXY,
 #endif
 #if HAS_ANFC()
-    /// OpenPrintTag has been assigned to the specified tool, will do filament tracking
-    /// This is an info, not a warning
-    OpenPrintTagAssigned,
-
     /// Filament tracking unrecoverably failed for any reason
     OpenPrintTagCannotTrack,
 
@@ -131,6 +143,14 @@ enum class WarningType : uint32_t {
     NozzleCleanerManualEmpty,
 #endif
 
+#if PRINTER_IS_PRUSA_XL()
+    /// XL-CAN bridge detected at boot; printer type set to XLS.
+    PrinterDetectedAsXLS,
+    /// No XL-CAN bridge found at boot; printer type set to XL.
+    PrinterDetectedAsXL,
+    /// XL-CAN bridge not responding and MB reset not under master control; check cabling.
+    XlCanWiringSuspected,
+#endif
 #if HAS_ILI9488_DISPLAY() && HAS_HUMAN_INTERACTIONS()
     DisplayProblemDetected,
 #endif

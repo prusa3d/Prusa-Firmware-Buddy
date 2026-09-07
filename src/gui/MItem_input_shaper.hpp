@@ -32,8 +32,6 @@ using MI_IS_X_TYPE = WithConstructorArgs<MI_IS_TYPE, X_AXIS>;
 using MI_IS_Y_TYPE = WithConstructorArgs<MI_IS_TYPE, Y_AXIS>;
 
 class MI_IS_X_FREQUENCY : public WiSpin {
-    static constexpr const char *const label = N_("X-axis Freq.");
-
 public:
     MI_IS_X_FREQUENCY();
 
@@ -41,8 +39,6 @@ public:
 };
 
 class MI_IS_Y_FREQUENCY : public WiSpin {
-    static constexpr const char *const label = N_("Y-axis Freq.");
-
 public:
     MI_IS_Y_FREQUENCY();
     virtual void OnClick() override;
@@ -50,8 +46,6 @@ public:
 
 /// Resets input shaper config to defaults on click
 class MI_IS_RESTORE_DEFAULTS : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Restore Defaults");
-
 public:
     MI_IS_RESTORE_DEFAULTS();
 
@@ -61,8 +55,6 @@ protected:
 
 #if HAS_INPUT_SHAPER_CALIBRATION()
 class MI_IS_CALIB : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Calibration");
-
 public:
     MI_IS_CALIB();
 

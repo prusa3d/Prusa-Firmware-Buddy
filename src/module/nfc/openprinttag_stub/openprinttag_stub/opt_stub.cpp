@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <cstddef>
+#include <utils/byte_utils.hpp>
 
 using namespace openprinttag;
 
@@ -60,7 +61,7 @@ OPTBackend_Stub::OPTBackend_Stub() {
     memcpy(tag_data_, default_tag_data, sizeof(default_tag_data));
 }
 
-OPTBackend::IOResult<void> OPTBackend_Stub::read(TagID tag, PayloadPos start, const std::span<std::byte> &buffer) {
+OPTBackend::IOResult<void> OPTBackend_Stub::read(TagID tag, PayloadPos start, const WritableBytes &buffer) {
     if (tag != 0) {
         return std::unexpected(IOError::invalid_id);
     }
@@ -73,7 +74,7 @@ OPTBackend::IOResult<void> OPTBackend_Stub::read(TagID tag, PayloadPos start, co
     return {};
 }
 
-OPTBackend::IOResult<void> OPTBackend_Stub::write(TagID tag, PayloadPos start, const std::span<const std::byte> &buffer) {
+OPTBackend::IOResult<void> OPTBackend_Stub::write(TagID tag, PayloadPos start, const Bytes &buffer) {
     if (tag != 0) {
         return std::unexpected(IOError::invalid_id);
     }
@@ -96,7 +97,7 @@ bool OPTBackend_Stub::get_event(Event &e, [[maybe_unused]] uint32_t current_time
     return false;
 }
 
-OPTBackend::IOResult<size_t> OPTBackend_Stub::get_tag_uid(TagID tag, const std::span<std::byte> &buffer) {
+OPTBackend::IOResult<size_t> OPTBackend_Stub::get_tag_uid(TagID tag, const WritableBytes &buffer) {
     static constexpr std::array uid { std::byte { 0xBC }, std::byte { 0x6F }, std::byte { 0x2F }, std::byte { 0x66 }, std::byte { 0x08 }, std::byte { 0x01 }, std::byte { 0x04 }, std::byte { 0xE0 } };
     if (tag != 0) {
         return std::unexpected(IOError::invalid_id);

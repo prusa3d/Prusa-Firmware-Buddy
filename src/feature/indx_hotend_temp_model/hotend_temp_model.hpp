@@ -2,6 +2,9 @@
 #pragma once
 
 #include <cstdint>
+#include <variant>
+
+#include <tool_index.hpp>
 
 #include "indx_hotend_temp_compensation.hpp"
 #include "indx_hotend_thermal_model.hpp"
@@ -25,17 +28,23 @@ namespace buddy {
 class INDXHotendTempModel {
 
 public:
-    /// To be called in regular intervals from marlin thread
-    void step();
+    /// Binds the model to @p tool, or NoTool on park. Resets state for lazy re-init on the next
+    /// step() and clears the head temp compensation. Call on pickup (tool) and park (NoTool).
+    void set_tool(std::variant<VirtualToolIndex, NoTool> tool);
 
-    /// Resets the compensator internal state
-    /// To be called on toolchanges or when filament parameters change in general
-    void reset_state();
+    /// To be called in regular intervals from marlin thread while the hotend is thermally managed.
+    /// @returns true when a thermal runaway is detected; the caller is expected to raise the error.
+    [[nodiscard]] bool step();
+
+    /// Forces re-initialization on the next step(). Call when the indx head resets.
+    void reset();
 
     /// To be called when filament parameters might have changed
     void update_filament_params();
 
 private:
+    /// The virtual tool being modeled this session, or NoTool when not thermally managed
+    std::variant<VirtualToolIndex, NoTool> managed_tool_ = NoTool {};
     indx::FilamentParameters filament_params_;
     ::indx_hotend_temp_compensation::HotendTempCompensator compensator_;
     indx::HotendThermalModel thermal_model_;
@@ -46,7 +55,6 @@ private:
     int32_t last_e_steps_;
     float retracted_distance_mm_;
     FilamentType last_filament_;
-    uint32_t last_puppy_reset_count_ = 0;
 
     bool is_initialized_ : 1 = false;
     bool filament_data_update_pending_ : 1 = false;

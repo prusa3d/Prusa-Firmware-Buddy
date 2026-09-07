@@ -4,25 +4,13 @@
 #include <tool/hotend/hotend.hpp>
 #include <module/temperature/thermal_runaway.hpp>
 #include <module/temperature/heater_watch.hpp>
+#include <error_codes.hpp>
 
 /// Represents a base for all non-dummy hotends
 class BaseHotend : public Hotend {
 
 public:
-    struct Config {
-        /// Minimum acceptable temperature for the hotend
-        /// Exceeding this limit results in a RSOD
-        /// Formerly done by the HEATER_0_MINTEMP macro
-        TargetTemperature min_nozzle_temp;
-
-        /// Maximum acceptable temperature for the hotend
-        /// Exceeding this limit results in a RSOD
-        /// Formerly done by the HEATER_0_MAXTEMP macro
-        TargetTemperature max_nozzle_temp;
-    };
-
-public:
-    bool supports_filament(const FilamentTypeParameters &filament) const override;
+    void filament_compatibility_report(FilamentCompatibilityReport &report, const FilamentCompatibilityReportGenerateArgs &args) const override;
 
     void set_nozzle_target_temp(TargetTemperature set) final override;
 
@@ -31,6 +19,10 @@ public:
 #endif
 
 protected:
+    /// Called by the thermal protection detectors instead of raising directly.
+    /// Base raises immediately; IndxHotend overrides to re-verify nozzle presence first.
+    virtual void invoke_thermal_runaway(ErrCode error_code);
+
     /// Re-arms protection state machines on heating-change events: nozzle target
     /// temperature change while managed, or transition into managed state.
     virtual void handle_nozzle_target_change();
@@ -41,12 +33,13 @@ protected:
     // !!! MUST be called after temps are set properly
     // Note: the = 0; is here to enforce overriding.
     // !!! The function is actually implemented and MUST be called from the overriding function.
+    // Precondition: only called for thermally-managed hotends
+    // Running this on a non-managed hotend would false-trigger min_temp_error (parked temp < mintemp with a stale target).
     virtual void manage() override = 0;
 
     void manage_temp_residency();
 
 protected:
-    const Config &base_config_;
     const PhysicalToolIndex tool_;
 
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)

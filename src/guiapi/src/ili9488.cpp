@@ -5,6 +5,7 @@
 #include <device/hal.h>
 #include <device/peripherals.hpp>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <string.h>
 #include <stdlib.h>
 #include "qoi_decoder.hpp"
@@ -23,6 +24,7 @@
 #include <option/bootloader.h>
 #include <option/has_touch.h>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 #if HAS_TOUCH()
     #include <hw/touchscreen/touchscreen.hpp>
@@ -103,23 +105,26 @@ bool do_complete_lcd_reinit = false;
 
 static bool reduce_display_baudrate = false;
 
-osThreadId ili9488_task_handle = 0;
+static osThreadId ili9488_task_handle = 0;
+static void debug_assert_correct_task() {
+    debug_assert(ili9488_task_handle == osThreadGetId() && "Must be called only from one task");
+}
 
 #define ILI9488_SIG_SPI_TX 0x0008
-#define ILI9488_SIG_SPI_RX 0x0008
 
 uint8_t ili9488_buff[ILI9488_COLS * 3 * ILI9488_BUFF_ROWS]; // 3 bytes for pixel color
 bool ili9488_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *ili9488_borrow_buffer() {
-    assert(!ili9488_buff_borrowed && "Already lent");
-    assert(ili9488_task_handle == osThreadGetId() && "Must be called only from one task");
+    debug_assert(!ili9488_buff_borrowed && "Already lent");
+    debug_assert_correct_task();
     ili9488_buff_borrowed = true;
     return ili9488_buff;
 }
 
 void ili9488_return_buffer() {
-    assert(ili9488_buff_borrowed);
+    debug_assert(ili9488_buff_borrowed);
+    debug_assert_correct_task();
     ili9488_buff_borrowed = false;
 }
 
@@ -192,9 +197,10 @@ void ili9488_spi_wr_byte(uint8_t b) {
 
 void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
     if ((ili9488_flg & ILI9488_FLG_DMA) && !(ili9488_flg & ILI9488_FLG_SAFE) && (size > 4)) {
+        debug_assert_correct_task();
         osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-        assert(can_be_used_by_dma(pb));
+        debug_assert(can_be_used_by_dma(pb));
         HAL_SPI_Transmit_DMA(spi_handle_lcd, const_cast<uint8_t *>(pb), size);
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
     } else {
@@ -366,8 +372,8 @@ void ili9488_set_complete_lcd_reinit() {
 static void startup_old_manufacturer() {
     ili9488_cmd_slpout(); // wakeup
     ili9488_delay_ms(120); // 120ms wait
-    ili9488_cmd_madctl(DEFAULT_MADCTL); // interface pixel format
-    ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
+    ili9488_cmd_madctl(DEFAULT_MADCTL); // memory data access control
+    ili9488_cmd_colmod(DEFAULT_COLMOD); // interface pixel format
     ili9488_cmd_dispon(); // display on
     ili9488_delay_ms(10); // 10ms wait
     ili9488_clear(0x000000); // black screen after power on
@@ -439,6 +445,7 @@ static void startup_new_manufacturer() {
 void ili9488_init(void) {
     displayCs.write(Pin::State::low);
     ili9488_task_handle = osThreadGetId();
+    debug_assert_correct_task();
     if (ili9488_flg & ILI9488_FLG_SAFE) {
         ili9488_flg &= ~ILI9488_FLG_DMA;
     } else {
@@ -454,8 +461,8 @@ void ili9488_init(void) {
             startup_old_manufacturer();
         }
     } else {
-        ili9488_cmd_madctl(DEFAULT_MADCTL); // interface pixel format
-        ili9488_cmd_colmod(DEFAULT_COLMOD); // memory data access control
+        ili9488_cmd_madctl(DEFAULT_MADCTL); // memory data access control
+        ili9488_cmd_colmod(DEFAULT_COLMOD); // interface pixel format
         ili9488_inversion_on();
     }
 
@@ -492,7 +499,7 @@ void ili9488_set_pixel(uint16_t point_x, uint16_t point_y, uint32_t clr666) {
 }
 
 uint8_t *ili9488_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
-    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
     if (start_x >= ILI9488_COLS || start_y >= ILI9488_ROWS || end_x >= ILI9488_COLS || end_y >= ILI9488_ROWS) {
         return NULL;
@@ -541,7 +548,7 @@ void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, uint16_t
     // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
     SPIBaudRatePrescalerGuard _g(spi_handle_lcd, SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
 
-    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
     // fast path for black and white pixels; no need to support more colors at the moment
     static const auto fast_draw_enabled = config_store().fast_draw_enabled.get();
@@ -585,7 +592,7 @@ void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 }
 
 void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, uint8_t rop) {
-    assert(!ili9488_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!ili9488_buff_borrowed && "Buffer lent to someone");
 
     // BFW-6328 Some displays possibly problematic with higher baudrate, reduce 40 -> 20 MHz
     SPIBaudRatePrescalerGuard _g(spi_handle_lcd, SPI_BAUDRATEPRESCALER_4, reduce_display_baudrate);
@@ -594,8 +601,8 @@ void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
     point_i16_t pos = { static_cast<int16_t>(pt.x), static_cast<int16_t>(pt.y) };
 
     // Prepare input buffer
-    std::span<uint8_t> i_buf(ili9488_buff, 512); ///< Input file buffer
-    std::span<uint8_t> i_data; ///< Span of input data read from file
+    WritableBytes i_buf { reinterpret_cast<std::byte *>(ili9488_buff), 512 }; ///< Input file buffer
+    WritableBytes i_data; ///< Span of input data read from file
 
     // Prepare output buffer
     std::span<uint8_t> p_buf(ili9488_buff + i_buf.size(), std::size(ili9488_buff) - i_buf.size()); ///< Output pixel buffer
@@ -617,7 +624,7 @@ void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
     if (header.size() != qoi::Decoder::HEADER_SIZE) {
         return; // Header couldn't be read
     }
-    Rect16 subrect = Rect16(pos, qoi::Decoder::get_image_size(std::span<uint8_t, qoi::Decoder::HEADER_SIZE>(i_buf)));
+    Rect16 subrect = Rect16(pos, qoi::Decoder::get_image_size(std::span<const std::byte, qoi::Decoder::HEADER_SIZE>(header)));
     subrect.Intersection(Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS)); // Clip drawn subrect to display size
 
     // Prepare output
@@ -639,7 +646,7 @@ void ili9488_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
         for (auto i_byte : i_data) {
 
             // Push byte to decoder
-            qoi_decoder.push_byte((uint8_t)i_byte);
+            qoi_decoder.push(i_byte);
 
             // Pull pixels from decoder
             while (qoi_decoder.has_pixel()) {
@@ -784,10 +791,6 @@ void ili9488_enable_safe_mode(void) {
 
 void ili9488_spi_tx_complete(void) {
     osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_TX);
-}
-
-void ili9488_spi_rx_complete(void) {
-    osSignalSet(ili9488_task_handle, ILI9488_SIG_SPI_RX);
 }
 
 void ili9488_cmd_nop() {

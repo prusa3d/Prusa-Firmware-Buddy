@@ -7,7 +7,14 @@ namespace stdext {
 /// \returns index of the first occurence of \p item inside \p container or \p container.size() if the item is not in the container
 template <typename T, typename I>
 constexpr size_t index_of(T &&container, I &&item) {
-    return std::find(container.begin(), container.end(), item) - container.begin();
+    const auto it = std::find(container.begin(), container.end(), item);
+    if consteval {
+        // Consteval-only check for backwards compatibility
+        if (it == container.end()) {
+            std::abort();
+        }
+    }
+    return it - container.begin();
 }
 
 /// Calls \p f(item) over each \p tuple item

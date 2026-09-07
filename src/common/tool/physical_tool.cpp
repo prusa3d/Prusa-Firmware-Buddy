@@ -2,6 +2,7 @@
 #include "physical_tool.hpp"
 
 #include <option/has_toolchanger.h>
+#include <bsod/bsod.h>
 #if HAS_TOOLCHANGER()
     #include <tool/tool/dummy_physical_tool.hpp>
 #endif

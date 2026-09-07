@@ -1,9 +1,10 @@
 #pragma once
-#include "inc/MarlinConfigPre.h"
+#include <option/has_crash_detection.h>
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 
     #include <array>
+    #include <cstdint>
     #include <stddef.h>
 
     #include "utility_extensions.hpp"

@@ -1,6 +1,5 @@
 #include <st25r39xxb/ST25R39XXB.hpp>
 #include <st25r39xxb/ST25R39XXB_defs.hpp>
-#include <cassert>
 
 #include <raii/scope_guard.hpp>
 #include <iso13239/crc.hpp>
@@ -8,6 +7,7 @@
 #include <nfcv/encode.hpp>
 #include <nfcv/decode.hpp>
 #include <utils/overloaded_visitor.hpp>
+#include <utils/byte_utils.hpp>
 
 static constexpr nfcv::Error convert_error(st25r39xxb::IRQType error_irqs) {
     using namespace st25r39xxb;
@@ -183,7 +183,7 @@ nfcv::Result<void> st25r39xxb::ST25R39XXB::nfcv_command(const nfcv::Command &com
             hw_int.read_fifo(buffer);
         }
 
-        std::span<std::byte> decoded_data;
+        WritableBytes decoded_data;
         {
             const auto res = nfcv::decode(buffer, buffer);
             if (!res.has_value()) {

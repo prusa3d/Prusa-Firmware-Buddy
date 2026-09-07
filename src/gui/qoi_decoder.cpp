@@ -2,13 +2,16 @@
 #include <raster_opfn_c.h>
 #include <display_math_helper.h>
 #include <cstring>
+#include <bsod/bsod.h>
 
 // Loosely based on qoi_decode() by Dominic Szablewski licensed under MIT license
 // https://github.com/phoboslab/qoi/blob/f6dffaf1e8170cdd79945a4fb60f6403e447e020/qoi.h#L488
 
 namespace qoi {
 
-void Decoder::push_byte(uint8_t byte) {
+void Decoder::push(std::byte input) {
+    const uint8_t byte = std::to_integer<uint8_t>(input);
+
     constexpr const uint8_t QOI_OP_RGB = 0xfe; // 11111110
     constexpr const uint8_t QOI_OP_RGBA = 0xff; // 11111111
 
@@ -107,7 +110,7 @@ void Decoder::push_byte(uint8_t byte) {
 
 Pixel Decoder::pull_pixel() {
     // Optimize for speed, do not check preconditions
-    // assert(state == State::pixel && run);
+    // debug_assert(state == State::pixel && run);
 
     if (--run == 0) {
         state = State::initial;

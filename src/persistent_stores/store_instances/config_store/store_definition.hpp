@@ -12,7 +12,7 @@
     // #error dead code found by automatic analyses (see BFW-5461)
     #include <no_backend/store.hpp>
 #else
-    #include <journal/store.hpp>
+    #include <journal/store_config.hpp>
     #include "backend_instance.hpp"
 #endif
 #include <Marlin/src/feature/input_shaper/input_shaper_config.hpp>
@@ -36,16 +36,22 @@
 #include <option/has_tool_offset_sensor.h>
 #include <option/has_selftest.h>
 #include <option/has_phase_stepping.h>
+#include <option/has_15gt_belts.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/has_emergency_stop.h>
+#include <option/has_expansion_joints_gen_2.h>
 #include <option/has_side_leds.h>
 #include <option/xl_enclosure_support.h>
+#include <option/has_cpu_fan.h>
+#include <option/has_xl_can.h>
 #include <option/has_precise_homing_corexy.h>
 #include <option/has_precise_homing.h>
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_esp.h>
 #include <option/has_auto_retract.h>
+#include <option/has_switchable_auto_retract.h>
+#include <option/has_switchable_homing_calibration.h>
 #include <option/has_door_sensor_calibration.h>
 #include <option/has_chamber_vents.h>
 #include <option/has_precise_homing_corexy.h>
@@ -59,13 +65,20 @@
 #include <option/has_wastebin_fill_tracking.h>
 #include <option/has_side_fsensor.h>
 #include <option/has_side_fsensor_invertible.h>
+#include <option/has_nozzle_cleaner_lite.h>
+#include <option/has_extra_experimental_settings.h>
 #include <common/extended_printer_type.hpp>
+#include <guiconfig/guiconfig.h>
 #include <common/hw_check.hpp>
 #include <pwm_utils.hpp>
 #include <feature/xbuddy_extension/xbuddy_extension_fan_results.hpp>
 #include <feature/bed_fan/selftest_result.hpp>
-#include <print_fan_type.hpp>
 #include <tool_index.hpp>
+
+#include <option/has_print_fan_type.h>
+#if HAS_PRINT_FAN_TYPE()
+    #include <print_fan_type.hpp>
+#endif
 
 #if HAS_SHEET_PROFILES()
     #include <common/sheet.hpp>
@@ -84,6 +97,8 @@
 #if HAS_CHAMBER_VENTS()
     #include <feature/chamber/chamber_enums.hpp>
 #endif
+
+#include <option/has_ht_hotend.h>
 
 #include <option/has_hotend_type_support.h>
 #if HAS_HOTEND_TYPE_SUPPORT()
@@ -173,7 +188,7 @@ struct CurrentStore
     void perform_config_check();
 
     /// Config store "version", gets incremented each time we need to add a new config migration
-    static constexpr uint8_t newest_config_version = 5;
+    static constexpr uint8_t newest_config_version = 6;
 
     /// Stores newest_migration_version of the previous firmware
     StoreItem<uint8_t, 0, ItemFlag::special, journal::hash("Config Version")> config_version;
@@ -181,6 +196,11 @@ struct CurrentStore
     /// If false, a ScreenPrinterSetup will appear on printer boot
     StoreItem<bool, !HAS_ESP(), ItemFlag::network, journal::hash("Printer network done")> printer_network_setup_done;
     StoreItem<bool, false, ItemFlag::hw_config, journal::hash("Printer hw-config done")> printer_hw_config_done;
+
+#if HAS_EXPANSION_JOINTS_GEN_2()
+    /// expansions joints affect bed-frame heat absorption
+    StoreItem<bool, false, ItemFlag::hw_config, journal::hash("Expansion Joints Gen 2 installed")> ejg2_installed;
+#endif
 
     /// Global filament sensor enable
     StoreItem<bool, true, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("FSensor Enabled")> fsensor_enabled;
@@ -450,6 +470,9 @@ struct CurrentStore
     /// Default is the per-printer geometry from clo_config; updated by tool offset
     /// calibration when normalized values differs too much from the stored ones.
     StoreItem<xy_pos_t, defaults::tool_offset_sensor_position, ItemFlag::calibrations, journal::hash("Tool Offset Sensor Position")> tool_offset_sensor_position;
+    /// Machine-frame displacement of the whole dual-coil (XLS) sensor from its nominal clo_config
+    /// position; one value shifts both coils and the Z-probe spot.
+    StoreItem<xy_pos_t, defaults::tool_offset_sensor_displacement, ItemFlag::calibrations, journal::hash("Tool Offset Sensor Displacement")> tool_offset_sensor_displacement;
 #endif
 
     /// In case the loaded_filament_is_previous flag (for the given tool) is
@@ -491,6 +514,11 @@ struct CurrentStore
 #endif
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
     StoreItemArray<FilamentTypeParameters_EEPROM4, FilamentTypeParameters_EEPROM4 {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 4"), 16, adhoc_filament_type_count> adhoc_filament_parameters_4;
+#endif
+#if HAS_ANFC()
+    /// Tags assigned to specific tools. See ToolTag::for_tool_assigned
+    /// Not using ToolTag::UIDHash here to avoid dependency hell. static_asserted inside tool_tag.cpp
+    StoreItemArray<uint16_t, uint16_t(0), ItemFlag::printer_state, journal::hash("OpenPrintTag assigned tool"), 16, VirtualToolIndex::count> adhoc_filament_assigned_openprinttag;
 #endif
 
     StoreItem<EncodedBitset<max_user_filament_type_count>, defaults::visible_user_filament_types, ItemFlag::user_presets, journal::hash("Visible User Filament Types")> visible_user_filament_types;
@@ -719,24 +747,52 @@ struct CurrentStore
     void set_sheet(uint8_t index, Sheet value);
 #endif
 
-    // axis microsteps and rms current have a capital axis + '_' at the end in name because of trinamic.cpp. Can be removed once the macro there is removed
-    StoreItem<float, defaults::axis_steps_per_unit_x, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit X")> axis_steps_per_unit_x;
-    StoreItem<float, defaults::axis_steps_per_unit_y, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit Y")> axis_steps_per_unit_y;
+#if HAS_NOZZLE_CLEANER_LITE()
+    StoreItem<bool, false, ItemFlag::hw_config, journal::hash("Nozzle Cleaner Lite installed")> nozzle_cleaner_lite_installed;
+#endif
+
+#if HAS_15GT_BELTS()
+    /// influence the X/Y steps/mm.
+    // default is false (2GT), new installs set true in perform_config_check().
+    StoreItem<bool, false, ItemFlag::hw_config, journal::hash("Belts 1.5GT installed")> belts_15gt_installed;
+
+    /// Set the belt-type flag and invalidate everything it affects (in one transaction): clears any manual X/Y steps override (so the resolved default follows the belt HW), resets XY homing calibration and belt tuning, and clears the X/Y axis selftest results.
+    /// \returns true if the flag changed - the caller must then restart the printer (or reload the X/Y steps/mm) for the change to take effect
+    [[nodiscard]] bool set_belts_15gt(bool installed);
+#endif
+
+#if HAS_EXTRA_EXPERIMENTAL_SETTINGS()
+    StoreItem<float, steps_per_unit_unset, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit X")> axis_steps_per_unit_x; // steps_per_unit_unset - default value, !=0 - user value (sign = direction)
+    StoreItem<float, steps_per_unit_unset, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit Y")> axis_steps_per_unit_y; // steps_per_unit_unset - default value, !=0 - user value (sign = direction)
     StoreItem<float, defaults::axis_steps_per_unit_z, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit Z")> axis_steps_per_unit_z;
+#endif
     StoreItem<float, defaults::axis_steps_per_unit_e0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Steps Per Unit E0")> axis_steps_per_unit_e0;
-    StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps X")> axis_microsteps_X_; // 0 - default value, !=0 - user value
-    StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_; // 0 - default value, !=0 - user value
-    StoreItem<uint16_t, defaults::axis_microsteps_Z_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps Z")> axis_microsteps_Z_;
-    StoreItem<uint16_t, defaults::axis_microsteps_E0_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps E0")> axis_microsteps_E0_;
+
+#if HAS_EXTRA_EXPERIMENTAL_SETTINGS()
     StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis RMS Current MA X")> axis_rms_current_ma_X_; // 0 - default value, !=0 - user value
     StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis RMS Current MA Y")> axis_rms_current_ma_Y_; // 0 - default value, !=0 - user value
-    StoreItem<uint16_t, defaults::axis_rms_current_ma_Z_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis RMS Current MA Z")> axis_rms_current_ma_Z_;
-    StoreItem<uint16_t, defaults::axis_rms_current_ma_E0_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis RMS Current MA E0")> axis_rms_current_ma_E0_;
+    StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis RMS Current MA Z")> axis_rms_current_ma_Z_;
+    StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis RMS Current MA E0")> axis_rms_current_ma_E0_;
+#endif
+
     StoreItem<float, defaults::axis_z_max_pos_mm, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Z Max Pos MM")> axis_z_max_pos_mm;
 
 #if HAS_HOTEND_TYPE_SUPPORT()
     // Nozzle Sock has is here for backwards compatibility (should be binary compatible)
     StoreItemArray<HotendType, defaults::hotend_type, ItemFlag::hw_config, journal::hash("Hotend Type Per Tool"), 16, HOTENDS> hotend_type;
+
+    #if HAS_HT_HOTEND()
+    /// Persist an auto-detected hotend type and invalidate the nozzle-heater selftest
+    /// together (the NTC and PT1000 heaters have different selftest parameters). Used by boot
+    /// detection and the confirm dialog on a hotend-class change; the sock menu toggle writes
+    /// hotend_type directly and deliberately does not invalidate.
+    inline void set_hotend_type_detected(PhysicalToolIndex tool, HotendType value) {
+        hotend_type.set(tool.to_raw(), value);
+        selftest_result.apply([&](auto &sr) {
+            sr.set_nozzle_heater(tool, TestResult::unknown);
+        });
+    }
+    #endif
 #endif
 
     StoreItem<int16_t, defaults::homing_sens_x, ItemFlag::calibrations | ItemFlag::common_misconfigurations, journal::hash("Homing Sens X")> homing_sens_x; // X axis homing sensitivity
@@ -786,6 +842,14 @@ struct CurrentStore
     StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("XL Enclosure Fan Selftest Result")> xl_enclosure_fan_selftest_result;
 #endif
 
+#if HAS_CPU_FAN()
+    StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("CPU Fan Selftest Result")> cpu_fan_selftest_result;
+#endif
+
+#if HAS_XL_CAN()
+    StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("Bed MCU Fan Selftest Result")> bed_mcu_fan_selftest_result;
+#endif
+
 #if PRINTER_IS_PRUSA_MK3_5() || PRINTER_IS_PRUSA_MINI()
     StoreItem<int8_t, 0, ItemFlag::calibrations, journal::hash("Left Bed Correction")> left_bed_correction;
     StoreItem<int8_t, 0, ItemFlag::calibrations, journal::hash("Right Bed Correction")> right_bed_correction;
@@ -821,8 +885,13 @@ struct CurrentStore
 
 #if HAS_INDX()
     StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("Selftest Result - Nozzle Cleaner Calibration")> selftest_result_nozzle_cleaner_calibration;
-    StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("Selftest Result - Tool Offsets Calibration")> selftest_result_tool_offsets_calibration;
     StoreItem<std::bitset<PhysicalToolIndex::count>, 0, ItemFlag::calibrations, journal::hash("INDX dock calibrated mask")> indx_dock_calibrated_mask;
+#endif
+
+#if HAS_TOOL_OFFSET_SENSOR()
+    // WARNING: This is a temporary solution to store the selftest result of the tool offsets calibration independently from previous Tool Offset Calibration implementation using pin
+    // TODO: BFW-9196
+    StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("Selftest Result - Tool Offsets Calibration")> selftest_result_tool_offsets_calibration;
 #endif
 
 #if HAS_EMERGENCY_STOP()
@@ -848,9 +917,11 @@ struct CurrentStore
 #if HAS_PRECISE_HOMING_COREXY()
     StoreItem<CoreXYGridOrigin, COREXY_NO_GRID_ORIGIN, ItemFlag::calibrations, journal::hash("CoreXY calibrated grid origin")> corexy_grid_origin;
 
+    #if HAS_SWITCHABLE_HOMING_CALIBRATION()
     /// Whether to automatically calibrate precise homing when deemed necessary
     /// Tristate::other = ask the user
     StoreItem<Tristate, defaults::auto_recalibrate_precise_homing, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Auto-recalibrate precise homing")> auto_recalibrate_precise_homing;
+    #endif
 
     /// History whether a homing point was stable after precise homing. High number of unstable homings will result in calibration prompt.
     /// Implemented as a rotating bit buffer (pushed after each successful refinement); ones represent unstable refinements
@@ -888,16 +959,18 @@ struct CurrentStore
 #endif
 
 #if HAS_PRINT_FAN_TYPE()
-    StoreItemArray<PrintFanType, PrintFanType::default_value, ItemFlag::hw_config, journal::hash("Print Fan Type Per Tool"), 16, HOTENDS> print_fan_type;
+    StoreItemArray<PrintFanType, default_print_fan_type, ItemFlag::hw_config, journal::hash("Print Fan Type Per Tool"), 16, HOTENDS> print_fan_type;
 #endif
 
 #if HAS_AUTO_RETRACT()
     StoreItem<bool, true, ItemFlag::printer_state, journal::hash("Pre-nozzle cleaning retraction enabled")> pre_nozzle_cleaning_retraction_enable;
 
+    #if HAS_SWITCHABLE_AUTO_RETRACT()
     /// Global enable for auto-retract
     /// Setting FALSE does NOT disable the feature completely, just prevents MAYBE_DERETRACT() from happening
     /// Retracted filaments will auto-deretract in every case
     StoreItem<bool, true, ItemFlag::features | ItemFlag::common_misconfigurations, journal::hash("Enable auto-retract")> auto_retract_enabled;
+    #endif
 
     // Each hotend holds retracted distance. This value is compressed (casted to uint8) to range < 0 ; 255 > with 255 being special value reserved for unknown distance
     // DO NOT ACCESS THIS ARRAY DIRECTLY, user getter/setter instead
@@ -926,19 +999,15 @@ struct CurrentStore
     StoreItem<bool, false, ItemFlag::calibrations, journal::hash("Manual Belt Tuning Completed")> manual_belt_tuning_completed;
 #endif
 
+#if HAS_ILI9488_DISPLAY()
     StoreItem<bool, DEVELOPMENT_ITEMS(), ItemFlag::user_interface | ItemFlag::common_misconfigurations, journal::hash("Fast Draw Enabled")> fast_draw_enabled;
+#endif
 
 #if HAS_BED_FAN()
     StoreItem<bed_fan::SelftestResult, bed_fan::SelftestResult {}, ItemFlag::calibrations, journal::hash("Bed fan selftest results")> bed_fan_selftest_result;
 #endif
 #if HAS_PSU_FAN()
     StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("PSU fan selftest result")> psu_fan_selftest_result;
-#endif
-
-#if HAS_ANFC()
-    /// Tags assigned to specific tools. See ToolTag::for_tool_assigned
-    /// Not using ToolTag::UIDHash here to avoid dependency hell. static_asserted inside tool_tag.cpp
-    StoreItemArray<uint16_t, uint16_t(0), ItemFlag::printer_state, journal::hash("OpenPrintTag assigned tool"), 16, VirtualToolIndex::count> opt_tool_assigned_tag;
 #endif
 
 #if HAS_INDX()
@@ -1080,6 +1149,12 @@ struct DeprecatedStore
 
     /*
         Having these guys in the comments is actually engouh for the scraper to find the journal hash
+
+        StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps X")> axis_microsteps_X_; // 0 - default value, !=0 - user value
+        StoreItem<uint16_t, 0, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_; // 0 - default value, !=0 - user value
+        StoreItem<uint16_t, defaults::axis_microsteps_Z_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps Z")> axis_microsteps_Z_;
+        StoreItem<uint16_t, defaults::axis_microsteps_E0_, ItemFlag::hw_config | ItemFlag::common_misconfigurations, journal::hash("Axis Microsteps E0")> axis_microsteps_E0_;
+
 
         StoreItem<uint32_t, defaults::extruder_fs_value_span, ItemFlag::calibrations | ItemFlag::dev_items, journal::hash("Extruder FS Value Span 0")> extruder_fs_value_span_0;
         StoreItem<uint32_t, defaults::extruder_fs_value_span, ItemFlag::calibrations | ItemFlag::dev_items, journal::hash("Extruder FS Value Span 1")> extruder_fs_value_span_1;

@@ -20,7 +20,6 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <sys/socket.h>
 
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <cstdint>
 #include <cstddef>
 
@@ -12,7 +13,7 @@
 class StackOverflowChecker : public Uncopyable {
 
 public:
-    constexpr inline StackOverflowChecker(const std::span<std::byte> &stack)
+    constexpr inline StackOverflowChecker(const WritableBytes &stack)
         : stack_start(reinterpret_cast<uint32_t *>(stack.data())) {
 
         // Write our magic constant to the beginning (= bottom) of the stack. If it gets overwritten, we trigger an alarm
@@ -26,7 +27,7 @@ public:
 
     /// \returns a memory region the checker needs to be able to read from for the \p has_overflowed check
     /// This is necessary to consider for boards with the MPU enabled
-    inline std::span<const std::byte> read_access_region() const {
+    inline Bytes read_access_region() const {
         return std::as_bytes(std::span { stack_start, stack_start + 1 });
     }
 

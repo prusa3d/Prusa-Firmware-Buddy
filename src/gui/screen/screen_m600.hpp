@@ -10,8 +10,4 @@ public:
 protected:
     void click(IWindowMenu &window_menu) override;
     void Loop() override;
-
-private:
-    void handle_enable_state();
-    void update_enqueued_icon();
 };

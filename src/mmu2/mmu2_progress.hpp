@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_reporting.h"
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 
 namespace MMU2 {
 

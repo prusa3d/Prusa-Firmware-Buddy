@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits>
-#include <cassert>
 #include <cstring>
 
 #include <common/fsm_base_types.hpp>

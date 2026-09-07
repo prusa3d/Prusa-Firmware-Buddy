@@ -12,6 +12,7 @@
 #include <window_text.hpp>
 #include <common/utils/string_builder.hpp>
 #include <Marlin/src/feature/phase_stepping/calibration.hpp>
+#include <bsod/bsod.h>
 
 namespace {
 
@@ -25,14 +26,14 @@ Buffer addr(bool qr) {
     Buffer buffer;
     StringBuilder builder(buffer);
     builder.append_string("prusa.io/");
-    assert(PrinterModelInfo::firmware_base().help_url);
+    debug_assert(PrinterModelInfo::firmware_base().help_url);
     builder.append_string(PrinterModelInfo::firmware_base().help_url);
     builder.append_string("-phstep");
     if (qr) {
         builder.append_string("-qr");
     }
     // Check that we fit within the 36 character buffer.
-    assert(!builder.is_problem());
+    debug_assert(!builder.is_problem());
     return buffer;
 }
 
@@ -295,10 +296,10 @@ using Frames = FrameDefinitionList<ScreenPhaseSteppingCalibration::FrameStorage,
     FrameDefinition<PhasesPhaseStepping::intro, frame::Introduction>,
     FrameDefinition<PhasesPhaseStepping::home, frame::Homing>,
 #if HAS_ATTACHABLE_ACCELEROMETER()
-    FrameDefinition<PhasesPhaseStepping::connect_to_board, FrameConnectToBoard>,
-    FrameDefinition<PhasesPhaseStepping::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,
-    FrameDefinition<PhasesPhaseStepping::attach_to_extruder, FrameAttachToExtruder>,
-    FrameDefinition<PhasesPhaseStepping::attach_to_bed, FrameAttachToBed>,
+    FrameDefinition<PhasesPhaseStepping::connect_to_board, standard_frame_without_radio::FrameConnectToBoard>,
+    FrameDefinition<PhasesPhaseStepping::wait_for_extruder_temperature, standard_frame_without_radio::FrameWaitForExtruderTemperature>,
+    FrameDefinition<PhasesPhaseStepping::attach_to_extruder, standard_frame_without_radio::FrameAttachToExtruder>,
+    FrameDefinition<PhasesPhaseStepping::attach_to_bed, standard_frame_without_radio::FrameAttachToBed>,
 #endif
     FrameDefinition<PhasesPhaseStepping::calib_x, frame::CalibratingX>,
     FrameDefinition<PhasesPhaseStepping::calib_y, frame::CalibratingY>,

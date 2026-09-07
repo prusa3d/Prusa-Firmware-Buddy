@@ -17,6 +17,7 @@
 #include <o1heap/o1heap.hpp>
 #include <openprinttag_nfcv/opt_nfcv.hpp>
 #include <option/nfc_st25r3919b_enabled_antennas.h>
+#include <bsod/bsod.h>
 
 // This magical incantation is required for fw_descriptor integration in cmake to work.
 [[maybe_unused]] __attribute__((section(".fw_descriptor"), used)) const std::byte fw_descriptor[48] {};

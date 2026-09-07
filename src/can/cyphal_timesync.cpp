@@ -2,6 +2,7 @@
 #include "cyphal_timesync.hpp"
 
 #include <option/has_cyphal_metrics.h>
+#include <bsod/bsod.h>
 #if HAS_CYPHAL_METRICS()
     // #error dead code found by automatic analyses (see BFW-5461)
     #include <metric.h>
@@ -51,7 +52,7 @@ TimeSync::TimeSync(uint32_t filter_index_)
                   sync_lock = true;
               }
           }) {
-    assert(time_mutex != nullptr);
+    debug_assert(time_mutex != nullptr);
 }
 
 bool TimeSync::loop(int64_t timestamp) {

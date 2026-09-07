@@ -1,8 +1,12 @@
+#!/usr/bin/env python3
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+
+import re
+from pathlib import Path
 
 # -- Path setup --------------------------------------------------------------
 
@@ -10,7 +14,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'TinyUSB'
-copyright = '2021, Ha Thach'
+copyright = '2025, Ha Thach'
 author = 'Ha Thach'
 
 
@@ -37,5 +41,41 @@ html_favicon = 'assets/logo.svg'
 html_theme_options = {
     'sidebar_hide_name': True,
 }
+html_static_path = ['_static']
+html_css_files = ['custom.css']
 
 todo_include_todos = True
+
+# pre-process path in README.rst
+def preprocess_readme():
+    """Modify figure paths in README.rst for Sphinx builds."""
+    src = Path(__file__).parent.parent / "README.rst"
+    tgt = Path(__file__).parent.parent / "README_processed.rst"
+    if src.exists():
+        content = src.read_text(encoding='utf-8')
+        # if the matching is inside a table, keep the table cell width by adding the same number of spaces in the end of the line
+        # match pattern: | ... `... <docs/...>`_ ... |
+        # change into:   | ... `... <...>`_ ...      |
+        def _rewrite_table_line(line):
+            if not (line.startswith('|') and line.rstrip().endswith('|')):
+                return line
+
+            rewritten = re.sub(r"<docs/([^>]+)>", r"<\1>", line)
+            delta = len(line) - len(rewritten) - 1  # -1 for rst->html
+
+            if delta > 0:
+                last_pipe = rewritten.rfind('|')
+                if last_pipe >= 0:
+                    rewritten = rewritten[:last_pipe] + (' ' * delta) + rewritten[last_pipe:]
+
+            return rewritten
+
+        content = ''.join(_rewrite_table_line(line) for line in content.splitlines(keepends=True))
+
+        content = re.sub(r"docs/", r"", content)
+        content = re.sub(r"\.rst\b", r".html", content)
+        if not content.endswith("\n"):
+            content += "\n"
+        tgt.write_text(content, encoding='utf-8')
+
+preprocess_readme()

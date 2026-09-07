@@ -2,9 +2,11 @@
  * @file window_wizard_icon.cpp
  */
 
+#include "gui_time.hpp"
 #include <window_wizard_icon.hpp>
 #include <img_resources.hpp>
 #include <display_helper.h>
+#include <bsod/bsod.h>
 
 // dash ok and nok must be same size
 constexpr static uint16_t icon_h = img::ok_color_18x18.h;
@@ -15,12 +17,12 @@ WindowIconOkNgArray::WindowIconOkNgArray(window_t *parent, const point_i16_t pt,
     , hidden({})
     , icon_cnt(icon_cnt)
     , animation_stage(0) {
-    assert(icon_cnt <= max_icon_cnt);
+    debug_assert(icon_cnt <= max_icon_cnt);
     states.fill(state);
 }
 
 void WindowIconOkNgArray::SetIconHidden(const size_t idx, const bool set_hidden) {
-    assert(idx < icon_cnt);
+    debug_assert(idx < icon_cnt);
     if (hidden[idx] != set_hidden) {
         hidden[idx] = set_hidden;
         Invalidate();
@@ -28,7 +30,7 @@ void WindowIconOkNgArray::SetIconHidden(const size_t idx, const bool set_hidden)
 }
 
 void WindowIconOkNgArray::SetState(const SelftestSubtestState_t state, const size_t idx) {
-    assert(idx < icon_cnt);
+    debug_assert(idx < icon_cnt);
     if (state != states[idx]) {
         states[idx] = state;
         if (!hidden[idx]) {
@@ -38,7 +40,7 @@ void WindowIconOkNgArray::SetState(const SelftestSubtestState_t state, const siz
 }
 
 void WindowIconOkNgArray::SetIconCount(const size_t new_icon_cnt) {
-    assert(new_icon_cnt <= max_icon_cnt);
+    debug_assert(new_icon_cnt <= max_icon_cnt);
     if (icon_cnt == new_icon_cnt) {
         return;
     }

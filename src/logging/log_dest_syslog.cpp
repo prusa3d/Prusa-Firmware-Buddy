@@ -1,6 +1,6 @@
 #include <logging/log_dest_syslog.hpp>
 
-#include "tcpip.h"
+#include <lwip/tcpip.h>
 #include <printf/printf.h>
 #include <syslog/syslog_transport.hpp>
 #include <common/otp.hpp>

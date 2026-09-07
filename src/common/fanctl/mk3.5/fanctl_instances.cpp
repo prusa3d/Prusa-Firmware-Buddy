@@ -5,6 +5,7 @@
 #include <CFanCtlCommonConsts.hpp>
 #include <option/has_love_board.h>
 #include <hw_configuration.hpp>
+#include <bsod/bsod.h>
 
 static auto write_print_pwm = [](bool value) {
     buddy::hw::fanPrintPwm.writeb(value);
@@ -14,7 +15,7 @@ static auto read_print_tacho = []() {
     return buddy::hw::fanPrintTach.readb();
 };
 
-CFanCtlCommon &Fans::print(size_t index) {
+CFanCtlCommon &Fans::print(PhysicalToolIndex) {
     static CFanCtl3Wire instance = CFanCtl3Wire(
         write_print_pwm,
         read_print_tacho,
@@ -30,9 +31,7 @@ CFanCtlCommon &Fans::print(size_t index) {
             .has_inverted_pwm = buddy::hw::Configuration::Instance().has_inverted_fans(),
         });
 
-    if (index) {
-        bsod("Print fan %u does not exist", index);
-    }
+    static_assert(PhysicalToolIndex::count == 1);
     return instance;
 };
 
@@ -44,7 +43,7 @@ static auto read_heat_tacho = []() {
     return buddy::hw::fanHeatBreakTach.readb();
 };
 
-CFanCtlCommon &Fans::heat_break(size_t index) {
+CFanCtlCommon &Fans::heat_break(PhysicalToolIndex) {
     static CFanCtl3Wire instance = CFanCtl3Wire(
         write_heat_pwm,
         read_heat_tacho,
@@ -60,9 +59,7 @@ CFanCtlCommon &Fans::heat_break(size_t index) {
             .has_inverted_pwm = buddy::hw::Configuration::Instance().has_inverted_fans(),
         });
 
-    if (index) {
-        bsod("Heat break fan %u does not exist", index);
-    }
+    static_assert(PhysicalToolIndex::count == 1);
     return instance;
 };
 

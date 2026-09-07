@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lwip/ip_addr.h"
+#include <lwip/ip_addr.h>
 
 #define LAN_FLAG_ONOFF_POS (1 << 0) // position of ONOFF switch in lan.flag
 #define LAN_FLAG_TYPE_POS  (1 << 1) // position of DHCP/STATIC switch in lan.flag

@@ -15,6 +15,7 @@
 #include <gui/event/knob_event.hpp>
 #include <guiconfig/guiconfig.h>
 #include <menu_vars.h>
+#include <config_store/store_c_api.h>
 #include <gui.hpp>
 
 #if HAS_SHEET_PROFILES()
@@ -106,6 +107,7 @@ void WindowLiveAdjustZ::Change(int dif) {
     float old = number.GetValue();
     float z_offset = number.GetValue();
 
+    const float z_offset_step = 1.0f / get_steps_per_unit_z();
     z_offset += (float)dif * z_offset_step;
     z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); // check overflow/underflow
     z_offset = std::min(z_offset, z_offset_max);

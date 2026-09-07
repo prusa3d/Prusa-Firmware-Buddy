@@ -11,14 +11,6 @@ using connect_client::ConnectionStatus;
 using connect_client::OnlineStatus;
 using std::get;
 
-namespace {
-
-const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Response::_none, Response::_none };
-// TODO: How does this thing get translated/marked for translation?
-const PhaseTexts dlg_texts = { { N_("Leave") } };
-
-} // namespace
-
 DialogConnectRegister::DialogConnectRegister()
     : IDialog(WizardDefaults::RectSelftestFrame)
     , header(this, _(headerLabel))
@@ -30,7 +22,7 @@ DialogConnectRegister::DialogConnectRegister()
     , text_state(this, Positioner::textRectState(), is_multiline::yes)
     , text_attempt(this, Positioner::textRectAttempt(), is_multiline::yes)
     , text_detail(this, Positioner::textRectDetail(), is_multiline::yes)
-    , button(this, WizardDefaults::RectRadioButton(0), dlg_responses, &dlg_texts) {
+    , button(this, WizardDefaults::RectRadioButton(0), PhaseResponses { Response::Quit }) {
 
     text_state.SetAlignment(Align_t::Center());
     text_attempt.SetAlignment(Align_t::Center());

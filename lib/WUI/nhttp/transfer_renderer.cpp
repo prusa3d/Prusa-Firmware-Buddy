@@ -1,5 +1,6 @@
 #include "transfer_renderer.h"
 
+#include <buddy/filename_defs.hpp>
 #include <segmented_json_macros.h>
 #include <filepath_operation.h>
 #include <lfn.h>
@@ -37,8 +38,8 @@ JsonResult TransferRenderer::renderStateV1(size_t resume_point, json::JsonOutput
     //  this might be a problem if old Slicer would be uploading.
     //  But right now Link does not seems to do anything with the
     //  transfer information anyway, so maybe not a big deal?
-    char filepath[FILE_PATH_BUFFER_LEN];
-    char lfn[FILE_NAME_BUFFER_LEN];
+    char filepath[filename_defs::path_buffer_size];
+    char lfn[filename_defs::filename_buffer_size];
     if (transfer_status.has_value() && transfer_status->destination) {
         strlcpy(filepath, transfer_status->destination, sizeof(filepath));
         get_SFN_path(filepath);

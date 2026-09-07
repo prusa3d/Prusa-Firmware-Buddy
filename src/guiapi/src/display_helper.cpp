@@ -13,113 +13,7 @@
 #include <math.h>
 #include "guitypes.hpp"
 #include "cmath_ext.h"
-#include <utility_extensions.hpp>
-#include "font_character_sets.hpp"
-#include <printers.h>
-#include <option/enable_translation_ja.h>
-#include <option/enable_translation_uk.h>
-
-#if PRINTER_IS_PRUSA_MINI()
-    #if ENABLE_TRANSLATION_JA()
-// #error dead code found by automatic analyses (see BFW-5461)
-static constexpr const uint16_t font_latin_and_katakana_char_indices[] = {
-        #include "../guiapi/include/fnt-latin-and-katakana-indices.ipp"
-};
-    #elif ENABLE_TRANSLATION_UK()
-// #error dead code found by automatic analyses (see BFW-5461)
-static constexpr const uint16_t font_latin_and_cyrillic_char_indices[] = {
-        #include "../guiapi/include/fnt-latin-and-cyrillic-indices.ipp"
-};
-    #else
-static constexpr const uint16_t font_latin_char_indices[] = {
-        #include "../guiapi/include/fnt-latin-indices.ipp"
-};
-    #endif
-#else
-static constexpr const uint16_t font_full_char_indices[] = {
-    #include "../guiapi/include/fnt-full-indices.ipp"
-};
-
-static constexpr const uint16_t font_digits_char_indices[] = {
-    #include "../guiapi/include/fnt-digits-indices.ipp"
-};
-#endif
-
-bool hasASCII(FontCharacterSet charset_option) {
-    return
-#if not PRINTER_IS_PRUSA_MINI()
-        charset_option == FontCharacterSet::full;
-#else
-    #if ENABLE_TRANSLATION_JA()
-        // #error dead code found by automatic analyses (see BFW-5461)
-        charset_option == FontCharacterSet::latin_and_katakana;
-    #elif ENABLE_TRANSLATION_UK()
-        // #error dead code found by automatic analyses (see BFW-5461)
-        charset_option == FontCharacterSet::latin_and_cyrillic;
-    #else
-        charset_option == FontCharacterSet::latin;
-    #endif
-#endif
-}
-
-uint32_t get_char_position_in_font(unichar c, const font_t *pf) {
-    const unichar asc_min = 32;
-    if (c < asc_min) { // this really happens with non-utf8 characters on filesystems
-        return get_char_position_in_font('?', pf);
-    }
-
-    if (hasASCII(pf->charset) && c < 127) {
-        // standard ASCII character
-        // This means that fonts with FontCharacterSet::full have to have all standard ASCII characters even though some of them are not used
-        // We take this trade off - we waste a little bit of space, but no lower_bound is necessary for standard character indices
-        return c - asc_min;
-    }
-
-    // extended utf8 character - must search in the font_XXX_char_indices map
-
-    const uint16_t *first = nullptr, *last = nullptr;
-    switch (pf->charset) {
-#if PRINTER_IS_PRUSA_MINI()
-    #if ENABLE_TRANSLATION_JA()
-        // #error dead code found by automatic analyses (see BFW-5461)
-    case FontCharacterSet::latin_and_katakana:
-        first = std::begin(font_latin_and_katakana_char_indices);
-        last = std::end(font_latin_and_katakana_char_indices);
-        break;
-    #elif ENABLE_TRANSLATION_UK()
-        // #error dead code found by automatic analyses (see BFW-5461)
-    case FontCharacterSet::latin_and_cyrillic:
-        first = std::begin(font_latin_and_cyrillic_char_indices);
-        last = std::end(font_latin_and_cyrillic_char_indices);
-        break;
-    #else
-    case FontCharacterSet::latin:
-        first = std::begin(font_latin_char_indices);
-        last = std::end(font_latin_char_indices);
-        break;
-    #endif
-#else
-    case FontCharacterSet::full:
-        first = std::begin(font_full_char_indices);
-        last = std::end(font_full_char_indices);
-        break;
-    case FontCharacterSet::digits:
-        first = std::begin(font_digits_char_indices);
-        last = std::end(font_digits_char_indices);
-        break;
-#endif
-    }
-
-    if (!first || !last) {
-        return get_char_position_in_font('?', pf);
-    }
-
-    const uint16_t *i = std::lower_bound(first, last, c);
-    if (i == last || *i != c) {
-        return get_char_position_in_font('?', pf);
-    }
-    return std::distance(first, i);
-}
+#include <bsod/bsod.h>
 
 /// Fill space from [@top, @left] corner to the end of @rc with height @h
 /// If @h is too high, it will be cropped so nothing is drawn outside of the @rc but
@@ -152,13 +46,13 @@ size_ui16_t calculate_text_size(const string_view_utf8 &str, const Font font, is
     const auto *pf = resource_font(font);
     StringReaderUtf8 reader(str);
     const auto layout = RectTextLayout(reader, 255, 255, multiline);
-    assert(!layout.has_text_overflown());
+    debug_assert(!layout.has_text_overflown());
     return size_ui16_t(layout.get_width_in_chars() * pf->w, layout.get_height_in_chars() * pf->h);
 }
 
 void render_line(StringReaderUtf8 &reader, uint8_t chars_to_print, Rect16 rc, const font_t *pf, Color clr_bg, Color clr_fg) {
     const uint16_t buff_char_capacity = display::buffer_pixel_size() / (pf->w * pf->h);
-    assert(buff_char_capacity > 0 && "Buffer needs to take at least one character");
+    debug_assert(buff_char_capacity > 0 && "Buffer needs to take at least one character");
     point_ui16_t pt = point_ui16(rc.Left(), rc.Top());
 
     uint8_t chars_left = chars_to_print;
@@ -193,7 +87,7 @@ void render_text_align(Rect16 rc, StringReaderUtf8 &reader, const Font f, Color 
     auto reader_copy = reader.copy();
     const RectTextLayout layout = RectTextLayout(reader_copy, rc_pad.Width() / font->w, rc_pad.Height() / font->h, flags.multiline);
 
-    assert(flags.overflow == check_overflow::no || !layout.has_text_overflown());
+    debug_assert(flags.overflow == check_overflow::no || !layout.has_text_overflown());
 
     if (layout.get_width_in_chars() == 0 || layout.get_height_in_chars() == 0) {
         if (fill_rect) {

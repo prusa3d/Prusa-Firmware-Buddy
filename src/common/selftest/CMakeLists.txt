@@ -28,6 +28,10 @@ target_sources(
           selftest_tool_helper.cpp
   )
 
+if(HAS_HEATERS_SELFTEST_GCODE)
+  target_sources(firmware PRIVATE heaters_selftest.cpp)
+endif()
+
 if(CONNECT OR WUI)
   target_sources(firmware PRIVATE selftest_netstatus_interface.cpp)
 endif()

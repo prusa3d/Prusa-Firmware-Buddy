@@ -29,7 +29,6 @@
 
 #include <alloca.h>
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 #include <cstdio>
 #include <cinttypes>
@@ -38,6 +37,7 @@
 #include <unistd.h>
 
 #include <option/has_side_leds.h>
+#include <bsod/bsod.h>
 #if HAS_SIDE_LEDS() || defined(UNITTESTS)
     #include <leds/side_strip_handler.hpp>
 #endif
@@ -294,7 +294,7 @@ const char *to_str(EventType event) {
     case EventType::StateChanged:
         return "STATE_CHANGED";
     default:
-        assert(false);
+        debug_assert(false);
         return "???";
     }
 }
@@ -316,7 +316,7 @@ const char *to_str(MachineReason reason) {
         return "NETWORK_FAILURE";
     }
 
-    assert(false);
+    debug_assert(false);
     return "???";
 }
 
@@ -401,7 +401,7 @@ Sleep Planner::sleep(Duration amount, http::Connection *wake_on_readable, bool c
 Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_readable) {
     if (perform_cooldown) {
         perform_cooldown = false;
-        assert(cooldown.get().has_value());
+        debug_assert(cooldown.get().has_value());
         return sleep(*cooldown.get(), nullptr, true);
     }
 
@@ -560,7 +560,7 @@ Action Planner::next_action(SharedBuffer &buffer, http::Connection *wake_on_read
     } else {
         // Don't sleep longer than until the next telemetry.
         // But also wake up often enough to check for interesting events.
-        assert(telemetry_interval >= since_telemetry);
+        debug_assert(telemetry_interval >= since_telemetry);
         Duration sleep_amount = std::min(telemetry_interval - since_telemetry, LOOP_WAKEUP);
         return sleep(sleep_amount, wake_on_readable, false);
     }
@@ -778,7 +778,7 @@ void Planner::command(const Command &command, const SetPrinterReady &) {
 void Planner::command(const Command &command, const CancelPrinterReady &) {
     bool ok = printer.set_ready(false);
     // Setting _not_ ready can't fail.
-    assert(ok);
+    debug_assert(ok);
     (void)ok; // Avoid warnging when asserts are disabled.
     planned_event = Event { EventType::Finished, command.id };
 }
@@ -795,7 +795,7 @@ void Planner::command(const Command &, const ProcessingThisCommand &) {
     //   (because we don't want to hit the safety checks there).
     // * It can't happen to be generated when we are _not_ processing a
     //   background command.
-    assert(0);
+    debug_assert(0);
 }
 
 void Planner::handle_transfer_result(const Command &command, Transfer::BeginResult result) {
@@ -804,7 +804,7 @@ void Planner::handle_transfer_result(const Command &command, Transfer::BeginResu
         if constexpr (is_same_v<T, transfers::Transfer>) {
             // If there was another download, it wouldn't have succeeded
             // because it wouldn't acquire the transfer slot.
-            assert(!this->transfer.has_value());
+            debug_assert(!this->transfer.has_value());
 
             this->transfer = Transfer { std::move(arg) };
             planned_event = Event { EventType::TransferInfo, command.id };
@@ -1037,7 +1037,7 @@ void Planner::command(const Command &command, const SetValue &params) {
     case connect_client::PropertyName::ChamberTargetTemp: {
         const auto target_temp = get<uint32_t>(params.value);
         const auto gcode_temp = (target_temp == connect_client::Printer::ChamberInfo::target_temp_unset) ? uint32_t { 0 } : target_temp;
-        marlin_client::gcode_printf("M141 S%" PRIu32, gcode_temp);
+        marlin_client::inject(GCodeLiteral("M141 S%g", gcode_temp));
     } break;
     case connect_client::PropertyName::ChamberFanPwmTarget: {
         // Note: cooling fans share PWM control
@@ -1080,7 +1080,7 @@ void Planner::command(Command command) {
     // TODO: We probably want to have some more graceful way to deal with the
     // server sending us the command as a result to something else anyway.
 
-    assert(!planned_event.has_value());
+    debug_assert(!planned_event.has_value());
     if (printer.is_in_error() && !command_is_error_whitelisted(command)) {
         planned_event = Event {
             EventType::Rejected,
@@ -1127,12 +1127,12 @@ optional<CommandId> Planner::background_command_id() const {
 
 void Planner::background_done(BackgroundResult result) {
     // Function contract, caller not supposed to supply anything else.
-    assert(result == BackgroundResult::Success || result == BackgroundResult::Failure);
+    debug_assert(result == BackgroundResult::Success || result == BackgroundResult::Failure);
     // We give out the background task only as part of a sleep and we do so
     // only in case we don't have an event to be sent out.
-    assert(!planned_event.has_value());
+    debug_assert(!planned_event.has_value());
     // Obviously, it can be done only in case there's one.
-    assert(background_command.has_value());
+    debug_assert(background_command.has_value());
     planned_event = Event {
         result == BackgroundResult::Success ? EventType::Finished : EventType::Failed,
         background_command_id(),
@@ -1171,7 +1171,7 @@ void Planner::transfer_recovery_finished(std::optional<const char *> transfer_de
 void Planner::download_done(Transfer::State result) {
     // Similar reasons as with background_done
     log_info(connect, "Download done, result %i", static_cast<int>(result));
-    assert(transfer.has_value());
+    debug_assert(transfer.has_value());
 
     // We do _not_ set the event here. We do so in watching the transfer.
     //
@@ -1179,7 +1179,7 @@ void Planner::download_done(Transfer::State result) {
     // next_event in the meantime or if it was short-circuited.
 
     observed_transfer = Monitor::instance.id();
-    assert(observed_transfer.has_value()); // Because download still holds the slot.
+    debug_assert(observed_transfer.has_value()); // Because download still holds the slot.
     transfer.reset();
 }
 

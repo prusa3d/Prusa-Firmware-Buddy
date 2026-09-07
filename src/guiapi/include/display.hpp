@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/abstract_byte_reader.hpp>
+#include <utils/abstract_byte_reader.hpp>
 #include <inttypes.h>
 #include "guitypes.hpp"
 #include "Rect16.h"
@@ -30,7 +30,6 @@ void init();
 bool is_reset_required();
 void complete_reinit();
 void spi_tx_complete();
-void spi_rx_complete();
 
 /**
  * @brief Borrow display buffer.

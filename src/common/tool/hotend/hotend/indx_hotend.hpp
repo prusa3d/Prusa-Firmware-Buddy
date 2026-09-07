@@ -1,10 +1,12 @@
 /// @file
 #pragma once
 
+#include <optional>
+
 #include "base_hotend.hpp"
 #include <tool/tool/standard_fff_physical_tool.hpp>
 
-/// Represents a hotend that is managed by a dwarf on an XL
+/// Represents a hotend that is managed by the INDX head
 class IndxHotend final : public BaseHotend {
     friend class PrusaToolChanger; // For access to start_heating / stop_heating
     friend class PrusaToolChangerUtils;
@@ -14,6 +16,7 @@ public:
     explicit IndxHotend(PhysicalToolIndex tool, const Config *config)
         : BaseHotend(tool, config) {
         is_thermally_managed_ = false; // INDX starts inactive
+        nozzle_temp_ = std::nullopt; // parked sentinel until first pickup; kept in sync with stop_heating()
     }
 
     static StandardFFFPhysicalTool<IndxHotend> &indx_tool(PhysicalToolIndex tool);
@@ -23,8 +26,24 @@ public:
     /// that no tool is managed at all.
     static void assert_thermally_managed_invariant(std::variant<PhysicalToolIndex, NoTool> expected_managed);
 
+    /// Resolves an in-flight recheck; call every cycle() (also while no tool is managed).
+    static void process_pending_thermal_runaway();
+
+    /// Heater selftest trip interception (mirrors the fan controllers' selftest mode): while
+    /// engaged, thermal-protection trips (thermal model, heater watch, thermal runaway) are
+    /// recorded instead of raising a fatal error. The heater is still switched off immediately
+    /// on a trip. !!! Marlin thread only.
+    static void enter_heater_selftest_mode();
+    static void exit_heater_selftest_mode();
+
+    /// @returns the error code of the first trip since enter_heater_selftest_mode(), if any
+    static std::optional<ErrCode> heater_selftest_trip();
+
 protected:
     virtual void manage() override;
+
+    /// Re-verifies nozzle presence before raising; a fallen nozzle looks like a runaway.
+    void invoke_thermal_runaway(ErrCode error_code) override;
 
     /// Pushes the current target to the puppy and resets the hotend temp compensator.
     /// Engages other heating side effects common to all hotend implementations.

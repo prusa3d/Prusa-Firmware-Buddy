@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <feature/chamber_filtration/chamber_filtration.hpp>
+#include <bsod/bsod.h>
 
 namespace buddy {
 

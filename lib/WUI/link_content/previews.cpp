@@ -3,6 +3,7 @@
 #include <guiconfig/GuiDefaults.hpp>
 
 #include <cstdio>
+#include <buddy/filename_defs.hpp>
 
 namespace nhttp::link_content {
 
@@ -48,14 +49,14 @@ Selector::Accepted Previews::accept(const RequestParser &parser, handler::Step &
         return Accepted::Accepted;
     }
 
-    char fname[FILE_PATH_BUFFER_LEN + extra_size];
+    char fname[filename_defs::path_buffer_size + extra_size];
     if (!parser.uri_filename(fname, sizeof(fname))) {
         out.next = StatusPage(Status::NotFound, parser, "This doesn't look like file name");
         return Accepted::Accepted;
     }
 
     // Strip the extra prefix (without the last /)
-    memmove(fname, fname + extra_size - 1, FILE_PATH_BUFFER_LEN);
+    memmove(fname, fname + extra_size - 1, filename_defs::path_buffer_size);
 
     if (parser.method == Method::Get) {
         // Avoid copying over these guys on the stack, they are hundreds of bytes

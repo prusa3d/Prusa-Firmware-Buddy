@@ -10,6 +10,7 @@
 #include <feature/print_status_message/print_status_message_mgr.hpp>
 
 #include <marlin_server.hpp>
+#include <bsod/bsod.h>
 
 inline constexpr float HOMING_BUMP_DIVISOR_STEP = 1.03f;
 inline constexpr float homing_bump_divisor_dflt[] = HOMING_BUMP_DIVISOR;
@@ -87,15 +88,14 @@ float calibrated_home_offset(const AxisEnum axis) {
         return 0;
     }
 
-    const constexpr float steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
     switch (axis) {
     case X_AXIS: {
         return ((X_HOME_DIR < 0 ? X_HOME_GAP : -X_HOME_GAP)
-            - ((((INVERT_X_DIR) ? -1.f : 1.f) * to_calibrated(cal, stepperX.MSCNT())) / (steps_per_unit[X_AXIS] * (256 / get_microsteps_x()))));
+            - ((((INVERT_X_DIR) ? -1.f : 1.f) * to_calibrated(cal, stepperX.MSCNT())) / (get_steps_per_unit_x() * (256 / get_microsteps_x()))));
     }
     case Y_AXIS: {
         return ((Y_HOME_DIR < 0 ? Y_HOME_GAP : -Y_HOME_GAP)
-            - ((((INVERT_Y_DIR) ? -1.f : 1.f) * to_calibrated(cal, stepperY.MSCNT())) / (steps_per_unit[Y_AXIS] * (256 / get_microsteps_y()))));
+            - ((((INVERT_Y_DIR) ? -1.f : 1.f) * to_calibrated(cal, stepperY.MSCNT())) / (get_steps_per_unit_y() * (256 / get_microsteps_y()))));
     }
     default:;
     }
@@ -193,7 +193,7 @@ static void store_homing_sensitivity(AxisEnum axis, int16_t value) {
         config_store().homing_sens_y.set(value);
         break;
     default:
-        assert(false && "invalid axis index");
+        debug_assert(false && "invalid axis index");
     }
 }
 

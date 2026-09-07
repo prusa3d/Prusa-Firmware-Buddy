@@ -35,10 +35,22 @@
 extern "C" {
 #endif
 
+
+//--------------------------------------------------------------------+
+// Payload request
+//--------------------------------------------------------------------+
+typedef struct TU_ATTR_PACKED {
+    void* buf;      /* Payload buffer to be filled */
+    size_t length;  /* Length of the requested data in bytes */
+    size_t offset;  /* Offset within the frame (in bytes) */
+} tud_video_payload_request_t;
+
 //--------------------------------------------------------------------+
 // Application API (Multiple Ports)
 // CFG_TUD_VIDEO > 1
 //--------------------------------------------------------------------+
+
+bool tud_video_n_connected(uint_fast8_t ctl_idx);
 
 /** Return true if streaming
  *
@@ -59,7 +71,7 @@ bool tud_video_n_frame_xfer(uint_fast8_t ctl_idx, uint_fast8_t stm_idx, void *bu
  *
  * @param[in] ctl_idx    Destination control interface index
  * @param[in] stm_idx    Destination streaming interface index */
-TU_ATTR_WEAK void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx);
+void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx);
 
 //--------------------------------------------------------------------+
 // Application Callback API (weak is optional)
@@ -70,7 +82,7 @@ TU_ATTR_WEAK void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fa
  * @param[in] ctl_idx    Destination control interface index
  * @param[in] stm_idx    Destination streaming interface index
  * @return video_error_code_t */
-TU_ATTR_WEAK int tud_video_power_mode_cb(uint_fast8_t ctl_idx, uint8_t power_mod);
+int tud_video_power_mode_cb(uint_fast8_t ctl_idx, uint8_t power_mod);
 
 /** Invoked when VS_COMMIT_CONTROL(SET_CUR) request received
  *
@@ -78,13 +90,23 @@ TU_ATTR_WEAK int tud_video_power_mode_cb(uint_fast8_t ctl_idx, uint8_t power_mod
  * @param[in] stm_idx     Destination streaming interface index
  * @param[in] parameters  Video streaming parameters
  * @return video_error_code_t */
-TU_ATTR_WEAK int tud_video_commit_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx,
+int tud_video_commit_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx,
                                      video_probe_and_commit_control_t const *parameters);
+
+/** Invoked if buffer is set to NULL (allows bufferless on the fly data generation)
+ *
+ * @param[in]   ctl_idx       Destination control interface index
+ * @param[in]   stm_idx       Destination streaming interface index
+ * @param[out]  payload_buf   Payload storage buffer (target buffer for requested data)
+ * @param[in]   payload_size  Size of payload_buf (requested data size)
+ * @param[in]   offset        Current byte offset relative to given bufsize from tud_video_n_frame_xfer (framesize)  */
+void tud_video_prepare_payload_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx, tud_video_payload_request_t* request);
 
 //--------------------------------------------------------------------+
 // INTERNAL USBD-CLASS DRIVER API
 //--------------------------------------------------------------------+
 void     videod_init           (void);
+bool     videod_deinit         (void);
 void     videod_reset          (uint8_t rhport);
 uint16_t videod_open           (uint8_t rhport, tusb_desc_interface_t const * itf_desc, uint16_t max_len);
 bool     videod_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request);

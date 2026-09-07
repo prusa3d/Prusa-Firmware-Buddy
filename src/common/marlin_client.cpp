@@ -5,7 +5,6 @@
 #include "marlin_events.h"
 #include "marlin_server.hpp"
 #include "marlin_server_shared.h"
-#include <cassert>
 #include <freertos/mutex.hpp>
 #include <stdio.h>
 #include <string.h>
@@ -19,6 +18,7 @@
 #include "bsod.h"
 #include "utility_extensions.hpp"
 #include "tasks.hpp"
+#include <utils/string_builder.hpp>
 
 #if HAS_SELFTEST()
     #include <selftest_types.hpp>
@@ -71,7 +71,7 @@ void init_maybe() {
 
 void init() {
     // If the marlin has already been initialized, don't call init again
-    assert(!_client_ptr());
+    debug_assert(!_client_ptr());
 
     int client_id;
     marlin_client_t *client = 0;
@@ -82,7 +82,7 @@ void init() {
             break;
         }
     }
-    assert(client_id < MARLIN_MAX_CLIENTS);
+    debug_assert(client_id < MARLIN_MAX_CLIENTS);
     if (client_id < MARLIN_MAX_CLIENTS) {
         client = clients + client_id;
         memset(client, 0, sizeof(marlin_client_t));
@@ -131,22 +131,28 @@ static bool try_send(Request &request) {
     }
 }
 
-static void _send_request_to_server_and_wait(Request &request) {
-    marlin_client_t *client = _client_ptr();
-    if (client == nullptr) {
-        return;
-    }
+static bool try_send_with_retries(Request &request) {
     uint8_t retries_left = max_retries;
     do {
         if (try_send(request)) {
-            return;
+            return true;
         } else {
             // give marlin server time to process other requests
             osDelay(10);
             retries_left--;
         }
     } while (retries_left > 0);
-    fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
+    return false;
+}
+
+static void _send_request_to_server_and_wait(Request &request) {
+    marlin_client_t *client = _client_ptr();
+    if (client == nullptr) {
+        bsod("Marlin client used before init");
+    }
+    if (!try_send_with_retries(request)) {
+        fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
+    }
 }
 
 /// send the request to the marlin server and don't ask for acknowledgement
@@ -179,7 +185,6 @@ namespace {
         if (strlcpy(request.gcode, gcode, sizeof(request.gcode)) >= sizeof(request.gcode)) {
             // TODO It would be much better to ensure gcode always points
             //      to some static buffer and only serialize the pointer.
-            log_error(MarlinClient, "ignoring truncated gcode");
             return nullopt;
         } else {
             return request;
@@ -189,7 +194,10 @@ namespace {
 } // namespace
 
 void gcode(const char *gcode) {
-    if (auto request = gcode_request(gcode); request.has_value()) {
+    auto request = gcode_request(gcode);
+    if (!request.has_value()) {
+        set_warning(WarningType::GcodeCropped);
+    } else {
         _send_request_to_server_and_wait(*request);
     }
 }
@@ -202,31 +210,33 @@ GcodeTryResult gcode_try(const char *gcode) {
             return GcodeTryResult::QueueFull;
         }
     } else {
+        log_error(MarlinClient, "ignoring truncated gcode");
         return GcodeTryResult::GcodeTooLong;
     }
 }
-
 void gcode_printf(const char *format, ...) {
     Request request;
     request.type = Request::Type::Gcode;
     va_list ap;
     va_start(ap, format);
-    const int ret = vsnprintf(request.gcode, sizeof(request.gcode), format, ap);
+    auto sb = StringBuilder::from_ptr(request.gcode, sizeof(request.gcode));
+    sb.append_vprintf(format, ap);
     va_end(ap);
-    if (ret == -1 || ret >= (int)sizeof(request.gcode)) {
+
+    if (!sb.is_ok()) {
         // TODO It would be much better to remove gcode_printf() altogether
         //      and instead craft individual request types.
-        log_error(MarlinClient, "ignoring truncated gcode");
+        set_warning(WarningType::GcodeCropped);
     } else {
         _send_request_to_server_and_wait(request);
     }
 }
 
-void inject(InjectQueueRecord record) {
+bool inject(InjectQueueRecord record) {
     Request request;
     request.type = Request::Type::Inject;
     request.inject = record;
-    _send_request_to_server_and_wait(request);
+    return try_send_with_retries(request);
 }
 
 void gcode_interrupt(GCodeLiteral gcode) {
@@ -289,10 +299,11 @@ void test_abort() {
 }
 #endif
 
-void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
+void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview, ResetToolMapping reset_tool_mapping) {
     Request request;
     request.type = Request::Type::PrintStart;
     request.print_start.skip_preview = skip_preview;
+    request.print_start.reset_tool_mapping = reset_tool_mapping;
     if (strlcpy(request.print_start.filename, filename, sizeof(request.print_start.filename)) >= sizeof(request.print_start.filename)) {
         log_error(MarlinClient, "ignoring truncated filename");
     } else {
@@ -452,7 +463,7 @@ static bool receive_and_process_client_message(marlin_client_t *client, size_t m
     case Event::RequestCalibrationsScreen:
         break;
     case Event::_count:
-        assert(false);
+        debug_assert(false);
     }
     return true;
 }

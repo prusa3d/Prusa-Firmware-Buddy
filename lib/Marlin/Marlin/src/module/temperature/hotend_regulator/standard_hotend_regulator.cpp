@@ -26,16 +26,14 @@ HotendRegulatorResult StandardHotendRegulator::get_pid_output_hotend(const Hoten
             temp_dState = pid_error;
             pid_reset = false;
         }
-#if FAN_COUNT > 0
         work_pid.Kd = work_pid.Kd + PID_K2 * (args.pid.Kd * (pid_error - temp_dState) - work_pid.Kd);
         work_pid.Kp = args.pid.Kp * pid_error;
         pid_output = work_pid.Kp + float(MIN_POWER);
 
-    #if ENABLED(STEADY_STATE_HOTEND)
+#if ENABLED(STEADY_STATE_HOTEND)
         static constexpr float pid_max_inv = 1.0f / PID_MAX;
         feed_forward = steady_state_hotend(args.target_temp, args.fan_speed * pid_max_inv);
         pid_output += feed_forward;
-    #endif
 #endif
 
 #if ENABLED(PID_EXTRUSION_SCALING)

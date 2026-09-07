@@ -82,6 +82,10 @@ extern "C" [[gnu::used]] uint8_t __atomic_exchange_1(volatile void *memv, uint8_
     return atomic_op<op_xchg>(memv, val, model);
 }
 
+extern "C" [[gnu::used]] unsigned __atomic_exchange_4(volatile void *memv, unsigned val, [[maybe_unused]] int model) {
+    return atomic_op<op_xchg>(memv, val, model);
+}
+
 extern "C" [[gnu::used]] bool __atomic_compare_exchange_4(volatile void *ptr, void *expected, unsigned desired,
     [[maybe_unused]] bool weak, int success_memorder, int failure_memorder) {
     return atomic_op<op_cmpxchg>(ptr, expected, desired, success_memorder, failure_memorder);

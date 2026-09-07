@@ -8,6 +8,7 @@
 #include "radio_button.hpp"
 #include <option/has_toolchanger.h>
 #include <option/has_tool_crash_recovery.h>
+#include <option/has_dwarf.h>
 #include <gui/standard_frame/frame_wait.hpp>
 
 class ScreenCrashRecovery;
@@ -61,7 +62,6 @@ struct WinsAxisNok {
     window_text_t text_y_axis;
     WindowIcon_OkNg icon_y_axis;
     RadioButton radio;
-    static constexpr PhaseTexts texts = { { "Retry", "Pause", "Resume" } };
     RepeatedBeep beep;
 
     WinsAxisNok(ScreenCrashRecovery &screen);
@@ -73,7 +73,6 @@ struct WinsRepeatedCrash {
     window_icon_t icon_nozzle;
     window_text_t text_info;
     RadioButton radio;
-    static constexpr PhaseTexts texts = { { "Resume", "Pause" } };
     RepeatedBeep beep;
 
     WinsRepeatedCrash(ScreenCrashRecovery &screen);
@@ -85,7 +84,6 @@ struct WinsHomeFail {
     window_icon_t icon_nozzle;
     window_text_t text_info;
     RadioButton radio;
-    static constexpr PhaseTexts texts = { { "Retry" } };
     RepeatedBeep beep;
 
     WinsHomeFail(ScreenCrashRecovery &screen);
@@ -100,22 +98,21 @@ private:
     FrameWait frame_;
 };
 
-#if HAS_TOOL_CRASH_RECOVERY()
+#if HAS_TOOL_CRASH_RECOVERY() && HAS_DWARF()
 struct WinsToolRecovery {
     window_text_t text_long;
     window_text_t text_careful;
     window_text_t text_tool[EXTRUDERS];
     WindowIcon_OkNg icon_tool[EXTRUDERS];
     RadioButton radio;
-    static constexpr PhaseTexts texts = { { "Continue" } };
     RepeatedBeep beep;
 
     WinsToolRecovery(ScreenCrashRecovery &screen);
 };
 #endif
 
-using WinVariant = std::variant<
-#if HAS_TOOL_CRASH_RECOVERY()
+using WinVariant = std::variant<std::nullopt_t,
+#if HAS_TOOL_CRASH_RECOVERY() && HAS_DWARF()
     WinsToolRecovery,
 #endif
     WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash, WinsHomeFail, WinsGCodeInterrupt>;

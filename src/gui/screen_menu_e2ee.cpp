@@ -1,29 +1,27 @@
+/// @file
 #include "screen_menu_e2ee.hpp"
+
 #include "ScreenHandler.hpp"
-
 #include <common/e2ee/e2ee.hpp>
+#include <common/e2ee/identity_check_levels.hpp>
 #include <common/e2ee/key.hpp>
-#include <common/stat_retry.hpp>
-
-#include <sys/stat.h>
-
-using e2ee::KeyGen;
-
-namespace detail_e2ee {
+#include <img_resources.hpp>
 
 MI_KEY::MI_KEY()
-    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_INFO_t {
+        _("Key Status"),
+    } {
     Loop();
 }
 
 void MI_KEY::Loop() {
-    // TODO: Shall we show some kind of fingerprint?
-    // What _is_ even a fingerprint for a raw RSA key?
-    ChangeInformation(_(e2ee::is_private_key_present() ? N_("Initialized") : N_("Uninitialized")));
+    ChangeInformation(e2ee::is_private_key_present() ? _("Initialized") : _("Uninitialized"));
 }
 
 MI_KEYGEN::MI_KEYGEN()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem {
+        _("Generate Private Key"),
+    } {}
 
 void MI_KEYGEN::click(IWindowMenu &) {
     const auto closing_callback = [this] {
@@ -51,7 +49,9 @@ void MI_KEYGEN::click(IWindowMenu &) {
 }
 
 MI_EXPORT::MI_EXPORT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : IWindowMenuItem {
+        _("Export Public Key"),
+    } {}
 
 void MI_EXPORT::click(IWindowMenu &) {
     if (e2ee::export_key()) {
@@ -61,23 +61,29 @@ void MI_EXPORT::click(IWindowMenu &) {
     }
 }
 
-#if 0
-    // #error dead code found by automatic analyses (see BFW-5461)
+static constexpr const char *identity_check_items[] = {
+    N_("Known only"),
+    N_("Ask"),
+    N_("Accept all"),
+};
+
 MI_IDENTITY_CHECKING::MI_IDENTITY_CHECKING()
-    : WI_SWITCH_t<3>(static_cast<size_t>(config_store().identity_check.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
-        _(str_Known), _(str_Ask), _(str_All)) {}
-
-void MI_IDENTITY_CHECKING::OnChange(size_t /*old_index*/) {
-    config_store().identity_check.set(static_cast<e2ee::IdentityCheckLevel>(index));
+    : MenuItemSwitch {
+        _("Identity Checking"),
+        identity_check_items,
+        static_cast<size_t>(config_store().identity_check.get())
+    } {
+    // The identity checking is not complete yet, so hide it from users for now.
+    showDevOnly();
 }
-#endif
 
-} // namespace detail_e2ee
+bool MI_IDENTITY_CHECKING::on_item_selected(const OnItemSelectedArgs &args) {
+    config_store().identity_check.set(static_cast<e2ee::IdentityCheckLevel>(args.new_index));
+    return true;
+}
 
 ScreenMenuE2ee::ScreenMenuE2ee()
-    : detail_e2ee::Menu(_(label)) {
-}
-
-ScreenMenuE2ee::~ScreenMenuE2ee() {
-    // Intentionally left blank;
-}
+    : ScreenMenuE2eeBase {
+        _("ENCRYPTION"),
+        &img::padlock_16x16,
+    } {}

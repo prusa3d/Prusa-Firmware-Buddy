@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: STM32 B-G474E-DPOW1 Discovery kit
+   url: https://www.st.com/en/evaluation-tools/b-g474e-dpow1.html
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -46,8 +51,7 @@
 #define BUTTON_STATE_ACTIVE   0
 
 // UART Enable for STLink VCOM
-#define UART_DEV              USART3
-#define UART_CLK_EN           __HAL_RCC_USART3_CLK_ENABLE
+#define UART_ID               3
 #define UART_GPIO_PORT        GPIOC
 #define UART_GPIO_AF          GPIO_AF7_USART3
 #define UART_TX_PIN           GPIO_PIN_10

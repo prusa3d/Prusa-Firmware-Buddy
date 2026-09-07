@@ -7,6 +7,7 @@
 #include "ifooter_item.hpp"
 #include "cmath_ext.h"
 #include "display_helper.h"
+#include "gui_time.hpp"
 
 namespace {
 std::optional<PhysicalToolIndex> physical_tool_override_;

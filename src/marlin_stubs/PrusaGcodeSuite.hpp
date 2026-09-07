@@ -5,6 +5,7 @@
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 
+#include <option/has_heaters_selftest_gcode.h>
 #include <option/has_esp.h>
 #include <option/has_toolchanger.h>
 #include <option/has_tool_mapping.h>
@@ -13,6 +14,7 @@
 #include <option/has_i2c_expander.h>
 #include <option/has_chamber_api.h>
 #include <option/has_nozzle_cleaner.h>
+#include <option/has_nozzle_cleaner_lite.h>
 #include <option/has_emergency_stop.h>
 #include <option/buddy_enable_connect.h>
 #include <option/has_door_sensor_calibration.h>
@@ -20,6 +22,7 @@
 #include <option/has_spool_join.h>
 #include <option/has_indx.h>
 #include <option/has_wastebin_fill_tracking.h>
+#include <option/has_tool_offset_sensor.h>
 
 #include <gcode/gcode_parser.hpp>
 
@@ -39,7 +42,7 @@ GcodeSuite::PhysicalToolFromCommand get_target_physical_from_command_p(const GCo
  * @{
  */
 
-#if HAS_NOZZLE_CLEANER()
+#if HAS_NOZZLE_CLEANER() || HAS_NOZZLE_CLEANER_LITE()
 void G12(); ///< Nozzle Cleaning
 #endif
 void G26(); //< first layer calibration
@@ -94,9 +97,12 @@ void M708(); //< Write variable to MMU
 void M709(); //< MMU turn on/off/reset
 /// @}
 
-/// @name INDX specific G-CODES
-#if HAS_INDX()
+#if HAS_TOOL_OFFSET_SENSOR()
 void G427(); ///< Tool offset calibration (Z-probe + XY tool offset board calib)
+void M1985(); //< INDX tool offsets calibration
+#endif
+
+#if HAS_INDX()
 void G750(); ///< Move to absolute X,Y position with nozzle cleaner origin offset
 #endif
 
@@ -174,10 +180,12 @@ void M1981(); //< Filament sensors selftest
 void M1982(); //< INDX dock calibration
 void M1983(); //< INDX nozzle cleaner calibration
 void M1984(); //< Manually park a stuck nozzle into a dock
-void M1985(); //< INDX tool offsets calibration
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
 void M1986(); //< Empty the INDX nozzle-cleaner wastebin (pause, move aside, reset fill counter)
+#endif
+#if HAS_HEATERS_SELFTEST_GCODE()
+void M1987(); //< Heater selftest
 #endif
 
 void M9140(); //< Set normal (non-stealth) mode
@@ -192,6 +200,10 @@ void M9202(); //< Clear precise homing calibration
 #endif
 
 void M9933(); //< Cork for tracking when gcode finished executing
+
+#if HAS_CRASH_DETECTION()
+void M9944(); ///< Execute G-Code interrupt
+#endif
 
 #if EXTRUDERS > 1
 void M9934(); ///< Multi filament change

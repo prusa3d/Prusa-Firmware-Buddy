@@ -352,8 +352,10 @@ void W25xFlash::program(uint32_t addr, const uint8_t *data, uint32_t len) {
     // so higher priority tasks can write / erase in between.
     const bool high_priority = (addr >= pp_start_address) && (addr < fs_start_address);
 
+    bool erase_locked = false;
+
     if (high_priority) {
-        try_lock_erase();
+        erase_locked = try_lock_erase();
         bus.lock();
         if (is_erasing) {
             suspend_erase();
@@ -367,7 +369,9 @@ void W25xFlash::program(uint32_t addr, const uint8_t *data, uint32_t len) {
             resume_erase();
         }
         unlock_bus();
-        unlock_erase();
+        if (erase_locked) {
+            unlock_erase();
+        }
     }
 }
 

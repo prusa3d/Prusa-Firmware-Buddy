@@ -23,7 +23,7 @@ enum heater_ind_t : int8_t {
     H_HEATBREAK_FIRST,
     H_HEATBREAK_LAST = H_HEATBREAK_FIRST + HOTENDS - 1,
 };
-static_assert(H_NOZZLE_FIRST == 0); // lots of places in are indexed by this, and assumes H_E0 is zero
+static_assert(H_NOZZLE_FIRST == 0); // lots of places in are indexed by this, and assumes H_NOZZLE_FIRST is zero
 
 /// A bold assumption used by steady_state_hotend and temp regulator
 static constexpr float ambient_temp = 21.0f;
@@ -32,6 +32,18 @@ static constexpr float ambient_temp = 21.0f;
 struct PID_t {
     float Kp = 0, Ki = 0, Kd = 0;
 };
+
+// A temperature sensor
+typedef struct TempInfo {
+    static constexpr float celsius_uninitialized = -1.0f;
+
+    uint16_t acc;
+    int16_t raw;
+    float celsius = celsius_uninitialized;
+    inline void reset() { acc = 0; }
+    inline void sample(const uint16_t s) { acc += s; }
+    inline void update() { raw = acc; }
+} temp_info_t;
 
 // Minimum number of Temperature::ISR loops between sensor readings.
 // Multiplied by 16 (OVERSAMPLENR) to obtain the total time to

@@ -27,6 +27,9 @@ inline constexpr size_t wifi_max_passwd_len { 64 };
 inline constexpr size_t metrics_host_size { connect_host_size }; ///< Size of metrics host string
 inline constexpr int16_t stallguard_sensitivity_unset { std::numeric_limits<int16_t>::max() };
 
+// 0 = no override -> derive the X/Y steps/mm for this unit's hardware at runtime.
+inline constexpr float steps_per_unit_unset { 0.0f };
+
 #if HAS_AUTO_RETRACT()
 inline constexpr uint8_t invalid_retracted_distance = 255;
 #endif

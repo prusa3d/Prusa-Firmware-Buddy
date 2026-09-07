@@ -71,9 +71,8 @@ int main(void)
   }
 }
 
-#if CFG_TUSB_MCU == OPT_MCU_ESP32S2 || CFG_TUSB_MCU == OPT_MCU_ESP32S3
-void app_main(void)
-{
+#ifdef ESP_PLATFORM
+void app_main(void) {
   main();
 }
 #endif
@@ -98,7 +97,7 @@ bool tuc_pd_data_received_cb(uint8_t rhport, pd_header_t const* header, uint8_t 
             pd_pdo_fixed_t const* fixed = (pd_pdo_fixed_t const*) &pdo;
             uint32_t const voltage_mv = fixed->voltage_50mv*50;
             uint32_t const current_ma = fixed->current_max_10ma*10;
-            printf("[Fixed] %lu mV %lu mA\r\n", voltage_mv, current_ma);
+            printf("[Fixed] %"PRIu32" mV %"PRIu32" mA\r\n", voltage_mv, current_ma);
 
             if (voltage_mv <= VOLTAGE_MAX_MV && current_ma >= CURRENT_MAX_MA) {
               // Found a suitable PDO
@@ -185,7 +184,7 @@ void led_blinking_task(void)
   static bool led_state = false;
 
   // Blink every interval ms
-  if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
+  if ( tusb_time_millis_api() - start_ms < blink_interval_ms) return; // not enough time
   start_ms += blink_interval_ms;
 
   board_led_write(led_state);

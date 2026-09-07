@@ -37,9 +37,7 @@
 
 #if ENABLED(SINGLENOZZLE)
   extern uint16_t singlenozzle_temp[EXTRUDERS];
-  #if FAN_COUNT > 0
-    extern uint8_t singlenozzle_fan_speed[EXTRUDERS];
-  #endif
+  extern uint8_t singlenozzle_fan_speed[EXTRUDERS];
 #endif
 
 enum class tool_return_t {

@@ -43,7 +43,8 @@ public:
 
 #if HAS_WASTEBIN_FILL_TRACKING()
         wastebin_overfill_wait_user, ///< bin projected to overfill
-        wastebin_emptying, ///< waiting for M1986 to finish
+        wastebin_emptying, ///< M1986 is parking and dropping the bed, before the empty-the-bin prompt
+        wastebin_emptied_returning, ///< the bin has been emptied, M1986 is on its way back
 #endif
 
         filament_not_inserted_wait_user,
@@ -90,7 +91,8 @@ class PrintPreview : public IPrintPreview {
 
     static constexpr int32_t max_run_period_ms = 50;
     uint32_t new_firmware_open_ms { 0 };
-    static constexpr uint32_t new_firmware_timeout_ms { 30000 }; // three seconds
+    static constexpr uint32_t new_firmware_timeout_ms { 30'000 };
+
 public:
     enum class Result : uint8_t {
         Wait,
@@ -130,15 +132,6 @@ public:
     inline void set_skip_if_able(marlin_server::PreviewSkipIfAble set) {
         skip_if_able = set;
     }
-
-    /**
-     * @brief Checks whether given physical extruder needs to have a filament loaded -> if it's used in a print and not loaded, then it needs to load. nt. Parametrized with getter to be callable without global tool_mapper/spool_join being in a valid state
-     *
-     * @param physical_extruder extruder to be checked
-     * @param no_gcode_value Return value of gcode_extruder_getter if physical_extruder doesn't print anything
-     * @param gcode_extruder_getter Call to get assigned gcode extruder to physical_extruder
-     */
-    static bool check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, stdext::inplace_function<uint8_t(uint8_t)> gcode_extruder_getter);
 
 private:
     uint32_t last_run = 0;

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
+#include <bsod/bsod.h>
 
 #ifdef STM32F4
     #include <stm32f4xx.h>
@@ -65,7 +65,7 @@ static_assert(sizeof(OTP_v5) == 32, "OTP_v5 size inconsistent");
  * @return version number or 0 if the version is not defined
  */
 static std::optional<uint8_t> otp_get_structure_version(const uint8_t *src) {
-    assert(src != nullptr); // Trying to parse OTP from nullptr
+    debug_assert(src != nullptr); // Trying to parse OTP from nullptr
     if (src[0] == 0xFF) {
         return std::nullopt;
     }
@@ -77,7 +77,7 @@ std::optional<board_revision_t> otp_get_board_revision() {
 }
 
 std::optional<board_revision_t> otp_parse_board_revision(const uint8_t *memory, size_t len) {
-    assert(memory != nullptr); // Trying to parse OTP from nullptr
+    debug_assert(memory != nullptr); // Trying to parse OTP from nullptr
 
     auto otp_version = otp_get_structure_version(memory);
     if (!otp_version) {
@@ -113,7 +113,7 @@ uint32_t scan_digit_group(const uint8_t *src, uint8_t digits) {
 }
 
 static std::optional<datamatrix_t> decode_datamatrix(const uint8_t *src, size_t size) {
-    assert(src != nullptr); // Trying to parse OTP from nullptr
+    debug_assert(src != nullptr); // Trying to parse OTP from nullptr
     if (size < 23) {
         return std::nullopt;
     }
@@ -227,7 +227,7 @@ const MAC_addr *otp_get_mac_address() {
 }
 
 const MAC_addr *otp_parse_mac_address(const uint8_t *memory, size_t len) {
-    assert(memory != nullptr); // Trying to parse OTP from nullptr
+    debug_assert(memory != nullptr); // Trying to parse OTP from nullptr
 
     auto version = otp_get_structure_version(memory);
     if (!version) {
@@ -304,7 +304,7 @@ uint8_t otp_get_serial_nr(serial_nr_t &sn) {
 }
 
 uint8_t otp_parse_serial_nr(serial_nr_t &sn, const uint8_t *memory, size_t len) {
-    assert(memory != nullptr); // Trying to parse OTP from nullptr
+    debug_assert(memory != nullptr); // Trying to parse OTP from nullptr
 
     auto version = otp_get_structure_version(memory);
     if (!version) {
@@ -370,7 +370,7 @@ std::optional<uint8_t> otp_get_bom_id() {
 }
 
 std::optional<uint8_t> otp_parse_bom_id(const uint8_t *memory, size_t len) {
-    assert(memory != nullptr); // Trying to parse OTP from nullptr
+    debug_assert(memory != nullptr); // Trying to parse OTP from nullptr
 
     auto version = otp_get_structure_version(memory);
     if (!version) {

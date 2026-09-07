@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -56,6 +56,7 @@ def Main():
 def ListPath(path, blacklist=[]):
     # Get all .c files
     files = glob.glob(f'../{path}/**/*.c', recursive=True)
+    files.extend(glob.glob(f'../{path}/**/*.h', recursive=True))
     # Filter
     files = [x for x in files if all(y not in x for y in blacklist)]
     # Get common dir list
@@ -73,10 +74,12 @@ def ListPath(path, blacklist=[]):
         print('</group>')
 
 def List():
-    ListPath('src', [ 'template.c', 'dcd_synopsys.c', 'dcd_esp32sx.c' ])
+    ListPath('src', [ 'template.c' ])
     ListPath('lib/SEGGER_RTT')
 
 if __name__ == "__main__":
+    if os.path.dirname(os.getcwd()) != 'tools':
+        os.chdir('tools')
     if (len(sys.argv) > 1):
         if (sys.argv[1] == 'l'):
             List()

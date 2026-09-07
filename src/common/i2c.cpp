@@ -29,7 +29,7 @@ namespace {
 
 static osStaticMutexDef_t *get_i2c_mutex(I2C_HandleTypeDef &hi2c) {
     size_t idx = stdext::index_of(i2c_handles, &hi2c);
-    assert(idx < i2c_handles.size());
+    debug_assert(idx < i2c_handles.size());
     return &i2c_mutexes[idx];
 }
 

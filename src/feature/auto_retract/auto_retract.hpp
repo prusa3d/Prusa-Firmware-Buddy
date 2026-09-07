@@ -48,10 +48,10 @@ public:
     #error
 #endif
 
-    /// @returns whether the specified \param hotend is retracted (some amount > 0.0f) and is a known value -> will deretract on positive Z move
+    /// @returns whether the specified \param tool is retracted (some amount > 0.0f) and is a known value -> will deretract on positive Z move
     bool will_deretract(ToolVariant tool = PhysicalToolIndex::currently_selected()) const;
 
-    /// @returns true if the filament retracted from the \param hotend's nozzle for at least full_retract_distance
+    /// @returns true if the filament retracted from the \param tool's nozzle for at least full_retract_distance
     bool is_fully_retracted(ToolVariant tool = PhysicalToolIndex::currently_selected()) const;
 
     /// @returns true if the filament is retracted enough for a cold unload (unloading without heating up the nozzle)

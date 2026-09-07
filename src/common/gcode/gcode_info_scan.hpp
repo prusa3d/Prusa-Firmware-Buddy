@@ -10,7 +10,7 @@ enum class ScanStartResult {
 
 ScanStartResult scan_start_result();
 
-/// Asynchronously scanning the file specified in GCodeInfo::instance()->gcode_file_path and filling in the GcodeInfo fields to match it.
+/// Asynchronously scanning the file specified in GCodeInfo::getInstance().gcode_file_path and filling in the GcodeInfo fields to match it.
 /// Yes, this is utterly wrong. However, it was wrong like this before, I'm just concentrating the utter-wrongness to this file, so that we can more easily eradicate it.
 void start_scan();
 

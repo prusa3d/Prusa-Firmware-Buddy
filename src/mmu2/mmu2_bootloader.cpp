@@ -10,6 +10,7 @@
 #include <mmu2/mmu_fw_attached_version.hpp>
 
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_supported_version.h"
+#include <bsod/bsod.h>
 
 using namespace MMU2;
 
@@ -29,7 +30,7 @@ struct MMU2BootloaderManager::NextLoopAwaitable {
         return !mgr.is_stopping_;
     }
     void await_suspend(std::coroutine_handle<> h) {
-        assert(!mgr.coroutine_resume_point_);
+        debug_assert(!mgr.coroutine_resume_point_);
         mgr.coroutine_resume_point_ = h;
     }
 
@@ -67,14 +68,14 @@ void MMU2BootloaderManager::stop() {
         loop();
 
         // We should be stopped after a single resume actually.
-        assert(!is_active());
+        debug_assert(!is_active());
     }
     is_stopping_ = false;
 }
 
 void MMU2BootloaderManager::loop() {
     if (is_active()) {
-        assert(coroutine_resume_point_);
+        debug_assert(coroutine_resume_point_);
         coroutine_resume_point_();
     }
 }
@@ -208,7 +209,7 @@ MMU2BootloaderManager::Task<void> MMU2BootloaderManager::main_coroutine() {
             }
 
             // The programming is done in 2-byte words, enforce it
-            if (bytes_to_write % 1 != 0) {
+            if (bytes_to_write % 2 != 0) {
                 buffer[bytes_to_write++] = '\0';
             }
 
@@ -268,7 +269,7 @@ exit:
 }
 
 void MMU2BootloaderManager::send_command(std::initializer_list<char> cmd) {
-    assert(rtx_buffer.size() >= cmd.size());
+    debug_assert(rtx_buffer.size() >= cmd.size());
 
     // UART is using DMA, which cannot read from the CCMRAM (=stack)
     // -> we have to put the command in the tx buffer

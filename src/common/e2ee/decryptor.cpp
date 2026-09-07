@@ -1,7 +1,7 @@
 #include "decryptor.hpp"
 
 #include <cstring>
-#include <cassert>
+#include <bsod/bsod.h>
 
 namespace e2ee {
 void Decryptor::set_cipher_info(e2ee::SymmetricCipherInfo cipher_info) {
@@ -24,7 +24,7 @@ void Decryptor::setup_block(uint64_t offset, uint32_t block_size) {
     memset(iv.data(), 0, iv.size());
     memcpy(iv.data(), reinterpret_cast<const uint8_t *>(&offset), sizeof offset);
     remaining_encrypted_data_size = block_size - num_of_hmacs * e2ee::HMAC_SIZE;
-    assert(remaining_encrypted_data_size % BlockSize == 0);
+    debug_assert(remaining_encrypted_data_size % BlockSize == 0);
 }
 
 namespace {

@@ -1,5 +1,4 @@
 #include <array>
-#include <cassert>
 
 #include "config.h"
 #include "otp.hpp"
@@ -18,6 +17,7 @@
 
 #include <common/sys.hpp>
 #include <option/bootloader.h>
+#include <bsod/bsod.h>
 
 void printerHash(char *str, size_t size, bool state_prefix) {
     serial_nr_t serial_nr;
@@ -59,7 +59,7 @@ void printerHash(char *str, size_t size, bool state_prefix) {
     }
 
     /// convert number by 5-bit chunks (32 symbol alphabet)
-    assert(sizeof(hash) * 8 >= size * 5);
+    debug_assert(sizeof(hash) * 8 >= size * 5);
     for (uint8_t i = 0; i < size; ++i) {
         str[i] = to32((uint8_t *)hash, i * 5);
     }

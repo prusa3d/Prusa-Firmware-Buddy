@@ -1,6 +1,18 @@
 #include "resources/revision.hpp"
 #include <stdio.h>
 
+namespace buddy::resources::revision {
+
+// Placeholders substituted by real SHA-256 later in the build.
+
+__attribute__((section(".resources_tarball_digest"), used))
+const Revision standard {};
+
+__attribute__((section(".bootloader_tarball_digest"), used))
+const Revision bootloader {};
+
+} // namespace buddy::resources::revision
+
 bool buddy::resources::InstalledRevision::fetch(Revision &revision) {
     FILE *fp = fopen(file_path, "rb");
 

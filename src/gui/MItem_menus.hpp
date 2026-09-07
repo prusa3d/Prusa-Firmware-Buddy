@@ -2,18 +2,19 @@
 
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
+#include <str_utils.hpp>
 #include <option/has_side_leds.h>
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_leds.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_sheet_profiles.h>
-#include <option/developer_mode.h>
+#include <option/development_items.h>
 #include <option/has_translations.h>
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_mmu2.h>
 #include <option/has_e2ee_support.h>
 #include <option/has_wastebin_fill_tracking.h>
-#include <option/has_leds_menu.h>
+#include <option/has_lights_menu.h>
 #include <img_resources.hpp>
 #include <ScreenFactory.hpp>
 
@@ -22,6 +23,11 @@
 class MI_SCREEN_BASE : public IWindowMenuItem {
 protected:
     MI_SCREEN_BASE(ScreenFactory::Creator screen_ctor, const char *label, const img::Resource *icon, is_hidden_t is_hidden = is_hidden_t::no);
+
+#if DEVELOPMENT_ITEMS()
+    // used by MI_SCREEN_DEV
+    MI_SCREEN_BASE(ScreenFactory::Creator screen_ctor, const string_view_utf8 &label, is_hidden_t is_hidden);
+#endif
 
     // This saves flash (so that we don't need to pass that many parameters)
     MI_SCREEN_BASE(ScreenFactory::Creator::Func screen_ctor, const char *label);
@@ -76,8 +82,8 @@ using MI_SENSOR_INFO
 using MI_FAIL_STAT
     = MI_SCREEN<N_("Fail Stats"), class ScreenMenuFailStat>;
 
-using MI_TEMPERATURE
-    = MI_SCREEN<N_("Temperature"), class ScreenMenuTemperature, &img::temperature_16x16>;
+using MI_TEMPERATURE_AND_FANS
+    = MI_SCREEN<N_("Temperature & Fans"), class ScreenMenuTemperatureAndFans, &img::temperature_16x16>;
 
 using MI_MOVE_AXIS
     = MI_SCREEN<N_("Move Axis"), class ScreenMenuMove, &img::move_16x16>;
@@ -105,14 +111,9 @@ using MI_PRUSALINK
 using MI_FOOTER_SETTINGS
     = MI_SCREEN<N_("Footer"), class ScreenMenuFooterSettings>;
 
-using MI_FOOTER_SETTINGS_ADV
-    = MI_SCREEN<N_("Advanced"), class ScreenMenuFooterSettingsAdv, nullptr, is_hidden_t::dev>;
-
-using MI_EXPERIMENTAL_SETTINGS
-    = MI_SCREEN<N_("Experimental Settings"), class ScreenMenuExperimentalSettings, nullptr, is_hidden_t::dev>;
-
 using MI_USER_INTERFACE
     = MI_SCREEN<N_("User Interface"), class ScreenMenuUserInterface>;
+
 using MI_LANG_AND_TIME
     = MI_SCREEN<N_("Language & Time"), class ScreenMenuLangAndTime>;
 
@@ -125,13 +126,16 @@ using MI_NETWORK_STATUS
 using MI_HARDWARE
     = MI_SCREEN<N_("Hardware"), class ScreenMenuHardware>;
 
+using MI_GCODE_CHECKS
+    = MI_SCREEN<N_("G-Code Checks"), class ScreenMenuGcodeChecks>;
+
+using MI_HELP_FW_UPDATE
+    = MI_SCREEN<N_("Firmware Update"), class ScreenHelpFWUpdate, &img::question_16x16>;
+
 #if HAS_WASTEBIN_FILL_TRACKING()
 using MI_WASTEBIN
     = MI_SCREEN<N_("Nozzle Cleaner"), class ScreenMenuWastebin>;
 #endif
-
-using MI_HARDWARE_TUNE
-    = MI_SCREEN<N_("Hardware"), class ScreenMenuHardwareTune, nullptr, is_hidden_t::dev>;
 
 using MI_SYSTEM
     = MI_SCREEN<N_("System"), class ScreenMenuSystem>;
@@ -145,17 +149,43 @@ using MI_OPEN_FACTORY_RESET
 using MI_INPUT_SHAPER
     = MI_SCREEN<N_("Input Shaper"), class ScreenMenuInputShaper>;
 
+#if DEVELOPMENT_ITEMS()
+
+/// Like MI_SCREEN, but for development-only screens
+template <TemplateString label_, class Screen_>
+class MI_SCREEN_DEV final : public MI_SCREEN_BASE {
+public:
+    MI_SCREEN_DEV()
+        : MI_SCREEN_BASE { MI_SCREEN_CTOR<Screen_>::get(), string_view_utf8::MakeCPUFLASH(label_), is_hidden_t::dev } {}
+};
+
+using MI_ADVANCED_FOOTER
+    = MI_SCREEN_DEV<"Advanced Footer"_tstr, class ScreenMenuAdvancedFooterSettings>;
+
+using MI_HARDWARE_TUNE
+    = MI_SCREEN_DEV<"Hardware"_tstr, class ScreenMenuHardwareTune>;
+
 namespace screen_printer_setup_private {
 class ScreenPrinterSetup;
 }
 using MI_PRINTER_SETUP
-    = MI_SCREEN<N_("Printer Setup"), screen_printer_setup_private::ScreenPrinterSetup, nullptr, is_hidden_t::dev>;
+    = MI_SCREEN_DEV<"Printer Setup"_tstr, screen_printer_setup_private::ScreenPrinterSetup>;
 
-#if DEVELOPER_MODE()
-// #error dead code found by automatic analyses (see BFW-5461)
+using MI_DEVELOPMENT
+    = MI_SCREEN_DEV<"Development"_tstr, class ScreenMenuDevelopment>;
+
+using MI_EXPERIMENTAL_SETTINGS
+    = MI_SCREEN_DEV<"Experimental Settings"_tstr, class ScreenMenuExperimentalSettings>;
 
 using MI_ERROR_TEST
-    = MI_SCREEN<N_("Test Errors"), class ScreenMenuErrorTest, nullptr, is_hidden_t::dev>;
+    = MI_SCREEN_DEV<"Test Errors"_tstr, class ScreenMenuErrorTest>;
+
+using MI_TOUCH_PLAYGROUND
+    = MI_SCREEN_DEV<"Touch Playground"_tstr, class ScreenTouchPlayground>;
+
+using MI_PRINTER_TYPE_CHANGED
+    = MI_SCREEN_DEV<"Printer Type Changed"_tstr, class ScreenPrinterTypeChanged>;
+
 #endif
 
 #if HAS_TRANSLATIONS()
@@ -180,7 +210,7 @@ using MI_STEEL_SHEETS
 #if HAS_FILAMENT_SENSORS_MENU()
 
 using MI_FILAMENT_SENSORS
-    = MI_SCREEN<N_("Filament sensors"), class ScreenMenuFilamentSensors>;
+    = MI_SCREEN<N_("Filament Sensors"), class ScreenMenuFilamentSensors>;
 #endif
 
 #if HAS_SELFTEST()
@@ -195,9 +225,9 @@ using MI_BED_LEVEL_CORRECTION
     = MI_SCREEN<N_("Bed Level Correction"), class ScreenMenuBedLevelCorrection>;
 #endif
 
-#if HAS_LEDS_MENU()
-using MI_LEDS_SETTINGS
-    = MI_SCREEN<N_("Lights Settings"), class ScreenMenuLeds>;
+#if HAS_LIGHTS_MENU()
+using MI_LIGHTS
+    = MI_SCREEN<N_("Lights"), class ScreenMenuLights>;
 #endif
 
 class MI_SERIAL_PRINTING_SCREEN_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
@@ -230,5 +260,5 @@ public:
 
 #if HAS_E2EE_SUPPORT()
 using MI_E2EE
-    = MI_SCREEN<N_("Encryption"), class ScreenMenuE2ee>;
+    = MI_SCREEN<N_("Encryption"), class ScreenMenuE2ee, &img::padlock_16x16>;
 #endif

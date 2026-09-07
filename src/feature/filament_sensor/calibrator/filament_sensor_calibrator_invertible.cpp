@@ -4,6 +4,7 @@
 #include <option/has_side_fsensor_invertible.h>
 
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 FilamentSensorState FilamentSensorCalibratorInvertible::expected_state(CalibrationPhase phase, bool inverted) {
     switch (phase) {

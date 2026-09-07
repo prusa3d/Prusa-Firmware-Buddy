@@ -11,9 +11,11 @@
 #include <buddy/ccm_thread.hpp>
 #include <device/hal.h>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <bsod/bsod.h>
 
 #define FLG_CS           0x01 // current CS pin state
 #define FLG_RS           0x02 // current RS pin state
@@ -99,7 +101,10 @@ uint16_t st7789v_y = 0; // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
-osThreadId st7789v_task_handle = 0;
+static osThreadId st7789v_task_handle = 0;
+static void debug_assert_correct_task() {
+    debug_assert(st7789v_task_handle == osThreadGetId() && "Must be called only from one task");
+}
 
 static const uint32_t ST7789V_SIG_SPI_TX = 0x08;
 
@@ -109,14 +114,15 @@ uint8_t st7789v_buff[ST7789V_BUFFER_SIZE]; // display buffer
 bool st7789v_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *st7789v_borrow_buffer() {
-    assert(!st7789v_buff_borrowed && "Already lent");
-    assert(st7789v_task_handle == osThreadGetId() && "Must be called only from one task");
+    debug_assert(!st7789v_buff_borrowed && "Already lent");
+    debug_assert_correct_task();
     st7789v_buff_borrowed = true;
     return st7789v_buff;
 }
 
 void st7789v_return_buffer() {
-    assert(st7789v_buff_borrowed);
+    debug_assert(st7789v_buff_borrowed);
+    debug_assert_correct_task();
     st7789v_buff_borrowed = false;
 }
 
@@ -207,9 +213,10 @@ void st7789v_spi_wr_byte(uint8_t b) {
 
 void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
     if ((st7789v_flg & (uint8_t)ST7789V_FLG_DMA) && !(st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) && (size > 4)) {
+        debug_assert_correct_task();
         osSignalSet(st7789v_task_handle, ST7789V_SIG_SPI_TX);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-        assert(can_be_used_by_dma(pb));
+        debug_assert(can_be_used_by_dma(pb));
         HAL_SPI_Transmit_DMA(spi_handle_lcd, pb, size);
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     } else {
@@ -218,22 +225,7 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-#if 0
-    // #error dead code found by automatic analyses (see BFW-5461)
-//#ifdef ST7789V_DMA
-    if (size <= 4)
-        HAL_SPI_Receive(spi_handle_lcd, pb, size, HAL_MAX_DELAY);
-    else
-    {
-        osSignalSet(0, ST7789V_SIG_SPI_TX);
-        osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-        assert(can_be_used_by_dma(pb));
-        HAL_SPI_Receive_DMA(spi_handle_lcd, pb, size);
-        osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-    }
-#else // ST7789V_DMA
     HAL_SPI_Receive(spi_handle_lcd, pb, size, HAL_MAX_DELAY);
-#endif // ST7789V_DMA
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
@@ -383,6 +375,7 @@ void st7789v_init_ctl_pins(void) {
  */
 void st7789v_init(void) {
     st7789v_task_handle = osThreadGetId();
+    debug_assert_correct_task();
     if (st7789v_flg & (uint8_t)ST7789V_FLG_SAFE) {
         st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
     } else {
@@ -393,8 +386,8 @@ void st7789v_init(void) {
     st7789v_delay_ms(120); // 120ms wait
     st7789v_cmd_slpout(); // wakeup
     st7789v_delay_ms(120); // 120ms wait
-    st7789v_cmd_madctl(ST7789V_DEF_MADCTL); // interface pixel format
-    st7789v_cmd_colmod(ST7789V_DEF_COLMOD); // memory data access control
+    st7789v_cmd_madctl(ST7789V_DEF_MADCTL); // memory data access control
+    st7789v_cmd_colmod(ST7789V_DEF_COLMOD); // interface pixel format
     st7789v_cmd_dispon(); // display on
     st7789v_delay_ms(10); // 10ms wait
 }
@@ -404,7 +397,7 @@ void st7789v_done(void) {
 
 /// Fills screen by this color
 void st7789v_clear(uint16_t clr565) {
-    assert(!st7789v_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
     // FIXME similar to display_ex_fill_rect; join?
     int i;
@@ -471,7 +464,7 @@ uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
 }
 
 uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
-    assert(!st7789v_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
     if (start_x > ST7789V_COLS || start_y > ST7789V_ROWS || end_x > ST7789V_COLS || end_y > ST7789V_ROWS) {
         return NULL;
@@ -487,7 +480,7 @@ uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, u
 
     // Again, 3 bytes per pixel + 2 extra bytes because of some read offset
     const auto read_bytes = (end_x - start_x + 1) * (end_y - start_y + 1) * 3 + 2;
-    assert(static_cast<size_t>(read_bytes) <= sizeof(st7789v_buff));
+    debug_assert(static_cast<size_t>(read_bytes) <= sizeof(st7789v_buff));
     st7789v_cmd_ramrd(st7789v_buff, read_bytes);
 
     // Revert back
@@ -497,7 +490,7 @@ uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, u
 
 /// Draws a solid rectangle of defined color
 void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565) {
-    assert(!st7789v_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
     uint32_t size = (uint32_t)rect_w * rect_h * 2; // area of rectangle
 
@@ -616,14 +609,14 @@ void st7789v_ctrl_set(uint8_t ctrl) {
 }
 
 void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back_color, uint8_t rop) {
-    assert(!st7789v_buff_borrowed && "Buffer lent to someone");
+    debug_assert(!st7789v_buff_borrowed && "Buffer lent to someone");
 
     // Current pixel position starts top-left where the image is placed
     point_i16_t pos = { static_cast<int16_t>(pt.x), static_cast<int16_t>(pt.y) };
 
     // Prepare input buffer
-    std::span<uint8_t> i_buf(st7789v_buff, 512); ///< Input file buffer
-    std::span<uint8_t> i_data; ///< Span of input data read from file
+    WritableBytes i_buf { reinterpret_cast<std::byte *>(st7789v_buff), 512 }; ///< Input file buffer
+    WritableBytes i_data; ///< Span of input data read from file
 
     // Prepare output buffer
     std::span<uint8_t> p_buf(st7789v_buff + i_buf.size(), std::size(st7789v_buff) - i_buf.size()); ///< Output pixel buffer
@@ -645,7 +638,7 @@ void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
     if (header.size() != qoi::Decoder::HEADER_SIZE) {
         return; // Header couldn't be read
     }
-    Rect16 subrect = Rect16(pos, qoi::Decoder::get_image_size(std::span<uint8_t, qoi::Decoder::HEADER_SIZE>(i_buf)));
+    Rect16 subrect = Rect16(pos, qoi::Decoder::get_image_size(std::span<const std::byte, qoi::Decoder::HEADER_SIZE>(header)));
     subrect.Intersection(Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS)); // Clip drawn subrect to display size
 
     // Prepare output
@@ -667,7 +660,7 @@ void st7789v_draw_qoi_ex(point_ui16_t pt, AbstractByteReader &reader, Color back
         for (auto i_byte : i_data) {
 
             // Push byte to decoder
-            qoi_decoder.push_byte((uint8_t)i_byte);
+            qoi_decoder.push(i_byte);
 
             // Pull pixels from decoder
             while (qoi_decoder.has_pixel()) {

@@ -114,7 +114,7 @@ static const HeaterConfig_t Config_HeaterNozzle[] = {
 static const HeaterConfig_t Config_HeaterBed = {
     .partname = "Bed",
     .type = heater_type_t::Bed,
-    .getTemp = []() { return thermalManager.temp_bed.celsius; },
+    .getTemp = []() -> Hotend::OptionalTemperature { return thermalManager.temp_bed.celsius; },
     .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
     .get_pid = []() { return Temperature::temp_bed.pid; },
     .set_pid = [](const PID_t &pid) { Temperature::temp_bed.pid = pid; },
@@ -159,6 +159,17 @@ protected:
 
     SelftestResult m_result;
 };
+
+#if HAS_HEATERS_SELFTEST_GCODE()
+namespace selftest {
+HeaterConfig_t nozzle_heater_config() {
+    return Config_HeaterNozzle[0];
+}
+HeaterConfig_t bed_heater_config() {
+    return Config_HeaterBed;
+}
+} // namespace selftest
+#endif
 
 CSelftest::CSelftest()
     : m_State(stsIdle)

@@ -14,6 +14,7 @@
 #include "marlin_server.hpp"
 
 #include <option/has_auto_retract.h>
+#include <bsod/bsod.h>
 #if HAS_AUTO_RETRACT()
     #include <feature/auto_retract/auto_retract.hpp>
 #endif
@@ -105,7 +106,7 @@ void motion_do_blocking_move_to_z(float z, float feedRate_mm_s) {
 }
 
 void nozzle_park() {
-    mapi::park(mapi::ParkingPosition::from_xy_relative_z_pos({ { XYZ_NOZZLE_PARK_POINT_M600 } }));
+    mapi::park(mapi::get_parking_position(mapi::ParkPosition::filament_change));
 }
 
 bool marlin_printingIsActive() {
@@ -163,7 +164,7 @@ int16_t thermal_degTargetHotend() {
         PhysicalToolIndex::currently_selected(),
         [](PhysicalToolIndex physical_tool) { return thermalManager.degTargetHotend(physical_tool); },
         [](NoTool) -> int16_t {
-            assert(false);
+            debug_assert(false);
             return 0;
         });
 }
@@ -173,7 +174,7 @@ float thermal_degHotend() {
         PhysicalToolIndex::currently_selected(),
         [](PhysicalToolIndex physical_tool) { return thermalManager.degHotend(physical_tool); },
         [](NoTool) {
-            assert(false);
+            debug_assert(false);
             return 0.0f;
         });
 }
@@ -182,7 +183,7 @@ void thermal_setTargetHotend(int16_t t) {
     match(
         PhysicalToolIndex::currently_selected(),
         [t](PhysicalToolIndex physical_tool) { thermalManager.setTargetHotend(t, physical_tool); },
-        [](NoTool) { assert(false); });
+        [](NoTool) { debug_assert(false); });
 }
 
 void safe_delay_keep_alive(uint16_t t) {

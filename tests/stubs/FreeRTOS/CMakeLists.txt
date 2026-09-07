@@ -32,6 +32,6 @@ add_library(freertos_tests OBJECT
 )
 
 # FIXME some day, this will be PRIVATE
-target_link_libraries(freertos_tests PUBLIC freertos_stubs)
+target_link_libraries(freertos_tests PUBLIC freertos_stubs bsod)
 target_include_directories(freertos_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/freertos/include)
 target_compile_definitions(freertos_tests PRIVATE -DUNITTESTS)

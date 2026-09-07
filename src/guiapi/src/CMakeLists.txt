@@ -28,7 +28,6 @@ target_sources(
           window_menu_bar.cpp
           window_menu_virtual.cpp
           window_msgbox.cpp
-          window_msgbox_happy_printing.cpp
           window_numb.cpp
           window_progress.cpp
           window_qr.cpp

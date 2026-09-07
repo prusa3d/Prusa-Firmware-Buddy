@@ -1,7 +1,7 @@
 /// @file
 #include "thermal_runaway.hpp"
 
-#include <module/temperature.h>
+#include <wiring_time.h>
 
 void ThermalRunaway::reset(float target) {
     timer = 0;
@@ -9,7 +9,7 @@ void ThermalRunaway::reset(float target) {
     state = (target > 0) ? TRFirstHeating : TRInactive;
 }
 
-void ThermalRunaway::step(float current, float target, heater_ind_t heater_id, uint16_t period_seconds, uint16_t hysteresis_degc) {
+bool ThermalRunaway::step(float current, float target, uint16_t period_seconds, uint16_t hysteresis_degc) {
     // If the target temperature changes, restart
     if (tr_target_temperature != target) {
         reset(target);
@@ -38,10 +38,8 @@ void ThermalRunaway::step(float current, float target, heater_ind_t heater_id, u
         state = TRRunaway;
 
     case TRRunaway:
-        if (heater_id == H_BED) {
-            thermalManager._temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY_BED));
-        } else {
-            thermalManager._temp_error(heater_id, PSTR(MSG_T_THERMAL_RUNAWAY), GET_TEXT(MSG_THERMAL_RUNAWAY));
-        }
+        return true;
     }
+
+    return false;
 }

@@ -410,11 +410,10 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 280 } //E0 280 295
-#define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 400, 325 } //E0 280 295
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 800, 800, 3200, 1120 } //E0 280 295
-//#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 1120 } //E0 280 295
+#define DEFAULT_AXIS_STEPS_PER_UNIT_X 100
+#define DEFAULT_AXIS_STEPS_PER_UNIT_Y 100
+#define DEFAULT_AXIS_STEPS_PER_UNIT_Z 400
+#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 325 //E0 280 295
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -543,45 +542,6 @@
  *   (e.g., an inductive probe or a nozzle-based probe-switch.)
  */
 #define FIX_MOUNTED_PROBE
-
-/**
- * Z Servo Probe, such as an endstop switch on a rotating arm.
- */
-//#define Z_PROBE_SERVO_NR 0   // Defaults to SERVO 0 connector.
-//#define Z_SERVO_ANGLES {70,0}  // Z Servo Deploy and Stow angles
-
-/**
- * The BLTouch probe uses a Hall effect sensor and emulates a servo.
- */
-//#define BLTOUCH
-#if ENABLED(BLTOUCH)
-    //#define BLTOUCH_DELAY 375   // (ms) Enable and increase if needed
-
-    // BLTouch V3.0 and newer smart series
-    //#define BLTOUCH_V3
-    #if ENABLED(BLTOUCH_V3)
-    //#define BLTOUCH_FORCE_5V_MODE
-    //#define BLTOUCH_FORCE_OPEN_DRAIN_MODE
-    #endif
-#endif
-
-// A probe that is deployed and stowed with a solenoid pin (SOL1_PIN)
-//#define SOLENOID_PROBE
-
-// A sled-mounted probe like those designed by Charles Bell.
-//#define Z_PROBE_SLED
-//#define SLED_DOCKING_OFFSET 5  // The extra distance the X axis must travel to pickup the sled. 0 should be fine but you can push it further if you'd like.
-
-// A probe deployed by moving the x-axis, such as the Wilson II's rack-and-pinion probe designed by Marty Rice.
-//#define RACK_AND_PINION_PROBE
-#if ENABLED(RACK_AND_PINION_PROBE)
-    #define Z_PROBE_DEPLOY_X X_MIN_POS
-    #define Z_PROBE_RETRACT_X X_MAX_POS
-#endif
-
-//
-// For Z_PROBE_ALLEN_KEY see the Delta example configurations.
-//
 
 /**
  *   Z Probe to nozzle (X,Y) offset, relative to (0, 0).
@@ -761,6 +721,7 @@
 /// If defined, the printer will check max_printed_z and if a move would result in the model getting above this clearance,
 /// it will prompt the user
 /// Requires HAS_CEILING_CLEARANCE()
+/// !!! IMPORTANT: Consult with the slicer team when changing this number, needs to be synced with the slicer profiles
 // #define Z_CEILING_CLEARANCE 100
 
 /// Distance between start of the axis to the position where ordinary movement is allowed
@@ -1009,6 +970,7 @@
     #define X_NOZZLE_PARK_POINT_M600    (X_MIN_POS + 10.0f)
     #define Y_NOZZLE_PARK_POINT_M600    (Y_MIN_POS + 10.0f)
     #define Z_NOZZLE_PARK_POINT_M600    20.0f
+    #define Z_NOZZLE_PARK_RISE_M600 Z_NOZZLE_PARK_RISE
     #define XYZ_NOZZLE_PARK_POINT_M600 \
         {X_NOZZLE_PARK_POINT_M600, Y_NOZZLE_PARK_POINT_M600, Z_NOZZLE_PARK_POINT_M600}
 
@@ -1060,29 +1022,3 @@
 
 // SkeinForge sends the wrong arc g-codes when using Arc Point as fillet procedure
 //#define SF_ARC_FIX
-
-/**
- * R/C SERVO support
- * Sponsored by TrinityLabs, Reworked by codexmas
- */
-
-/**
- * Number of servos
- *
- * For some servo-related options NUM_SERVOS will be set automatically.
- * Set this manually if there are extra servos needing manual control.
- * Leave undefined or set to 0 to entirely disable the servo subsystem.
- */
-//#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
-
-// Delay (in milliseconds) before the next move will start, to give the servo time to reach its target angle.
-// 300ms is a good value but you can try less delay.
-// If the servo can't reach the requested position, increase it.
-#define SERVO_DELAY \
-    { 300 }
-
-// Only power servos during movement, otherwise leave off to prevent jitter
-//#define DEACTIVATE_SERVOS_AFTER_MOVE
-
-// Allow servo angle to be edited and saved to EEPROM
-//#define EDITABLE_SERVO_ANGLES

@@ -25,7 +25,24 @@ if(HAS_PUPPY_MODULARBED)
 endif()
 
 if(HAS_XBUDDY_EXTENSION)
-  target_sources(firmware PUBLIC xbuddy_extension.cpp xbuddy_extension_bootstrap.cpp)
+  target_sources(
+    firmware PUBLIC cyphal_bridge.cpp out_of_band_bootstrap.cpp xbuddy_extension.cpp
+                    xbuddy_extension_bootstrap.cpp
+    )
+endif()
+
+if(HAS_XL_CAN)
+  target_sources(
+    firmware PUBLIC cyphal_bridge.cpp out_of_band_bootstrap.cpp xl_can.cpp xl_can_bootstrap.cpp
+    )
+  # Bridge fw is the xl_can variant of xBuddy Extension, so its Modbus map (and shared headers) come
+  # from the xbuddy_extension lib; a bridge-specific reduced layout is a possible future
+  # optimization.
+  target_link_libraries(firmware PUBLIC xbuddy_extension)
+endif()
+
+if(HAS_XBUDDY_EXTENSION OR HAS_XL_CAN)
+  target_sources(firmware PUBLIC cyphal_flash_files.cpp cyphal_flash_host.cpp)
 endif()
 
 if(HAS_AC_CONTROLLER)

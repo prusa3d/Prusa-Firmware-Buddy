@@ -242,6 +242,16 @@
             }
         },
         {
+            "name": "xl-can",
+            "description": "Original Prusa XLS XL-CAN (xBuddy Extension variant; hosts tool offset sensor sub-puppy)",
+            "cacheVariables": {
+                "PRINTER": "XL",
+                "SIGNATURE_OAK": "OFF",
+                "BOARD": "XBUDDY_EXTENSION",
+                "HAS_TOOL_OFFSET_SENSOR": "YES"
+            }
+        },
+        {
             "name": "ix-modularbed",
             "description": "Original Prusa iX's Modular Bed",
             "cacheVariables": {
@@ -385,6 +395,15 @@
             "description": "Firmware for Tool Offset Sensor for CoreOneL printer with INDX",
             "cacheVariables": {
                 "PRINTER": "COREONEL_INDX",
+                "BOARD": "TOOL_OFFSET_SENSOR",
+                "CAN_BUS_TYPE": "PUB6"
+            }
+        },
+        {
+            "name": "xl-tool_offset_sensor",
+            "description": "Firmware for Tool Offset Sensor for XLS (hosted by the XL-CAN)",
+            "cacheVariables": {
+                "PRINTER": "XL",
                 "BOARD": "TOOL_OFFSET_SENSOR",
                 "CAN_BUS_TYPE": "PUB6"
             }

@@ -7,7 +7,6 @@
 #include "cmsis_os.h"
 #include <cmath>
 #include <array>
-#include <cassert>
 
 static constexpr std::array<std::size_t, Branch::count> HB_COUNT_BRANCH { 10, 6 };
 

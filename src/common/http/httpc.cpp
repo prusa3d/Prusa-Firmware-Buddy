@@ -2,7 +2,6 @@
 #include "os_porting.hpp"
 #include "resp_parser.h"
 
-#include <cassert>
 #include <cstring>
 #include <cstdlib>
 #include <cstdarg>
@@ -11,6 +10,7 @@
 #include <common/printer_model.hpp>
 #include <utils/overloaded_visitor.hpp>
 #include <version/version.hpp>
+#include <bsod/bsod.h>
 
 using automata::ExecutionControl;
 using http::ConnectionHandling;
@@ -98,7 +98,7 @@ namespace {
 
             // Not enough space in the current buffer. Try sending it out and using a full space.
             CHECKED(flush());
-            assert(used == 0);
+            debug_assert(used == 0);
             rest = sizeof(buffer);
 
             // Won't fit even into an empty one.
@@ -124,7 +124,7 @@ namespace {
         }
         template <class R>
         void chunk(R renderer) {
-            assert(used == 0); // Not yet supported
+            debug_assert(used == 0); // Not yet supported
             char *buffer = this->buffer;
             used = http::render_chunk(ConnectionHandling::ChunkedKeep, reinterpret_cast<uint8_t *>(buffer), sizeof this->buffer, renderer);
         }
@@ -174,7 +174,7 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
                 break;
             }
 
-            assert(added <= available);
+            debug_assert(added <= available);
             pos += added;
         }
     }
@@ -321,7 +321,7 @@ variant<Response, Error> HttpClient::send(Request &request, ExtraHeader *extra_r
         return get<Error>(conn_raw);
     }
     auto conn = get<Connection *>(conn_raw);
-    assert(conn != nullptr);
+    debug_assert(conn != nullptr);
     const char *host = factory.host();
 
     if (auto error = send_request(host, conn, request); error.has_value()) {

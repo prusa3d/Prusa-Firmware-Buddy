@@ -448,37 +448,6 @@
   #define HAS_HOTEND_OFFSET 1
 #endif
 
-/**
- * The BLTouch Probe emulates a servo probe
- * and uses "special" angles for its state.
- */
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #ifndef Z_PROBE_SERVO_NR
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #define Z_PROBE_SERVO_NR 0
-  #endif
-  #ifndef NUM_SERVOS
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #define NUM_SERVOS (Z_PROBE_SERVO_NR + 1)
-  #endif
-  #undef DEACTIVATE_SERVOS_AFTER_MOVE
-  #if NUM_SERVOS == 1
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #undef SERVO_DELAY
-    #define SERVO_DELAY { 50 }
-  #endif
-
-  // Always disable probe pin inverting for BLTouch
-  #undef Z_MIN_PROBE_ENDSTOP_INVERTING
-  #define Z_MIN_PROBE_ENDSTOP_INVERTING false
-  #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #undef Z_MIN_ENDSTOP_INVERTING
-    #define Z_MIN_ENDSTOP_INVERTING false
-  #endif
-#endif
-
 #ifndef PREHEAT_1_LABEL
   // #error dead code found by automatic analyses (see BFW-5461)
   #define PREHEAT_1_LABEL "PLA"
@@ -490,14 +459,9 @@
 #endif
 
 /**
- * Set a flag for a servo probe
- */
-#define HAS_Z_SERVO_PROBE (defined(Z_PROBE_SERVO_NR) && Z_PROBE_SERVO_NR >= 0)
-
-/**
  * Set flags for enabled probes
  */
-#define HAS_BED_PROBE (HAS_Z_SERVO_PROBE || ANY(FIX_MOUNTED_PROBE, TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, SOLENOID_PROBE, SENSORLESS_PROBING, RACK_AND_PINION_PROBE))
+#define HAS_BED_PROBE ANY(FIX_MOUNTED_PROBE, TOUCH_MI_PROBE, SENSORLESS_PROBING)
 #define PROBE_SELECTED (HAS_BED_PROBE)
 
 #if HAS_BED_PROBE
@@ -508,9 +472,6 @@
   #ifndef Z_PROBE_LOW_POINT
     // #error dead code found by automatic analyses (see BFW-5461)
     #define Z_PROBE_LOW_POINT -5
-  #endif
-  #if ENABLED(Z_PROBE_ALLEN_KEY)
-    #error
   #endif
   #ifdef MULTIPLE_PROBING
     #if EXTRA_PROBING

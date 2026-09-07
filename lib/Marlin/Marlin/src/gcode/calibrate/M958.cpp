@@ -33,6 +33,7 @@
 
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
+#include <bsod/bsod.h>
 
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 
@@ -43,157 +44,159 @@ LOG_COMPONENT_REF(Marlin);
 METRIC_DEF(metric_excite_freq, "excite_freq", METRIC_VALUE_FLOAT, 100, METRIC_DISABLED);
 METRIC_DEF(metric_freq_gain, "freq_gain", METRIC_VALUE_CUSTOM, 100, METRIC_ENABLED);
 
+namespace vibrate_measure {
+
 namespace {
-class HarmonicGenerator {
+    class HarmonicGenerator {
 
-public:
-    /**
-     * @brief Displacement amplitude
-     *
-     * double integral of acceleration over time results in position amplitude
-     *
-     * @param acceleration in m/s-2
-     * @param frequency in Hz
-     * @return amplitude in meters
-     */
-    static float amplitudeNotRounded(float frequency, float acceleration) {
-        return acceleration / (4 * std::numbers::pi_v<float> * std::numbers::pi_v<float> * frequency * frequency);
-    }
-
-    HarmonicGenerator(float frequency, float amplitude, float step_len)
-        : m_amplitude_steps(amplitudeRoundToSteps(amplitude, step_len))
-        , m_step(step_len)
-        , m_freq2pi_inv(1.f / (frequency * 2 * std::numbers::pi_v<float>))
-        , m_last_time(1.f / (frequency * 4.f))
-        , m_last_step(m_amplitude_steps - 1)
-        , m_dir_forward(false) {}
-
-    float nextDelayDir() {
-        float new_time = asinf(static_cast<float>(m_last_step) / m_amplitude_steps) * m_freq2pi_inv;
-
-        if (m_dir_forward) {
-            if (m_last_step < m_amplitude_steps) {
-                ++m_last_step;
-            } else {
-                --m_last_step;
-                m_dir_forward = false;
-            }
-        } else {
-            if (m_last_step > -m_amplitude_steps) {
-                --m_last_step;
-            } else {
-                ++m_last_step;
-                m_dir_forward = true;
-            }
+    public:
+        /**
+         * @brief Displacement amplitude
+         *
+         * double integral of acceleration over time results in position amplitude
+         *
+         * @param acceleration in m/s-2
+         * @param frequency in Hz
+         * @return amplitude in meters
+         */
+        static float amplitudeNotRounded(float frequency, float acceleration) {
+            return acceleration / (4 * std::numbers::pi_v<float> * std::numbers::pi_v<float> * frequency * frequency);
         }
 
-        float next_delay = new_time - m_last_time;
-        m_last_time = new_time;
-        return next_delay;
-    }
+        HarmonicGenerator(float frequency, float amplitude, float step_len)
+            : m_amplitude_steps(amplitudeRoundToSteps(amplitude, step_len))
+            , m_step(step_len)
+            , m_freq2pi_inv(1.f / (frequency * 2 * std::numbers::pi_v<float>))
+            , m_last_time(1.f / (frequency * 4.f))
+            , m_last_step(m_amplitude_steps - 1)
+            , m_dir_forward(false) {}
 
-    int getStepsPerPeriod() {
-        return (m_amplitude_steps * 4);
-    }
+        float nextDelayDir() {
+            float new_time = asinf(static_cast<float>(m_last_step) / m_amplitude_steps) * m_freq2pi_inv;
 
-    float getFrequency() {
-        float period = .0f;
-        for (int i = 0; i < getStepsPerPeriod(); ++i) {
-            period += abs(nextDelayDir());
+            if (m_dir_forward) {
+                if (m_last_step < m_amplitude_steps) {
+                    ++m_last_step;
+                } else {
+                    --m_last_step;
+                    m_dir_forward = false;
+                }
+            } else {
+                if (m_last_step > -m_amplitude_steps) {
+                    --m_last_step;
+                } else {
+                    ++m_last_step;
+                    m_dir_forward = true;
+                }
+            }
+
+            float next_delay = new_time - m_last_time;
+            m_last_time = new_time;
+            return next_delay;
         }
-        return 1.f / period;
-    }
 
-    float getAcceleration(float frequency) {
-        return m_amplitude_steps * m_step * 4.f * std::numbers::pi_v<float> * std::numbers::pi_v<float> * frequency * frequency;
-    }
+        int getStepsPerPeriod() {
+            return (m_amplitude_steps * 4);
+        }
 
-private:
-    static int amplitudeRoundToSteps(float amplitude_not_rounded, float step_len) {
-        return static_cast<int>(std::ceil(amplitude_not_rounded / step_len));
-    }
+        float getFrequency() {
+            float period = .0f;
+            for (int i = 0; i < getStepsPerPeriod(); ++i) {
+                period += abs(nextDelayDir());
+            }
+            return 1.f / period;
+        }
 
-    const int m_amplitude_steps; ///< amplitude rounded to steps
-    const float m_step;
-    const float m_freq2pi_inv;
-    float m_last_time;
-    int m_last_step;
-    bool m_dir_forward;
-};
+        float getAcceleration(float frequency) {
+            return m_amplitude_steps * m_step * 4.f * std::numbers::pi_v<float> * std::numbers::pi_v<float> * frequency * frequency;
+        }
 
-using namespace accelerometer;
-class StepDir {
-public:
-    static constexpr float m_ticks_per_second = STEPPER_TIMER_RATE;
-    struct RetVal {
-        int step_us;
-        bool dir;
+    private:
+        static int amplitudeRoundToSteps(float amplitude_not_rounded, float step_len) {
+            return static_cast<int>(std::ceil(amplitude_not_rounded / step_len));
+        }
+
+        const int m_amplitude_steps; ///< amplitude rounded to steps
+        const float m_step;
+        const float m_freq2pi_inv;
+        float m_last_time;
+        int m_last_step;
+        bool m_dir_forward;
     };
-    StepDir(HarmonicGenerator &generator)
-        : m_generator(generator)
-        , m_step_us_fraction(.0f) {}
-    RetVal get() {
-        RetVal retval(0);
-        const float next_delay_dir = m_generator.nextDelayDir();
-        retval.dir = signbit(next_delay_dir);
 
-        const float next_delay = abs(next_delay_dir);
-        const float next_delay_us = next_delay * m_ticks_per_second + m_step_us_fraction;
-        retval.step_us = static_cast<int>(next_delay_us);
-        m_step_us_fraction = next_delay_us - retval.step_us;
+    using namespace accelerometer;
+    class StepDir {
+    public:
+        static constexpr float m_ticks_per_second = STEPPER_TIMER_RATE;
+        struct RetVal {
+            int step_us;
+            bool dir;
+        };
+        StepDir(HarmonicGenerator &generator)
+            : m_generator(generator)
+            , m_step_us_fraction(.0f) {}
+        RetVal get() {
+            RetVal retval(0);
+            const float next_delay_dir = m_generator.nextDelayDir();
+            retval.dir = signbit(next_delay_dir);
 
-        return retval;
-    }
+            const float next_delay = abs(next_delay_dir);
+            const float next_delay_us = next_delay * m_ticks_per_second + m_step_us_fraction;
+            retval.step_us = static_cast<int>(next_delay_us);
+            m_step_us_fraction = next_delay_us - retval.step_us;
 
-private:
-    HarmonicGenerator &m_generator;
-    float m_step_us_fraction;
-};
-
-template <size_t max_samples>
-class FixedLengthSpectrum final : public Spectrum {
-public:
-    FixedLengthSpectrum(float start_frequency, float frequency_step)
-        : m_gain()
-        , m_start_frequency(start_frequency)
-        , m_frequency_step(frequency_step)
-        , m_size(0) {}
-
-    constexpr size_t max_size() const { return max_samples; }
-
-    size_t size() const final { return m_size; }
-
-    void put(float gain) {
-        if (m_size >= max_samples) {
-            return;
+            return retval;
         }
-        m_gain[m_size] = gain;
-        ++m_size;
-    }
-    FrequencyGain get(size_t index) const final {
-        FrequencyGain retval = { 0.f, 0.f };
-        if (index < m_size) {
-            retval.frequency = m_start_frequency + index * m_frequency_step;
-            retval.gain = m_gain[index];
-        }
-        return retval;
-    }
-    float max() const final {
-        float maximum = std::numeric_limits<float>::min();
-        for (size_t i = 0; i < m_size; ++i) {
-            if (m_gain[i] > maximum) {
-                maximum = m_gain[i];
+
+    private:
+        HarmonicGenerator &m_generator;
+        float m_step_us_fraction;
+    };
+
+    template <size_t max_samples>
+    class FixedLengthSpectrum final : public Spectrum {
+    public:
+        FixedLengthSpectrum(float start_frequency, float frequency_step)
+            : m_gain()
+            , m_start_frequency(start_frequency)
+            , m_frequency_step(frequency_step)
+            , m_size(0) {}
+
+        constexpr size_t max_size() const { return max_samples; }
+
+        size_t size() const final { return m_size; }
+
+        void put(float gain) {
+            if (m_size >= max_samples) {
+                return;
             }
+            m_gain[m_size] = gain;
+            ++m_size;
         }
-        return maximum;
-    }
+        FrequencyGain get(size_t index) const final {
+            FrequencyGain retval = { 0.f, 0.f };
+            if (index < m_size) {
+                retval.frequency = m_start_frequency + index * m_frequency_step;
+                retval.gain = m_gain[index];
+            }
+            return retval;
+        }
+        float max() const final {
+            float maximum = std::numeric_limits<float>::min();
+            for (size_t i = 0; i < m_size; ++i) {
+                if (m_gain[i] > maximum) {
+                    maximum = m_gain[i];
+                }
+            }
+            return maximum;
+        }
 
-private:
-    float m_gain[max_samples];
-    float m_start_frequency;
-    float m_frequency_step;
-    size_t m_size;
-};
+    private:
+        float m_gain[max_samples];
+        float m_start_frequency;
+        float m_frequency_step;
+        size_t m_size;
+    };
 } // anonymous namespace
 
 static void print_accelerometer_error(const char *error) {
@@ -243,9 +246,8 @@ static constexpr float expected_accelerometer_sample_period = 1.f / 1344.f;
 /**
  * @param accelerometer
  * @return accelerometer sample period in seconds
- * @retval NAN error
  */
-float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer) {
+Result<float> get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer) {
     for (int i = 0; i < 96; ++i) {
         // Note: this is fast enough, it does not need to call progress_hook
         idle(true);
@@ -256,8 +258,8 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
     const uint32_t start_time = millis();
     uint32_t duration_ms = 0;
 
-    if (!progress_hook(0)) {
-        return NAN;
+    if (auto r = progress_hook(0); !r.has_value()) {
+        return std::unexpected(r.error());
     }
 
     for (int i = 0; i < request_samples_num;) {
@@ -270,8 +272,8 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
             break;
 
         case GetSampleResult::buffer_empty: {
-            if (!progress_hook(static_cast<float>(i) / request_samples_num)) {
-                return NAN;
+            if (auto r = progress_hook(static_cast<float>(i) / request_samples_num); !r.has_value()) {
+                return std::unexpected(r.error());
             }
 
             const uint32_t now = millis();
@@ -280,14 +282,14 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
             if (duration_ms > max_duration_ms) {
                 SERIAL_ERROR_MSG("sample period: getting accelerometer samples timed out");
                 accelerometer.report_error(print_accelerometer_error);
-                return NAN;
+                return std::unexpected(Error::failed);
             }
             break;
         }
 
         case GetSampleResult::error:
             accelerometer.report_error(print_accelerometer_error);
-            return NAN;
+            return std::unexpected(Error::failed);
         }
     }
 
@@ -297,12 +299,16 @@ float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_h
     return duration_ms / 1000.f / static_cast<float>(request_samples_num);
 }
 
-float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook) {
+Result<float> maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook) {
     // TODO: Perhaps we should always calibrate accelerometer and not use this global variable...
     //       Then again, maybe we should not have M958 in the first place...
     static float sample_period = expected_accelerometer_sample_period;
-    if (calibrate_accelerometer || isnan(sample_period)) {
-        sample_period = get_accelerometer_sample_period(progress_hook, accelerometer);
+    if (calibrate_accelerometer) {
+        const auto result = get_accelerometer_sample_period(progress_hook, accelerometer);
+        if (!result.has_value()) {
+            return result;
+        }
+        sample_period = result.value();
         SERIAL_ECHOLNPAIR_F("Sample freq: ", 1.f / sample_period);
     }
     return sample_period;
@@ -351,7 +357,7 @@ AxisEnum get_logical_axis(const uint16_t axis_flag) {
     return NO_AXIS_ENUM;
 }
 
-bool VibrateMeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
+bool MeasureParams::setup(const MicrostepRestorer &microstep_restorer) {
     step_len = get_step_len(axis_flag, microstep_restorer.saved_mres());
     if (isnan(step_len)) {
         return false;
@@ -431,24 +437,23 @@ void Vibrate::step() {
  * for half of the measurement duration with amplitude going to zero and then half of the measurement duration in phase with
  * increasing amplitude - when such response is correlated with excitation signal there is zero correlation.
  *
- * @param args see VibrateMeasureParams
+ * @param args see MeasureParams
  * @param requested_frequency Requested excitation frequency.
  * 		  Rounding error may cause it not to be reached exactly. Excitation frequency reached is returned in result.
  * @param progress_hook
- * @retval VibrateMeasureResult on success
- * @retval std::nullopt on failure
+ * @retval ResponseSample
  */
-std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float requested_frequency, const VibrateMeasureProgressHook &progress_hook) {
+Result<ResponseSample> measure(const MeasureParams &args, float requested_frequency, const ProgressHook &progress_hook) {
     if (args.klipper_mode && args.measured_harmonic != 1) {
         SERIAL_ERROR_MSG("vibrate measure: klipper mode does not support measuring higher harmonics");
-        return std::nullopt;
+        return std::unexpected(Error::failed);
     }
 
     // As we push steps directly, phase stepping needs to be off
     phase_stepping::assert_disabled();
 
     // Check that exactly one of excitation_acceleration, excitation_amplitude is specified
-    assert(isnan(args.excitation_acceleration) != isnan(args.excitation_amplitude));
+    debug_assert(isnan(args.excitation_acceleration) != isnan(args.excitation_amplitude));
 
     const float excitation_amplitude = //
         !isnan(args.excitation_amplitude)
@@ -468,21 +473,22 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
     const float acceleration = generator.getAcceleration(excitation_frequency);
     PrusaAccelerometer accelerometer;
     if (accelerometer.report_error(print_accelerometer_error)) {
-        return std::nullopt;
+        return std::unexpected(Error::failed);
     }
 
     FourierSeries3d fourier(measurement_frequency);
 
     const auto calib_progress_hook = [&progress_hook](float progress) {
-        return progress_hook(VibrateMeasureProgressHookParams {
-            .phase = VibrateMeasureProgressHookParams::Phase::calibrating,
+        return progress_hook(ProgressHookParams {
+            .phase = ProgressHookParams::Phase::calibrating,
             .progress = progress,
         });
     };
-    const float accelerometer_sample_period = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, calib_progress_hook);
-    if (isnan(accelerometer_sample_period)) {
-        return std::nullopt;
+    const auto accelerometer_sample_result = maybe_calibrate_and_get_accelerometer_sample_period(accelerometer, args.calibrate_accelerometer, calib_progress_hook);
+    if (!accelerometer_sample_result.has_value()) {
+        return std::unexpected(accelerometer_sample_result.error());
     }
+    const float accelerometer_sample_period = accelerometer_sample_result.value();
 
     const bool do_delayed_measurement = (args.measurement_cycles != 0);
     const auto measurement_cycles = do_delayed_measurement ? args.measurement_cycles : args.excitation_cycles;
@@ -496,8 +502,8 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
 #endif
 
     const auto get_progress_measuring = [&]() {
-        VibrateMeasureProgressHookParams progress_hook_params {
-            .phase = VibrateMeasureProgressHookParams::Phase::measuring,
+        ProgressHookParams progress_hook_params {
+            .phase = ProgressHookParams::Phase::measuring,
             .progress = std::min<float>(static_cast<float>(fourier.get_samples_num()) / samples_to_collect, 1),
         };
         return progress_hook_params;
@@ -537,7 +543,7 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
 
             if (get_sample_result == GetSampleResult::error) {
                 accelerometer.report_error(print_accelerometer_error);
-                return std::nullopt;
+                return std::unexpected(Error::failed);
 
             } else if (do_delayed_measurement) {
                 // If the measurement is delayed, just clear the accelerometer buffer
@@ -559,8 +565,8 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
             metric_record_float(&metric_excite_freq, excitation_frequency);
 
             if (get_sample_result != GetSampleResult::ok) {
-                if (!progress_hook(get_progress_measuring())) {
-                    return std::nullopt;
+                if (auto r = progress_hook(get_progress_measuring()); !r.has_value()) {
+                    return std::unexpected(r.error());
                 }
 
                 idle(true);
@@ -573,7 +579,7 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
         if (step_nr > steps_to_do_max) {
             SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
             accelerometer.report_error(print_accelerometer_error);
-            return std::nullopt;
+            return std::unexpected(Error::failed);
         }
     }
 
@@ -612,8 +618,8 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
                 break;
 
             case GetSampleResult::buffer_empty:
-                if (!progress_hook(get_progress_measuring())) {
-                    return std::nullopt;
+                if (auto r = progress_hook(get_progress_measuring()); !r.has_value()) {
+                    return std::unexpected(r.error());
                 }
 
                 idle(true);
@@ -621,7 +627,7 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
 
             case GetSampleResult::error:
                 accelerometer.report_error(print_accelerometer_error);
-                return std::nullopt;
+                return std::unexpected(Error::failed);
             }
 
             const uint32_t now = millis();
@@ -630,17 +636,17 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
             if (duration_ms > max_duration_ms) {
                 SERIAL_ERROR_MSG("vibrate measure: getting accelerometer samples timed out");
                 accelerometer.report_error(print_accelerometer_error);
-                return std::nullopt;
+                return std::unexpected(Error::failed);
             }
         }
     }
 
-    VibrateMeasureResult result {
+    ResponseSample sample {
         .excitation_frequency = excitation_frequency,
     };
 
-    result.amplitude = fourier.get_magnitude();
-    result.gain = result.amplitude / acceleration;
+    sample.amplitude = fourier.get_magnitude();
+    sample.gain = sample.amplitude / acceleration;
 
 #ifdef M958_VERBOSE
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -653,33 +659,33 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
     SERIAL_ECHOPAIR_F(" Ycos ", accumulator.val[1][1], 5);
     SERIAL_ECHOPAIR_F(" Zsin ", accumulator.val[2][0], 5);
     SERIAL_ECHOPAIR_F(" Zcos ", accumulator.val[2][1], 5);
-    SERIAL_ECHOPAIR_F(" X ", result.amplitude.x, 5);
-    SERIAL_ECHOPAIR_F(" Y ", result.amplitude.y, 5);
-    SERIAL_ECHOLNPAIR_F(" Z ", result.amplitude.z, 5);
+    SERIAL_ECHOPAIR_F(" X ", sample.amplitude.x, 5);
+    SERIAL_ECHOPAIR_F(" Y ", sample.amplitude.y, 5);
+    SERIAL_ECHOLNPAIR_F(" Z ", sample.amplitude.z, 5);
 #else
     SERIAL_ECHO(excitation_frequency);
     if (args.klipper_mode) {
-        SERIAL_ECHOPAIR_F(",", sq(result.gain.x), 5);
-        SERIAL_ECHOPAIR_F(",", sq(result.gain.y), 5);
-        SERIAL_ECHOPAIR_F(",", sq(result.gain.z), 5);
-        SERIAL_ECHOLNPAIR_F(",", result.gain_square(), 5);
+        SERIAL_ECHOPAIR_F(",", sq(sample.gain.x), 5);
+        SERIAL_ECHOPAIR_F(",", sq(sample.gain.y), 5);
+        SERIAL_ECHOPAIR_F(",", sq(sample.gain.z), 5);
+        SERIAL_ECHOLNPAIR_F(",", sample.gain_square(), 5);
     } else {
         SERIAL_ECHOPAIR_F(" ", measurement_frequency);
         SERIAL_ECHOPAIR_F(" ", acceleration);
-        SERIAL_ECHOPAIR_F(" ", result.amplitude.x, 5);
-        SERIAL_ECHOPAIR_F(" ", result.amplitude.y, 5);
-        SERIAL_ECHOPAIR_F(" ", result.amplitude.z, 5);
-        SERIAL_ECHOPAIR_F(" ", result.gain.x, 5);
-        SERIAL_ECHOPAIR_F(" ", result.gain.y, 5);
-        SERIAL_ECHOLNPAIR_F(" ", result.gain.z, 5);
+        SERIAL_ECHOPAIR_F(" ", sample.amplitude.x, 5);
+        SERIAL_ECHOPAIR_F(" ", sample.amplitude.y, 5);
+        SERIAL_ECHOPAIR_F(" ", sample.amplitude.z, 5);
+        SERIAL_ECHOPAIR_F(" ", sample.gain.x, 5);
+        SERIAL_ECHOPAIR_F(" ", sample.gain.y, 5);
+        SERIAL_ECHOLNPAIR_F(" ", sample.gain.z, 5);
     }
 #endif
 
     AxisEnum logical_axis = get_logical_axis(args.axis_flag);
     metric_record_custom(&metric_freq_gain, " a=%d,f=%.1f,x=%.4f,y=%.4f,z=%.4f",
-        logical_axis, excitation_frequency, result.gain[0], result.gain[1], result.gain[2]);
+        logical_axis, excitation_frequency, sample.gain[0], sample.gain[1], sample.gain[2]);
 
-    return result;
+    return sample;
 }
 
 /**
@@ -699,20 +705,20 @@ std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &
  * @param calibrate_accelerometer
  * @return Frequency and gain measured on each axis if there is accelerometer
  */
-std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook) {
+Result<ResponseSample> measure_repeat(const MeasureParams &args, float frequency, const ProgressHook &progress_hook) {
     constexpr int max_attempts = 3;
     for (int attempt = 0; attempt < max_attempts; ++attempt) {
-        const auto result = vibrate_measure(args, frequency, progress_hook);
-        if (result.has_value()) {
+        const auto result = measure(args, frequency, progress_hook);
+        if (result.has_value() || result.error() == Error::aborted) {
             return result;
         }
 
-        log_info(Marlin, "vibrate_measure: Attempt %i failed", attempt);
+        log_info(Marlin, "measure: Attempt %i failed", attempt);
     }
 
-    SERIAL_ERROR_MSG("vibrate_measure_repeat: maximum attempts exhausted");
+    SERIAL_ERROR_MSG("measure_repeat: maximum attempts exhausted");
     marlin_server::set_warning(WarningType::AccelerometerCommunicationFailed);
-    return std::nullopt;
+    return std::unexpected(Error::failed);
 }
 
 /**
@@ -848,10 +854,12 @@ float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]) {
     return NAN;
 }
 
-static bool idle_progress_hook(const VibrateMeasureProgressHookParams &) {
+static Result<void> idle_progress_hook(const ProgressHookParams &) {
     idle(true);
-    return true;
+    return {};
 };
+
+} // namespace vibrate_measure
 
 /** \addtogroup G-Codes
  * @{
@@ -884,11 +892,13 @@ static bool idle_progress_hook(const VibrateMeasureProgressHookParams &) {
  * - `I` - Which harmonic frequency to measure
  */
 void GcodeSuite::M958() {
+    using namespace vibrate_measure;
+
     // phstep needs to be off _before_ getting the current ustep resolution
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstepRestorer;
 
-    VibrateMeasureParams args {
+    MeasureParams args {
         .excitation_acceleration = 2.5f,
         .excitation_cycles = 50,
         .klipper_mode = parser.seen('K'),
@@ -915,10 +925,12 @@ void GcodeSuite::M958() {
     }
 
     serial_echo_header(args.klipper_mode);
-    vibrate_measure_repeat(args, frequency, idle_progress_hook);
+    auto _ = measure_repeat(args, frequency, idle_progress_hook);
 }
 
 /** @}*/
+
+namespace vibrate_measure {
 
 static constexpr float epsilon = 0.01f;
 
@@ -930,7 +942,7 @@ static constexpr float epsilon = 0.01f;
  * But in reality we are exciting the system by sine wave displacement. We for sure can not tell, if the force is still sine wave
  * and what is the force - the force depends on motor load angle and belt stiffness and we don't know it.
  */
-static void naive_zv_tune(VibrateMeasureParams &args, const VibrateMeasureRange &range) {
+static void naive_zv_tune(MeasureParams &args, const MeasureRange &range) {
     FrequencyGain maxFrequencyGain = { 0.f, 0.f };
     const AxisEnum logicalAxis = get_logical_axis(args.axis_flag);
     if (logicalAxis == NO_AXIS_ENUM) {
@@ -941,7 +953,7 @@ static void naive_zv_tune(VibrateMeasureParams &args, const VibrateMeasureRange 
     serial_echo_header(args.klipper_mode);
 
     for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
-        const auto result = vibrate_measure_repeat(args, frequency, idle_progress_hook);
+        const auto result = measure_repeat(args, frequency, idle_progress_hook);
         args.calibrate_accelerometer = false;
         if (!result.has_value()) {
             return;
@@ -1075,20 +1087,20 @@ static float smoothing(const input_shaper::Shaper &shaper) {
 }
 
 namespace {
-enum class Action {
-    first,
-    /// Find lowest vibrs, reverse order, return when maximum smoothing exceeded
-    find_best_result = first,
-    /// Try to find an 'optimal' shapper configuration: the one that is not
-    /// much worse than the 'best' one, but gives much less smoothing
-    select,
-    last = select,
-};
-Action &operator++(Action &action) {
-    using IntType = typename std::underlying_type<Action>::type;
-    action = static_cast<Action>(static_cast<IntType>(action) + 1);
-    return action;
-}
+    enum class Action {
+        first,
+        /// Find lowest vibrs, reverse order, return when maximum smoothing exceeded
+        find_best_result = first,
+        /// Try to find an 'optimal' shapper configuration: the one that is not
+        /// much worse than the 'best' one, but gives much less smoothing
+        select,
+        last = select,
+    };
+    Action &operator++(Action &action) {
+        using IntType = typename std::underlying_type<Action>::type;
+        action = static_cast<Action>(static_cast<IntType>(action) + 1);
+        return action;
+    }
 } // anonymous namespace
 
 struct Shaper_result {
@@ -1118,7 +1130,7 @@ static Shaper_result fit_shaper(const FindBestShaperProgressHook &progress_hook,
     for (Action action = Action::first; action <= final_action; ++action) {
         for (float frequency = end_frequency; frequency >= start_frequency - epsilon; frequency -= frequency_step) {
             const float progress_ratio = (end_frequency - frequency) / (end_frequency - start_frequency);
-            if (!progress_hook(type, progress_ratio)) {
+            if (!progress_hook(type, progress_ratio).has_value()) {
                 return {};
             }
             input_shaper::Shaper shaper = input_shaper::get(default_damping_ratio, frequency, default_vibration_reduction, type);
@@ -1135,7 +1147,7 @@ static Shaper_result fit_shaper(const FindBestShaperProgressHook &progress_hook,
                 if (vibrations > shaper_vibrations) {
                     shaper_vibrations = vibrations;
                 }
-                if (!progress_hook(type, progress_ratio)) {
+                if (!progress_hook(type, progress_ratio).has_value()) {
                     return {};
                 }
             }
@@ -1191,7 +1203,7 @@ static input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHoo
             continue;
         }
 
-        if (!progress_hook(shaper_type, 0.0f)) {
+        if (!progress_hook(shaper_type, 0.0f).has_value()) {
             break;
         }
 
@@ -1218,9 +1230,9 @@ static input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHoo
 }
 
 static input_shaper::AxisConfig find_best_shaper(const Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
-    const auto progress_hook = [](input_shaper::Type, float) {
+    const auto progress_hook = [](input_shaper::Type, float) -> Result<void> {
         idle(true);
-        return true;
+        return {};
     };
     return find_best_shaper(progress_hook, psd, final_action, default_config);
 }
@@ -1232,9 +1244,9 @@ input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook &prog
 /**
  * @brief
  *
- * To save memory we assume reached frequency was equal to requested, so frequency returned by vibrate_measure() is discarded.
+ * To save memory we assume reached frequency was equal to requested, so frequency returned by vibrate_measure::measure() is discarded.
  */
-static void klipper_tune(VibrateMeasureParams &args, VibrateMeasureRange range, bool subtract_excitation) {
+static void klipper_tune(MeasureParams &args, MeasureRange range, bool subtract_excitation) {
     // Power spectrum density
     FixedLengthSpectrum<146> psd(range.start_frequency, range.frequency_increment);
     range.end_frequency = limit_end_frequency(range.start_frequency, range.end_frequency, range.frequency_increment, psd.max_size());
@@ -1247,7 +1259,7 @@ static void klipper_tune(VibrateMeasureParams &args, VibrateMeasureRange range, 
     serial_echo_header(args.klipper_mode);
 
     for (float frequency = range.start_frequency; frequency <= range.end_frequency + epsilon; frequency += range.frequency_increment) {
-        auto result = vibrate_measure_repeat(args, frequency, idle_progress_hook);
+        auto result = measure_repeat(args, frequency, idle_progress_hook);
         args.calibrate_accelerometer = false;
         if (!result.has_value()) {
             return;
@@ -1289,6 +1301,8 @@ MicrostepRestorer::~MicrostepRestorer() {
     }
 }
 
+} // namespace vibrate_measure
+
 /** \addtogroup G-Codes
  * @{
  */
@@ -1320,6 +1334,8 @@ MicrostepRestorer::~MicrostepRestorer() {
  * - `I` - Which harmonic frequency to measure
  */
 void GcodeSuite::M959() {
+    using namespace vibrate_measure;
+
     SERIAL_ECHO_START();
     SERIAL_ECHOLNPAIR("Running: ", parser.get_command());
 
@@ -1341,14 +1357,14 @@ void GcodeSuite::M959() {
     phase_stepping::EnsureDisabled phaseSteppingDisabler;
     MicrostepRestorer microstep_restorer;
 
-    VibrateMeasureParams args {
+    MeasureParams args {
         .excitation_acceleration = 2.5f,
         .excitation_cycles = 50,
         .klipper_mode = parser.seen('K'),
         .calibrate_accelerometer = true,
         .axis_flag = setup_axis(), // modifies mres as a side-effect
     };
-    VibrateMeasureRange range {
+    MeasureRange range {
         .start_frequency = 5,
         .end_frequency = 150,
         .frequency_increment = 1,

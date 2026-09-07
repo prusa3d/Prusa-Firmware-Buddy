@@ -1,22 +1,19 @@
-/**
- * @file screen_menu_settings.hpp
- */
+/// @file
 #pragma once
 
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
+#include <basic_screen_menu.hpp>
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 #include "knob_event.hpp"
 #include "MItem_crash.hpp"
 #include "Configuration_adv.h"
+#include <option/has_crash_detection.h>
 #include <option/has_mmu2.h>
-#include <option/developer_mode.h>
 #include <option/xbuddy_extension_variant.h>
-#include <option/has_phase_stepping.h>
-#include <option/has_toolchanger.h>
 #include <option/has_indx.h>
+#include <option/has_lights_menu.h>
 #include <option/has_wastebin_fill_tracking.h>
+#include <option/development_items.h>
 
 #if HAS_MMU2()
     #include "MItem_mmu.hpp"
@@ -26,17 +23,13 @@
     #include <gui/menu_item/specific/menu_items_xbuddy_extension.hpp>
 #endif
 
-#if HAS_PHASE_STEPPING()
-    #include "screen_menu_phase_stepping.hpp"
-#endif
-
 #include <option/has_chamber_filtration_api.h>
 #if HAS_CHAMBER_FILTRATION_API()
     #include <gui/menu_item/specific/menu_items_chamber_filtration.hpp>
 #endif
 
-#include <option/has_auto_retract.h>
-#if HAS_AUTO_RETRACT()
+#include <option/has_switchable_auto_retract.h>
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     #include <gui/menu_item/specific/menu_items_auto_retract.hpp>
 #endif
 
@@ -45,31 +38,22 @@
     #include <screen/openprinttag/screen_opt_settings.hpp>
 #endif
 
-class MI_HELP_FW_UPDATE : public IWindowMenuItem {
-    static constexpr const char *const label = N_("FW update");
-
-public:
-    MI_HELP_FW_UPDATE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-/*****************************************************************************/
-
-using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-#if HAS_TOOLCHANGER()
+using ScreenMenuSettingsBase = BasicScreenMenu<
+    MI_USER_INTERFACE,
     MI_TOOLHEAD_SETTINGS,
-#endif
 #if HAS_FILAMENT_SENSORS_MENU()
     MI_FILAMENT_SENSORS,
 #else
     MI_FILAMENT_SENSOR,
 #endif
+#if HAS_LIGHTS_MENU()
+    MI_LIGHTS,
+#endif
+    MI_NETWORK,
 #if HAS_LOADCELL() && !HAS_INDX()
     MI_STUCK_FILAMENT_DETECTION,
 #endif
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     MI_AUTO_RETRACT_ENABLE,
 #endif
 #if HAS_ANFC()
@@ -86,33 +70,24 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_STEALTH_MODE,
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,
-    MI_DRYRUN,
 #if HAS_WASTEBIN_FILL_TRACKING()
     MI_WASTEBIN,
 #endif
 #if HAS_CHAMBER_FILTRATION_API()
     MI_CHAMBER_FILTRATION,
 #endif
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     MI_CRASH_DETECTION,
-#endif // ENABLED(CRASH_RECOVERY)
-
-    MI_INPUT_SHAPER,
-#if HAS_PHASE_STEPPING()
-    MI_PHASE_STEPPING_SCREEN,
 #endif
-#if DEVELOPER_MODE()
-    // #error dead code found by automatic analyses (see BFW-5461)
-    MI_ERROR_TEST,
-#endif
-    MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE, MI_HELP_FW_UPDATE,
-#if HAS_MANUAL_BELT_TUNING()
-    MI_MANUAL_BELT_TUNING,
+    MI_LANG_AND_TIME,
+    MI_HARDWARE,
+#if DEVELOPMENT_ITEMS()
+    MI_DEVELOPMENT,
 #endif
     // MI_SYSTEM needs to be last to ensure we can safely hit factory reset even in presence of unknown languages
     MI_SYSTEM>;
 
-class ScreenMenuSettings : public ScreenMenuSettings__ {
+class ScreenMenuSettings final : public ScreenMenuSettingsBase {
     gui::knob::screen_action_cb old_action;
 
 public:

@@ -1,0 +1,53 @@
+name: Setup Toolchain
+
+inputs:
+  toolchain:
+    description: 'Toolchain name'
+    required: true
+
+outputs:
+  build_option:
+    description: 'Build option for the toolchain e.g --toolchain clang'
+    value: ${{ steps.set-toolchain-option.outputs.build_option }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Pull ESP-IDF docker
+      if: inputs.toolchain == 'esp-idf'
+      uses: ./.github/actions/setup_toolchain/espressif
+      with:
+        toolchain: ${{ inputs.toolchain }}
+
+    - name: Get Toolchain URL
+      if: inputs.toolchain != 'esp-idf'
+      id: set-toolchain-url
+      env:
+        TOOLCHAIN: ${{ inputs.toolchain }}
+      run: |
+        TOOLCHAIN_URL=$(jq -r --arg tc "$TOOLCHAIN" '.[$tc]' .github/actions/setup_toolchain/toolchain.json)
+        echo "toolchain_url=$TOOLCHAIN_URL"
+        echo "toolchain_url=$TOOLCHAIN_URL" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Download Toolchain
+      if: inputs.toolchain != 'esp-idf'
+      uses: ./.github/actions/setup_toolchain/download
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        toolchain_url: ${{ steps.set-toolchain-url.outputs.toolchain_url }}
+
+    - name: Set toolchain option
+      id: set-toolchain-option
+      env:
+        TOOLCHAIN: ${{ inputs.toolchain }}
+      run: |
+          BUILD_OPTION=""
+          if [[ "$TOOLCHAIN" == *"clang"* ]]; then
+            BUILD_OPTION="--toolchain clang"
+          elif [[ "$TOOLCHAIN" == "arm-iar" ]]; then
+            BUILD_OPTION="--toolchain iar"
+          fi
+          echo "build_option=$BUILD_OPTION"
+          echo "build_option=$BUILD_OPTION" >> $GITHUB_OUTPUT
+      shell: bash

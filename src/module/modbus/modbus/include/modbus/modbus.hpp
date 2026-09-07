@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <modbus/server_address.hpp>
 #include <modbus/traits.hpp>
 
@@ -68,9 +69,9 @@ public:
     virtual ServerAddress server_address() const = 0;
     virtual Status read_registers(uint16_t first_address, std::span<uint16_t> out) = 0;
     virtual Status write_registers(uint16_t first_address, std::span<const uint16_t> in) = 0;
-    virtual Status read_coils(uint16_t first_address, uint16_t count, std::span<std::byte> out);
-    virtual Status write_coils(uint16_t first_address, uint16_t count, std::span<const std::byte> in);
-    virtual Status custom_function(uint8_t func_code, std::span<const std::byte> in, std::span<std::byte> &out);
+    virtual Status read_coils(uint16_t first_address, uint16_t count, WritableBytes out);
+    virtual Status write_coils(uint16_t first_address, uint16_t count, Bytes in);
+    virtual Status custom_function(uint8_t func_code, Bytes in, WritableBytes &out);
 };
 
 class Dispatch {
@@ -86,9 +87,9 @@ private:
 /// Computes the CRC based on modbus.
 ///
 /// Used internally by handle_transaction() and exposed publicly for unit testing.
-uint16_t compute_crc(std::span<const std::byte> bytes);
+uint16_t compute_crc(Bytes bytes);
 
-using ComputeCRC = uint16_t(std::span<const std::byte>);
+using ComputeCRC = uint16_t(Bytes);
 
 /**
  * Handle MODBUS transaction.
@@ -101,10 +102,10 @@ using ComputeCRC = uint16_t(std::span<const std::byte>);
  * @param compute_crc_fn Function to compute CRC. Passed as callback to enable more efficient hardware-based implementations.
  * @return Response ADU, which is a view into response_buffer, possibly empty
  */
-std::span<std::byte> handle_transaction(
+WritableBytes handle_transaction(
     Dispatch &dispatch,
-    std::span<std::byte> request,
-    std::span<std::byte> response_buffer,
+    WritableBytes request,
+    WritableBytes response_buffer,
     ComputeCRC compute_crc_fn = compute_crc);
 
 /// Interface to be used to reduce dependencies when you don't need to directly

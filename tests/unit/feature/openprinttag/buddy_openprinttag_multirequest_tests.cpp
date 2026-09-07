@@ -3,6 +3,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <feature/openprinttag/requests_read_multi.hpp>
+#include <utils/byte_utils.hpp>
 
 using namespace buddy::openprinttag;
 
@@ -22,13 +23,17 @@ void Request::issue() {
     request_log.push_back(this);
 }
 
-void ReadInt32FieldRequest::complete(std::span<const std::byte> event_data) {}
-void ReadFloatFieldRequest::complete(std::span<const std::byte> event_data) {}
-void ReadStringRequestBase::complete(std::span<const std::byte> event_data) {}
+void ReadInt32FieldRequest::complete(Bytes event_data) {}
+void ReadFloatFieldRequest::complete(Bytes event_data) {}
+void ReadStringRequestBase::complete(Bytes event_data) {}
 
 void ReadInt32FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadStringRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
+
+Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
+    return std::nullopt;
+}
 
 std::optional<ToolTag> ToolTag::for_tool_ephemeral(VirtualToolIndex tool) {
     return std::nullopt;

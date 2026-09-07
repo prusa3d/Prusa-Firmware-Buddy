@@ -5,14 +5,6 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 
-class MI_TOUCH_PLAYGROUND : public IWindowMenuItem {
-public:
-    MI_TOUCH_PLAYGROUND();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_ENABLE_TOUCH : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Touch");
 

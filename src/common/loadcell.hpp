@@ -28,6 +28,8 @@ public:
     static constexpr unsigned int TOUCHDOWN_DELAY_MS = 150; // Milliseconds of pause required after trigger for the analysis model
     static constexpr int32_t MAX_LOADCELL_DATA_AGE_US = 100'000; // Older sample means the stream stalled
 
+    /// Default XY probe trigger threshold/hysteresis [g]; the active values can be overridden per probing
+    /// sequence via XyProbeThresholdOverride.
     static constexpr float XY_PROBE_THRESHOLD { 40 };
     static constexpr float XY_PROBE_HYSTERESIS { 20 };
 
@@ -105,12 +107,12 @@ public:
 
     /// @brief Request highest precision available from loadcell
     inline void EnableHighPrecision() {
-        assert(!highPrecision); // ensure HP is not recursively enabled
+        debug_assert(!highPrecision); // ensure HP is not recursively enabled
         reset_filters(); // reset filters before we turn on HP
         highPrecision = true;
     }
     inline void DisableHighPrecision() {
-        assert(highPrecision); // ensure HP is not recursively disabled
+        debug_assert(highPrecision); // ensure HP is not recursively disabled
         highPrecision = false;
         probe_safety_armed.store(false); // safety net: disarm on HP exit
         reset_endstops();
@@ -119,6 +121,12 @@ public:
 
     void SetFailsOnLoadAbove(float failsOnLoadAbove);
     float GetFailsOnLoadAbove() const;
+
+    /// Active XY probe trigger threshold/hysteresis [g]. Prefer the XyProbeThresholdOverride RAII guard
+    /// over calling these directly so the values are always restored.
+    void SetXyProbeThreshold(float threshold_g, float hysteresis_g);
+    float GetXyProbeThreshold() const { return xy_probe_threshold; }
+    float GetXyProbeHysteresis() const { return xy_probe_hysteresis; }
 
     void SetFailsOnLoadBelow(float failsOnLoadBelow);
     float GetFailsOnLoadBelow() const;
@@ -167,15 +175,20 @@ public:
 
     /// RAII guard: enables high precision on construction, disables on destruction.
     /// The `enable` flag allows conditional use without scoping the guard inside an if block.
+    /// Safe to nest.
     class HighPrecisionEnabler {
     public:
         HighPrecisionEnabler(Loadcell &lcell, bool enable = true);
-        HighPrecisionEnabler(HighPrecisionEnabler &&) = default;
         ~HighPrecisionEnabler();
+
+        HighPrecisionEnabler(const HighPrecisionEnabler &) = delete;
+        HighPrecisionEnabler &operator=(const HighPrecisionEnabler &) = delete;
+        HighPrecisionEnabler(HighPrecisionEnabler &&) = delete;
+        HighPrecisionEnabler &operator=(HighPrecisionEnabler &&) = delete;
 
     private:
         Loadcell &m_lcell;
-        bool m_enable;
+        bool m_owns_high_precision;
     };
 
     /// RAII guard: arms probe-safety on construction, disarms on destruction.
@@ -189,6 +202,21 @@ public:
     private:
         Loadcell &m_lcell;
         bool m_armed;
+    };
+
+    /// RAII guard: overrides the XY probe trigger threshold for one probing sequence and restores it on
+    /// destruction (hysteresis scaled to keep the default ratio).
+    class XyProbeThresholdOverride {
+    public:
+        XyProbeThresholdOverride(Loadcell &lcell, float threshold_g);
+        // Non-movable: a defaulted move would leave the moved-from restore twice.
+        XyProbeThresholdOverride(XyProbeThresholdOverride &&) = delete;
+        ~XyProbeThresholdOverride();
+
+    private:
+        Loadcell &m_lcell;
+        float m_old_threshold;
+        float m_old_hysteresis;
     };
 
     FailureOnLoadAboveEnforcer CreateLoadAboveErrEnforcer(bool enable = true, float grams = 3000);
@@ -336,6 +364,13 @@ private:
     bool endstop = false;
     std::atomic<bool> xy_endstop = false;
     static_assert(std::atomic<decltype(xy_endstop)::value_type>::is_always_lock_free, "Lock free type must be used from ISR.");
+
+    /// Active XY probe trigger threshold/hysteresis [g], read from the ISR each sample. Default to the
+    /// XY_PROBE_* constants; temporarily lowered via XyProbeThresholdOverride.
+    std::atomic<float> xy_probe_threshold { XY_PROBE_THRESHOLD };
+    static_assert(std::atomic<float>::is_always_lock_free, "Lock free type must be used from ISR.");
+    std::atomic<float> xy_probe_hysteresis { XY_PROBE_HYSTERESIS };
+
     bool highPrecision;
 
     // When tare is requested, this will store number of samples and countdown to zero

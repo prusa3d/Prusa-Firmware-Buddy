@@ -68,7 +68,7 @@ public:
         const auto params = get_dock_select_params_from_fsm();
         const auto result = select_docks_dialog(params.dock_count, params.preselect_all);
         if (result.has_value()) {
-            marlin_client::FSM_response_variant(PhaseDockCalibration::select_docks, FSMResponseVariant::make<uint8_t>(*result));
+            marlin_client::FSM_response_variant(PhaseDockCalibration::select_docks, FSMResponseVariant::make<DockSelection>(*result));
         } else {
             marlin_client::FSM_response_variant(PhaseDockCalibration::select_docks, FSMResponseVariant::make<Response>(Response::Abort));
         }

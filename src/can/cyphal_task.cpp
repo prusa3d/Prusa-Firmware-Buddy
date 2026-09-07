@@ -5,7 +5,6 @@
 #include <utility>
 
 #include <bsod.h>
-#include <assert.h>
 #include <timing.h>
 #include <logging/log.hpp>
 
@@ -34,12 +33,12 @@ Task::Task(Driver &driver_, AtomicCircularQueueSizeless<TaskRxBufferElement, siz
     : watchdog("cyphal_task")
     , driver(driver_)
     , rx_queue(rx_queue) {
-    assert(rx_queue.size() > 0); // We need at least one buffer
+    debug_assert(rx_queue.size() > 0); // We need at least one buffer
 
     // Check all semaphores are valid
-    assert(senders_mutex != nullptr);
-    assert(tx_buffer_semaphore != nullptr);
-    assert(subers_mutex != nullptr);
+    debug_assert(senders_mutex != nullptr);
+    debug_assert(tx_buffer_semaphore != nullptr);
+    debug_assert(subers_mutex != nullptr);
 
     // Buffer is not used yet, give
     xSemaphoreGive(tx_buffer_semaphore);
@@ -47,7 +46,7 @@ Task::Task(Driver &driver_, AtomicCircularQueueSizeless<TaskRxBufferElement, siz
     // Init Cyphal
     canard_instance = canardInit(allocator, deallocator);
     canard_instance.node_id = CANARD_NODE_ID_UNSET;
-    assert(63 * tx_queue_size > ProtoSender::MAX_SERIALIZED_SIZE_BYTES); // Queue size must be enough to hold the biggest message
+    debug_assert(63 * tx_queue_size > ProtoSender::MAX_SERIALIZED_SIZE_BYTES); // Queue size must be enough to hold the biggest message
     canard_tx_queue = canardTxInit(tx_queue_size, CANARD_MTU_CAN_FD);
     timesync.canard_tx_queue = canardTxInit(1, CANARD_MTU_CAN_FD);
 }
@@ -60,7 +59,7 @@ void Task::apply_automatic_retransmission() {
 }
 
 void Task::task(void *argument) {
-    assert(argument != nullptr);
+    debug_assert(argument != nullptr);
     reinterpret_cast<Task *>(argument)->loop();
 }
 
@@ -132,7 +131,7 @@ void Task::loop() {
 }
 
 void Task::notify(Notify what) {
-    assert(loop_task);
+    debug_assert(loop_task);
 
     if (xPortIsInsideInterrupt() != 0) { // We are in ISR
         BaseType_t woken = pdFALSE;
@@ -165,7 +164,7 @@ void Task::timesync_loop() {
         uint8_t buffer[uavcan_time_Synchronization_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_];
         size_t buffer_size_bytes = sizeof(buffer);
         [[maybe_unused]] int8_t ret_serialize = uavcan_time_Synchronization_1_0_serialize_(&msg, buffer, &buffer_size_bytes);
-        assert(ret_serialize == 0); // Serialization should never fail
+        debug_assert(ret_serialize == 0); // Serialization should never fail
 
         // Metadata
         CanardTransferMetadata meta = {
@@ -187,7 +186,7 @@ void Task::timesync_loop() {
         if (ret_push == -CANARD_ERROR_OUT_OF_MEMORY) { // Run out of queue
             return; // Wait for tx_loop() to send something and try again next time
         }
-        assert(ret_push > 0); // Other negative or 0 means incorrect format
+        debug_assert(ret_push > 0); // Other negative or 0 means incorrect format
 
         // Message put to Tx buffer, advance state
         timesync.last_attempt = timestamp;
@@ -227,7 +226,7 @@ void Task::serialization_loop() {
             return; // Back where we started, nothing to send
         }
     }
-    assert(selected_to_send != nullptr); // We should have found something to send
+    debug_assert(selected_to_send != nullptr); // We should have found something to send
 
     // Send, don't wait for buffer
     if (directly_send(timestamp, *selected_to_send, 0)) {
@@ -251,7 +250,7 @@ void Task::sender_loop() {
     if (ret_push == -CANARD_ERROR_OUT_OF_MEMORY) { // Run out of queue
         return; // Wait for tx_loop() to send something and try again next time
     }
-    assert(ret_push > 0); // Other negative or 0 means incorrect format
+    debug_assert(ret_push > 0); // Other negative or 0 means incorrect format
 
     tx_buffer_used = false;
     xSemaphoreGive(tx_buffer_semaphore); // Buffer can be used again
@@ -341,11 +340,11 @@ void Task::rx_loop() {
         notify(Notify::Rx); // Check again until we run out of frames
     }
 
-    assert(tx_buffer_reserved.load() == false);
+    debug_assert(tx_buffer_reserved.load() == false);
     tx_buffer_reserved.store(true); // Mark that the buffer is reserved for the callback
 
     auto subers_lock = RAIIRecursiveLock(subers_mutex);
-    assert(subers_lock.is_locked());
+    debug_assert(subers_lock.is_locked());
 
     {
         // Get reference to the queue without copying, we will drop it later
@@ -382,12 +381,12 @@ void Task::rx_loop() {
     } // Drop the buffer reference if not already
 
     if (tx_buffer_reserved.load()) { // Nobody used the reserved buffer
-        assert(tx_buffer_used == false); // Buffer should not be used
+        debug_assert(tx_buffer_used == false); // Buffer should not be used
         tx_buffer_reserved.store(false); // Unreserve
         xSemaphoreGive(tx_buffer_semaphore); // Buffer can be used again
     } else {
         /// @note Keep tx_buffer_semaphore taken until sender_loop() processes the buffer.
-        assert(tx_buffer_used); // Buffer should be used
+        debug_assert(tx_buffer_used); // Buffer should be used
     }
 }
 
@@ -411,7 +410,7 @@ bool Task::directly_send(CanardMicrosecond timestamp, ProtoSender &sender, TickT
                     return false;
                 }
             } else {
-                assert(false); // Do not use this function this way
+                debug_assert(false); // Do not use this function this way
                 return false;
             }
         }
@@ -434,7 +433,7 @@ bool Task::directly_send(CanardMicrosecond timestamp, ProtoSender &sender, TickT
 
 void Task::add_sender(ProtoSenderPeriodic &sender) {
     if (xSemaphoreTake(senders_mutex, portMAX_DELAY) != pdTRUE) {
-        assert(false);
+        debug_assert(false);
     }
     sender.add_next(senders);
     senders = &sender;
@@ -443,7 +442,7 @@ void Task::add_sender(ProtoSenderPeriodic &sender) {
 
 void Task::remove_sender(ProtoSenderPeriodic &sender) {
     if (xSemaphoreTake(senders_mutex, portMAX_DELAY) != pdTRUE) {
-        assert(false);
+        debug_assert(false);
     }
     ProtoSenderPeriodic *prev = senders;
     while (prev != nullptr && prev->get_next() != &sender) {
@@ -459,7 +458,7 @@ void Task::remove_sender(ProtoSenderPeriodic &sender) {
 
 void Task::add_suber(ProtoSuber &suber) {
     if (xSemaphoreTakeRecursive(subers_mutex, portMAX_DELAY) != pdTRUE) {
-        assert(false);
+        debug_assert(false);
     }
     canardRxSubscribe(&canard_instance, suber.get_kind(), suber.get_port_id(),
         suber.get_extent(), suber.get_timeout(), &suber.get_raw());
@@ -469,7 +468,7 @@ void Task::add_suber(ProtoSuber &suber) {
 
 void Task::remove_suber(ProtoSuber &suber) {
     if (xSemaphoreTakeRecursive(subers_mutex, portMAX_DELAY) != pdTRUE) {
-        assert(false);
+        debug_assert(false);
     }
     canardRxUnsubscribe(&canard_instance, suber.get_kind(), suber.get_port_id());
     suber.get_raw().user_reference = nullptr; // Unlink ProtoSuber

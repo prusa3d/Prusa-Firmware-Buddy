@@ -11,6 +11,7 @@
 #include "../../Marlin/src/module/stepper.h"
 #include "selftest_part.hpp"
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 namespace selftest {
 

@@ -103,9 +103,7 @@ using Frames = FrameDefinitionList<ScreenNozzleMismatch::FrameStorage,
     FrameDefinition<Phase::tool_lost, FrameQRPrompt, nozzle_mismatch_phase_error_code_mapper>,
     FrameDefinition<Phase::homing, FrameHoming>,
     FrameDefinition<Phase::pickup_failed, FrameQRPrompt, nozzle_mismatch_phase_error_code_mapper>,
-    FrameDefinition<Phase::pickup_failed_confirm_retry, FramePrompt, nozzle_mismatch_phase_error_code_mapper>,
     FrameDefinition<Phase::park_failed, FrameQRPrompt, nozzle_mismatch_phase_error_code_mapper>,
-    FrameDefinition<Phase::park_failed_confirm_retry, FramePrompt, nozzle_mismatch_phase_error_code_mapper>,
     FrameDefinition<Phase::confirm_abort, FramePrompt, nozzle_mismatch_phase_error_code_mapper>>;
 
 ScreenNozzleMismatch::ScreenNozzleMismatch()

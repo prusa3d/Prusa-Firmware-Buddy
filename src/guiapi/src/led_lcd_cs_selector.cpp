@@ -8,11 +8,11 @@
 #include <buddy/main.h>
 #include <device/peripherals.hpp>
 #include "hwio_pindef.h"
-#include "gui_time.hpp" //gui::GetTick()
 #include <buddy/ccm_thread.hpp>
 #include "option/has_side_leds.h"
 #include <common/spi_baud_rate_prescaler_guard.hpp>
 #include <option/has_burst_stepping.h>
+#include <bsod/bsod.h>
 
 using namespace buddy::hw;
 
@@ -90,7 +90,7 @@ void SideStripWriter::write(uint8_t *pb, uint16_t size) {
     #endif
     } else {
         HAL_SPI_Abort(hspi);
-        assert(can_be_used_by_dma(pb));
+        debug_assert(can_be_used_by_dma(pb));
     #if HAS_BURST_STEPPING()
         // #error dead code found by automatic analyses (see BFW-5461)
         HAL_SPI_Transmit_IT(hspi, pb, size);

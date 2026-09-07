@@ -5,6 +5,8 @@
 #include <optional>
 
 #include <tool_index.hpp>
+#include <bsod/bsod.h>
+#include <utils/compact_optional.hpp>
 
 #include <feature/openprinttag/detail/defines.hpp>
 
@@ -27,6 +29,8 @@ public:
     /// Used in config store
     static constexpr UIDHash no_tag_hash = 0;
 
+    using UIDHashOptional = CompactOptional<UIDHash, no_tag_hash>;
+
 public:
     /// @returns tag that is currently detected at the specified tool spool slot
     /// This can be a different tag than @p for_tool_assigned in case the user removes the assignes pool
@@ -38,26 +42,32 @@ public:
     static std::optional<ToolTag> for_tool_assigned(VirtualToolIndex tool);
 
 public:
-    explicit ToolTag(VirtualToolIndex tool, UIDHash uid_hash);
+    constexpr explicit ToolTag(VirtualToolIndex tool, UIDHash uid_hash)
+        : uid_hash_(uid_hash)
+        , tool_(tool) {
+        if (uid_hash_ == no_tag_hash) {
+            bsod_unreachable();
+        }
+    }
 
-    ToolTag(const ToolTag &) = default;
+    constexpr ToolTag(const ToolTag &) = default;
 
-    inline VirtualToolIndex tool() const {
+    constexpr inline VirtualToolIndex tool() const {
         return tool_;
     }
 
-    inline UIDHash uid_hash() const {
+    constexpr inline UIDHash uid_hash() const {
         return uid_hash_;
     }
 
     /// @returns a struct representing a specific field on the tag
     template <typename F>
-    inline ToolTagField field(F field) const;
+    constexpr inline ToolTagField field(F field) const;
 
     constexpr inline bool operator==(const ToolTag &) const = default;
     constexpr inline bool operator!=(const ToolTag &) const = default;
 
-    ToolTag &operator=(const ToolTag &) = default;
+    constexpr ToolTag &operator=(const ToolTag &) = default;
 
 private:
     friend class Manager;
@@ -67,6 +77,9 @@ private:
     UIDHash uid_hash_;
 
     VirtualToolIndex tool_;
+
+    // Explicit padding for constexpr copy-initialization support
+    uint8_t _padding = 0;
 };
 
 struct ToolTagField {
@@ -79,7 +92,7 @@ struct ToolTagField {
 };
 
 template <typename F>
-inline ToolTagField ToolTag::field(F field) const {
+constexpr inline ToolTagField ToolTag::field(F field) const {
     return ToolTagField {
         .tag = *this,
         .section = ::openprinttag::field_section(field),

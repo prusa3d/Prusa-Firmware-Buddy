@@ -32,7 +32,7 @@ protected:
     void windowEvent(window_t *sender, GUI_event_t event, void *const param) override;
 
 private:
-    /// Buffer for PrintStatusMessage shown in PhaseWait::generic
+    /// Buffer for PrintStatusMessage shown in PhaseWait::print_status_message
     std::array<char, 256> print_status_message_;
 
     /// Whether the frame text should show PrintStatusMessage

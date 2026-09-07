@@ -1,6 +1,7 @@
 #include <nfcv/encode.hpp>
 
-#include <cassert>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 nfcv::Encoder1Of4::Encoder1Of4(MsgBuilder &msg_builder)
     : builder(msg_builder)
@@ -34,9 +35,9 @@ void nfcv::Encoder1Of4::append_byte_impl(std::byte byte, bool calculate_crc) {
     }
 }
 
-void nfcv::Encoder1Of4::append_bytes(const std::span<const std::byte> &bytes) { append_bytes_impl(bytes); }
+void nfcv::Encoder1Of4::append_bytes(const Bytes &bytes) { append_bytes_impl(bytes); }
 
-void nfcv::Encoder1Of4::append_bytes_impl(const std::span<const std::byte> &buffer, bool calculate_crc) {
+void nfcv::Encoder1Of4::append_bytes_impl(const Bytes &buffer, bool calculate_crc) {
     for (const auto byte : buffer) {
         append_byte_impl(byte, calculate_crc);
     }
@@ -240,7 +241,7 @@ nfcv::Result<void> nfcv::construct_command(MsgBuilder &builder, const Command &c
         const auto res = impl::construct_rest(encoder, cmd);
         encoder.append_crc_and_finalize();
 
-        assert(builder.size() == expected_size);
+        debug_assert(builder.size() == expected_size);
         return res;
     },
         command);

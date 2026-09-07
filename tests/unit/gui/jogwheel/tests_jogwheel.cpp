@@ -2,7 +2,6 @@
 
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
-#include "gui_time.hpp" //  gui::GetTick
 
 namespace buddy::hw {
 jogPin jogWheelEN1;

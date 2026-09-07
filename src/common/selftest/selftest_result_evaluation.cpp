@@ -55,7 +55,7 @@ bool is_selftest_successfully_completed() {
             }
 
     #if !HAS_INDX() // tool offset is not a selftest on INDX
-            if (sr.get_tool_offset(tool) != TestResult::passed) {
+            if (SelftestSnake::get_test_result(SelftestSnake::Action::ToolOffsetsCalibration, tool) != TestResult::passed) {
                 return false;
             }
     #endif
@@ -84,10 +84,12 @@ bool is_selftest_successfully_completed() {
         if (sr.get_nozzle_heater(tool) != TestResult::passed) {
             return false;
         }
+    }
 
-        if (sr.evaluate_fans(tool) != TestResult::passed) {
-            return false;
-        }
+    // Single source of truth for what the fan test covers on this printer - per-tool
+    // fans plus whatever chassis fans the variant carries.
+    if (SelftestSnake::get_test_result(SelftestSnake::Action::Fans, AllTools {}) != TestResult::passed) {
+        return false;
     }
 
 #if HAS_PHASE_STEPPING_SELFTEST()

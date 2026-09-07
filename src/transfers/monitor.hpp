@@ -1,8 +1,7 @@
 #pragma once
 
 #include <freertos/mutex.hpp>
-// Why is the FILE_PATH_BUFFER_LEN in gui?
-#include <gui/file_list_defs.h>
+#include <buddy/filename_defs.hpp>
 
 #include "partial_file.hpp"
 
@@ -238,7 +237,7 @@ private:
     bool download_has_issue;
     bool print_after_upload { false };
 
-    char destination_path[FILE_PATH_BUFFER_LEN + FILE_NAME_MAX_LEN];
+    char destination_path[filename_defs::path_buffer_size + filename_defs::max_filename_length];
 
     // History related
     static constexpr size_t HISTORY_MAX_LEN = 2;

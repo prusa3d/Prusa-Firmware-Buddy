@@ -49,9 +49,9 @@ protected:
         marlin_client::set_object_cancelled(object_, get_index());
     }
 
-    virtual void printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, ropfn raster_op) const override {
-        // Colorize the extension red/green to better visualise which objects are cancelled
-        MenuItemSwitch::printExtension(extension_rect, get_index() ? COLOR_RED : COLOR_GREEN, color_back, raster_op);
+    // Colorize the extension red/green to better visualise which objects are cancelled
+    Color resolved_value_text_color(Color) const override {
+        return current_item() ? COLOR_RED : COLOR_GREEN;
     }
 
 private:

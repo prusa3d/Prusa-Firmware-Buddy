@@ -94,6 +94,9 @@ enum class CommunicationStatus {
     SKIPPED,
 };
 
+/// Correctly aggregates results from multiple modbus operations
+CommunicationStatus aggregate_communication_status(std::initializer_list<CommunicationStatus> statuses);
+
 class PuppyModbus;
 
 [[deprecated("Puppy modbus should be accessed exclusively by puppy task, see BFW-8185")]] extern PuppyModbus puppyModbus;

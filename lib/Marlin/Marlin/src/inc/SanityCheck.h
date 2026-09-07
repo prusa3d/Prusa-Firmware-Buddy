@@ -21,6 +21,9 @@
  */
 #pragma once
 
+#include <option/has_crash_detection.h>
+#include <option/has_power_panic.h>
+#include <option/has_print_sheet_detection.h>
 #include <option/has_remote_accelerometer.h>
 #include <option/has_toolchanger.h>
 #include <option/has_gcode_compatibility.h>
@@ -93,7 +96,7 @@
 #elif defined(EXTRUDER_WATTS) || defined(BED_WATTS)
   #error "EXTRUDER_WATTS and BED_WATTS are deprecated. Remove them from your configuration."
 #elif defined(SERVO_ENDSTOP_ANGLES)
-  #error "SERVO_ENDSTOP_ANGLES is deprecated. Use Z_SERVO_ANGLES instead."
+  #error "SERVO_ENDSTOP_ANGLES is deprecated."
 #elif defined(X_ENDSTOP_SERVO_NR) || defined(Y_ENDSTOP_SERVO_NR)
   #error "X_ENDSTOP_SERVO_NR and Y_ENDSTOP_SERVO_NR are deprecated and should be removed."
 #elif defined(Z_ENDSTOP_SERVO_NR)
@@ -103,9 +106,9 @@
 #elif defined(XY_TRAVEL_SPEED)
   #error "XY_TRAVEL_SPEED is deprecated. Use XY_PROBE_SPEED instead."
 #elif defined(PROBE_SERVO_DEACTIVATION_DELAY)
-  #error "PROBE_SERVO_DEACTIVATION_DELAY is deprecated. Use DEACTIVATE_SERVOS_AFTER_MOVE instead."
+  #error "PROBE_SERVO_DEACTIVATION_DELAY is deprecated."
 #elif defined(SERVO_DEACTIVATION_DELAY)
-  #error "SERVO_DEACTIVATION_DELAY is deprecated. Use SERVO_DELAY instead."
+  #error "SERVO_DEACTIVATION_DELAY is deprecated."
 #elif defined(FILAMENT_CHANGE_X_POS) || defined(FILAMENT_CHANGE_Y_POS)
   #error "FILAMENT_CHANGE_[XY]_POS is now set with NOZZLE_PARK_POINT. Please update your configuration."
 #elif defined(FILAMENT_CHANGE_Z_ADD)
@@ -122,18 +125,27 @@
   #error "PAUSE_PARK_XY_FEEDRATE is now NOZZLE_PARK_XY_FEEDRATE. Please update your configuration."
 #elif defined(PAUSE_PARK_Z_FEEDRATE)
   #error "PAUSE_PARK_Z_FEEDRATE is now NOZZLE_PARK_Z_FEEDRATE. Please update your configuration."
-#elif defined(FILAMENT_CHANGE_RETRACT_FEEDRATE)
-  #error "FILAMENT_CHANGE_RETRACT_FEEDRATE is now PAUSE_PARK_RETRACT_FEEDRATE. Please update your configuration."
+#elif defined(FILAMENT_CHANGE_RETRACT_FEEDRATE) \
+    || defined(FILAMENT_CHANGE_EXTRUDE_FEEDRATE) \
+    || defined(ADVANCED_PAUSE_EXTRUDE_FEEDRATE) \
+    || defined(PAUSE_PARK_RETRACT_FEEDRATE) \
+    || defined(PARK_PAUSE_PRIME_FEEDRATE) \
+    || defined(STANDARD_RETRACT_FEEDRATE) \
+    || defined(STANDARD_DERETRACT_FEEDRATE) \
+    || defined(FILAMENT_CHANGE_UNLOAD_FEEDRATE) \
+    || defined(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE) \
+    || defined(FILAMENT_CHANGE_FAST_LOAD_FEEDRATE) \
+    || defined(FILAMENT_ASSISTED_FEEDRATE) \
+    || defined(ADVANCED_PAUSE_PURGE_FEEDRATE)
+  #error "Extruder feedrates have been consolidated into mapi/standard_feedrates Please update your configuration."
 #elif defined(FILAMENT_CHANGE_RETRACT_LENGTH)
-  #error "FILAMENT_CHANGE_RETRACT_LENGTH is now PAUSE_PARK_RETRACT_LENGTH. Please update your configuration."
-#elif defined(FILAMENT_CHANGE_EXTRUDE_FEEDRATE)
-  #error "FILAMENT_CHANGE_EXTRUDE_FEEDRATE is now ADVANCED_PAUSE_PURGE_FEEDRATE. Please update your configuration."
-#elif defined(ADVANCED_PAUSE_EXTRUDE_FEEDRATE)
-  #error "ADVANCED_PAUSE_EXTRUDE_FEEDRATE is now ADVANCED_PAUSE_PURGE_FEEDRATE. Please update your configuration."
+  #error "FILAMENT_CHANGE_RETRACT_LENGTH is now STANDARD_RETRACT_LENGTH. Please update your configuration."
 #elif defined(FILAMENT_CHANGE_EXTRUDE_LENGTH)
   #error "FILAMENT_CHANGE_EXTRUDE_LENGTH is now ADVANCED_PAUSE_PURGE_LENGTH. Please update your configuration."
 #elif defined(ADVANCED_PAUSE_EXTRUDE_LENGTH)
   #error "ADVANCED_PAUSE_EXTRUDE_LENGTH is now ADVANCED_PAUSE_PURGE_LENGTH. Please update your configuration."
+#elif defined(PAUSE_PARK_RETRACT_LENGTH)
+  #error "PAUSE_PARK_RETRACT_LENGTH is now STANDARD_RETRACT_LENGTH. Please update your configuration."
 #elif defined(PLA_PREHEAT_HOTEND_TEMP)
   #error "PLA_PREHEAT_HOTEND_TEMP is now PREHEAT_1_TEMP_HOTEND. Please update your configuration."
 #elif defined(PLA_PREHEAT_HPB_TEMP)
@@ -180,14 +192,8 @@
   #error "MESH_NUM_[XY]_POINTS is now GRID_MAX_POINTS_[XY]. Please update your configuration."
 #elif defined(UBL_MESH_NUM_X_POINTS) || defined(UBL_MESH_NUM_Y_POINTS)
   #error "UBL_MESH_NUM_[XY]_POINTS is now GRID_MAX_POINTS_[XY]. Please update your configuration."
-#elif defined(BLTOUCH_V3)
-  #error "BLTOUCH_V3 is obsolete. Please update your configuration."
-#elif defined(BLTOUCH_FORCE_OPEN_DRAIN_MODE)
-  #error "BLTOUCH_FORCE_OPEN_DRAIN_MODE is obsolete. Please update your configuration."
 #elif defined(min_software_endstops) || defined(max_software_endstops)
   #error "(min|max)_software_endstops are now (MIN|MAX)_SOFTWARE_ENDSTOPS. Please update your configuration."
-#elif ENABLED(Z_PROBE_SLED) && defined(SLED_PIN)
-  #error "Replace SLED_PIN with SOL1_PIN (applies to both Z_PROBE_SLED and SOLENOID_PROBE)."
 #elif defined(MIN_RETRACT)
   #error "MIN_RETRACT is now MIN_AUTORETRACT and MAX_AUTORETRACT. Please update your Configuration_adv.h."
 #elif defined(UBL_MESH_INSET)
@@ -250,16 +256,6 @@
   #error "G0_FEEDRATE is now used to set the G0 feedrate. Please update your configuration."
 #elif defined(MBL_Z_STEP)
   #error "MBL_Z_STEP is now MESH_EDIT_Z_STEP. Please update your configuration."
-#elif defined(SPINDLE_LASER_ENABLE)
-  #error "SPINDLE_LASER_ENABLE is now SPINDLE_FEATURE or LASER_FEATURE. Please update your Configuration_adv.h."
-#elif defined(SPINDLE_LASER_ENABLE_PIN)
-  #error "SPINDLE_LASER_ENABLE_PIN is now SPINDLE_LASER_ENA_PIN. Please update your Configuration_adv.h and/or pins."
-#elif defined(SPINDLE_DIR_CHANGE)
-  #error "SPINDLE_DIR_CHANGE is now SPINDLE_CHANGE_DIR. Please update your Configuration_adv.h."
-#elif defined(SPINDLE_STOP_ON_DIR_CHANGE)
-  #error "SPINDLE_STOP_ON_DIR_CHANGE is now SPINDLE_CHANGE_DIR_STOP. Please update your Configuration_adv.h."
-#elif defined(SPINDLE_LASER_ENABLE_INVERT)
-  #error "SPINDLE_LASER_ENABLE_INVERT is now SPINDLE_LASER_ACTIVE_HIGH. Please update your Configuration_adv.h."
 #elif defined(TMC_Z_CALIBRATION)
   #error "TMC_Z_CALIBRATION has been deprecated in favor of Z_STEPPER_AUTO_ALIGN. Please update your configuration."
 #elif defined(Z_MIN_PROBE_ENDSTOP)
@@ -276,8 +272,6 @@
   #error "POWER_SUPPLY is now obsolete. Please remove it from Configuration.h."
 #elif defined(STRING_SPLASH_LINE1) || defined(STRING_SPLASH_LINE2)
   #error "STRING_SPLASH_LINE[12] are now obsolete. Please remove them from Configuration.h."
-#elif defined(Z_PROBE_ALLEN_KEY_DEPLOY_1_X) || defined(Z_PROBE_ALLEN_KEY_STOW_1_X)
-  #error "Z_PROBE_ALLEN_KEY_(DEPLOY|STOW) coordinates are now a single setting. Please update your configuration."
 #elif defined(X_PROBE_OFFSET_FROM_EXTRUDER) || defined(Y_PROBE_OFFSET_FROM_EXTRUDER) || defined(Z_PROBE_OFFSET_FROM_EXTRUDER)
   #error "[XYZ]_PROBE_OFFSET_FROM_EXTRUDER is now NOZZLE_TO_PROBE_OFFSET. Please update your configuration."
 #elif defined(MIN_PROBE_X) || defined(MIN_PROBE_Y) || defined(MAX_PROBE_X) || defined(MAX_PROBE_Y)
@@ -454,20 +448,6 @@ static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.
 #endif
 
 /**
- * Limited number of servos
- */
-#if NUM_SERVOS > NUM_SERVO_PLUGS
-  #error "The selected board doesn't support enough servos for your configuration. Reduce NUM_SERVOS."
-#endif
-
-/**
- * Servo deactivation depends on servo endstops, switching nozzle, or switching extruder
- */
-#if ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) && !HAS_Z_SERVO_PROBE
-  #error "Z_PROBE_SERVO_NR, switching nozzle, switching toolhead or switching extruder is required for DEACTIVATE_SERVOS_AFTER_MOVE."
-#endif
-
-/**
  * Kinematics
  */
 
@@ -493,60 +473,12 @@ static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.
  */
 #if 1 < 0 \
   + ENABLED(FIX_MOUNTED_PROBE) \
-  + (HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)) \
-  + ENABLED(BLTOUCH) \
   + ENABLED(TOUCH_MI_PROBE) \
-  + ENABLED(SOLENOID_PROBE) \
-  + ENABLED(Z_PROBE_ALLEN_KEY) \
-  + ENABLED(Z_PROBE_SLED) \
-  + ENABLED(RACK_AND_PINION_PROBE) \
   + ENABLED(SENSORLESS_PROBING)
-  #error "Please enable only one probe option: SENSORLESS_PROBING, BLTOUCH, FIX_MOUNTED_PROBE, TOUCH_MI_PROBE, SOLENOID_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z Servo."
+  #error "Please enable only one probe option: SENSORLESS_PROBING, FIX_MOUNTED_PROBE, or TOUCH_MI_PROBE."
 #endif
 
 #if HAS_BED_PROBE
-  /**
-   * SOLENOID_PROBE requirements
-   */
-  #if ENABLED(SOLENOID_PROBE)
-    #if ENABLED(EXT_SOLENOID)
-      #error "SOLENOID_PROBE is incompatible with EXT_SOLENOID."
-    #elif !HAS_SOLENOID_1
-      #error "SOLENOID_PROBE requires SOL1_PIN. It can be added to your Configuration.h."
-    #endif
-  #endif
-
-  /**
-   * NUM_SERVOS is required for a Z servo probe
-   */
-  #if HAS_Z_SERVO_PROBE
-    #ifndef NUM_SERVOS
-      #error "You must set NUM_SERVOS for a Z servo probe (Z_PROBE_SERVO_NR)."
-    #elif Z_PROBE_SERVO_NR == 0 && !PIN_EXISTS(SERVO0)
-      #error "SERVO0_PIN must be defined for your servo or BLTOUCH probe."
-    #elif Z_PROBE_SERVO_NR == 1 && !PIN_EXISTS(SERVO1)
-      #error "SERVO1_PIN must be defined for your servo or BLTOUCH probe."
-    #elif Z_PROBE_SERVO_NR == 2 && !PIN_EXISTS(SERVO2)
-      #error "SERVO2_PIN must be defined for your servo or BLTOUCH probe."
-    #elif Z_PROBE_SERVO_NR == 3 && !PIN_EXISTS(SERVO3)
-      #error "SERVO3_PIN must be defined for your servo or BLTOUCH probe."
-    #elif Z_PROBE_SERVO_NR >= NUM_SERVOS
-      #error "Z_PROBE_SERVO_NR must be smaller than NUM_SERVOS."
-    #endif
-  #endif
-
-  #if ENABLED(BLTOUCH)
-    #if BLTOUCH_DELAY < 200
-      #error "BLTOUCH_DELAY less than 200 is unsafe and is not supported."
-    #elif DISABLED(BLTOUCH_SET_5V_MODE) && NONE(ENDSTOPPULLUPS, ENDSTOPPULLUP_ZMIN, ENDSTOPPULLUP_ZMIN_PROBE)
-      #error "BLTOUCH without BLTOUCH_SET_5V_MODE requires ENDSTOPPULLUPS, ENDSTOPPULLUP_ZMIN or ENDSTOPPULLUP_ZMIN_PROBE."
-    #endif
-  #endif
-
-  #if ENABLED(RACK_AND_PINION_PROBE) && !(defined(Z_PROBE_DEPLOY_X) && defined(Z_PROBE_RETRACT_X))
-    #error "RACK_AND_PINION_PROBE requires Z_PROBE_DEPLOY_X and Z_PROBE_RETRACT_X."
-  #endif
-
   /**
    * Touch-MI probe requirements
    */
@@ -615,7 +547,7 @@ static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.
 #else
 
   #if ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
-    #error "Z_MIN_PROBE_REPEATABILITY_TEST requires a probe: FIX_MOUNTED_PROBE, BLTOUCH, SOLENOID_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z Servo."
+    #error "Z_MIN_PROBE_REPEATABILITY_TEST requires FIX_MOUNTED_PROBE."
   #endif
 
 #endif
@@ -683,14 +615,6 @@ static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.
   #if EITHER(HOME_AFTER_DEACTIVATE, Z_SAFE_HOMING)
     #error "DISABLE_[XYZ] is not compatible with HOME_AFTER_DEACTIVATE or Z_SAFE_HOMING."
   #endif
-#endif
-
-/**
- * Allen Key
- * Deploying the Allen Key probe uses big moves in z direction. Too dangerous for an unhomed z-axis.
- */
-#if ENABLED(Z_PROBE_ALLEN_KEY) && (Z_HOME_DIR < 0) && ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-  #error "You can't home to a z min endstop with a Z_PROBE_ALLEN_KEY"
 #endif
 
 /**
@@ -1098,72 +1022,88 @@ static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.
 #undef IN_CHAIN
 
 /**
- * Check per-axis initializers for errors
+ * Check per-axis config defaults for errors.
+ *
+ * DEFAULT_MAX_FEEDRATE / DEFAULT_MAX_ACCELERATION (and the *_EDIT_VALUES below) are brace-init
+ * lists {X, Y, Z, E, ...}. Each is materialized as a constexpr array so we can compile-time check
+ * that it has the right number of elements and that every value is positive.
  */
-constexpr float sanity_arr_1[] = DEFAULT_AXIS_STEPS_PER_UNIT,
-                sanity_arr_2[] = DEFAULT_MAX_FEEDRATE,
-                sanity_arr_3[] = DEFAULT_MAX_ACCELERATION;
+template <size_t N>
+constexpr bool sanity_all_positive(const float (&arr)[N]) {
+  for (const float v : arr) {
+    if (v <= 0) {
+      return false;
+    }
+  }
+  return true;
+}
 
-#define _ARR_TEST(N,I) (sanity_arr_##N[_MIN(I,int(COUNT(sanity_arr_##N))-1)] > 0)
+constexpr float sanity_max_feedrate[]     = DEFAULT_MAX_FEEDRATE,
+                sanity_max_acceleration[] = DEFAULT_MAX_ACCELERATION;
 
-static_assert(COUNT(sanity_arr_1) >= XYZE,   "DEFAULT_AXIS_STEPS_PER_UNIT requires X, Y, Z and E elements.");
-static_assert(COUNT(sanity_arr_1) <= XYZE_N, "DEFAULT_AXIS_STEPS_PER_UNIT has too many elements. (Did you forget to enable DISTINCT_E_FACTORS?)");
-static_assert(   _ARR_TEST(1,0) && _ARR_TEST(1,1) && _ARR_TEST(1,2)
-              && _ARR_TEST(1,3) && _ARR_TEST(1,4) && _ARR_TEST(1,5)
-              && _ARR_TEST(1,6) && _ARR_TEST(1,7) && _ARR_TEST(1,8),
-              "DEFAULT_AXIS_STEPS_PER_UNIT values must be positive.");
+// Axis steps/mm are individual per-axis macros (no bundled array). Z/E0 are always defined.
+// X/Y naming differs by printer: most define _X/_Y, but belt printers (CoreOne/CoreOneL) omit those
+// and define the per-belt 2GT/15GT variants instead (X/Y is resolved at runtime). Check whichever
+// pair the printer actually uses, and error out if a printer defines neither.
+static_assert(DEFAULT_AXIS_STEPS_PER_UNIT_Z > 0 && DEFAULT_AXIS_STEPS_PER_UNIT_E0 > 0,
+              "DEFAULT_AXIS_STEPS_PER_UNIT_Z/_E0 must be positive.");
+#if defined(DEFAULT_AXIS_STEPS_PER_UNIT_X)
+static_assert(DEFAULT_AXIS_STEPS_PER_UNIT_X > 0 && DEFAULT_AXIS_STEPS_PER_UNIT_Y > 0,
+              "DEFAULT_AXIS_STEPS_PER_UNIT_X/_Y must be positive.");
+#elif defined(AXIS_STEPS_PER_UNIT_2GT_XY)
+static_assert(AXIS_STEPS_PER_UNIT_2GT_XY > 0 && AXIS_STEPS_PER_UNIT_15GT_XY > 0,
+              "AXIS_STEPS_PER_UNIT_2GT_XY/_15GT_XY must be positive.");
+#else
+  #error "No X/Y steps/mm default defined for this printer."
+#endif
 
-static_assert(COUNT(sanity_arr_2) >= XYZE,   "DEFAULT_MAX_FEEDRATE requires X, Y, Z and E elements.");
-static_assert(COUNT(sanity_arr_2) <= XYZE_N, "DEFAULT_MAX_FEEDRATE has too many elements. (Did you forget to enable DISTINCT_E_FACTORS?)");
-static_assert(   _ARR_TEST(2,0) && _ARR_TEST(2,1) && _ARR_TEST(2,2)
-              && _ARR_TEST(2,3) && _ARR_TEST(2,4) && _ARR_TEST(2,5)
-              && _ARR_TEST(2,6) && _ARR_TEST(2,7) && _ARR_TEST(2,8),
-              "DEFAULT_MAX_FEEDRATE values must be positive.");
+static_assert(COUNT(sanity_max_feedrate) >= XYZE,   "DEFAULT_MAX_FEEDRATE requires X, Y, Z and E elements.");
+static_assert(COUNT(sanity_max_feedrate) <= XYZE_N, "DEFAULT_MAX_FEEDRATE has too many elements. (Did you forget to enable DISTINCT_E_FACTORS?)");
+static_assert(sanity_all_positive(sanity_max_feedrate), "DEFAULT_MAX_FEEDRATE values must be positive.");
 
-static_assert(COUNT(sanity_arr_3) >= XYZE,   "DEFAULT_MAX_ACCELERATION requires X, Y, Z and E elements.");
-static_assert(COUNT(sanity_arr_3) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too many elements. (Did you forget to enable DISTINCT_E_FACTORS?)");
-static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
-              && _ARR_TEST(3,3) && _ARR_TEST(3,4) && _ARR_TEST(3,5)
-              && _ARR_TEST(3,6) && _ARR_TEST(3,7) && _ARR_TEST(3,8),
-              "DEFAULT_MAX_ACCELERATION values must be positive.");
+static_assert(COUNT(sanity_max_acceleration) >= XYZE,   "DEFAULT_MAX_ACCELERATION requires X, Y, Z and E elements.");
+static_assert(COUNT(sanity_max_acceleration) <= XYZE_N, "DEFAULT_MAX_ACCELERATION has too many elements. (Did you forget to enable DISTINCT_E_FACTORS?)");
+static_assert(sanity_all_positive(sanity_max_acceleration), "DEFAULT_MAX_ACCELERATION values must be positive.");
+
+// CoreXY drives X and Y with the same two motors, so their motion limits must match.
+// These arrays are {X, Y, Z, E}: index 0 = X, 1 = Y (the axis enum is not defined yet here).
+#if CORE_IS_XY
+static_assert(sanity_max_feedrate[0] == sanity_max_feedrate[1],
+              "CoreXY requires equal X/Y max feedrate (DEFAULT_MAX_FEEDRATE).");
+static_assert(sanity_max_acceleration[0] == sanity_max_acceleration[1],
+              "CoreXY requires equal X/Y max acceleration (DEFAULT_MAX_ACCELERATION).");
+  #ifdef DEFAULT_XJERK // classic jerk only; CoreOne/CoreOneL use junction deviation, so inactive there
+static_assert(DEFAULT_XJERK == DEFAULT_YJERK,
+              "CoreXY requires equal X/Y jerk (DEFAULT_XJERK/DEFAULT_YJERK).");
+  #endif
+#endif
 
 #if ENABLED(LIMITED_MAX_ACCEL_EDITING)
   #ifdef MAX_ACCEL_EDIT_VALUES
-    constexpr float sanity_arr_4[] = MAX_ACCEL_EDIT_VALUES;
-    static_assert(COUNT(sanity_arr_4) >= XYZE, "MAX_ACCEL_EDIT_VALUES requires X, Y, Z and E elements.");
-    static_assert(COUNT(sanity_arr_4) <= XYZE, "MAX_ACCEL_EDIT_VALUES has too many elements. X, Y, Z and E elements only.");
-    static_assert(   _ARR_TEST(4,0) && _ARR_TEST(4,1) && _ARR_TEST(4,2)
-                  && _ARR_TEST(4,3) && _ARR_TEST(4,4) && _ARR_TEST(4,5)
-                  && _ARR_TEST(4,6) && _ARR_TEST(4,7) && _ARR_TEST(4,8),
-                  "MAX_ACCEL_EDIT_VALUES values must be positive.");
+    constexpr float sanity_max_accel_edit[] = MAX_ACCEL_EDIT_VALUES;
+    static_assert(COUNT(sanity_max_accel_edit) >= XYZE, "MAX_ACCEL_EDIT_VALUES requires X, Y, Z and E elements.");
+    static_assert(COUNT(sanity_max_accel_edit) <= XYZE, "MAX_ACCEL_EDIT_VALUES has too many elements. X, Y, Z and E elements only.");
+    static_assert(sanity_all_positive(sanity_max_accel_edit), "MAX_ACCEL_EDIT_VALUES values must be positive.");
   #endif
 #endif
 
 #if ENABLED(LIMITED_MAX_FR_EDITING)
   #ifdef MAX_FEEDRATE_EDIT_VALUES
-    constexpr float sanity_arr_5[] = MAX_FEEDRATE_EDIT_VALUES;
-    static_assert(COUNT(sanity_arr_5) >= XYZE, "MAX_FEEDRATE_EDIT_VALUES requires X, Y, Z and E elements.");
-    static_assert(COUNT(sanity_arr_5) <= XYZE, "MAX_FEEDRATE_EDIT_VALUES has too many elements. X, Y, Z and E elements only.");
-    static_assert(   _ARR_TEST(5,0) && _ARR_TEST(5,1) && _ARR_TEST(5,2)
-                  && _ARR_TEST(5,3) && _ARR_TEST(5,4) && _ARR_TEST(5,5)
-                  && _ARR_TEST(5,6) && _ARR_TEST(5,7) && _ARR_TEST(5,8),
-                  "MAX_FEEDRATE_EDIT_VALUES values must be positive.");
+    constexpr float sanity_max_feedrate_edit[] = MAX_FEEDRATE_EDIT_VALUES;
+    static_assert(COUNT(sanity_max_feedrate_edit) >= XYZE, "MAX_FEEDRATE_EDIT_VALUES requires X, Y, Z and E elements.");
+    static_assert(COUNT(sanity_max_feedrate_edit) <= XYZE, "MAX_FEEDRATE_EDIT_VALUES has too many elements. X, Y, Z and E elements only.");
+    static_assert(sanity_all_positive(sanity_max_feedrate_edit), "MAX_FEEDRATE_EDIT_VALUES values must be positive.");
   #endif
 #endif
 
 #if ENABLED(LIMITED_JERK_EDITING)
   #ifdef MAX_JERK_EDIT_VALUES
-    constexpr float sanity_arr_6[] = MAX_JERK_EDIT_VALUES;
-    static_assert(COUNT(sanity_arr_6) >= XYZE, "MAX_JERK_EDIT_VALUES requires X, Y, Z and E elements.");
-    static_assert(COUNT(sanity_arr_6) <= XYZE, "MAX_JERK_EDIT_VALUES has too many elements. X, Y, Z and E elements only.");
-    static_assert(   _ARR_TEST(6,0) && _ARR_TEST(6,1) && _ARR_TEST(6,2)
-                  && _ARR_TEST(6,3) && _ARR_TEST(6,4) && _ARR_TEST(6,5)
-                  && _ARR_TEST(6,6) && _ARR_TEST(6,7) && _ARR_TEST(6,8),
-                  "MAX_JERK_EDIT_VALUES values must be positive.");
+    constexpr float sanity_max_jerk_edit[] = MAX_JERK_EDIT_VALUES;
+    static_assert(COUNT(sanity_max_jerk_edit) >= XYZE, "MAX_JERK_EDIT_VALUES requires X, Y, Z and E elements.");
+    static_assert(COUNT(sanity_max_jerk_edit) <= XYZE, "MAX_JERK_EDIT_VALUES has too many elements. X, Y, Z and E elements only.");
+    static_assert(sanity_all_positive(sanity_max_jerk_edit), "MAX_JERK_EDIT_VALUES values must be positive.");
   #endif
 #endif
-
-#undef _ARR_TEST
 
 #if HAS_PLANNER()
   #if !BLOCK_BUFFER_SIZE || !IS_POWER_OF_2(BLOCK_BUFFER_SIZE)
@@ -1175,12 +1115,16 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
   #endif
 #endif
 
-#if ENABLED(POWER_PANIC) && DISABLED(CRASH_RECOVERY)
-  #error "POWER_PANIC requires CRASH_RECOVERY."
+#if HAS_POWER_PANIC() && !HAS_CRASH_DETECTION()
+  #error "HAS_POWER_PANIC requires HAS_CRASH_DETECTION."
 #endif
 
-#if ENABLED(AXIS_MEASURE) && DISABLED(CRASH_RECOVERY)
-  #error "AXIS_MEASURE requires CRASH_RECOVERY."
+#if ENABLED(AXIS_MEASURE) && !HAS_CRASH_DETECTION()
+  #error "AXIS_MEASURE requires HAS_CRASH_DETECTION."
+#endif
+
+#if HAS_PRINT_SHEET_DETECTION() && DISABLED(Z_SAFE_HOMING)
+  #error "HAS_PRINT_SHEET_DETECTION requires Z_SAFE_HOMING."
 #endif
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)
@@ -1245,46 +1189,6 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
   #error "PSU_CONTROL requires PSU_ACTIVE_HIGH to be defined as 'true' or 'false'."
 #endif
 
-#if HAS_CUTTER
-  #define _PIN_CONFLICT(P) (PIN_EXISTS(P) && P##_PIN == SPINDLE_LASER_PWM_PIN)
-  #if BOTH(SPINDLE_FEATURE, LASER_FEATURE)
-    #error "Enable only one of SPINDLE_FEATURE or LASER_FEATURE."
-  #elif !PIN_EXISTS(SPINDLE_LASER_ENA)
-    #error "(SPINDLE|LASER)_FEATURE requires SPINDLE_LASER_ENA_PIN."
-  #elif ENABLED(SPINDLE_CHANGE_DIR) && !PIN_EXISTS(SPINDLE_DIR)
-    #error "SPINDLE_DIR_PIN is required for SPINDLE_CHANGE_DIR."
-  #elif ENABLED(SPINDLE_LASER_PWM)
-    #if !defined(SPINDLE_LASER_PWM_PIN) || SPINDLE_LASER_PWM_PIN < 0
-      #error "SPINDLE_LASER_PWM_PIN is required for SPINDLE_LASER_PWM."
-    #elif !PWM_PIN(SPINDLE_LASER_PWM_PIN)
-      #error "SPINDLE_LASER_PWM_PIN not assigned to a PWM pin."
-    #elif SPINDLE_LASER_POWERUP_DELAY < 1
-      #error "SPINDLE_LASER_POWERUP_DELAY must be greater than 0."
-    #elif SPINDLE_LASER_POWERDOWN_DELAY < 1
-      #error "SPINDLE_LASER_POWERDOWN_DELAY must be greater than 0."
-    #elif !defined(SPINDLE_LASER_PWM_INVERT)
-      #error "SPINDLE_LASER_PWM_INVERT is required for (SPINDLE|LASER)_FEATURE."
-    #elif !defined(SPEED_POWER_SLOPE) || !defined(SPEED_POWER_INTERCEPT) || !defined(SPEED_POWER_MIN) || !defined(SPEED_POWER_MAX)
-      #error "SPINDLE_LASER_PWM equation constant(s) missing."
-    #elif _PIN_CONFLICT(X_MIN)
-      #error "SPINDLE_LASER_PWM pin conflicts with X_MIN_PIN."
-    #elif _PIN_CONFLICT(X_MAX)
-      #error "SPINDLE_LASER_PWM pin conflicts with X_MAX_PIN."
-    #elif _PIN_CONFLICT(Z_STEP)
-      #error "SPINDLE_LASER_PWM pin conflicts with Z_STEP_PIN."
-    #elif _PIN_CONFLICT(CASE_LIGHT)
-      #error "SPINDLE_LASER_PWM_PIN conflicts with CASE_LIGHT_PIN."
-    #elif _PIN_CONFLICT(FAN)
-      #error "SPINDLE_LASER_PWM_PIN conflicts with FAN_PIN."
-    #elif _PIN_CONFLICT(FAN1)
-      #error "SPINDLE_LASER_PWM_PIN conflicts with FAN1_PIN."
-    #elif _PIN_CONFLICT(FAN2)
-      #error "SPINDLE_LASER_PWM_PIN conflicts with FAN2_PIN."
-    #endif
-  #endif
-  #undef _PIN_CONFLICT
-#endif
-
 #if ENABLED(PRINT_PROGRESS_SHOW_DECIMALS)
   #error "PRINT_PROGRESS_SHOW_DECIMALS currently requires a Graphical LCD."
 #elif ENABLED(SHOW_REMAINING_TIME)
@@ -1293,4 +1197,36 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
 
 #if HAS_GCODE_COMPATIBILITY() && ENABLED(GCODE_MOTION_MODES)
     #error "HAS_GCODE_COMPATIBILITY() and GCODE_MOTION_MODES can't be enabled at the same time"
+#endif
+
+#if (NUM_SERVOS > 0) || ENABLED(EDITABLE_SERVO_ANGLES) || ENABLED(DEACTIVATE_SERVOS_AFTER_MOVE) || defined(SERVO_DELAY) || HAS_Z_SERVO_PROBE || defined(HAS_Z_SERVO_PROBE) || defined(Z_PROBE_SERVO_NR)
+    #error "servos are not supported"
+#endif
+
+#if ENABLED(BLTOUCH) || ENABLED(BLTOUCH_DELAY) || ENABLED(BLTOUCH_FORCE_5V_MODE) || ENABLED(BLTOUCH_FORCE_OPEN_DRAIN_MODE) || defined(BLTOUCH_V3)
+    #error "BLTOUCH is not supported"
+#endif
+
+#if ENABLED(SPINDLE_FEATURE) || ENABLED(LASER_FEATURE)
+    #error "laser is not supported"
+#endif
+
+#if ENABLED(EXT_SOLENOID) || ENABLED(MANUAL_SOLENOID_CONTROL) || ENABLED(SOLENOID_PROBE) || HAS_SOLENOID_1
+    #error "solenoids are not supported"
+#endif
+
+#if ENABLED(Z_PROBE_SLED)
+    #error "Z_PROBE_SLED is not supported"
+#endif
+
+#if ENABLED(Z_PROBE_ALLEN_KEY)
+    #error "Z_PROBE_ALLEN_KEY is not supported"
+#endif
+
+#if ENABLED(DIGIPOT_I2C)
+    #error "DIGIPOT is not supported"
+#endif
+
+#if ENABLED(COOLANT_MIST) || ENABLED(COOLANT_FLOOD) || ENABLED(COOLANT_CONTROL)
+    #error "COOLANT is not supported"
 #endif

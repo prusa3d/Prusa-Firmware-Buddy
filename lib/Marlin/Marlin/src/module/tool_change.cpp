@@ -42,10 +42,7 @@
 
 #if ENABLED(SINGLENOZZLE)
   uint16_t singlenozzle_temp[EXTRUDERS];
-  #if FAN_COUNT > 0
-    // #error dead code found by automatic analyses (see BFW-5461)
-    uint8_t singlenozzle_fan_speed[EXTRUDERS];
-  #endif
+  uint8_t singlenozzle_fan_speed[EXTRUDERS];
 #endif
 
 #if HAS_LEVELING

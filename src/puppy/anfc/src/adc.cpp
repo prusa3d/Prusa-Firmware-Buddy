@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <stm32c0xx_hal.h>
+#include <bsod/bsod.h>
 
 namespace adc {
 namespace {
@@ -80,7 +81,7 @@ namespace {
 alignas(uint32_t) std::array<Raw<16>, std::to_underlying(Channel::_cnt)> impl::buffer;
 
 Raw<16> impl::get_raw(Channel channel) {
-    assert(std::to_underlying(channel) < impl::buffer.size());
+    debug_assert(std::to_underlying(channel) < impl::buffer.size());
     return impl::buffer[std::to_underlying(channel)];
 }
 

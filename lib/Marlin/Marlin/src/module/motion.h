@@ -41,6 +41,10 @@
 #endif
 #include <option/has_toolchanger.h>
 #include <option/has_wastebin.h>
+#include <option/has_nozzle_thermal_compensation.h>
+#if HAS_NOZZLE_THERMAL_COMPENSATION()
+  #include <feature/nozzle_thermal_compensation/nozzle_thermal_compensation.hpp>
+#endif
 #include <tool_index.hpp>
 #include <utils/storage/strong_index_array.hpp>
 
@@ -453,16 +457,23 @@ inline xyz_pos_t native_logical_offset() {
 #if HAS_TOOLCHANGER()
   result += hotend_currently_applied_offset;
 #endif
+#if HAS_NOZZLE_THERMAL_COMPENSATION()
+  // Subtracted so that toNative() below *raises* the machine Z of a g-code target as the nozzle
+  // grows past the length the probe results were normalized to, keeping the tip where it was
+  // asked for. Only g-code positions cross this transform, which is what keeps the term out of
+  // firmware-internal ones - park heights and dock coordinates are carriage positions.
+  result.z -= buddy::nozzle_thermal_compensation::current_elongation_vs_reference_mm();
+#endif
   return result;
 }
 
-template<template <typename T, typename Tag> typename V, typename T>
-[[nodiscard]] V<T, LogicalPosTag> toLogical(const V<T, NativePosTag> &v) {
+template<size_t s>
+[[nodiscard]] auto toLogical(const Vector<float, NativePosTag, s> &v) {
   return (v + native_logical_offset()).template to_tag<LogicalPosTag>();
 }
 
-template<template <typename T, typename Tag> typename V, typename T>
-[[nodiscard]] V<T, NativePosTag> toNative(const V<T, LogicalPosTag> &v) {
+template<size_t s>
+[[nodiscard]] auto toNative(const Vector<float, LogicalPosTag, s> &v) {
   return v.template to_tag<NativePosTag>() - native_logical_offset();
 }
 

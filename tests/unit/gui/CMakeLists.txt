@@ -8,12 +8,6 @@ add_executable(
   )
 
 add_executable(
-  gui_time_tests
-  ${CMAKE_SOURCE_DIR}/src/gui/gui_time.cpp ${CMAKE_CURRENT_SOURCE_DIR}/gui_time_tests.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/gui_time_tests.c
-  )
-
-add_executable(
   gui_tests ${CMAKE_CURRENT_SOURCE_DIR}/gui_tests.cpp
             ${CMAKE_SOURCE_DIR}/src/guiapi/src/numeric_input_config.cpp
   )
@@ -27,11 +21,6 @@ target_include_directories(
   )
 
 target_include_directories(
-  gui_time_tests PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common
-                        ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_CURRENT_SOURCE_DIR}
-  )
-
-target_include_directories(
   gui_tests
   PUBLIC ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src/lang
          ${CMAKE_SOURCE_DIR}/src/guiapi/include ${CMAKE_CURRENT_SOURCE_DIR}
@@ -39,7 +28,6 @@ target_include_directories(
 
 # tell build system about the test case
 add_catch_test(rectangle_tests)
-add_catch_test(gui_time_tests)
 add_catch_test(gui_tests)
 
 # std_text_input_layout_tests
@@ -77,4 +65,5 @@ add_catch_test(color_tests)
 add_subdirectory(lazyfilelist)
 add_subdirectory(jogwheel)
 add_subdirectory(window)
+add_subdirectory(window_file_list)
 add_subdirectory(neopixel)

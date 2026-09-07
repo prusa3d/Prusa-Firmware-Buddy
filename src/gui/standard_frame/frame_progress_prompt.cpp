@@ -1,6 +1,7 @@
 #include "frame_progress_prompt.hpp"
 #include <find_error.hpp>
 #include <gui/auto_layout.hpp>
+#include <bsod/bsod.h>
 
 namespace {
 static constexpr std::array layout_no_footer {

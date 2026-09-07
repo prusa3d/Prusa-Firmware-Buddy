@@ -33,7 +33,10 @@ parser = argparse.ArgumentParser(
     prog='CrashDumpDebug',
     description='Launches GDB to debug crash dump',
     epilog='Have fun debugging')
-parser.add_argument("--dump", type=Path, required=True)
+parser.add_argument(
+    "--dump",
+    type=Path,
+    help='crash dump to load; without it GDB only opens the ELF')
 parser.add_argument('--elf', type=Path)
 parser.add_argument('--gdb', type=Path)
 parser.add_argument(
@@ -53,25 +56,32 @@ if (args.elf == None):
     args.elf = latest / 'firmware'
     print(f"ELF file not provided, using default: {args.elf}")
 if (args.gdb == None):
-    args.gdb = f'{project_root_dir}/.dependencies/gcc-arm-none-eabi-13.3.1/bin/arm-none-eabi-gdb'
+    args.gdb = f'gdb-multiarch'
     print(f"GDB executable not provided, using default: {args.gdb}")
 
 if not os.path.isfile(args.elf):
     print(f"ELF file not found at: {args.elf}")
     exit(1)
 
-if not os.path.isfile(args.dump):
+if args.dump is not None and not os.path.isfile(args.dump):
     print(f"Crash dump file not found at: {args.dump}")
     exit(1)
-
 if not os.path.isfile(args.gdb) and which(args.gdb) is None:
     print(f"GDB executable not found at: {args.gdb}")
     exit(1)
 
 # setup command and launch debugger
-cmd = f'{args.gdb} {args.elf} -ex "set target-charset ASCII" -ex "target remote | \\"{crash_debug_path}\\" --elf \\"{args.elf}\\" --dump \\"{args.dump}\\""'
+cmd = f'{args.gdb} {args.elf} -ex "set target-charset ASCII"'
+
+if args.dump is not None:
+    cmd += f' -ex "target remote | \\"{crash_debug_path}\\" --elf \\"{args.elf}\\" --dump \\"{args.dump}\\""'
+
 cmd += f' -ex "source {project_root_dir}/utils/freertos-gdb-plugin/freertos-gdb-plugin.py"'
 if args.fast:
+    if args.dump is None:
+        print("--fast needs a crash dump, specify --dump")
+        exit(1)
+
     cmd += f' -ex "set confirm off"'
     cmd += f' -ex "freertos info threads"'
     cmd += f' -ex "freertos thread apply all bt"'

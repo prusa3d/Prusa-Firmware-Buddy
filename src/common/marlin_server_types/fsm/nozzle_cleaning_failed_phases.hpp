@@ -6,6 +6,7 @@
 #include <utils/enum_array.hpp>
 #include <option/has_nozzle_cleaner.h>
 #include <option/has_auto_retract.h>
+#include <option/has_switchable_auto_retract.h>
 #include <optional>
 
 #define HAS_NOZZLE_CLEANING_FAILED_PURGING() (HAS_AUTO_RETRACT() && !HAS_NOZZLE_CLEANER())
@@ -33,7 +34,7 @@ enum class PhaseNozzleCleaningFailed : PhaseUnderlyingType {
     remove_filament,
 #endif
 
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     /// Offer the user to enable auto-retract to prevent failures in the future
     offer_auto_retract_enable,
 #endif
@@ -62,7 +63,7 @@ inline constexpr EnumArray<PhaseNozzleCleaningFailed, PhaseResponses, PhaseNozzl
         { PhaseNozzleCleaningFailed::autoretract, {} },
         { PhaseNozzleCleaningFailed::remove_filament, { Response::Done, Response::Abort } },
 #endif
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
         { PhaseNozzleCleaningFailed::offer_auto_retract_enable, { Response::Yes, Response::No } },
 #endif
         { PhaseNozzleCleaningFailed::warn_abort, { Response::Yes, Response::No } },

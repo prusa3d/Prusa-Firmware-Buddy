@@ -21,6 +21,10 @@ target_sources(
           selftest_view_item_text.cpp
   )
 
+if(HAS_HEATERS_SELFTEST_GCODE)
+  target_sources(firmware PRIVATE screen_heaters_selftest.cpp)
+endif()
+
 if(NOT (${PRINTER} STREQUAL "MINI"))
   target_sources(firmware PRIVATE selftest_frame_loadcell.cpp selftest_result_loadcell.cpp)
 endif()

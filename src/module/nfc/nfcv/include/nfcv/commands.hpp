@@ -3,7 +3,7 @@
 #include "types.hpp"
 
 #include <cstdint>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <variant>
 
 namespace nfcv {
@@ -37,7 +37,7 @@ namespace command {
 
             inline bool operator==(const Request &o) const = default;
         } request;
-        using Response = const std::span<std::byte>;
+        using Response = const WritableBytes;
         Response response;
     };
 
@@ -47,7 +47,7 @@ namespace command {
         struct Request {
             UID uid;
             uint8_t block_address;
-            std::span<const std::byte> block_buffer;
+            Bytes block_buffer;
         } request;
         struct Response {
         } response;

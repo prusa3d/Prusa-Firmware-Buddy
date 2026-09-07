@@ -23,6 +23,7 @@ This file is generated automatically so don't edit it directly
 - FlashBus: logging::Severity::info, src/common/spi_flash_bus.cpp
 - Fsm: logging::Severity::debug, src/common/fsm_states.cpp
 - GUI: logging::Severity::debug, src/gui/logger.cpp
+- HotendDetect: logging::Severity::info, src/common/tool/printer/tools_xbuddy.cpp
 - INDX: logging::Severity::info, src/puppies/INDX.cpp
 - LDC1612: logging::Severity::warning, src/puppy/tool_offset_sensor/src/ldc1612.cpp
 - Loadcell: logging::Severity::info, src/common/loadcell.cpp
@@ -40,6 +41,7 @@ This file is generated automatically so don't edit it directly
 - Network: logging::Severity::info, lib/WUI/wui.cpp
 - Node: logging::Severity::info, src/puppy/honeybee_shared/cyphal_node.cpp
 - NozzleCleanerCalibration: logging::Severity::info, src/feature/indx_nozzle_cleaner_calibration/indx_nozzle_cleaner_calibration.cpp
+- NozzleCleanerLite: logging::Severity::info, src/feature/nozzle_cleaner_lite/nozzle_cleaner_lite.cpp
 - OpenPrintTag: logging::Severity::info, src/feature/openprinttag/detail/requests_base.cpp
 - PRUSA_GCODE: logging::Severity::info, src/marlin_stubs/gcode.cpp
 - PRUSA_PACK_READER: logging::Severity::info, src/common/gcode/gcode_reader_binary.cpp
@@ -55,7 +57,7 @@ This file is generated automatically so don't edit it directly
 - RingAllocator: logging::Severity::info, src/common/ring_allocator.cpp
 - Selftest: logging::Severity::debug, src/common/selftest/i_selftest.cpp
 - ToolOffsetCalib: logging::Severity::info, src/feature/tool_offset_calibration/tool_offset_calibration.cpp
-- ToolOffsetsCalibration: logging::Severity::info, src/feature/indx_tool_offsets_calibration/indx_tool_offsets_calibration.cpp
+- ToolOffsetWizard: logging::Severity::info, src/feature/tool_offset_wizard/tool_offset_wizard.cpp
 - Touch: logging::Severity::info, src/hw/touchscreen/touchscreen_common.cpp
 - USBDevice: logging::Severity::info, src/buddy/usb_device.cpp
 - USBHost: logging::Severity::info, src/buddy/usbh_conf.cpp

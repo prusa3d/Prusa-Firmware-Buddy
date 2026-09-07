@@ -60,7 +60,6 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/feature/print_area.cpp
             Marlin/Marlin/src/feature/prusa/e-stall_detector.cpp
             Marlin/Marlin/src/feature/prusa/measure_axis.cpp
-            Marlin/Marlin/src/feature/spindle_laser.cpp
             Marlin/Marlin/src/feature/twibus.cpp
             Marlin/Marlin/src/gcode/bedlevel/G42.cpp
             Marlin/Marlin/src/gcode/bedlevel/M420.cpp
@@ -84,7 +83,6 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/gcode/control/M17_M18_M84.cpp
             Marlin/Marlin/src/gcode/control/M211.cpp
             Marlin/Marlin/src/gcode/control/M350_M351.cpp
-            Marlin/Marlin/src/gcode/control/M7-M9.cpp
             Marlin/Marlin/src/gcode/control/M80_M81.cpp
             Marlin/Marlin/src/gcode/control/M86.cpp
             Marlin/Marlin/src/gcode/control/M999.cpp
@@ -133,7 +131,6 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/gcode/temperature/M155.cpp
             Marlin/Marlin/src/gcode/temperature/M303.cpp
             Marlin/Marlin/src/gcode/units/M82_M83.cpp
-            Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/Servo.cpp
             Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/TMC2660.cpp
             Marlin/Marlin/src/libs/hex_print_routines.cpp
             Marlin/Marlin/src/libs/least_squares_fit.cpp
@@ -141,7 +138,6 @@ if(BOARD_IS_MASTER_BOARD)
             Marlin/Marlin/src/module/printcounter.cpp
             Marlin/Marlin/src/module/probe.cpp
             Marlin/Marlin/src/module/prusa/homing_utils.cpp
-            Marlin/Marlin/src/module/servo.cpp
             Marlin/Marlin/src/module/stepper/TMC26X.cpp
     )
 
@@ -248,7 +244,7 @@ if(BOARD_IS_MASTER_BOARD)
               Marlin/Marlin/src/feature/contactless_offset/contactless_offset.cpp
               Marlin/Marlin/src/gcode/feature/tool_offset/G426.cpp
       )
-    target_link_libraries(Marlin PRIVATE contactless_offset signal_processing)
+    target_link_libraries(Marlin PRIVATE contactless_offset signal_processing sfl-library)
     target_link_libraries(Marlin PRIVATE tool_offset_sensor)
   endif()
 endif()
@@ -283,4 +279,8 @@ endif()
 
 if(HAS_XBUDDY_EXTENSION)
   target_link_libraries(Marlin PUBLIC xbuddy_extension)
+endif()
+
+if(RTT_METRICS_ENABLED)
+  target_link_libraries(Marlin PUBLIC rtt_metrics_segger)
 endif()

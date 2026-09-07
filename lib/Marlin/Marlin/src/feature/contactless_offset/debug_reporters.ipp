@@ -272,7 +272,7 @@ static void debug_report_rough_align_energy(
 // Reports the second-pass (trimmed) symmetry refinement.
 // pass1_lag/pass1_score = full-signal first-pass result (integer lag, parabolic-refined value not used).
 // pass2_lag/pass2_score = trimmed-signal second-pass result, in original-signal lag coordinates.
-// pass1_refined_full / pass2_refined_full = parabolic-refined floats in original lag coordinates.
+// pass1_refined / pass2_refined = parabolic-refined floats in original lag coordinates.
 static void debug_report_pass_trim_refine(
     const char *label,
     int pass_num,

@@ -6,6 +6,7 @@
 #include "timing.h"
 #include <prusa3d/common/PortIds_0_1.h>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(can);
 
@@ -24,7 +25,7 @@ CanStats::CanStats()
     , stat_sender(
           CanardTransferKindMessage, CANARD_NODE_ID_UNSET,
           ProtoSender::send_timeout_default, CanardPriorityOptional) {
-    assert(tx_semaphore != nullptr);
+    debug_assert(tx_semaphore != nullptr);
 }
 
 void CanStats::on_command(const RawPacketTraits::Type &message, CanardNodeID remote_node_id, CanardTransferID transfer_id) {

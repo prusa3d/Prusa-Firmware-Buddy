@@ -62,6 +62,10 @@ public:
 
     leds::ColorRGBW color() const;
 
+    /// True while the strip is dimmed down due to inactivity.
+    /// Honours the dimming mode (Never/Always/On Idle), the inactivity timer and the printing state.
+    bool is_dimmed() const;
+
 private:
     static constexpr uint32_t active_timeout_ms = 120 * 1000;
 

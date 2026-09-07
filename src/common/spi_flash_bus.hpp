@@ -87,5 +87,6 @@ private:
 
     HAL_StatusTypeDef receive_dma(uint8_t *buffer, uint32_t len);
     HAL_StatusTypeDef send_dma(const uint8_t *buffer, uint32_t len);
+    HAL_StatusTypeDef wait_for_dma(HAL_StatusTypeDef);
     void release_dma_from_isr(HAL_StatusTypeDef status);
 };

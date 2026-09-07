@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <config_store/store_instance.hpp>
 #include <logging/log_dest_syslog.hpp>
-#include <client_fsm_types.h>
+#include <client_fsm_types.hpp>
 #include <client_response.hpp>
 #include <marlin_server.hpp>
 

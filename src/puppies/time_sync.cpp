@@ -1,10 +1,10 @@
 #include "puppies/time_sync.hpp"
 
-#include <cassert>
 #include <math.h>
 
 #include "timing.h"
 #include "metric.h"
+#include <bsod/bsod.h>
 
 // #define TIME_SYNC_DEBUG
 
@@ -93,6 +93,6 @@ bool TimeSync::is_time_sync_valid() const {
 }
 
 uint32_t TimeSync::buddy_time_us(const uint32_t puppy_time_us) const {
-    assert(is_time_sync_valid());
+    debug_assert(is_time_sync_valid());
     return puppy_time_us - correct_offset(average_puppy_offset_us, ticks_us());
 }

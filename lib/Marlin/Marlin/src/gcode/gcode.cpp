@@ -39,11 +39,13 @@ GcodeSuite gcode;
 #endif
 
 #include <option/has_cancel_object.h>
+#include <option/has_crash_detection.h>
+#include <option/has_tool_offset_pin_calibration.h>
 #if HAS_CANCEL_OBJECT()
   #include <feature/cancel_object/cancel_object.hpp>
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
   #include "../feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -324,11 +326,8 @@ void GcodeSuite::process_parsed_command_standard() {
 
       #if HAS_BED_PROBE
         case 30: G30(); break;                                    // G30: Single Z probe
-        #if ENABLED(Z_PROBE_SLED)
-          // #error dead code found by automatic analyses (see BFW-5461)
-          case 31: G31(); break;                                  // G31: dock the sled
-          case 32: G32(); break;                                  // G32: undock the sled
-        #endif
+        // G31: dock the sled REMOVED
+        // G32: undock the sled REMOVED
       #endif
 
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)
@@ -364,7 +363,7 @@ void GcodeSuite::process_parsed_command_standard() {
         case 42: G42(); break;                                    // G42: Coordinated move to a mesh point
       #endif
 
-      #if ENABLED(CALIBRATION_GCODE)
+      #if HAS_TOOL_OFFSET_PIN_CALIBRATION()
         case 425: G425(); break;                                  // G425: Perform calibration with calibration cube
       #endif
 
@@ -387,25 +386,7 @@ void GcodeSuite::process_parsed_command_standard() {
         case 1: M0_M1(); break;                                   // M1: Conditional stop - Wait for user button press on LCD
       #endif
 
-      #if HAS_CUTTER
-        // #error dead code found by automatic analyses (see BFW-5461)
-        case 3: M3_M4(false); break;                              // M3: Turn ON Laser | Spindle (clockwise), set Power | Speed
-        case 4: M3_M4(true ); break;                              // M4: Turn ON Laser | Spindle (counter-clockwise), set Power | Speed
-        case 5: M5(); break;                                      // M5: Turn OFF Laser | Spindle
-      #endif
-
-      #if ENABLED(COOLANT_CONTROL)
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #if ENABLED(COOLANT_MIST)
-          // #error dead code found by automatic analyses (see BFW-5461)
-          case 7: M7(); break;                                    // M7: Mist coolant ON
-        #endif
-        #if ENABLED(COOLANT_FLOOD)
-          // #error dead code found by automatic analyses (see BFW-5461)
-          case 8: M8(); break;                                    // M8: Flood coolant ON
-        #endif
-        case 9: M9(); break;                                      // M9: Coolant OFF
-      #endif
+      // M7, M8, M9: coolant related gcodes was REMOVED
 
       #if ENABLED(EXPECTED_PRINTER_CHECK)
         // #error dead code found by automatic analyses (see BFW-5461)
@@ -462,11 +443,9 @@ void GcodeSuite::process_parsed_command_standard() {
       case 109: M109(); break;                                    // M109: Wait for hotend temperature to reach target
 
       case 105: M105(); return;                                   // M105: Report Temperatures (and say "ok")
-
-      #if FAN_COUNT > 0
-        case 106: M106(); break;                                  // M106: Fan On
-        case 107: M107(); break;                                  // M107: Fan Off
-      #endif
+      
+      case 106: M106(); break;                                    // M106: Fan On
+      case 107: M107(); break;                                    // M107: Fan Off
 
       case 110: M110(); break;                                    // M110: Set Current Line Number
       case 111: M111(); break;                                    // M111: Set debug level
@@ -558,15 +537,6 @@ void GcodeSuite::process_parsed_command_standard() {
 
       case 221: M221(); break;                                    // M221: Set Flow Percentage
 
-      #if HAS_SERVOS
-        // #error dead code found by automatic analyses (see BFW-5461)
-        case 280: M280(); break;                                  // M280: Set servo position absolute
-        #if ENABLED(EDITABLE_SERVO_ANGLES)
-          // #error dead code found by automatic analyses (see BFW-5461)
-          case 281: M281(); break;                                // M281: Set servo angles
-        #endif
-      #endif
-
       #if ENABLED(BABYSTEPPING)
         case 290: M290(); break;                                  // M290: Babystepping
       #endif
@@ -592,11 +562,8 @@ void GcodeSuite::process_parsed_command_standard() {
         case 303: M303(); break;                                  // M303: PID autotune
       #endif
 
-      #if EITHER(EXT_SOLENOID, MANUAL_SOLENOID_CONTROL)
-        // #error dead code found by automatic analyses (see BFW-5461)
-        case 380: M380(); break;                                  // M380: Activate solenoid on active (or specified) extruder
-        case 381: M381(); break;                                  // M381: Disable all solenoids or, if MANUAL_SOLENOID_CONTROL, active (or specified) solenoid
-      #endif
+      // M380: Activate solenoid REMOVED
+      // M381: Disable all solenoids REMOVED
 
       case 400: M400(); break;                                    // M400: Finish all moves
 
@@ -761,7 +728,7 @@ void GcodeSuite::process_parsed_command_standard() {
 void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
   KEEPALIVE_STATE(IN_HANDLER);
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     // this is done one step down from process_next_command in order to handle subcommands
     // and injected commands correctly: the state needs to reset at each logical move
     crash_s.start_new_gcode(queue.get_current_sdpos());

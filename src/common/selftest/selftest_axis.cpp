@@ -70,10 +70,10 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
 #endif
 #if !PRINTER_IS_PRUSA_XL()
     // Unmeasured distance is to check the exact length of an axis. Since XL doesn't check full axis and only print area, this measurement is therefore obsolete
-    unmeasured_distance = std::abs((dir > 0 ? soft_endstop.min : soft_endstop.max)[config.axis] - current_position.pos[config.axis]);
+    unmeasured_distance = std::abs((dir > 0 ? soft_endstop.min : soft_endstop.max)[config.axis] - current_position[config.axis]);
 #endif
 
-    current_position.pos[config.axis] += dir * (config.length + EXTRA_LEN_MM);
+    current_position[config.axis] += dir * (config.length + EXTRA_LEN_MM);
     line_to_current_position(feedrate);
 }
 
@@ -109,7 +109,7 @@ LoopResult CSelftestPart_Axis::wait(int8_t dir) {
         log_error(Selftest, "%s measured length = %fmm out of range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
         return LoopResult::Fail;
     }
-    log_info(Selftest, "%s measured length = %fmm out in range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
+    log_info(Selftest, "%s measured length = %fmm in range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
     return LoopResult::RunNext;
 }
 

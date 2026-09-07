@@ -45,6 +45,17 @@ xyze_pos_t PositionLookbackBase::get_position_at(uint32_t time_us) const {
         .e = NAN
     };
 
+    // TODO: THIS IS A HOTFIX, IMPLEMENT PROPER FIX BFW-9055
+    // Tolerate slightly-future timestamps by clamping them to now. Puppy sample times come
+    // through TimeSync, whose round-trip-midpoint assumption ignores the asymmetric frame
+    // lengths, so fresh samples can be stamped a few tens of µs ahead of our clock.
+    // The position moved within such a horizon is negligible; genuinely future times stay invalid.
+    static constexpr int32_t max_future_tolerance_us = 1000;
+    const int32_t future_us = ticks_diff(time_us, s2.time);
+    if (future_us > 0 && future_us <= max_future_tolerance_us) {
+        time_us = s2.time;
+    }
+
     while (true) {
         const Sample s1 {
             .time = samples[s1_pos].time,
@@ -97,7 +108,7 @@ xyze_pos_t PositionLookbackBase::get_position_at(uint32_t time_us) const {
 #ifndef UNITTESTS
 void PositionLookback::update() {
     // Check that we are in an ISR
-    assert(__get_IPSR());
+    debug_assert(__get_IPSR());
 
     const Sample sample = generate_sample();
 

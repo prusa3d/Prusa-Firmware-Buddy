@@ -11,6 +11,7 @@
 #include "usbh_async_diskio.hpp"
 #include "marlin_client.hpp"
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(USBHost);
 USBH_HandleTypeDef hUsbHostHS;
@@ -156,7 +157,7 @@ void MX_USB_HOST_Init(void) {
 }
 
 void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
-    // don't detect device at startup when ticks_ms() overflows (every ~50 hours)
+    // don't detect device at startup when ticks_ms() overflows (every ~50 days)
     if (media_on_startup_detection_timeout != 0 && ticks_ms() >= media_on_startup_detection_timeout) {
         media_on_startup_detection_timeout = 0;
     }

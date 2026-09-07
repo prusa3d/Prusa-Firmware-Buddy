@@ -2,9 +2,9 @@
 #include "splice.h"
 
 #include <algorithm>
-#include <cassert>
 #include <lwip/sys.h>
 #include <lwip/tcpip.h>
+#include <bsod/bsod.h>
 
 namespace nhttp {
 
@@ -23,7 +23,7 @@ void Server::InactivityTimeout::schedule(uint32_t after) {
     last_activity = sys_now();
     // Number of quants in after rounded up.
     quants_left = (after + INACTIVITY_TIME_QUANT - 1) / INACTIVITY_TIME_QUANT;
-    assert(!past());
+    debug_assert(!past());
 }
 
 void Server::InactivityTimeout::poll_inactivity() {
@@ -76,7 +76,7 @@ bool Server::ConnectionSlot::want_write() const {
 }
 
 bool Server::Slot::close() {
-    assert(conn);
+    debug_assert(conn);
     /*
      * The connection can be in a closing state for a while. It's unclear from
      * docs if it still can generate events at that point, so make sure to
@@ -134,7 +134,7 @@ bool Server::ConnectionSlot::take_pbuf(pbuf *data) {
         return false;
     }
 
-    assert(partial_consumed == 0);
+    debug_assert(partial_consumed == 0);
     if (data) {
         partial.reset(data);
     }
@@ -147,7 +147,7 @@ void Server::inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, 
     // We are asked to perform a transfer from socket -> file. For that we:
     // * Assume the transfer slot is free (must be ensured by the caller).
     // * Migrate an existing connection into it.
-    assert(dest->transfer == nullptr);
+    debug_assert(dest->transfer == nullptr);
     // We are not allowed to go to the transfer at the same time as writing
     // data (too complex and not needed).
     dest->transfer = transfer;
@@ -177,14 +177,14 @@ void Server::ConnectionSlot::step(const std::string_view &input, uint8_t *output
     },
         state);
 
-    assert(s.read <= input.size());
-    assert(s.written <= out_size);
-    assert(s.written == 0 || buffer);
+    debug_assert(s.read <= input.size());
+    debug_assert(s.written <= out_size);
+    debug_assert(s.written == 0 || buffer);
     partial_consumed += s.read;
     if (s.written > 0) {
-        assert(buffer->write_len == 0);
-        assert(buffer->write_pos == 0);
-        assert(buffer->acked == 0);
+        debug_assert(buffer->write_len == 0);
+        debug_assert(buffer->write_pos == 0);
+        debug_assert(buffer->acked == 0);
         // We do the check by the above assert and it is wrong if the returned
         // written is larger. Nevertheless, we have seen it slip, in case of
         // snprintf.
@@ -259,7 +259,7 @@ bool Server::ConnectionSlot::step() {
          * Try to advance in/out buffers as much as possible. This'll get us closer
          * to releasing resources.
          */
-        assert(buffer->write_pos <= buffer->write_len);
+        debug_assert(buffer->write_pos <= buffer->write_len);
         const auto to_send = std::min(static_cast<uint16_t>(buffer->write_len - buffer->write_pos), send_space());
         if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, 0) == ERR_OK) {
             buffer->write_pos += to_send;
@@ -295,7 +295,7 @@ bool Server::ConnectionSlot::step() {
         pbuf *current = partial.get();
         uint16_t skip = partial_consumed;
         // If it's fully consumed, we would have gotten rid of it above.
-        assert(skip < current->tot_len);
+        debug_assert(skip < current->tot_len);
         while (current && skip >= current->len) {
             skip -= current->len;
             current = current->next;
@@ -305,7 +305,7 @@ bool Server::ConnectionSlot::step() {
         } else {
             // This is in theory impossible, it would mean LwIP gave us
             // inconsistent pbuf list that ends prematurely.
-            assert(false);
+            debug_assert(false);
         }
     }
 
@@ -368,7 +368,7 @@ bool Server::ConnectionSlot::step() {
                 break;
             default:
                 // CloseFast is handled above
-                assert(false);
+                debug_assert(false);
             }
         }
     }
@@ -525,8 +525,8 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
 }
 
 err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, [[maybe_unused]] err_t err) {
-    assert(raw_slot != nullptr);
-    assert(conn != nullptr);
+    debug_assert(raw_slot != nullptr);
+    debug_assert(conn != nullptr);
 
     BaseSlot *base_slot = static_cast<BaseSlot *>(raw_slot);
     if (!is_active_slot(base_slot)) {
@@ -544,10 +544,10 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
          * The connection was not yet active. Find a slot for it and activate it.
          */
         if (ConnectionSlot *active_slot = base_slot->server->find_empty_slot(); active_slot != nullptr) {
-            assert(!active_slot->partial);
-            assert(active_slot->partial_consumed == 0);
-            assert(!active_slot->buffer);
-            assert(holds_alternative<Idle>(active_slot->state));
+            debug_assert(!active_slot->partial);
+            debug_assert(active_slot->partial_consumed == 0);
+            debug_assert(!active_slot->buffer);
+            debug_assert(holds_alternative<Idle>(active_slot->state));
 
             active_slot->state.emplace<handler::RequestParser>(*active_slot->server);
             active_slot->conn = conn;
@@ -568,7 +568,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
         }
     }
 
-    assert(is_active_slot(base_slot));
+    debug_assert(is_active_slot(base_slot));
     Slot *slot = static_cast<Slot *>(base_slot);
 
     slot->server->activity(conn, slot);
@@ -602,10 +602,10 @@ err_t Server::sent_wrap(void *raw_slot, altcp_pcb *conn, uint16_t len) {
 }
 
 void Server::ConnectionSlot::sent(uint16_t len) {
-    assert(buffer != nullptr);
-    assert(buffer->write_pos >= buffer->acked);
+    debug_assert(buffer != nullptr);
+    debug_assert(buffer->write_pos >= buffer->acked);
     const uint16_t unacked = buffer->write_pos - buffer->acked;
-    assert(len <= unacked);
+    debug_assert(len <= unacked);
     (void)unacked; // No warnings on release
     buffer->acked += len;
 }
@@ -826,8 +826,8 @@ bool Server::TransferSlot::step() {
         }
     }
 
-    assert(current_pbuf != nullptr);
-    assert(current_pbuf->len > pbuf_processed); // At least little bit of data is left
+    debug_assert(current_pbuf != nullptr);
+    debug_assert(current_pbuf->len > pbuf_processed); // At least little bit of data is left
     auto [read, result] = transfer->write(static_cast<const uint8_t *>(current_pbuf->payload) + pbuf_processed, current_pbuf->len - pbuf_processed);
     if (read != 0) {
         // We move the TCP window at the point of submitting to the USB.
@@ -959,9 +959,9 @@ void Server::TransferSlot::segment_written(void *arg) {
     // might get delayed, potentially past the point when the transfer is
     // aborted. That is OK, because a) the slot is long-livig, b) step checks
     // for validity.
-    assert(arg != nullptr);
+    debug_assert(arg != nullptr);
     TransferSlot *slot = static_cast<TransferSlot *>(arg);
-    assert(slot->get_slot_type() == SlotType::TransferSlot);
+    debug_assert(slot->get_slot_type() == SlotType::TransferSlot);
     slot->forward_progress();
 }
 

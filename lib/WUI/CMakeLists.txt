@@ -79,4 +79,4 @@ target_include_directories(
             ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}
   )
 
-target_link_libraries(WUI INTERFACE LwIP)
+target_link_libraries(WUI INTERFACE LwIP bsod)

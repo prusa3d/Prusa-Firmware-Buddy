@@ -1,4 +1,5 @@
 add_subdirectory(filament)
+add_subdirectory(initial)
 add_subdirectory(toolhead)
 add_subdirectory(print)
 
@@ -11,6 +12,7 @@ target_sources(
           screen_menu_virtual.cpp
           screen_preheat.cpp
           screen_print_preview.cpp
+          screen_printer_type_changed.cpp
   )
 
 if(HAS_ANFC)
@@ -33,8 +35,8 @@ if(HAS_MMU2)
   target_sources(firmware PRIVATE screen_hw_mmu.cpp screen_menu_mmu_preload_all.cpp)
 endif()
 
-if(HAS_LEDS_MENU)
-  target_sources(firmware PRIVATE screen_menu_leds.cpp)
+if(HAS_LIGHTS_MENU)
+  target_sources(firmware PRIVATE screen_menu_lights.cpp)
 endif()
 
 if(HAS_SELFTEST)

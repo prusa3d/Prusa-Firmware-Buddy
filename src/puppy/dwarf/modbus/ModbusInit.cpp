@@ -7,31 +7,23 @@
 #include "ModbusControl.hpp"
 #include <fifo_coder/fifo_encoder.hpp>
 #include "startup/ApplicationStartupArguments.hpp"
-
-// Make release build happy about assert being no-op.
-// Those no-op can trigger unused variable warning.
-#ifdef NDEBUG
-    #undef assert
-    #define assert(x) ((void)(x))
-#else
-    #include <assert.h>
-#endif
+#include <bsod/bsod.h>
 
 namespace dwarf {
 
 void modbus_init() {
     bool ret = hal::RS485Driver::Init(get_assigned_modbus_address());
-    assert(ret);
+    debug_assert(ret);
 
     ModbusRegisters::Init();
 
     modbus::ModbusProtocol::Init(get_assigned_modbus_address());
 
     ret = ModbusControl::Init();
-    assert(ret);
+    debug_assert(ret);
 
     ret = modbus::ModbusTask::Init();
-    assert(ret);
+    debug_assert(ret);
 }
 
 } // namespace dwarf

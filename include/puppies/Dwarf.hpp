@@ -226,6 +226,14 @@ void ToolsMappingBody::windowEvent([[maybe_unused]] window_t *sender, GUI_event_
      */
     void set_fan_auto(uint8_t fan);
 
+    enum class FanMode : uint16_t {
+        XL_LEGACY = 0, ///< XL/legacy mode
+        XLS_NATIVE = 1, ///< XLS native mode
+        XLS_COMPAT = 2, ///< XLS compat mode
+    };
+
+    void set_fan_mode(FanMode mode);
+
     /**
      * @brief Set cheese LED.
      * @param pwr_selected PWM when selected [0 - 255]
@@ -386,6 +394,8 @@ private:
             float i {};
             float d {};
         } pid;
+
+        uint16_t fan_mode {}; // 0=XL/legacy, 1=XLS native, 2=XLS compat
     };
 
     // --- Read-side state, populated by read_general_status() / read_discrete_general_status() ---
@@ -445,6 +455,9 @@ private:
         float i {};
         float d {};
     } pid {};
+
+    // Desired print-fan control mode, sent on next write_general().
+    FanMode fan_mode {};
 
     static_assert(std::atomic<bool>::is_always_lock_free);
     static_assert(std::atomic<uint8_t>::is_always_lock_free);

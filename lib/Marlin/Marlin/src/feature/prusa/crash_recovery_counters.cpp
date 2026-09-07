@@ -1,6 +1,7 @@
 #include "crash_recovery_counters.hpp"
+#include <option/has_crash_detection.h>
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 
     #include "metric.h"
     #include "config_store/store_instance.hpp"

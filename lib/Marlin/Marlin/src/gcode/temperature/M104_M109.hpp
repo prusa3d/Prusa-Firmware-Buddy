@@ -11,6 +11,7 @@ struct M109Flags {
   bool wait_heat_or_cool = false;   // Wait for heating or cooling
   bool autotemp = false;         // Use print fan to assist cooling/heating during wait
   std::optional<float> display_temp = std::nullopt; // If nullopt -> display nozzle temp
+  std::optional<float> early_return_temperature = std::nullopt; // If set, wait for this temperature without changing the target; capped by the regular target wait (M109 `C`)
 };
 
 /**

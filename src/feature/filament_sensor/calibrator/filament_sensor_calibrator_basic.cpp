@@ -1,6 +1,7 @@
 #include "filament_sensor_calibrator_basic.hpp"
 
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(FSensor);
 

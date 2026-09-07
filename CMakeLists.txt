@@ -277,8 +277,10 @@ add_library(Marlin_Config INTERFACE)
 target_include_directories(
   Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
   )
-target_include_directories(Marlin_Config INTERFACE src/common/selftest)
-target_link_libraries(Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS FreeRTOS::CMSIS)
+target_include_directories(Marlin_Config INTERFACE src/common/selftest src/common/gcode)
+target_link_libraries(
+  Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS FreeRTOS::CMSIS mbedTLS
+  )
 
 #
 # Configure tinyusb
@@ -381,6 +383,10 @@ if(BOARD IN_LIST BUDDY_BOARDS AND HAS_PUPPIES_BOOTLOADER)
     add_puppy_firmware(PUPPY_NAME xbuddy_extension OUT_BINARY_PATH XBUDDY_EXTENSION_BINARY_PATH)
   endif()
 
+  if(NOT XL_CAN_BINARY_PATH AND HAS_XL_CAN)
+    add_puppy_firmware(PUPPY_NAME can OUT_BINARY_PATH XL_CAN_BINARY_PATH)
+  endif()
+
   if(NOT ANFC_BINARY_PATH AND HAS_ANFC)
     add_puppy_firmware(PUPPY_NAME anfc OUT_BINARY_PATH ANFC_BINARY_PATH)
   endif()
@@ -408,6 +414,19 @@ endif()
 #
 
 add_executable(firmware)
+
+if(RESOURCES)
+  set(firmware_without_digest_bin "${CMAKE_BINARY_DIR}/firmware_without_digest.bin")
+  add_custom_command(
+    TARGET firmware
+    POST_BUILD
+    COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:firmware>"
+            "${firmware_without_digest_bin}"
+    BYPRODUCTS "${firmware_without_digest_bin}"
+    VERBATIM
+    )
+endif()
+
 add_subdirectory(src)
 
 target_compile_options(
@@ -457,17 +476,14 @@ if(BOARD STREQUAL "DWARF"
     )
 endif()
 
-# generate firmware.bin file
-objcopy(firmware "binary" ".bin")
+if(NOT RESOURCES)
+  objcopy(firmware "binary" ".bin")
+endif()
 
 # generate linker map file
 target_link_options(firmware PUBLIC -Wl,-Map=firmware.map,--print-memory-usage)
 
-# inform about the firmware's size in terminal
-report_size(firmware)
-
-# generate bbf if needed
-if(GENERATE_BBF)
+if(RESOURCES)
   message(STATUS "Configured to generate .bbf version of the firmware.")
   message(STATUS "Signing Key: ${SIGNING_KEY}")
 
@@ -500,30 +516,6 @@ elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
 endif()
 
-# generate .dfu version if requested
-if(GENERATE_DFU)
-  if(BOOTLOADER)
-    set(firmware_addr "0x08020000")
-    if(BOOTLOADER STREQUAL "YES")
-      get_dependency_directory("bootloader-${BOOTLOADER_VARIANT}" bootloader_dir)
-      set(bootloader_input "0x08000000:${bootloader_dir}/bootloader.bin")
-    endif()
-    set(firmware_input "0x08020000:${CMAKE_BINARY_DIR}/firmware.bbf")
-  else()
-    set(firmware_input "0x08000000:${CMAKE_BINARY_DIR}/firmware.bin")
-  endif()
-
-  create_dfu(
-    TARGET
-    firmware
-    INPUT
-    "${bootloader_input}"
-    "${firmware_input}"
-    OUTPUT
-    "${CMAKE_CURRENT_BINARY_DIR}/firmware.dfu"
-    )
-endif()
-
 # Library that does some magic to save resources. Link everywhere.
 target_link_libraries(firmware PRIVATE magic_optimizations)
 
@@ -531,6 +523,7 @@ if(BOARD IN_LIST BUDDY_BOARDS)
   target_link_libraries(
     firmware
     PRIVATE BuddyHeaders
+            bsod
             CrashCatcher
             Marlin
             Arduino::Core
@@ -567,6 +560,7 @@ elseif(BOARD STREQUAL "DWARF")
     PRIVATE Arduino::Core
             Arduino::TMCStepper
             BuddyHeaders
+            bsod
             CrashCatcher
             error_codes
             freertos
@@ -579,6 +573,7 @@ elseif(BOARD STREQUAL "MODULARBED")
   target_link_libraries(
     firmware
     PRIVATE BuddyHeaders
+            bsod
             CrashCatcher
             error_codes
             freertos
@@ -592,6 +587,7 @@ elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_link_libraries(
     firmware
     PRIVATE BuddyHeaders
+            bsod
             Marlin
             Arduino::Core
             Arduino::TMCStepper

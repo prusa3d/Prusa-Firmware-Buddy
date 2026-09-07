@@ -22,7 +22,7 @@ bool corexy_rehome_xy(const float fr_mm_s);
  * @brief Refine home origin precisely on core-XY.
  * @warning Must be called *at* home position
  * @param fr_mm_s Homing (and service moves) feedrate
- * @param can_calibrate Allow origin self-calibration to occur
+ * @param mode Origin self-calibration mode
  * @return true on success
  */
 bool corexy_home_refine(const float fr_mm_s, CoreXYCalibrationMode mode);

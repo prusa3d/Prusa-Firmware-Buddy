@@ -40,8 +40,4 @@ void spi_tx_complete() {
     st7789v_spi_tx_complete();
 }
 
-void spi_rx_complete() {
-    // We are not using this
-}
-
 } // namespace display

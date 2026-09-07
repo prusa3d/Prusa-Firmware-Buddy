@@ -79,6 +79,42 @@ public:
 
     [[nodiscard]] static bool any_dock_supports_crash_dump();
 
+#if HAS_PUPPY_MODULARBED()
+    /// Result of check_mb_reset_controllable().
+    enum class MbResetCheck {
+        /// The master GPIO controls the MB reset — genuine XL.
+        controlled,
+        /// MB kept answering after the toggle — reset line not under master control.
+        uncontrolled,
+        /// MODULAR_BED was not discovered at all.
+        no_mb,
+    };
+
+    /**
+     * @brief Probe whether the master GPIO actually controls the MB reset line.
+     *
+     * Assigns the MB to its bootloader address, then toggles the master reset
+     * line via reset_puppies_range() over the MODULAR_BED dock (H→10 ms→L).
+     * Checks the previously-assigned address for any answer:
+     *  - NO_RESPONSE throughout → controlled (MB was disturbed — genuine XL)
+     *  - still answering → uncontrolled (line never reached the MB)
+     *
+     * Polarity-agnostic — works for both level and edge MB reset wiring (see
+     * the implementation for details).
+     *
+     * Known benign imprecision: a stray dwarf that adopted the MB address
+     * answers after the toggle and yields a false `uncontrolled` (spurious
+     * wiring warning, not a boot abort; rare due to contested-discovery retry).
+     * An MB with an incompatible bootloader version fatal_errors inside
+     * discover() rather than returning `no_mb`, same as the normal bootstrap.
+     *
+     * The caller must run PuppyBootstrap::run() afterwards; run() starts with
+     * reset_all_puppies() and a fresh address assignment, so this check leaves
+     * no persistent state behind.
+     */
+    MbResetCheck check_mb_reset_controllable();
+#endif
+
 private:
     using fingerprint_t = BootloaderProtocol::fingerprint_t;
 
@@ -101,16 +137,27 @@ private:
     void reset_all_puppies();
     void reset_puppies_range(DockIterator begin, DockIterator end);
 
+    /// Outcome of probing one address for the expected puppy bootloader.
+    /// contested - puppy answered but not the expected puppy, re run assign + reset and retry
+    /// silent - the address is not answering at all and retrying is pointless.
+    /// found - the expected puppy bootloader answered
+    enum class DiscoverResult : uint8_t {
+        found,
+        silent,
+        contested,
+    };
+
     /**
      * @brief Test if puppy bootloader is there and check some info.
      *
      * @param type expecting this type of puppy
      * @param address check puppy with this modbus address
      */
-    bool discover_once(PuppyType type, BootloaderProtocol::Address address);
+    DiscoverResult discover_once(PuppyType type, BootloaderProtocol::Address address);
 
-    /// Same as discover_once() but with retries
-    bool discover(PuppyType type, BootloaderProtocol::Address address);
+    /// Same as discover_once() but polling for a fixed window; reports
+    /// `contested` if any poll within the window was contested.
+    DiscoverResult discover(PuppyType type, BootloaderProtocol::Address address);
 
     unique_file_ptr get_firmware(PuppyType type);
     off_t get_firmware_size(PuppyType type);
@@ -156,10 +203,20 @@ private:
      */
     bool fingerprint_match(const fingerprint_t &fingerprint, Dock dock);
 
-    BootstrapResult run_address_assignment();
+    /// Result of one address-assignment sweep over all docks.
+    struct AddressAssignmentResult {
+        BootstrapResult config;
+        /// A dock stayed contested even after the per-dock retries — a stray
+        /// the forward-only eviction cannot reach (e.g. a rebooted puppy from
+        /// an already assigned dock). Only reset_all_puppies() and a fresh
+        /// assignment evicts it, so the sweep was aborted early.
+        bool contested = false;
+    };
+
+    AddressAssignmentResult run_address_assignment();
     void assign_address(BootloaderProtocol::Address current_address, BootloaderProtocol::Address new_address);
     bool is_puppy_config_ok(BootstrapResult result, BootstrapResult minimal_config);
-    void verify_address_assignment(BootstrapResult result);
+    bool verify_address_assignment(BootstrapResult result);
 
     /**
      * @brief Tell puppies to start fingerprint calculation.

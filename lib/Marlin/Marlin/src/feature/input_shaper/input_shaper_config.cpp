@@ -4,6 +4,7 @@
 #include <config_store/store_instance.hpp>
 
 #include "../../module/planner.h"
+#include <bsod/bsod.h>
 
 namespace input_shaper {
 
@@ -89,17 +90,19 @@ static void adjust_input_shaper_pulses_to_match_time_pulses(input_shaper_pulses_
 
     first_pulses_adjust.num_pulses = 0;
     second_pulses_adjust.num_pulses = 0;
-    double prev_pulse_t = std::numeric_limits<double>::lowest();
+    bool have_prev_pulse = false;
+    TimeTicks prev_pulse_t;
     for (int common_idx = 0, first_idx = 0, second_idx = 0; common_idx < (first_pulses.num_pulses + second_pulses.num_pulses); ++common_idx) {
         const bool is_nearest_pulse_from_first = (first_idx != first_pulses.num_pulses) && (second_idx == second_pulses.num_pulses || first_pulses.pulses[first_idx].t <= second_pulses.pulses[second_idx].t);
         const pulse_t &nearest_pulse = is_nearest_pulse_from_first ? first_pulses.pulses[first_idx++] : second_pulses.pulses[second_idx++];
 
-        if (std::abs(nearest_pulse.t - prev_pulse_t) <= INPUT_SHAPER_PULSES_MIN_TIME_DIFF) {
+        // Merge if within threshold. Skip on first pulse (no prev to compare against).
+        if (have_prev_pulse && nearest_pulse.t - prev_pulse_t <= INPUT_SHAPER_PULSES_MIN_TIME_DIFF) {
             if (is_nearest_pulse_from_first) {
-                assert(first_pulses_adjust.pulses[first_pulses_adjust.num_pulses - 1].a == 0.f);
+                debug_assert(first_pulses_adjust.pulses[first_pulses_adjust.num_pulses - 1].a == 0.f);
                 first_pulses_adjust.pulses[first_pulses_adjust.num_pulses - 1].a += nearest_pulse.a;
             } else {
-                assert(second_pulses_adjust.pulses[second_pulses_adjust.num_pulses - 1].a == 0.f);
+                debug_assert(second_pulses_adjust.pulses[second_pulses_adjust.num_pulses - 1].a == 0.f);
                 second_pulses_adjust.pulses[second_pulses_adjust.num_pulses - 1].a += nearest_pulse.a;
             }
         } else {
@@ -113,6 +116,7 @@ static void adjust_input_shaper_pulses_to_match_time_pulses(input_shaper_pulses_
             }
 
             prev_pulse_t = nearest_pulse.t;
+            have_prev_pulse = true;
         }
     }
 
@@ -133,7 +137,7 @@ void get_input_shaper(input_shaper_pulses_t &first_axis_pulses, const AxisConfig
 
 static void set_logical_axis_config_internal(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
     // ensure moves are not being processed as we change parameters
-    assert(PreciseStepping::move_segment_queue_size() == 0);
+    debug_assert(PreciseStepping::move_segment_queue_size() == 0);
 
 #ifdef COREXY
     const AxisEnum second_axis = (axis == X_AXIS) ? Y_AXIS : X_AXIS;

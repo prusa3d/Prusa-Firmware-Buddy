@@ -4,6 +4,7 @@
 #include <tool_index.hpp>
 #include <screen_menu_selftest_snake.hpp>
 #include <selftest_action_helpers.hpp>
+#include <bsod/bsod.h>
 
 namespace SelftestSnake::screen_selftest_submenu {
 
@@ -21,7 +22,7 @@ int Menu::item_count() const {
 
 // Returns a printf-style format string with a single %d for the 1-based tool/dock index.
 constexpr auto get_submenu_label_template([[maybe_unused]] Action action) -> const char * {
-    assert(has_submenu(action));
+    debug_assert(has_submenu(action));
 #if PRINTER_IS_PRUSA_XL()
     switch (action) {
     case Action::DockCalibration:

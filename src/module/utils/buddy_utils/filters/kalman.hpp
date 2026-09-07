@@ -2,7 +2,7 @@
 
 #include <inplace_function.hpp>
 #include <cstdint>
-#include <assert.h>
+#include <bsod/bsod.h>
 
 class KalmanFilter {
 public:
@@ -71,7 +71,7 @@ public:
     KalmanFilterCallback(double error_measure, double error_weight, double initial_error_estimate, double initial_value, const predictor_t predictor_)
         : KalmanFilter(error_measure, error_weight, initial_error_estimate, initial_value)
         , predictor(predictor_) {
-        assert(predictor);
+        debug_assert(predictor);
     }
 
     /**

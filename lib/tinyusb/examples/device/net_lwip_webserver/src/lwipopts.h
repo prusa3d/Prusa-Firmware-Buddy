@@ -29,8 +29,16 @@
  * Author: Simon Goldschmidt
  *
  */
-#ifndef __LWIPOPTS_H__
-#define __LWIPOPTS_H__
+#ifndef LWIPOPTS_H__
+#define LWIPOPTS_H__
+
+// Pulls in tusb_option.h → tusb_config.h, which defines LWIP_HIGH_THROUGHPUT
+// based on the target MCU's SRAM tier.
+#include "tusb_option.h"
+
+#ifndef LWIP_HIGH_THROUGHPUT
+  #define LWIP_HIGH_THROUGHPUT          0
+#endif
 
 /* Prevent having to link sys_arch.c (we don't test the API layers in unit tests) */
 #define NO_SYS                          1
@@ -48,8 +56,16 @@
 #define LWIP_IP_ACCEPT_UDP_PORT(p)      ((p) == PP_NTOHS(67))
 
 #define TCP_MSS                         (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-#define TCP_SND_BUF                     (2 * TCP_MSS)
-#define TCP_WND                         (TCP_MSS)
+#define TCP_SND_BUF                     (4 * TCP_MSS)
+#if LWIP_HIGH_THROUGHPUT
+  #define TCP_WND                       (8 * TCP_MSS)
+  #define PBUF_POOL_SIZE                8
+  // Must grow in step with TCP_SND_BUF (default MEMP_NUM_TCP_SEG=16 caps TCP_SND_BUF at 4*MSS).
+  #define MEMP_NUM_TCP_SEG              16
+#else
+  #define TCP_WND                       (4 * TCP_MSS)
+  #define PBUF_POOL_SIZE                4
+#endif
 
 #define ETHARP_SUPPORT_STATIC_ENTRIES   1
 
@@ -58,8 +74,7 @@
 #define LWIP_HTTPD_SSI_INCLUDE_TAG      0
 
 #define LWIP_SINGLE_NETIF               1
-
-#define PBUF_POOL_SIZE                  2
+#define LWIP_NETIF_LINK_CALLBACK        1
 
 #define HTTPD_USE_CUSTOM_FSDATA         0
 

@@ -20,6 +20,7 @@
 #include <option/has_chamber_vents.h>
 #include <option/has_spool_join.h>
 #include <option/has_indx.h>
+#include <option/has_heaters_selftest_gcode.h>
 #include <option/has_wastebin_fill_tracking.h>
 
 #if HAS_LOADCELL()
@@ -337,6 +338,8 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1984:
             PrusaGcodeSuite::M1984();
             break;
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
         case 1985:
             PrusaGcodeSuite::M1985();
             break;
@@ -344,6 +347,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 #if HAS_WASTEBIN_FILL_TRACKING()
         case 1986:
             PrusaGcodeSuite::M1986();
+            break;
+#endif
+#if HAS_HEATERS_SELFTEST_GCODE()
+        case 1987:
+            PrusaGcodeSuite::M1987();
             break;
 #endif
         case 9140:
@@ -374,6 +382,12 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M9933();
             break;
 
+#if HAS_CRASH_DETECTION()
+        case 9944:
+            PrusaGcodeSuite::M9944();
+            break;
+#endif
+
 #if EXTRUDERS > 1
         case 9934:
             PrusaGcodeSuite::M9934();
@@ -387,7 +401,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         break;
     case 'G':
         switch (parser.codenum) {
-#if HAS_NOZZLE_CLEANER()
+#if HAS_NOZZLE_CLEANER() || HAS_NOZZLE_CLEANER_LITE()
         case 12:
             PrusaGcodeSuite::G12();
             break;

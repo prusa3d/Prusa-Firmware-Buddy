@@ -1,7 +1,7 @@
 #include "core.h"
 
-#include <cassert>
 #include <cctype>
+#include <bsod/bsod.h>
 
 using std::nullopt;
 using std::optional;
@@ -48,7 +48,7 @@ bool Transition::matches(uint8_t byte) const {
     case LabelType::Path:
         // Paths are handled by the caller, because they need another index.
     default:
-        assert(0);
+        debug_assert(0);
         return false;
     }
 }

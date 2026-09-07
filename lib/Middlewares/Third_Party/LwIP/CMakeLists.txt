@@ -74,16 +74,6 @@ add_library(LwIP OBJECT
   system/OS/sys_arch.c
   )
 
-target_include_directories(
-  LwIP
-  PUBLIC system
-         src/include
-         src/include/netif/ppp
-         src/include/lwip
-         src/include/lwip/priv
-         src/include/lwip/prot
-         src/include/netif
-         src/include/posix
-  )
+target_include_directories(LwIP PUBLIC system src/include)
 
 target_link_libraries(LwIP PUBLIC LwIP_Config)

@@ -1,8 +1,4 @@
-/**
- * @file footer_doubleline.cpp
- * @author Radek Vana
- * @date 2021-04-14
- */
+/// @file
 
 #include "ifooter.hpp"
 #include "ScreenHandler.hpp"

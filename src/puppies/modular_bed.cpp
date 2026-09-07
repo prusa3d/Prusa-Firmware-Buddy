@@ -11,7 +11,6 @@
 #include "printers.h"
 #include <utility_extensions.hpp>
 #include <i18n.h>
-#include <cassert>
 #include <limits>
 #include <numeric>
 #include <stddef.h>
@@ -36,7 +35,7 @@ METRIC_DEF(metric_bedlet_currents, "bedlet_curr", METRIC_VALUE_CUSTOM, 0, METRIC
 METRIC_DEF(metric_mcu_temperature, "bed_mcu_temp", METRIC_VALUE_FLOAT, 0, METRIC_DISABLED);
 
 ModularBed::ModularBed(uint8_t modbus_address)
-    : ModbusDevice(modbus_address) {}
+    : unit(modbus_address) {}
 
 CommunicationStatus ModularBed::ping(PuppyModbus &bus) {
     Lock guard(mutex);
@@ -64,7 +63,7 @@ CommunicationStatus ModularBed::initial_scan(PuppyModbus &bus) {
         log_info(ModularBed, "HwDatamatrix: %s", sn.begin());
 
         log_info(ModularBed, "Bedlet count: %d", general_static.value.heatbedlet_count);
-        assert(general_static.value.heatbedlet_count == BEDLET_COUNT);
+        debug_assert(general_static.value.heatbedlet_count == BEDLET_COUNT);
     } else {
         log_error(ModularBed, "Failed to read static general register pack");
     }
@@ -367,8 +366,8 @@ float ModularBed::get_target(const uint8_t column, const uint8_t row) {
 }
 
 uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
-    assert(column < BEDLET_MAX_X);
-    assert(row < BEDLET_MAX_Y);
+    debug_assert(column < BEDLET_MAX_X);
+    debug_assert(row < BEDLET_MAX_Y);
 
 #if PRINTER_IS_PRUSA_XL()
     static_assert(BEDLET_MAX_X == 4);

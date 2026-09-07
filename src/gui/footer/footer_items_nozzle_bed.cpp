@@ -1,5 +1,6 @@
 #include "footer_items_nozzle_bed.hpp"
 
+#include "gui_time.hpp"
 #include "filament.hpp"
 #include <img_resources.hpp>
 #include "footer_eeprom.hpp"
@@ -10,6 +11,7 @@
 #include <config_store/store_instance.hpp>
 #include <utils/string_builder.hpp>
 #include <common/nozzle_diameter.hpp>
+#include <module/temperature/temp_defines.hpp>
 #include <option/has_modular_bed.h>
 #include <sensor_data.hpp>
 #include <marlin_vars.hpp>
@@ -140,8 +142,11 @@ int FooterItemAllNozzles::static_readValue() {
             nozzle_n = (nozzle_n + 1) % PhysicalToolIndex::count;
         } while (!PhysicalToolIndex::from_raw(nozzle_n).is_enabled() && nozzle_n != start);
 
-        // Update shown tool and temperature
-        keep_value = (nozzle_n << 16) | static_cast<uint16_t>(round(marlin_vars().hotend(PhysicalToolIndex::from_raw(nozzle_n)).temp_nozzle));
+        // Update shown tool and temperature.
+        // Guard against the uninitialized sentinel.
+        const float temp = marlin_vars().hotend(PhysicalToolIndex::from_raw(nozzle_n)).temp_nozzle;
+        const uint16_t temp_for_key = temp != TempInfo::celsius_uninitialized ? static_cast<uint16_t>(round(temp)) : 0;
+        keep_value = (nozzle_n << 16) | temp_for_key;
     }
 
     return keep_value; // Return nozzle number in higher 16 bits and shown temperature in lower 16 bits
@@ -160,8 +165,13 @@ void FooterItemAllNozzles::unconditionalDraw() {
     for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
         // Rectangle as high as temperature (can overwrite the white mark)
         const uint gray_column_max = (static_cast<uint>(COLD) * icon.Height() + (HEATER_XL_HOTEND_MAXTEMP / 2)) / HEATER_XL_HOTEND_MAXTEMP;
-        uint column_height = (static_cast<uint>(round(marlin_vars().hotend(tool).temp_nozzle)) * icon.Height() + (HEATER_XL_HOTEND_MAXTEMP / 2)) / HEATER_XL_HOTEND_MAXTEMP;
-        column_height = std::clamp<uint>(column_height, 0, icon.Height());
+        // Guard against the uninitialized sentinel.
+        const float temp = marlin_vars().hotend(tool).temp_nozzle;
+        uint column_height = 0;
+        if (temp != TempInfo::celsius_uninitialized) {
+            column_height = (static_cast<uint>(round(temp)) * icon.Height() + (HEATER_XL_HOTEND_MAXTEMP / 2)) / HEATER_XL_HOTEND_MAXTEMP;
+            column_height = std::clamp<uint>(column_height, 0, icon.Height());
+        }
         uint gray_column_height = std::clamp<uint>(column_height, 0, gray_column_max);
 
         // Gray column down

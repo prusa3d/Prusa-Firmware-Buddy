@@ -4,14 +4,7 @@
 #include <cctype>
 #include <algorithm>
 #include <cstring>
-
-#ifdef UNITTESTS
-    #include <catch2/catch_all.hpp>
-    #undef assert
-    #define assert(x) REQUIRE(x)
-#else
-    #include <assert.h>
-#endif
+#include <bsod/bsod.h>
 
 using namespace media_prefetch;
 
@@ -143,7 +136,7 @@ std::optional<size_t> media_prefetch::compress_gcode(const char *input, std::spa
 
     /// Writes a 4-bit word to the output
     const auto write_word = [&](uint8_t word) {
-        assert(word <= 15);
+        debug_assert(word <= 15);
         if (output_ptr >= output_end) {
             return false;
         }
@@ -233,7 +226,7 @@ void media_prefetch::decompress_gcode(const uint8_t *input, int compressed_len, 
 
     /// Reads a 4-bit word from the input
     const auto read_word = [&]() -> uint8_t {
-        assert(input_ptr < input_end);
+        debug_assert(input_ptr < input_end);
 
         second_word_in_byte = !second_word_in_byte;
 

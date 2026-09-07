@@ -6,7 +6,7 @@
 #include <canard.h>
 #include "cyphal_proto_portlist.hpp"
 
-#include <assert.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -119,7 +119,7 @@ protected:
 
     /// Protected destructor because virtual destructor would cost too much codesize.
     ~ProtoSenderPeriodic() {
-        assert(added == false); // Sender should be removed from the list before destruction
+        debug_assert(added == false); // Sender should be removed from the list before destruction
     }
 
 public:

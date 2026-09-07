@@ -61,7 +61,7 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
         WHEN("is without samples") {
 
             THEN("reports it's not ready for analysis") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 REQUIRE(!result);
                 REQUIRE_THAT(result.error().description, Catch::Matchers::Equals("small-window"));
             }
@@ -76,7 +76,7 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
             }
 
             THEN("it is still not ready") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 REQUIRE(!result);
                 REQUIRE_THAT(result.error().description, Catch::Matchers::Equals("small-window"));
             }
@@ -95,7 +95,7 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
             }
 
             THEN("it is ready for analysis") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 REQUIRE(!result);
                 REQUIRE_THAT(result.error().description, Catch::Matchers::Equals("load-lines"));
             }
@@ -166,7 +166,7 @@ SCENARIO("Analysis properly handles its sample window", "[probe_analysis]") {
             analysis.Reset();
 
             THEN("the instance is no longer ready") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 REQUIRE(!result);
                 REQUIRE_THAT(result.error().description, Catch::Matchers::Equals("small-window"));
             }
@@ -349,7 +349,7 @@ TEST_CASE("probe analysis does not crash on problematic probe instances", "[prob
         using ProbeAnalysisT = ProbeAnalysis<1000>;
         ProbeAnalysisT analysis;
 #include "probes/probe_110_1600937955.ipp"
-        analysis.Analyse();
+        analysis.Analyse(true);
     }
 }
 
@@ -376,7 +376,7 @@ SCENARIO("gap detection in sample stream", "[probe_analysis]") {
             }
 
             THEN("Analyse() fails with stream-gap") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 REQUIRE(!result);
                 REQUIRE_THAT(result.error().description, Catch::Matchers::Equals("stream-gap"));
             }
@@ -400,7 +400,7 @@ SCENARIO("gap detection in sample stream", "[probe_analysis]") {
             }
 
             THEN("Analyse() does not fail with stream-gap") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 // May fail with another error (small-window, load-lines, etc.) — just not stream-gap.
                 if (!result) {
                     REQUIRE_THAT(result.error().description, !Catch::Matchers::Equals("stream-gap"));
@@ -424,7 +424,7 @@ SCENARIO("gap detection in sample stream", "[probe_analysis]") {
             }
 
             THEN("Analyse() does not fail with stream-gap") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 if (!result) {
                     REQUIRE_THAT(result.error().description, !Catch::Matchers::Equals("stream-gap"));
                 }
@@ -455,7 +455,7 @@ SCENARIO("gap detection in sample stream", "[probe_analysis]") {
             }
 
             THEN("Analyse() does not fail with stream-gap") {
-                auto result = analysis.Analyse();
+                auto result = analysis.Analyse(true);
                 if (!result) {
                     REQUIRE_THAT(result.error().description, !Catch::Matchers::Equals("stream-gap"));
                 }

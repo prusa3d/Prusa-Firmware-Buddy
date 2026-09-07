@@ -8,6 +8,7 @@
 #include <common/hwio_pindef.h>
 #include <option/bootloader.h>
 #include <option/has_door_sensor.h>
+#include <option/has_indx_head.h>
 #if HAS_DOOR_SENSOR()
     #include <buddy/door_sensor.hpp>
 #endif
@@ -217,5 +218,16 @@ bool Configuration::needs_push_pull_mmu_reset_pin() const {
     // xBuddy schematics says: Revisions older than 34 must use open drain only.
     return PRINTER_IS_PRUSA_iX() || get_board_bom_id() >= 34;
 }
+
+#if HAS_INDX_HEAD()
+void Configuration::write_indx_head_reset(Pin::State state) const {
+    // The reset is routed through the former FAN1 output stage on PE9, so it shares the fans' polarity quirk.
+    // The indx_head_reset pin definition matches BOM >= 37, older boards need the opposite level.
+    if (has_inverted_fans()) {
+        state = (state == Pin::State::high) ? Pin::State::low : Pin::State::high;
+    }
+    indx_head_reset.write(state);
+}
+#endif
 
 } // namespace buddy::hw

@@ -84,3 +84,10 @@ public:
     };
     ScreenMenuLanguages(Context context = Context::standard);
 };
+
+class ScreenInitialLanguageSelection final : public ScreenMenuLanguages {
+public:
+    ScreenInitialLanguageSelection();
+
+    [[nodiscard]] static bool should_show();
+};

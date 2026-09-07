@@ -7,6 +7,7 @@
 #pragma once
 
 #include <utils/color.hpp>
+#include <option/has_indx.h>
 #include <option/has_mmu2.h>
 #include <option/has_gcode_compatibility.h>
 #include <common/filament.hpp>
@@ -18,9 +19,11 @@
 #include <feature/print_area.h>
 #include <utils/compact_optional.hpp>
 #include <utils/tristate.hpp>
-#include <gcode/gcode_compatibility.hpp>
+#include <feature/compatibility_checks/gcode_compatibility.hpp>
 #include <utils/storage/strong_index_array.hpp>
 #include <tool_index.hpp>
+#include <bsod/bsod.h>
+#include <buddy/filename_defs.hpp>
 
 // these strings are meant NOT to be translated
 namespace gcode_info {
@@ -110,6 +113,9 @@ private:
         std::optional<float> filament_wipe_tower_g = { std::nullopt }; ///< Grams of filament used for wipe tower
 #endif
         bool sliced_with_input_shaper_ = false; ///< True if gcode was sliced with input shaper
+#if HAS_INDX()
+        bool sliced_with_indx_lock_ = false; ///< True if gcode was sliced with INDX lock support
+#endif
         bool has_preview_thumbnail_ = false; ///< True if gcode has preview thumbnail
         bool has_progress_thumbnail_ = false; ///< True if gcode has progress thumbnail
         bool filament_described = false; ///< Filament info was found in gcode's comments
@@ -142,7 +148,7 @@ public:
     inline const char *error_str() const { return error_str_; } ///< If there is any reportable error, returns it. Otherwise returns nullptr.
 
     inline void set_error(const char *error) {
-        assert(error);
+        debug_assert(error);
         error_str_ = error;
     }
 
@@ -189,7 +195,7 @@ public:
 
     [[deprecated("Use ToolIndex overload")]]
     const ExtruderInfo &get_extruder_info(uint8_t extruder) const {
-        assert(extruder < std::size(per_extruder_info));
+        debug_assert(extruder < std::size(per_extruder_info));
         return per_extruder_info[extruder];
     }
 
@@ -264,11 +270,11 @@ private:
 
     /// stores current gcode file path
     /// SFN filepath (used for referencing the file)
-    std::array<char, FILE_PATH_BUFFER_LEN> gcode_file_path = { '\0' };
+    std::array<char, filename_defs::path_buffer_size> gcode_file_path = { '\0' };
 
     /// stores current gcode file name
     /// LFN filename (used for display)
-    std::array<char, FILE_NAME_BUFFER_LEN> gcode_file_name = { '\0' };
+    std::array<char, filename_defs::filename_buffer_size> gcode_file_name = { '\0' };
 
 #ifdef UNITTESTS
 public:

@@ -4,8 +4,8 @@
 #include <random/random.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cstring>
+#include <bsod/bsod.h>
 
 using std::min;
 using std::nullopt;
@@ -52,7 +52,7 @@ Monitor::Slot &Monitor::Slot::operator=([[maybe_unused]] Slot &&other) {
     // the same time anyway and it would be a bit involved to write - first
     // dropping the old one properly if live, then gutting the new one, the
     // owner would have to be pointer instead of referrence...
-    assert(0);
+    debug_assert(0);
     return *this;
 }
 
@@ -242,7 +242,7 @@ const char *to_str(Monitor::Type type) {
     case Monitor::Type::Link:
         return "FROM_CLIENT";
     default:
-        assert(0);
+        debug_assert(0);
         return "NO_TRANSFER";
     }
 }

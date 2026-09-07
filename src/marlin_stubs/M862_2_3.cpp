@@ -63,6 +63,10 @@ static void setup_gcode_compatibility(const PrinterModelInfo *gcode_printer) {
 
             // Move the bed up to reduce chamber volume
             do_blocking_move_to_z(10);
+        #elif PRINTER_IS_PRUSA_XL()
+            // XL/XLS: chamber_compatibility_mode is never set for XL-on-XLS compat,
+            // so this branch is unreachable. No chamber heating logic needed.
+            debug_assert("XL/XLS: chamber_compatibility_mode - should be unreachable");
         #else
             #error Please implement heating logic for this printer
         #endif

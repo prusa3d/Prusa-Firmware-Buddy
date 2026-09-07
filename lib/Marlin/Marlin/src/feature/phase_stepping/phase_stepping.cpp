@@ -25,7 +25,6 @@
 #include <logging/log.hpp>
 #include <metric.h>
 
-#include <cassert>
 #include <cmath>
 #include <sys/unistd.h>
 
@@ -66,7 +65,7 @@ MoveTarget::MoveTarget(float initial_pos)
 MoveTarget::MoveTarget(float initial_pos, const move_t &move, int axis, const uint64_t move_duration_ticks)
     : initial_pos(initial_pos)
     , duration(uint32_t(move_duration_ticks)) {
-    assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
+    debug_assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
     float r = get_move_axis_r(move, axis);
     half_accel = r * float(move.half_accel);
     start_v = r * float(move.start_v);
@@ -78,7 +77,7 @@ MoveTarget::MoveTarget(float initial_pos, const input_shaper_state_t &is_state, 
     , half_accel(is_state.half_accel)
     , start_v(is_state.start_v)
     , duration(uint32_t(move_duration_ticks)) {
-    assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
+    debug_assert(move_duration_ticks <= std::numeric_limits<uint32_t>::max());
     target_pos = target_position();
 }
 
@@ -103,15 +102,11 @@ void phase_stepping::init() {
     initialized = true;
 }
 
-FORCE_INLINE uint64_t convert_absolute_time_to_ticks(const double time) {
-    return uint64_t(time * TICK_FREQ);
-}
-
-FORCE_INLINE double calc_move_segment_end_time(const move_t &move) {
+FORCE_INLINE TimeTicks calc_move_segment_end_time(const move_t &move) {
     return move.print_time + move.move_time;
 }
 
-FORCE_INLINE double calc_move_segment_end_time(const input_shaper_state_t &is_state) {
+FORCE_INLINE TimeTicks calc_move_segment_end_time(const input_shaper_state_t &is_state) {
     return is_state.nearest_next_change;
 }
 
@@ -136,14 +131,14 @@ static void init_step_generator_internal(
     auto &axis_state = *step_generator.phase_step_state;
     const uint8_t axis = step_generator.axis;
 
-    assert(axis_state.pending_targets.isEmpty());
+    debug_assert(axis_state.pending_targets.isEmpty());
 
     axis_state.initial_time = step_generator_state.initial_time;
 
     axis_state.last_position = axis_state.next_target.peek().initial_pos;
     axis_state.current_target = MoveTarget(axis_state.last_position);
     axis_state.has_current_target = true;
-    axis_state.next_target_end_time = MAX_PRINT_TIME;
+    axis_state.next_target_end_time = MAX_PRINT_TIME_TICKS;
 
     int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), axis_state.next_target.peek().initial_pos);
     axis_state.initial_count_position = Stepper::get_axis_steps(AxisEnum(axis)) - initial_steps_made;
@@ -156,20 +151,20 @@ void phase_stepping::init_step_generator_classic(
     const move_t &move,
     move_segment_step_generator_t &step_generator,
     step_generator_state_t &step_generator_state) {
-    assert(is_beginning_empty_move(move));
+    debug_assert(is_beginning_empty_move(move));
 
     auto &axis_state = *step_generator.phase_step_state;
     axis_state.active.store(false, std::memory_order_seq_cst);
 
     const uint8_t axis = step_generator.axis;
-    axis_state.current_print_time_ticks = convert_absolute_time_to_ticks(move.print_time);
+    axis_state.current_print_time_us = static_cast<uint64_t>(move.print_time.to_us_floor());
 
     axis_state.next_target_end_time = calc_move_segment_end_time(move);
-    const uint64_t next_print_time_ticks = convert_absolute_time_to_ticks(axis_state.next_target_end_time);
-    const uint64_t move_duration_ticks = next_print_time_ticks - axis_state.current_print_time_ticks;
+    const uint64_t next_print_time_us = static_cast<uint64_t>(axis_state.next_target_end_time.to_us_floor());
+    const uint64_t move_duration_ticks = next_print_time_us - axis_state.current_print_time_us;
     const float move_start_pos = extract_physical_position(AxisEnum(axis), move.start_pos);
     axis_state.next_target.set(MoveTarget(move_start_pos, move, axis, move_duration_ticks));
-    axis_state.current_print_time_ticks = next_print_time_ticks;
+    axis_state.current_print_time_us = next_print_time_us;
 
     step_generator_state.step_generator[axis] = &step_generator;
     step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event_classic;
@@ -186,7 +181,7 @@ void phase_stepping::init_step_generator_input_shaping(
     const move_t &move,
     input_shaper_step_generator_t &step_generator,
     step_generator_state_t &step_generator_state) {
-    assert(is_beginning_empty_move(move));
+    debug_assert(is_beginning_empty_move(move));
 
     auto &axis_state = *step_generator.phase_step_state;
     axis_state.active.store(false, std::memory_order_seq_cst);
@@ -194,13 +189,13 @@ void phase_stepping::init_step_generator_input_shaping(
     // Inherit input shaper initialization...
     input_shaper_step_generator_init(move, step_generator, step_generator_state);
 
-    axis_state.current_print_time_ticks = convert_absolute_time_to_ticks(step_generator.is_state->print_time);
+    axis_state.current_print_time_us = static_cast<uint64_t>(step_generator.is_state->print_time.to_us_floor());
 
     axis_state.next_target_end_time = calc_move_segment_end_time(*step_generator.is_state);
-    const uint64_t next_print_time_ticks = convert_absolute_time_to_ticks(axis_state.next_target_end_time);
-    const uint64_t move_duration_ticks = next_print_time_ticks - axis_state.current_print_time_ticks;
+    const uint64_t next_print_time_us = static_cast<uint64_t>(axis_state.next_target_end_time.to_us_floor());
+    const uint64_t move_duration_ticks = next_print_time_us - axis_state.current_print_time_us;
     axis_state.next_target.set(MoveTarget(step_generator.is_state->start_pos, *step_generator.is_state, move_duration_ticks));
-    axis_state.current_print_time_ticks = next_print_time_ticks;
+    axis_state.current_print_time_us = next_print_time_us;
 
     // ...and then override next_step_func with phase stepping one
     const uint8_t axis = step_generator.axis;
@@ -218,10 +213,10 @@ step_event_info_t phase_stepping::next_step_event_classic(
     step_generator_state_t &step_generator_state) {
     AxisState &axis_state = *step_generator.phase_step_state;
 
-    assert(axis_state.last_processed_move != nullptr);
-    assert(axis_state.last_processed_move->reference_cnt != 0);
+    debug_assert(axis_state.last_processed_move != nullptr);
+    debug_assert(axis_state.last_processed_move->reference_cnt != 0);
 
-    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
+    step_event_info_t next_step_event = { TimeTicks::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
         next_step_event.time = axis_state.next_target_end_time;
         next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
@@ -235,17 +230,18 @@ step_event_info_t phase_stepping::next_step_event_classic(
         if (auto next_target = axis_state.next_target.take(); next_target.has_value()) {
             next_target->target_pos = move_start_pos;
             [[maybe_unused]] bool enqueued = axis_state.pending_targets.enqueue(*next_target);
-            assert(enqueued);
+            debug_assert(enqueued);
         }
 
         // buffer the next
         if (!is_ending_empty_move(*next_move)) {
             axis_state.next_target_end_time = calc_move_segment_end_time(*next_move);
-            const uint64_t next_print_time_ticks = convert_absolute_time_to_ticks(axis_state.next_target_end_time);
-            const uint64_t move_duration_ticks = next_print_time_ticks - axis_state.current_print_time_ticks;
+            // floor endpoints first, then difference (preserves Σ(durations)==floor(absolute) invariant)
+            const uint64_t next_print_time_us = static_cast<uint64_t>(axis_state.next_target_end_time.to_us_floor());
+            const uint64_t move_duration_ticks = next_print_time_us - axis_state.current_print_time_us;
             MoveTarget next(move_start_pos, *next_move, axis, move_duration_ticks);
             axis_state.next_target.set(next);
-            axis_state.current_print_time_ticks = next_print_time_ticks;
+            axis_state.current_print_time_us = next_print_time_us;
 
             const int32_t target_steps = pos_to_steps(AxisEnum(axis), next.target_pos);
             step_generator_state.current_distance[axis] = target_steps;
@@ -273,9 +269,9 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
     step_generator_state_t &step_generator_state) {
     AxisState &axis_state = *step_generator.phase_step_state;
 
-    assert(step_generator.is_state != nullptr);
+    debug_assert(step_generator.is_state != nullptr);
 
-    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
+    step_event_info_t next_step_event = { TimeTicks::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
     if (axis_state.pending_targets.isFull()) {
         next_step_event.time = axis_state.next_target_end_time;
         next_step_event.status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_PENDING;
@@ -290,17 +286,18 @@ step_event_info_t phase_stepping::next_step_event_input_shaping(
             if (auto next_target = axis_state.next_target.take(); next_target.has_value()) {
                 next_target->target_pos = move_start_pos;
                 [[maybe_unused]] bool enqueued = axis_state.pending_targets.enqueue(*next_target);
-                assert(enqueued);
+                debug_assert(enqueued);
             }
 
             // buffer the next
-            if (step_generator.is_state->nearest_next_change < MAX_PRINT_TIME) {
+            if (step_generator.is_state->nearest_next_change < MAX_PRINT_TIME_TICKS) {
                 axis_state.next_target_end_time = calc_move_segment_end_time(*step_generator.is_state);
-                const uint64_t next_print_time_ticks = convert_absolute_time_to_ticks(axis_state.next_target_end_time);
-                const uint64_t move_duration_ticks = next_print_time_ticks - axis_state.current_print_time_ticks;
+                // floor endpoints first, then difference (preserves Σ(durations)==floor(absolute) invariant)
+                const uint64_t next_print_time_us = static_cast<uint64_t>(axis_state.next_target_end_time.to_us_floor());
+                const uint64_t move_duration_ticks = next_print_time_us - axis_state.current_print_time_us;
                 MoveTarget next(move_start_pos, *step_generator.is_state, move_duration_ticks);
                 axis_state.next_target.set(next);
-                axis_state.current_print_time_ticks = next_print_time_ticks;
+                axis_state.current_print_time_us = next_print_time_us;
 
                 const int32_t target_steps = pos_to_steps(AxisEnum(axis), next.target_pos);
                 step_generator_state.current_distance[axis] = target_steps;
@@ -323,12 +320,12 @@ bool phase_stepping::is_initialized() {
 #ifdef _DEBUG
 void phase_stepping::assert_initialized() {
     // This is explicitly kept non-inline to serve as a single trap point
-    assert(initialized);
+    debug_assert(initialized);
 }
 
 void phase_stepping::assert_disabled() {
     // This is explicitly kept non-inline to serve as a single trap point
-    assert(!any_axis_enabled());
+    debug_assert(!any_axis_enabled());
 }
 
 void phase_stepping::check_state() {
@@ -345,7 +342,7 @@ void phase_stepping::check_state() {
 
     #if HAS_BURST_STEPPING()
         // #error dead code found by automatic analyses (see BFW-5461)
-        assert(!burst_stepping::busy());
+        debug_assert(!burst_stepping::busy());
 
         // Ensure driver_phase is in sync with MSCNT
         int mscnt = stepper_axis((AxisEnum)state.axis_index).MSCNT();
@@ -418,11 +415,11 @@ static int get_current_phase(AxisEnum axis) {
 }
 
 void phase_stepping::jump_to_position(AxisEnum axis, float pos, bool set_origin) {
-    assert(axis < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis < SUPPORTED_AXIS_COUNT);
     assert_initialized();
 
     auto &axis_state = axis_states[axis];
-    assert(axis_state.pending_targets.isEmpty() && !axis_state.has_current_target);
+    debug_assert(axis_state.pending_targets.isEmpty() && !axis_state.has_current_target);
 
     bool was_active = axis_state.active.exchange(false, std::memory_order_seq_cst);
 
@@ -456,22 +453,22 @@ namespace phase_stepping {
  * be in progress.
  **/
 static void enable_phase_stepping(AxisEnum axis_num) {
-    assert(PreciseStepping::initialized());
-    assert(axis_num < SUPPORTED_AXIS_COUNT);
-    assert(!axis_states[axis_num].enabled);
+    debug_assert(PreciseStepping::initialized());
+    debug_assert(axis_num < SUPPORTED_AXIS_COUNT);
+    debug_assert(!axis_states[axis_num].enabled);
     if (!planner.draining()) {
         // If we are within an aborted move, we must still allow to re-enable phase stepping:
         // we might be within an EnsureDisabled block. In such case motion is already stopped,
         // and it will re-initialize phase stepping on the next move. If we're not within an
         // aborted move though we must ensure there's no existing motion going on.
-        assert(!planner.has_blocks_queued() && !PreciseStepping::processing());
+        debug_assert(!planner.has_blocks_queued() && !PreciseStepping::processing());
     }
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     TMCStepperType &stepper = stepper_axis(axis_num);
     auto &axis_state = axis_states[axis_num];
-    assert(!axis_state.enabled && !axis_state.active);
-    assert(!axis_state.has_current_target && axis_state.pending_targets.isEmpty());
+    debug_assert(!axis_state.enabled && !axis_state.active);
+    debug_assert(!axis_state.has_current_target && axis_state.pending_targets.isEmpty());
 
     // Read axis configuration and cache it so we can access it fast
     axis_state.direction = (Stepper::motor_direction(axis_num) ^ axis_state.inverted);
@@ -575,9 +572,9 @@ static void step_to_phase(AxisEnum axis, int phase) {
  * in progress.
  **/
 static void disable_phase_stepping(AxisEnum axis_num) {
-    assert(axis_num < SUPPORTED_AXIS_COUNT);
-    assert(axis_states[axis_num].enabled);
-    assert(!planner.processing());
+    debug_assert(axis_num < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis_states[axis_num].enabled);
+    debug_assert(!planner.processing());
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto &stepper = static_cast<TMC2130Stepper &>(stepper_axis(axis_num));
@@ -629,7 +626,7 @@ static void disable_phase_stepping(AxisEnum axis_num) {
 } // namespace phase_stepping
 
 void phase_stepping::enable(AxisEnum axis_num, bool enable) {
-    assert(axis_num < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis_num < SUPPORTED_AXIS_COUNT);
     assert_initialized();
 
     auto &axis_state = axis_states[axis_num];
@@ -847,7 +844,7 @@ static FORCE_INLINE FORCE_OFAST void refresh_axis(
     const auto &current_lut = resolve_current_lut(axis_state);
 
     int new_phase = pos_to_phase(axis_enum, physical_position);
-    assert(phase_difference(axis_state.last_phase, new_phase) < 256);
+    debug_assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
 #if HAS_BURST_STEPPING()
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -961,11 +958,11 @@ int phase_stepping::logical_ustep(AxisEnum axis) {
     }
 
     // ensure we're not being called while still moving
-    assert(!axis_state.has_current_target);
+    debug_assert(!axis_state.has_current_target);
 #if HAS_BURST_STEPPING()
     // #error dead code found by automatic analyses (see BFW-5461)
-    assert(!burst_stepping::busy());
-    assert(mscnt == axis_state.driver_phase);
+    debug_assert(!burst_stepping::busy());
+    debug_assert(mscnt == axis_state.driver_phase);
 #endif
 
     return axis_state.last_phase;
@@ -1002,13 +999,13 @@ struct CorrectionSaveFormat {
 void save_correction_to_file(const CorrectedCurrentLut &lut, const char *file_path) {
     FILE *save_file = fopen(file_path, "wb");
     if (!save_file) {
-        assert(false); // should never happen
+        debug_assert(false); // should never happen
         return;
     }
 
     CorrectionSaveFormat save_format { .correction = lut.get_correction_table() };
     [[maybe_unused]] auto written = fwrite(&save_format, 1, sizeof(CorrectionSaveFormat), save_file);
-    assert(written == sizeof(CorrectionSaveFormat));
+    debug_assert(written == sizeof(CorrectionSaveFormat));
 
     fclose(save_file);
 }
@@ -1030,19 +1027,19 @@ void load_correction_from_file(CorrectedCurrentLut &lut, const char *file_path) 
 }
 
 void save_to_persistent_storage(AxisEnum axis) {
-    assert(axis < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis < SUPPORTED_AXIS_COUNT);
     save_to_persistent_storage_without_enabling(axis);
     config_store().set_phase_stepping_enabled(axis, axis_states[axis].enabled);
 }
 
 void save_to_persistent_storage_without_enabling(AxisEnum axis) {
-    assert(axis < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis < SUPPORTED_AXIS_COUNT);
     save_correction_to_file(axis_states[axis].forward_current, get_correction_file_path(axis, CorrectionType::forward));
     save_correction_to_file(axis_states[axis].backward_current, get_correction_file_path(axis, CorrectionType::backward));
 }
 
 void load_from_persistent_storage(AxisEnum axis) {
-    assert(axis < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis < SUPPORTED_AXIS_COUNT);
     load_correction_from_file(axis_states[axis].forward_current, get_correction_file_path(axis, CorrectionType::forward));
     load_correction_from_file(axis_states[axis].backward_current, get_correction_file_path(axis, CorrectionType::backward));
 
@@ -1050,7 +1047,7 @@ void load_from_persistent_storage(AxisEnum axis) {
 }
 
 void remove_from_persistent_storage(AxisEnum axis, CorrectionType lut_type) {
-    assert(axis < SUPPORTED_AXIS_COUNT);
+    debug_assert(axis < SUPPORTED_AXIS_COUNT);
     if (unlink(get_correction_file_path(axis, lut_type)) != 0) {
         if (errno == ENOENT) {
             return; // file may not exist and that's ok
@@ -1097,3 +1094,4 @@ extern "C" void PHSTEP_TIMER_ISR_HANDLER(void) {
 #endif
 #include "lut.cpp"
 #include "axes.cpp"
+#include <bsod/bsod.h>

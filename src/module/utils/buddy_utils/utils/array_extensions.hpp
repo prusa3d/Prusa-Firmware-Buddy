@@ -1,10 +1,10 @@
 #pragma once
 
 #include <array>
-#include <cassert>
 #include <type_traits>
 #include <cstddef>
 #include <utility>
+#include <bsod/bsod.h>
 
 /**
  * @brief Used to discern whether template parameter is std::array<..., ...> or not
@@ -44,7 +44,7 @@ template <std::size_t new_size>
 constexpr auto array_sub_copy(auto &&source, std::size_t offset = 0) {
     using Source = std::remove_cvref_t<decltype(source)>;
     static_assert(new_size <= std::tuple_size_v<Source>);
-    assert(offset + new_size <= source.size());
+    debug_assert(offset + new_size <= source.size());
 
     std::array<typename Source::value_type, new_size> result {};
     std::copy(source.begin() + offset, source.begin() + offset + new_size, result.begin());

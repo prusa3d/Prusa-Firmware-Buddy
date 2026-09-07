@@ -8,7 +8,7 @@
 #include <WindowItemFormatableLabel.hpp>
 
 /// Nozzle target temperature (adjustable spin)
-class MI_NOZZLE_TARGET_TEMP : public WiSpin {
+class MI_NOZZLE_TARGET_TEMP : private NumericInputConfigHolder, public WiSpin {
 
 public:
     MI_NOZZLE_TARGET_TEMP(std::variant<PhysicalToolIndex, CurrentlySelectedTool> tool = CurrentlySelectedTool {});

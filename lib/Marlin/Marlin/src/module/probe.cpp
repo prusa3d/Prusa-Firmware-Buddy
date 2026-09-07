@@ -25,6 +25,8 @@
  */
 
 #include "../inc/MarlinConfig.h"
+#include <bsod/bsod.h>
+#include <option/has_crash_detection.h>
 
 #if HAS_BED_PROBE
 
@@ -62,11 +64,6 @@ xyz_pos_t probe_offset; // Initialized by settings.load()
 
 LOG_COMPONENT_DEF(Probe, logging::Severity::info);
 
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "../feature/bltouch.h"
-#endif
-
 #if ENABLED(NOZZLE_LOAD_CELL)
   #include "loadcell.hpp"
 #endif
@@ -76,11 +73,6 @@ LOG_COMPONENT_DEF(Probe, logging::Severity::info);
 
 #if ENABLED(HOST_PROMPT_SUPPORT)
   #include "../feature/host_actions.h" // for PROMPT_USER_CONTINUE
-#endif
-
-#if HAS_Z_SERVO_PROBE
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "servo.h"
 #endif
 
 #if ENABLED(SENSORLESS_PROBING)
@@ -102,6 +94,11 @@ LOG_COMPONENT_DEF(Probe, logging::Severity::info);
 #include <feature/print_status_message/print_status_message_guard.hpp>
 
 #include <option/has_auto_retract.h>
+
+#include <option/has_nozzle_thermal_compensation.h>
+#if HAS_NOZZLE_THERMAL_COMPENSATION()
+  #include <feature/nozzle_thermal_compensation/nozzle_thermal_compensation.hpp>
+#endif
 #include <option/has_indx.h>
 #include <option/has_dwarf.h>
 #include <mapi/motion.hpp>
@@ -109,36 +106,23 @@ LOG_COMPONENT_DEF(Probe, logging::Severity::info);
 #include <config_store/store_instance.hpp>
 #include <marlin_vars.hpp>
 #include <numbers>
+#include <filament.hpp>
+#include "printers.h"
+
+bool probe_should_check_angle_after() {
+#if PRINTER_IS_PRUSA_iX()
+    // don't check angle_after for PA, it often causes MBL fails as the nozzle
+    // is sticking to the PA-specific sheet and the pulling force fails the check
+    return config_store().get_filament_type(active_extruder).parameters().base_preset != PresetFilamentType::PA;
+#endif
+  return true;
+}
 
 #if HAS_AUTO_RETRACT()
   #include <feature/auto_retract/auto_retract.hpp>
 #endif
 
-#if ENABLED(Z_PROBE_SLED)
-  // #error dead code found by automatic analyses (see BFW-5461)
-
-  #ifndef SLED_DOCKING_OFFSET
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #define SLED_DOCKING_OFFSET 0
-  #endif
-
-  /**
-   * Method to dock/undock a sled designed by Charles Bell.
-   *
-   * stow[in]     If false, move to MAX_X and engage the solenoid
-   *              If true, move to MAX_X and release the solenoid
-   */
-  static void dock_sled(bool stow) {
-    // Dock sled a bit closer to ensure proper capturing
-    do_blocking_move_to_x(X_MAX_POS + SLED_DOCKING_OFFSET - ((stow) ? 1 : 0));
-
-    #if HAS_SOLENOID_1 && DISABLED(EXT_SOLENOID)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      WRITE(SOL1_PIN, !stow); // switch solenoid
-    #endif
-  }
-
-#elif ENABLED(TOUCH_MI_PROBE)
+#if ENABLED(TOUCH_MI_PROBE)
   // #error dead code found by automatic analyses (see BFW-5461)
 
   // Move to the magnet to unlock the probe
@@ -189,106 +173,7 @@ LOG_COMPONENT_DEF(Probe, logging::Severity::info);
     do_blocking_move_to(oldpos, MMM_TO_MMS(HOMING_FEEDRATE_Z));
   }
 
-#elif ENABLED(Z_PROBE_ALLEN_KEY)
-  // #error dead code found by automatic analyses (see BFW-5461)
-
-  void run_deploy_moves_script() {
-    #ifdef Z_PROBE_ALLEN_KEY_DEPLOY_1
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_DEPLOY_1_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_DEPLOY_1_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t deploy_1 = Z_PROBE_ALLEN_KEY_DEPLOY_1;
-      do_blocking_move_to(deploy_1, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_DEPLOY_1_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_DEPLOY_2
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_DEPLOY_2_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_DEPLOY_2_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t deploy_2 = Z_PROBE_ALLEN_KEY_DEPLOY_2;
-      do_blocking_move_to(deploy_2, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_DEPLOY_2_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_DEPLOY_3
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_DEPLOY_3_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_DEPLOY_3_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t deploy_3 = Z_PROBE_ALLEN_KEY_DEPLOY_3;
-      do_blocking_move_to(deploy_3, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_DEPLOY_3_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_DEPLOY_4
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_DEPLOY_4_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_DEPLOY_4_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t deploy_4 = Z_PROBE_ALLEN_KEY_DEPLOY_4;
-      do_blocking_move_to(deploy_4, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_DEPLOY_4_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_DEPLOY_5
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_DEPLOY_5_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_DEPLOY_5_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t deploy_5 = Z_PROBE_ALLEN_KEY_DEPLOY_5;
-      do_blocking_move_to(deploy_5, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_DEPLOY_5_FEEDRATE));
-    #endif
-  }
-
-  void run_stow_moves_script() {
-    #ifdef Z_PROBE_ALLEN_KEY_STOW_1
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_STOW_1_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_STOW_1_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t stow_1 = Z_PROBE_ALLEN_KEY_STOW_1;
-      do_blocking_move_to(stow_1, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_STOW_1_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_STOW_2
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_STOW_2_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_STOW_2_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t stow_2 = Z_PROBE_ALLEN_KEY_STOW_2;
-      do_blocking_move_to(stow_2, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_STOW_2_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_STOW_3
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_STOW_3_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_STOW_3_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t stow_3 = Z_PROBE_ALLEN_KEY_STOW_3;
-      do_blocking_move_to(stow_3, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_STOW_3_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_STOW_4
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_STOW_4_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_STOW_4_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t stow_4 = Z_PROBE_ALLEN_KEY_STOW_4;
-      do_blocking_move_to(stow_4, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_STOW_4_FEEDRATE));
-    #endif
-    #ifdef Z_PROBE_ALLEN_KEY_STOW_5
-      // #error dead code found by automatic analyses (see BFW-5461)
-      #ifndef Z_PROBE_ALLEN_KEY_STOW_5_FEEDRATE
-        // #error dead code found by automatic analyses (see BFW-5461)
-        #define Z_PROBE_ALLEN_KEY_STOW_5_FEEDRATE 0.0
-      #endif
-      constexpr xyz_pos_t stow_5 = Z_PROBE_ALLEN_KEY_STOW_5;
-      do_blocking_move_to(stow_5, MMM_TO_MMS(Z_PROBE_ALLEN_KEY_STOW_5_FEEDRATE));
-    #endif
-  }
-
-#endif // Z_PROBE_ALLEN_KEY
+#endif // TOUCH_MI_PROBE
 
 #if QUIET_PROBING
   // #error dead code found by automatic analyses (see BFW-5461)
@@ -337,41 +222,10 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     }
   #endif /*ENABLED(NOZZLE_LOAD_CELL)*/
 
-  #if ENABLED(SOLENOID_PROBE)
-    // #error dead code found by automatic analyses (see BFW-5461)
-
-    #if HAS_SOLENOID_1
-      // #error dead code found by automatic analyses (see BFW-5461)
-      WRITE(SOL1_PIN, deploy);
-    #endif
-
-  #elif ENABLED(Z_PROBE_SLED)
-    // #error dead code found by automatic analyses (see BFW-5461)
-
-    dock_sled(!deploy);
-
-  #elif HAS_Z_SERVO_PROBE
-    // #error dead code found by automatic analyses (see BFW-5461)
-
-    #if DISABLED(BLTOUCH)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      MOVE_SERVO(Z_PROBE_SERVO_NR, servo_angles[Z_PROBE_SERVO_NR][deploy ? 0 : 1]);
-    #elif ENABLED(BLTOUCH_HS_MODE)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      // In HIGH SPEED MODE, use the normal retractable probe logic in this code
-      // i.e. no intermediate STOWs and DEPLOYs in between individual probe actions
-      if (deploy) bltouch.deploy(); else bltouch.stow();
-    #endif
-
-  #elif EITHER(TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY)
+  #if ENABLED(TOUCH_MI_PROBE)
     // #error dead code found by automatic analyses (see BFW-5461)
 
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
-
-  #elif ENABLED(RACK_AND_PINION_PROBE)
-    // #error dead code found by automatic analyses (see BFW-5461)
-
-    do_blocking_move_to_x(deploy ? Z_PROBE_DEPLOY_X : Z_PROBE_RETRACT_X);
   #endif
 }
 
@@ -402,19 +256,6 @@ bool set_probe_deployed(const bool deploy) {
   #else
     UNUSED(deploy_stow_condition);
     UNUSED(unknown_condition);
-  #endif
-
-  #if EITHER(Z_PROBE_SLED, Z_PROBE_ALLEN_KEY)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    if (axis_unhomed_error(
-      #if ENABLED(Z_PROBE_SLED)
-        // #error dead code found by automatic analyses (see BFW-5461)
-        _BV(X_AXIS)
-      #endif
-    )) {
-      // Previously called stop() for soft-error recovery. That mechanism has been removed.
-      static_assert(false, "Z_PROBE_SLED/Z_PROBE_ALLEN_KEY needs rework: stop() was removed");
-    }
   #endif
 
   const xy_pos_t old_xy = current_position.xy();
@@ -450,11 +291,6 @@ bool set_probe_deployed(const bool deploy) {
  */
 
 static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
-  #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    if (bltouch.deploy()) return true; // DEPLOY in LOW SPEED MODE on every probe action
-  #endif
-
   // Disable stealthChop if used. Enable diag1 pin on driver.
   #if ENABLED(SENSORLESS_PROBING)
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -504,15 +340,10 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
   #if ENABLED(SENSORLESS_PROBING)
     // #error dead code found by automatic analyses (see BFW-5461)
     endstops.not_homing();
-    #if NEITHER(ENDSTOPS_ALWAYS_ON_DEFAULT, CRASH_RECOVERY)
+    #if DISABLED(ENDSTOPS_ALWAYS_ON_DEFAULT) && !HAS_CRASH_DETECTION()
       // #error dead code found by automatic analyses (see BFW-5461)
       disable_crash_detection(Z_AXIS, stealth_states.z);
     #endif
-  #endif
-
-  #if ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    if (probe_triggered && bltouch.stow()) return true; // STOW in LOW SPEED MODE on trigger on every probe action
   #endif
 
   // Clear endstop flags
@@ -635,6 +466,7 @@ static ProbeRetry handle_probe_safety_trip() {
  *  - true endstop was triggered earlier than expected_trigger_z was reached
  *  - false endstop was not reached
  * @param params.is_nozzle_clean If true, skip any nozzle cleaning routines before probing.
+ *  when the analysis could still compute a Z for them.
  *
  * @return The Z position of the bed at the current XY or NAN on error.
  */
@@ -650,7 +482,7 @@ float run_z_probe(const RunZProbeParams& params) {
     *params.endstop_triggered = true;
 
   // We expect PA delays to be already avoided here
-  assert(pressure_advance::PressureAdvanceDisabler::is_active());
+  debug_assert(pressure_advance::PressureAdvanceDisabler::is_active());
 
   #if ENABLED(NOZZLE_LOAD_CELL)
     if (!loadcell_wait_streaming()) {
@@ -787,7 +619,7 @@ float run_z_probe(const RunZProbeParams& params) {
         uint32_t elapsed_us = ticks_diff(ticks_us(), move_fwd_end);
         uint32_t start_delay_us = PreciseStepping::get_first_move_delay_us();
         uint32_t precomp_ms = (elapsed_us + start_delay_us) / 1000;
-        assert(precomp_ms <= Loadcell::TOUCHDOWN_DELAY_MS); // we handle underflow, but catch it on debug
+        debug_assert(precomp_ms <= Loadcell::TOUCHDOWN_DELAY_MS); // we handle underflow, but catch it on debug
         millis_t delay_ms = std::min<uint32_t>(Loadcell::TOUCHDOWN_DELAY_MS - precomp_ms, Loadcell::TOUCHDOWN_DELAY_MS);
         safe_delay(delay_ms);
 
@@ -839,7 +671,7 @@ float run_z_probe(const RunZProbeParams& params) {
         }
 
         METRIC_DEF(analysis_result, "probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
-        auto result = loadcell.analysis.Analyse(params.is_nozzle_clean);
+        auto result = loadcell.analysis.Analyse(params.check_angle_after ? *params.check_angle_after : probe_should_check_angle_after());
 
         if (result.has_value()) {
           z_sum += result->z_coordinate;
@@ -998,7 +830,7 @@ bool cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
         .expected_trigger_z = 0.f,
         .single_only = true,
         .endstop_triggered = nullptr,
-        .is_nozzle_clean = true
+        .check_angle_after = false,
       });
       if (planner.draining()) {
         should_continue = false;
@@ -1034,19 +866,17 @@ bool cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
 #endif
 
 
-/**
- * @brief Probe down from current position, repeat probing untill we have one successfull
- *
- * May return NAN if after TOTAL_PROBING no probe was successfull
- */
-float probe_here(float expected_trigger_z)
+float probe_here(float expected_trigger_z, uint8_t max_attempts)
 {
   float res = NAN;
   DEPLOY_PROBE();
-  for(int i=0; i <= TOTAL_PROBING; i++){
+  for(uint8_t i = 0; i < max_attempts; i++){
     res = run_z_probe({ .expected_trigger_z = expected_trigger_z, .single_only = true }) + probe_offset.z + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
     if (!std::isnan(res))
       break;
+
+    // When run_z_probe fails in single_only mode, it does not lift the head, we gotta do it ourselves
+    do_blocking_move_to_z( current_position.z + Z_CLEARANCE_MULTI_PROBE);
   }
   STOW_PROBE();
 
@@ -1062,7 +892,7 @@ float probe_here(float expected_trigger_z)
  *   - Raise to the BETWEEN height
  * - Return the probed Z position
  */
-float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/, const uint8_t required_successes/*=1*/) {
+float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/, const uint8_t required_successes/*=1*/, const ApplyToolCorrections apply_tool_corrections/*=ApplyToolCorrections::yes*/) {
   xyz_pos_t npos = xyz_pos_t(pos);
   if (probe_relative) {
     if (!position_is_reachable_by_probe(npos.xy())) {
@@ -1114,13 +944,21 @@ float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after/*=PROBE
 
     measured_z += probe_offset.z;
 
-    #if HAS_HOTEND_OFFSET
-    #if !HAS_TOOLCHANGER() && !HAS_INDX()
-      #error not implemented
-    #endif
-    // measured Z is in probe's logical coordinate space, shift it to printers native coordinate space
-    measured_z += hotend_currently_applied_offset.z;
-    #endif
+    if (apply_tool_corrections == ApplyToolCorrections::yes) {
+      #if HAS_HOTEND_OFFSET
+      #if !HAS_TOOLCHANGER() && !HAS_INDX()
+        #error not implemented
+      #endif
+      // measured Z is in probe's logical coordinate space, shift it to printers native coordinate space
+      measured_z += hotend_currently_applied_offset.z;
+      #endif
+
+      #if HAS_NOZZLE_THERMAL_COMPENSATION()
+      // Express the result in the nozzle's length at the reference temperature; see
+      // nozzle_thermal_compensation.hpp
+      measured_z -= buddy::nozzle_thermal_compensation::current_elongation_vs_reference_mm();
+      #endif
+    }
 
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     if (big_raise || raise_after == PROBE_PT_RAISE) {
@@ -1129,7 +967,7 @@ float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after/*=PROBE
       if (STOW_PROBE()) measured_z = NAN;
   }
 
-  const auto logical = pos.asLogical();
+  const auto logical = xyz_pos_t(pos).asLogical();
 
   if (verbose_level > 2) {
     SERIAL_ECHOPAIR_F("Bed X: ", logical.x, 3);
@@ -1155,24 +993,6 @@ float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after/*=PROBE
 
   return measured_z;
 }
-
-#if HAS_Z_SERVO_PROBE
-  // #error dead code found by automatic analyses (see BFW-5461)
-
-  void servo_probe_init() {
-    /**
-     * Set position of Z Servo Endstop
-     *
-     * The servo might be deployed and positioned too low to stow
-     * when starting up the machine or rebooting the board.
-     * There's no way to know where the nozzle is positioned until
-     * homing has been done - no homing with z-probe without init!
-     *
-     */
-    STOW_Z_SERVO();
-  }
-
-#endif // HAS_Z_SERVO_PROBE
 
 #endif // HAS_BED_PROBE
 

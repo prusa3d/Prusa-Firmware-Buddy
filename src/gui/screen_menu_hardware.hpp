@@ -1,40 +1,44 @@
-/**
- * @file screen_menu_hardware.hpp
- */
-
+/// @file
 #pragma once
 
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-#include "MItem_tools.hpp"
-#include "MItem_menus.hpp"
-#include "MItem_crash.hpp"
 #include "MItem_hardware.hpp"
-#include "printers.h"
-#include <option/has_loadcell.h>
-#include <option/has_sheet_profiles.h>
-#include <option/has_toolchanger.h>
-#include <option/has_side_fsensor_remap.h>
-#include <option/has_modular_bed.h>
-#include <option/has_mmu2.h>
-#include <option/has_auto_retract.h>
-#include <option/has_chamber_vents.h>
+#include "MItem_menus.hpp"
+#include "MItem_tools.hpp"
+#include "MItem_crash.hpp"
+#include <basic_screen_menu.hpp>
 #include <common/extended_printer_type.hpp>
-#include "printers.h"
+#include <common/printer_variant/printer_variant.hpp>
+#include <option/has_auto_retract.h>
+#include <option/has_crash_detection.h>
+#include <option/has_emergency_stop.h>
+#include <option/has_chamber_vents.h>
+#include <option/has_mmu2.h>
+#include <option/has_phase_stepping.h>
+#include <option/has_15gt_belts.h>
+#include <option/has_sheet_profiles.h>
+#include <option/has_side_fsensor_remap.h>
+#include <option/has_toolchanger.h>
+#include <option/has_expansion_joints_gen_2.h>
+#include <option/has_nozzle_cleaner_lite.h>
+#include <option/has_switchable_homing_calibration.h>
 
+#include <option/has_modular_bed.h>
 #if HAS_MODULAR_BED()
     #include "screen_menu_modular_bed.hpp"
 #endif
-#if HAS_MMU2()
-    #include "MItem_mmu.hpp"
+
+#include <option/xbuddy_extension_variant.h>
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+    #include "menu_item/specific/menu_items_xbuddy_extension.hpp"
 #endif
 
-using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
-    MI_RETURN,
+using ScreenMenuHardwareBase = BasicScreenMenu<
 #if HAS_EXTENDED_PRINTER_TYPE()
     MI_EXTENDED_PRINTER_TYPE,
 #endif
-    MI_TOOLHEAD_SETTINGS,
+#if HAS_PRINTER_VARIANT()
+    MI_PRINTER_VARIANT,
+#endif
 
 // ================================
 // Filament sensor related
@@ -47,14 +51,17 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 // ================================
 // Motion related
 // ================================
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     MI_CRASH_SENSITIVITY_XY, MI_CRASH_MAX_PERIOD_X, MI_CRASH_MAX_PERIOD_Y,
     #if HAS_DRIVER(TMC2130)
     MI_CRASH_FILTERING,
     #endif
-#endif // ENABLED(CRASH_RECOVERY)
+#endif
 #if HAS_EMERGENCY_STOP()
     MI_EMERGENCY_STOP_ENABLE,
+#endif
+#if HAS_15GT_BELTS()
+    MI_BELTS_15GT,
 #endif
 
 // ================================
@@ -65,6 +72,9 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #endif
 #if HAS_SHEET_PROFILES()
     MI_STEEL_SHEETS,
+#endif
+#if HAS_EXPANSION_JOINTS_GEN_2()
+    MI_EXPANSION_JOINTS_GEN_2,
 #endif
 
 // ================================
@@ -80,29 +90,21 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if HAS_AUTO_RETRACT()
     MI_PRE_NOZZLE_CLEANING_RETRACT,
 #endif
-    MI_HARDWARE_G_CODE_CHECKS,
-#if HAS_PRECISE_HOMING_COREXY()
+    MI_GCODE_CHECKS,
+#if HAS_SWITCHABLE_HOMING_CALIBRATION()
     MI_AUTO_PRECISE_HOMING_CALIBRATION,
 #endif
-#if HAS_ILI9488_DISPLAY()
-    MI_DISPLAY_BAUDRATE,
+    MI_INPUT_SHAPER,
+#if HAS_PHASE_STEPPING()
+    MI_PHASE_STEPPING_SCREEN,
 #endif
-
-    // ================================
-    // Dev-only items
-    // ================================
-    MI_PRINTER_SETUP,
-    MI_EXPERIMENTAL_SETTINGS,
-    MI_XFLASH_RESET
-#ifdef HAS_TMC_WAVETABLE
-    ,
-    MI_WAVETABLE_XYZ
+#if HAS_NOZZLE_CLEANER_LITE()
+    MI_NOZZLE_CLEANER_LITE,
 #endif
-    >;
+    MI_ALWAYS_HIDDEN>;
 
-class ScreenMenuHardware : public ScreenMenuHardware__ {
+class ScreenMenuHardware final : public ScreenMenuHardwareBase {
 public:
-    constexpr static const char *label = N_("HARDWARE");
     ScreenMenuHardware();
 
 private:

@@ -40,3 +40,7 @@ set_property(
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
   )
+
+if(RTT_METRICS_ENABLED)
+  target_link_libraries(firmware PRIVATE rtt_metrics_task)
+endif()

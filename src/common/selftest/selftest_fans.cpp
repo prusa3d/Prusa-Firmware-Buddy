@@ -13,6 +13,9 @@
 #if HAS_PSU_FAN()
     #include <feature/psu_fan/psu_fan.hpp>
 #endif
+#if HAS_XL_CAN()
+    #include <puppies/xl_can.hpp>
+#endif
 
 LOG_COMPONENT_REF(Selftest);
 
@@ -133,6 +136,29 @@ void PSUFanHandler::set_pwm(uint8_t pwm) {
 
 void PSUFanHandler::record_sample() {
     const std::optional<uint16_t> rpm = psu_fan::psu_fan().get_rpm();
+    if (rpm.has_value()) {
+        sample_count++;
+        sample_sum += rpm.value();
+    }
+}
+#endif
+
+#if HAS_XL_CAN()
+BedMcuFanHandler::BedMcuFanHandler(FanRPMRange high_fan_range, FanRPMRange low_fan_range)
+    : FanHandler(FanType::bed_mcu, high_fan_range, 0 /*not used*/, low_fan_range)
+    , original_pwm(buddy::puppies::xl_can.get_fan_pwm()) {
+}
+
+BedMcuFanHandler::~BedMcuFanHandler() {
+    buddy::puppies::xl_can.set_fan_pwm(original_pwm, buddy::puppies::XlCan::FanSelftestMode::exit_selftest);
+}
+
+void BedMcuFanHandler::set_pwm(uint8_t pwm) {
+    buddy::puppies::xl_can.set_fan_pwm(pwm, buddy::puppies::XlCan::FanSelftestMode::set_selftest);
+}
+
+void BedMcuFanHandler::record_sample() {
+    const std::optional<uint16_t> rpm = buddy::puppies::xl_can.get_fan_rpm();
     if (rpm.has_value()) {
         sample_count++;
         sample_sum += rpm.value();

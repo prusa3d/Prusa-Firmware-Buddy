@@ -28,6 +28,7 @@
 #include <option/has_precise_homing_corexy.h>
 #include <option/has_precise_homing.h>
 #include <option/has_indx.h>
+#include <option/has_print_sheet_detection.h>
 
 // clang-format off
 
@@ -172,7 +173,7 @@
 #define TEMP_SENSOR_BOARD 2000
 
 #if HAS_INDX()
-    #define TEMP_RESIDENCY_TIME 2 // (seconds) Time to wait for hotend to "settle" in M109
+    #define TEMP_RESIDENCY_TIME 1 // (seconds) Time to wait for hotend to "settle" in M109
 #else
     #define TEMP_RESIDENCY_TIME 5 // (seconds) Time to wait for hotend to "settle" in M109
 #endif
@@ -465,17 +466,21 @@
  * Override with M92
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
+// These only seed the config-store default
+// X/Y steps/mm depend on the belt, so there is no single default
+#define AXIS_STEPS_PER_UNIT_2GT_XY 100.0f
+#define AXIS_STEPS_PER_UNIT_15GT_XY 101.587f
+#define DEFAULT_AXIS_STEPS_PER_UNIT_Z 800
+
 #if HAS_INDX()
 // INDX_HEAD extruder is calibrated for 567 steps/mm, but we have changed it to 550 steps/mm.
 // This compensates for shorter length of the extruder service moves.
 static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
-
-#define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 800, 550 } // Adjust EXTRUDER_SERVICE_MOVE_E_FACTOR if changed
+#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 550 // Adjust EXTRUDER_SERVICE_MOVE_E_FACTOR if changed
 #else
-#define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 800, 380 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 380
 #endif
+
 /**
  * Default Max Feed Rate (mm/s)
  * Override with M203
@@ -618,45 +623,6 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 #if HAS_LOADCELL()
   #define NOZZLE_LOAD_CELL
 #endif
-
-/**
- * Z Servo Probe, such as an endstop switch on a rotating arm.
- */
-//#define Z_PROBE_SERVO_NR 0   // Defaults to SERVO 0 connector.
-//#define Z_SERVO_ANGLES {70,0}  // Z Servo Deploy and Stow angles
-
-/**
- * The BLTouch probe uses a Hall effect sensor and emulates a servo.
- */
-//#define BLTOUCH
-#if ENABLED(BLTOUCH)
-    //#define BLTOUCH_DELAY 375   // (ms) Enable and increase if needed
-
-    // BLTouch V3.0 and newer smart series
-    //#define BLTOUCH_V3
-    #if ENABLED(BLTOUCH_V3)
-    //#define BLTOUCH_FORCE_5V_MODE
-    //#define BLTOUCH_FORCE_OPEN_DRAIN_MODE
-    #endif
-#endif
-
-// A probe that is deployed and stowed with a solenoid pin (SOL1_PIN)
-//#define SOLENOID_PROBE
-
-// A sled-mounted probe like those designed by Charles Bell.
-//#define Z_PROBE_SLED
-//#define SLED_DOCKING_OFFSET 5  // The extra distance the X axis must travel to pickup the sled. 0 should be fine but you can push it further if you'd like.
-
-// A probe deployed by moving the x-axis, such as the Wilson II's rack-and-pinion probe designed by Marty Rice.
-//#define RACK_AND_PINION_PROBE
-#if ENABLED(RACK_AND_PINION_PROBE)
-    #define Z_PROBE_DEPLOY_X X_MIN_POS
-    #define Z_PROBE_RETRACT_X X_MAX_POS
-#endif
-
-//
-// For Z_PROBE_ALLEN_KEY see the Delta example configurations.
-//
 
 /**
  *   Z Probe to nozzle (X,Y) offset, relative to (0, 0).
@@ -837,8 +803,13 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 
 // Direction of endstops when homing; 1=MAX, -1=MIN
 // :[-1,1]
+#if HAS_INDX()
+#define X_HOME_DIR -1 // Homing direction is inverted because on the right, INDX_HEAD's print fan is bumping to the motor
+#define Y_HOME_DIR 1 // Homing direction is inverted because there are docks in the front
+#else
 #define X_HOME_DIR 1
 #define Y_HOME_DIR -1
+#endif
 #define Z_HOME_DIR -1
 
 // @section machine
@@ -854,22 +825,27 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 #endif
 
 // The size of the print bed
+#if HAS_INDX()
+#define X_BED_SIZE 301
+#define Y_BED_SIZE 270
+#else
 #define X_BED_SIZE 300
 #define Y_BED_SIZE 300
+#endif
 #define Z_SIZE 330
 
 #if HAS_INDX()
 // Travel limits (mm) after homing, corresponding to endstop positions. default x -2.5 y -7.3
-#define X_MIN_POS (-7 - X_MAX_OFFSET) // INDX_TODO: Measure
-#define Y_MIN_POS (-8 - Y_MAX_OFFSET) // INDX_TODO: Measure
-#define Z_MIN_POS (0 - Z_MAX_OFFSET) // INDX_TODO: Measure
-#define X_MAX_POS (X_BED_SIZE - X_MIN_OFFSET)
+#define X_MIN_POS (0 - X_MAX_OFFSET)
+#define Y_MIN_POS (-40 - Y_MAX_OFFSET)
+#define Z_MIN_POS (0 - Z_MAX_OFFSET)
+#define X_MAX_POS (X_BED_SIZE - X_MIN_OFFSET + 10)
 #define X_MIN_PRINT_POS X_MIN_POS
-#define X_MAX_PRINT_POS X_WASTEBIN_SAFE_POINT // maximal print area X position (excluding nozzle cleaner area)
+#define X_MAX_PRINT_POS X_WASTEBIN_SAFE_POINT // maximal print area X position (excluding nozzle cleaner area); X_WASTEBIN_SAFE_POINT is defined in nozzle_cleaner.hpp
 #define Y_MAX_PRINT_POS (Y_BED_SIZE - Y_MIN_OFFSET) // maximal print area Y position (excluding toolchanger area)
 #define Y_MAX_POS (Y_MAX_PRINT_POS) // extra distance in Y to reach toolchanger
 #define PROBE_MAX_Y Y_BED_SIZE // limit maximal Y probe position (so that tool doesn't hit toolchanger with high tool offsets)
-#define Y_DOCK_SAFE_OFFSET 28.6f // distance from the side, which could be occupied by INDX (linked to DOCK_SAFE_Y_OFFSET in toolchangers_utils.h) TODO: fix with measure
+#define Y_DOCK_SAFE_OFFSET 28.6f // distance from the side, which could be occupied by INDX (linked to DOCK_SAFE_Y_OFFSET in toolchangers_utils.h)
 #define Y_DOCK_PARKING_MIN_SAFE_POS (Y_MIN_POS + Y_DOCK_SAFE_OFFSET + 5.f) // position for save index head (bellow this position the motion on X could damage the nozzles or hit ventilation lever)
 #define Y_MIN_PRINT_POS Y_DOCK_PARKING_MIN_SAFE_POS
 #else
@@ -898,7 +874,8 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 /// If defined, the printer will check max_printed_z and if a move would result in the model getting above this clearance,
 /// it will prompt the user
 /// Requires HAS_CEILING_CLEARANCE()
-// Note: There is actually a more space to the ceiling on C1, but there is also the toolhead cable swinging around, so let's be a bit conservative
+/// Note: There is actually a more space to the ceiling on C1, but there is also the toolhead cable swinging around, so let's be a bit conservative
+/// !!! IMPORTANT: Consult with the slicer team when changing this number, needs to be synced with the slicer profiles
 #define Z_CEILING_CLEARANCE 100
 
 /// Distance between start of the axis to the position where ordinary movement is allowed
@@ -1039,7 +1016,7 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 // Manually set the home position. Leave these undefined for automatic settings.
 //#define MANUAL_X_HOME_POS 0
 //#define MANUAL_Y_HOME_POS 0
-//#define MANUAL_Z_HOME_POS 0
+#define MANUAL_Z_HOME_POS 0
 
 // Use "Z Safe Homing" to avoid homing with a Z probe outside the bed area.
 //
@@ -1054,18 +1031,18 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 
 #if ENABLED(Z_SAFE_HOMING)
 #if HAS_INDX()
-    #define Z_SAFE_HOMING_X_POINT (135) // X point for Z homing when homing all axes (G28).
+    // homing point is close to print sheet detection point to minimize Z differences
+    #define Z_SAFE_HOMING_X_POINT (25) // X point for Z homing when homing all axes (G28).
     #define Z_SAFE_HOMING_Y_POINT (15) // Y point for Z homing when homing all axes (G28).
 #else
     #define Z_SAFE_HOMING_X_POINT (270) // X point for Z homing when homing all axes (G28).
     #define Z_SAFE_HOMING_Y_POINT (10) // Y point for Z homing when homing all axes (G28).
 #endif
-    #define DETECT_PRINT_SHEET
-    #if ENABLED(DETECT_PRINT_SHEET)
+    #if HAS_PRINT_SHEET_DETECTION()
         #if HAS_INDX()
-            // INDX_TODO: Refine, measure proper place. Lower Y would crash into dock.
-            #define DETECT_PRINT_SHEET_X_POINT (0)
-            #define DETECT_PRINT_SHEET_Y_POINT (0)
+            // Lower Y would crash into dock.
+            #define DETECT_PRINT_SHEET_X_POINT (25)
+            #define DETECT_PRINT_SHEET_Y_POINT (-27)
         #else
             #define DETECT_PRINT_SHEET_X_POINT (220)
             #define DETECT_PRINT_SHEET_Y_POINT (-7)
@@ -1137,39 +1114,28 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
  */
     // Specify a park position as { X, Y, Z }
 #if HAS_INDX()
-    // INDX_TODO: add proper values (this is from c1)
-    #define X_NOZZLE_CLEANER_ORIGIN 259.7f
-    #define Y_NOZZLE_CLEANER_ORIGIN 63.5f
+    #define X_NOZZLE_CLEANER_ORIGIN 312.16f
+    #define Y_NOZZLE_CLEANER_ORIGIN 81.4f // master Y reference
 
-    // Y calibration indent positions [mm] for the two wastebin variants. Both bins share the same cleaner
-    // origin / coordinate system - these are only where the Y calibration feature sits on each bin, not a
-    // shifted origin, so the cleaning sequence and wastebin positions stay put. The standard (longer) bin's
-    // indent is at the origin; the extended (shorter, perforated-side-panel) bin's is 40 mm closer to the
-    // silicone blocks (+Y). The matched point also selects the bin's capacity.
-    #define Y_NOZZLE_CLEANER_CALIB_POINT_STANDARD Y_NOZZLE_CLEANER_ORIGIN
-    #define Y_NOZZLE_CLEANER_CALIB_POINT_EXTENDED (Y_NOZZLE_CLEANER_ORIGIN + 40.f)
-
-    #define X_WASTEBIN_SAFE_POINT 250.f //INDX_TODO: Refine and add proper values (this is from c1)
-    #define Y_WASTEBIN_SAFE_POINT 55.5f //INDX_TODO: Refine and add proper values (this is from c1)
-    #define Y_BRUSH_AVOID_POINT 164.5f //INDX_TODO: Refine and add proper values (this is from c1)
-
-    #define X_WASTEBIN_POINT (X_NOZZLE_CLEANER_ORIGIN + 0.65f)
-    #define Y_WASTEBIN_POINT (Y_NOZZLE_CLEANER_ORIGIN + 86.f)
-
-    #define X_NOZZLE_PARK_POINT X_WASTEBIN_POINT
-    #define Y_NOZZLE_PARK_POINT Y_WASTEBIN_POINT + 5.f
+    // Cleaner geometry (wastebin, purge tray, wall, calibration points) is in nozzle_cleaner.hpp,
+    // anchored to the origins above. The park point must stay here: Marlin's SanityCheck.h expands
+    // XYZ_NOZZLE_PARK_POINT in every TU.
+    #define X_NOZZLE_PARK_POINT X_NOZZLE_CLEANER_ORIGIN // = X_WASTEBIN_POINT
+    #define Y_NOZZLE_PARK_POINT (Y_NOZZLE_CLEANER_ORIGIN + 91.f) // = Y_WASTEBIN_POINT + 5.f, kept in sync by a static_assert in nozzle_cleaner.cpp
 #else
     #define X_NOZZLE_PARK_POINT (X_MAX_POS - 40.0f)
     #define Y_NOZZLE_PARK_POINT (Y_MIN_POS + 3.0f)
 #endif
     #define Z_NOZZLE_PARK_POINT (20.0f)
-    #define Z_NOZZLE_PARK_POINT_MIN 67.0f // Always raise the nozzle by this amount when parking on print end
+    /// Always park the bed at least this low, so the user can reach the print.
+    /// On INDX this also has to clear the door with the fixed front plate.
+    #define Z_NOZZLE_PARK_POINT_MIN (Z_MAX_POS - 50.0f)
     #define Z_NOZZLE_PARK_RISE 50.0f // Relative Z rise
 
     #define XYZ_NOZZLE_PARK_POINT \
         {X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, Z_NOZZLE_PARK_POINT}
 
-#if HAS_INDX()     // INDX_TODO: add proper values (this is from c1)
+#if HAS_INDX()
     #define XYZ_WASTEBIN_POINT \
         {X_WASTEBIN_POINT, Y_WASTEBIN_POINT, Z_NOZZLE_PARK_POINT}
 
@@ -1190,17 +1156,26 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 #if HAS_INDX()
     #define X_NOZZLE_PARK_POINT_M600 X_WASTEBIN_POINT
     #define Y_NOZZLE_PARK_POINT_M600 Y_WASTEBIN_POINT
-    #define Z_NOZZLE_PARK_POINT_M600 Z_NOZZLE_PARK_POINT
+    // Should be far enough that bed clears the chamber LEDs, so that user can see the nozzle cleaner well.
+    #define Z_NOZZLE_PARK_POINT_M600 10.0f
+    #define Z_NOZZLE_PARK_RISE_M600 5.0f
 #else
     #define X_NOZZLE_PARK_POINT_M600 X_AXIS_LOAD_POS
     #define Y_NOZZLE_PARK_POINT_M600 Y_AXIS_LOAD_POS
     #define Z_NOZZLE_PARK_POINT_M600    60.0f
+    #define Z_NOZZLE_PARK_RISE_M600 Z_NOZZLE_PARK_RISE
 #endif
+
     #define XYZ_NOZZLE_PARK_POINT_M600 \
         {X_NOZZLE_PARK_POINT_M600, Y_NOZZLE_PARK_POINT_M600, Z_NOZZLE_PARK_POINT_M600}
 
-#if HAS_INDX() //INDX_TODO: Refine and add proper values (this is from c1)
+#if HAS_INDX()
+    #ifdef _DEBUG
+// Debug is not managing the full speed
+    #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
+    #else
     #define NOZZLE_PARK_XY_FEEDRATE 300 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
+    #endif
 #else
     #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
 #endif
@@ -1208,7 +1183,7 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 
 #if HAS_INDX()
     #define X_AXIS_LOAD_POS X_NOZZLE_PARK_POINT
-    #define Y_AXIS_LOAD_POS X_NOZZLE_PARK_POINT
+    #define Y_AXIS_LOAD_POS Y_NOZZLE_PARK_POINT
     #define Z_AXIS_LOAD_POS Z_NOZZLE_PARK_POINT
 
     #define X_AXIS_UNLOAD_POS X_WASTEBIN_POINT
@@ -1283,29 +1258,3 @@ static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
 
 // SkeinForge sends the wrong arc g-codes when using Arc Point as fillet procedure
 //#define SF_ARC_FIX
-
-/**
- * R/C SERVO support
- * Sponsored by TrinityLabs, Reworked by codexmas
- */
-
-/**
- * Number of servos
- *
- * For some servo-related options NUM_SERVOS will be set automatically.
- * Set this manually if there are extra servos needing manual control.
- * Leave undefined or set to 0 to entirely disable the servo subsystem.
- */
-//#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
-
-// Delay (in milliseconds) before the next move will start, to give the servo time to reach its target angle.
-// 300ms is a good value but you can try less delay.
-// If the servo can't reach the requested position, increase it.
-#define SERVO_DELAY \
-    { 300 }
-
-// Only power servos during movement, otherwise leave off to prevent jitter
-//#define DEACTIVATE_SERVOS_AFTER_MOVE
-
-// Allow servo angle to be edited and saved to EEPROM
-//#define EDITABLE_SERVO_ANGLES

@@ -3,6 +3,7 @@
 #include "gcode_reader_interface.hpp"
 
 #include <base64/base64.hpp>
+#include <utils/byte_utils.hpp>
 
 /**
  * @brief Implementation of IGcodeReader for plaintext gcodes
@@ -63,7 +64,7 @@ private:
         uint32_t thumbnail_size = 0;
         base64::Base64Decoder base64_decoder;
 
-        std::span<std::byte> read(std::span<std::byte> buffer) final;
+        WritableBytes read(WritableBytes buffer) final;
         Result_t getc(char &out);
     };
     ThumbnailReader thumbnail_reader;

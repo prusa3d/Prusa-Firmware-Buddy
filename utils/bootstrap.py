@@ -293,6 +293,21 @@ def install_openocd_config_template():
         )
 
 
+def install_git_hooks():
+    # Pin prek to the root config (single-config mode), matching old pre-commit.
+    if not (project_root_dir / '.git').exists():
+        return
+    try:
+        subprocess.run([
+            str(venv_bin_dir / 'prek'), 'install', '--overwrite', '-c',
+            '.pre-commit-config.yaml'
+        ],
+                       cwd=str(project_root_dir),
+                       check=True)
+    except (subprocess.CalledProcessError, OSError) as exc:
+        print(f'Warning: failed to install prek hooks: {exc}', file=sys.stderr)
+
+
 def get_dependency_version(dependency):
     return dependencies[dependency]['version']
 
@@ -374,6 +389,9 @@ def bootstrap(include_integration):
 
     # also, install openocd config meant for customization
     install_openocd_config_template()
+
+    # install prek Git hooks
+    install_git_hooks()
 
 
 def main() -> int:

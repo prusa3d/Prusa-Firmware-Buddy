@@ -2,7 +2,6 @@
 #include <common/st25dv64k.h>
 
 #include <algorithm>
-#include <cassert>
 #include <common/bsod.h>
 #include <common/i2c.hpp>
 #include <common/st25dv64k_internal.h>
@@ -89,9 +88,9 @@ uint8_t dirty_size = 0; ///< number of dirty bytes
 
 /// Helper to write memory, wait for completion and verify write was correct.
 [[nodiscard]] i2c::Result mem_write_verified(uint16_t address, uint8_t *data, uint16_t size) {
-    assert(size > 0);
+    debug_assert(size > 0);
     // Large blocks are always aligned, small ones are always buffered
-    assert(is_page_aligned(address) ? (size <= SEQUENTIAL_WRITE_BYTES) : page_address(address) == page_address(address + size - 1));
+    debug_assert(is_page_aligned(address) ? (size <= SEQUENTIAL_WRITE_BYTES) : page_address(address) == page_address(address + size - 1));
     if (const i2c::Result result = i2c::Mem_Write_16bit_Addr(*i2c_handle_eeprom, std::to_underlying(EepromCommandWrite::addr_memory), address, data, size, HAL_MAX_DELAY); result != i2c::Result::ok) {
         return result;
     }
@@ -147,7 +146,7 @@ uint8_t dirty_size = 0; ///< number of dirty bytes
         if (dirty_size == 0) {
             dirty_address = address;
         }
-        assert(address == dirty_address + dirty_size);
+        debug_assert(address == dirty_address + dirty_size);
 
         const uint16_t chunk = std::min<uint16_t>(size, BLOCK_BYTES - page_offset(address));
         memcpy(&dirty_data[dirty_size], src, chunk);
@@ -165,7 +164,7 @@ uint8_t dirty_size = 0; ///< number of dirty bytes
     }
 
     // Address is now page-aligned and the buffer is empty.
-    assert(is_page_aligned(address));
+    debug_assert(is_page_aligned(address));
 
     // Bulk: write whole pages via the fast multi-page frame, with verify + retry.
     while (size >= BLOCK_BYTES) {

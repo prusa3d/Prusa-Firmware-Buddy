@@ -4,6 +4,7 @@
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 #include <common/SteelSheets.hpp>
+#include <bsod/bsod.h>
 #if HAS_TOOLCHANGER()
     // #error dead code found by automatic analyses (see BFW-5461)
     #include <module/prusa/toolchanger.h>
@@ -49,7 +50,7 @@ uint64_t get_test_mask(Action action) {
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:
-        return stmHeaters;
+        bsod("This should be gcode");
     case Action::ZAlign:
         return stmZcalib;
     case Action::FirstLayer:

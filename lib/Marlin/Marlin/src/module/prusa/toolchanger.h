@@ -70,10 +70,10 @@ public:
     #if HAS_TOOL_CRASH_RECOVERY()
 
     /**
-     * @brief During toolcrash or toolfall recovery deselect dwarf as if all were parked.
+     * @brief During toolfall recovery (or toolcrash recovery on XL) deselect active tool.
      * @warning Only run this from Marlin thread.
      */
-    void crash_deselect_dwarf();
+    void crash_deselect_tool();
 
     /**
      * @brief Disable loop() with automatic toolchange and toolfall detection.
@@ -95,8 +95,9 @@ public:
      * @brief Returns calibrated value with the tools docking position
      *
      * @param tool_nr number of tool
+     * @param check_calibrated Redscreens if true and the tool is not calibrated
      */
-    const xy_float_t get_tool_dock_position(PhysicalToolIndex tool);
+    const xy_float_t get_tool_dock_position(PhysicalToolIndex tool, bool check_calibrated = true);
 
     /// @returns position just in front of the dock, the tool being ready to be parked
     xy_pos_t tool_park_position(PhysicalToolIndex tool);
@@ -208,12 +209,12 @@ public:
         hit
     };
 
-    /**
-     * @brief Try bumping to a dock position to see if its empty.
-     * @param tool this tool
-     * @return true if empty
-     */
-    std::expected<void, BumpError> bump_to_dock(PhysicalToolIndex tool);
+    /// Try bumping to a @p dock position to see if its empty.
+    std::expected<void, BumpError> bump_to_dock(PhysicalToolIndex dock);
+
+    /// Ensures some tool is picked and selected @p dock is empty
+    /// @warning throws a fatal error on failure
+    void pick_tool_out_of_dock(PhysicalToolIndex dock);
 
     /**
      * @brief Updates/invalidates the last picked tool (only when not printing if not overriden)
@@ -344,13 +345,11 @@ private:
      * @brief Show toolchange failure dialog and get user decision.
      * @param main_phase the primary Ignore/Retry/Abort prompt
      * @param confirm_abort_phase the abort confirmation prompt
-     * @param confirm_retry_phase the retry confirmation prompt
      * @return user's chosen action
      */
     [[nodiscard]] ToolchangeFailureAction handle_toolchange_failure(
         PhaseNozzleMismatch main_phase,
-        PhaseNozzleMismatch confirm_abort_phase,
-        PhaseNozzleMismatch confirm_retry_phase);
+        PhaseNozzleMismatch confirm_abort_phase);
 
     [[nodiscard]] ToolchangeFailureAction handle_pickup_failure();
     [[nodiscard]] ToolchangeFailureAction handle_park_failure();
@@ -455,8 +454,6 @@ private:
      */
     void toolfall();
 
-    #endif
-
     /**
      * @brief Plan a smooth unparking move towards destination
      * unpark_to() should only be called after pickup() in order to plan a smooth unpark move,
@@ -465,6 +462,8 @@ private:
      * @param destination
      */
     void unpark_to(const xy_pos_t &destination);
+
+    #endif
 
     /**
      * @brief Compensate the Z offset by the specified amount

@@ -1,6 +1,7 @@
 #include "inc/MarlinConfigPre.h"
+#include <option/has_crash_detection.h>
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 
     #include "../../module/stepper.h"
     #include "../../feature/motordriver_util.h"
@@ -87,19 +88,19 @@ void Crash_s::stop_and_save() {
 
     // reset current position
     planner.reset_position();
-    crash_position = planner.get_machine_position_mm();
+    crash_machine_position = planner.get_machine_position_mm();
 
     // Due to e_factor not being reflected in the physical positioning (allowing the stepper position
     // to drift), we cannot easily recover an absolute E position that makes sense. We thus work in
     // segment-relative offsets, requiring us to store extra state.
-    crash_position[E_AXIS] = e_position;
+    crash_machine_position[E_AXIS] = e_position;
 
-    // update crash_current_position. WARNING: this is NOT intended to be fully reversible (doing so
+    // update crash_native_position. WARNING: this is NOT intended to be fully reversible (doing so
     // would require keeping more state), it's only usable to abort or return to the same position.
-    planner.get_axis_position_mm(crash_current_position);
+    planner.get_axis_position_mm(crash_native_position);
 
     #if HAS_LEVELING
-    planner.unapply_leveling(crash_current_position);
+    planner.unapply_leveling(crash_native_position);
     #endif
 }
 
@@ -117,7 +118,7 @@ void Crash_s::resume_movement() {
 
     // order is important here! set an approximate current position which is only good enough for
     // re-homing and guarantees no changes with a zero offset from current_position.
-    current_position = crash_current_position;
+    current_position = crash_native_position;
     planner.set_position_mm(current_position);
 
     check_stack_unwound();
@@ -133,12 +134,12 @@ void Crash_s::restore_state() {
     if (!(recover_flags & RECOVER_XY_POSITION)) {
         LOOP_XY(i) {
             start_current_position[i] = current_position[i];
-            crash_position[i] = current_position[i];
+            crash_machine_position[i] = current_position[i];
         }
     }
     if (!(recover_flags & RECOVER_Z_POSITION)) {
         start_current_position[Z_AXIS] = current_position[Z_AXIS];
-        crash_position[Z_AXIS] = current_position[Z_AXIS];
+        crash_machine_position[Z_AXIS] = current_position[Z_AXIS];
     }
 
     // order is important here!
@@ -334,7 +335,7 @@ void Crash_s::send_reports() {
 
     METRIC_DEF(crash_metric, "crash", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
     metric_record_custom(&crash_metric, ",axis=%c sens=%ldi,period=%ldi,speed=%.3f",
-        axis_codes[axis_hit], sensitivity.pos[axis_hit], max_period.pos[axis_hit],
+        axis_codes[axis_hit], sensitivity[axis_hit], max_period[axis_hit],
         static_cast<double>(speed));
     #endif
 }
@@ -462,4 +463,4 @@ void Crash_s::set_filter(bool on) {
     update_machine();
 }
     #endif /*HAS_DRIVER(TMC2130)*/
-#endif // ENABLED(CRASH_RECOVERY)
+#endif

@@ -15,6 +15,7 @@
 #include <option/sysdebug.h>
 
 #include "honeybee_shared_fault.hpp"
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Watcher);
 
@@ -27,7 +28,7 @@ concept EnumType = std::is_enum_v<E> && requires(E e) {
 
 /**
  * @brief Watcher for presence of something.
- * @tparam Watched enum type of watched things, needs to contain _count and _last
+ * @tparam Watched enum type of watched things, needs to contain _count
  * @tparam timeout_us timeout [microseconds]
  */
 template <EnumType Watched, int32_t timeout_us>
@@ -71,7 +72,7 @@ public:
      * @param what what to mark as present
      */
     void present(int64_t now, Watched what) {
-        assert(std::to_underlying(what) < COUNT);
+        debug_assert(std::to_underlying(what) < COUNT);
         last_presence[std::to_underlying(what)].store(static_cast<uint32_t>(now));
         faulted[std::to_underlying(what)].store(false);
         watching[std::to_underlying(what)].store(true);
@@ -79,13 +80,13 @@ public:
 
     /// @return True if we are currently watching this thing.
     inline bool is_watching(Watched what) const {
-        assert(std::to_underlying(what) < COUNT);
+        debug_assert(std::to_underlying(what) < COUNT);
         return watching[std::to_underlying(what)].load();
     }
 
     /// @return True if this thing is currently considered missing.
     inline bool is_faulted(Watched what) const {
-        assert(std::to_underlying(what) < COUNT);
+        debug_assert(std::to_underlying(what) < COUNT);
         return faulted[std::to_underlying(what)].load();
     }
 
@@ -98,7 +99,7 @@ public:
 
 /**
  * @brief Watcher for presence of some data.
- * @tparam Watched enum type of watched things, needs to contain _count and _last
+ * @tparam Watched enum type of watched things, needs to contain _count
  * @tparam timeout_us timeout [microseconds]
  * @tparam watcher_n watcher number for log in case there are more data watchers
  */
@@ -117,7 +118,7 @@ public:
      */
     Data(const ClearDataCallback callback_)
         : callback(callback_) {
-        assert(callback);
+        debug_assert(callback);
     }
 
 private:
@@ -141,7 +142,7 @@ private:
 
 /**
  * @brief Watcher for presence of heartbeats.
- * @tparam Watched enum type of watched nodes, needs to contain _count and _last
+ * @tparam Watched enum type of watched nodes, needs to contain _count
  */
 template <EnumType Watched>
 class Heartbeat : public Proto<Watched, uavcan_node_Heartbeat_1_0_OFFLINE_TIMEOUT * 1'000'000> {
@@ -157,7 +158,7 @@ class Heartbeat : public Proto<Watched, uavcan_node_Heartbeat_1_0_OFFLINE_TIMEOU
      * @param what what is missing
      */
     void proto_callback([[maybe_unused]] Watched what) override {
-        assert(std::to_underlying(what) < inherited::COUNT);
+        debug_assert(std::to_underlying(what) < inherited::COUNT);
 #if !SYSDEBUG()
         log_error(Watcher, "Heartbeat timeout for watched=%u, node_id=%hhu",
             std::to_underlying(what),
@@ -205,7 +206,7 @@ public:
      * @param watch_change true to fault if node_id changes, false to allow change only if not watching
      */
     void register_node_id(Watched what, CanardNodeID node_id, int64_t now, bool watch_change = true) {
-        assert(std::to_underlying(what) < inherited::COUNT);
+        debug_assert(std::to_underlying(what) < inherited::COUNT);
         if (inherited::watching[std::to_underlying(what)].load() == false) {
             if (inherited::faulted[std::to_underlying(what)].load() == false) {
                 inherited::present(now, what); // mark it as present - to establish baseline from which to count timeout
@@ -237,7 +238,7 @@ public:
      * @return node ID of watched node
      */
     [[nodiscard]] CanardNodeID get_node_id(Watched what) const {
-        assert(std::to_underlying(what) < inherited::COUNT);
+        debug_assert(std::to_underlying(what) < inherited::COUNT);
         return watch_node_id[std::to_underlying(what)].load();
     }
 };

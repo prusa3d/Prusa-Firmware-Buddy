@@ -43,3 +43,7 @@ FilamentType FilamentType::for_tool_heuristic(std::variant<VirtualToolIndex, NoT
 
     return NoFilamentType {};
 }
+
+FilamentType FilamentType::for_current_tool_heuristic() {
+    return for_tool_heuristic(VirtualToolIndex::currently_selected());
+}

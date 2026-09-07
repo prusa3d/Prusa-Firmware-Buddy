@@ -45,37 +45,39 @@ public:
     IWindowMenu *const menu = nullptr;
 };
 
+struct IWindowMenuItemColorScheme {
+    struct ColorPair {
+        Color focused;
+        Color unfocused;
+    };
+
+    struct ROpPair {
+        ropfn focused {
+            .invert = is_inverted::yes,
+        };
+        ropfn unfocused = {};
+    };
+
+    ColorPair text {
+        .focused = GuiDefaults::MenuColorBack,
+        .unfocused = GuiDefaults::MenuColorText,
+    };
+    ColorPair back {
+        .focused = GuiDefaults::MenuColorFocusedBack,
+        .unfocused = GuiDefaults::MenuColorBack,
+    };
+    ROpPair rop {
+        .focused { .swap_bw = has_swapped_bw::yes },
+        .unfocused {},
+    };
+};
+
 /*****************************************************************************/
 // IWindowMenuItem
 class IWindowMenuItem {
 
 public:
-    struct ColorScheme {
-        struct ColorPair {
-            Color focused;
-            Color unfocused;
-        };
-
-        struct ROpPair {
-            ropfn focused {
-                .invert = is_inverted::yes,
-            };
-            ropfn unfocused = {};
-        };
-
-        ColorPair text {
-            .focused = GuiDefaults::MenuColorBack,
-            .unfocused = GuiDefaults::MenuColorText,
-        };
-        ColorPair back {
-            .focused = GuiDefaults::MenuColorFocusedBack,
-            .unfocused = GuiDefaults::MenuColorBack,
-        };
-        ROpPair rop {
-            .focused { .swap_bw = has_swapped_bw::yes },
-            .unfocused {},
-        };
-    };
+    using ColorScheme = IWindowMenuItemColorScheme;
 
     static constinit const ColorScheme color_scheme_default;
     static constinit const ColorScheme color_scheme_default_disabled;

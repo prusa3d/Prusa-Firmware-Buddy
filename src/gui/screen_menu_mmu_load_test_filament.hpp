@@ -1,7 +1,4 @@
-/**
- * @file screen_menu_mmu_load_filament.hpp
- */
-
+/// @file
 #pragma once
 
 #include "screen_menu.hpp"

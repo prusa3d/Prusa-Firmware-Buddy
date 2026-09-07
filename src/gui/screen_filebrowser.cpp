@@ -12,6 +12,7 @@
 #include <logging/log.hpp>
 #include "img_resources.hpp"
 #include <guiconfig/GuiDefaults.hpp>
+#include <buddy/filename_defs.hpp>
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
@@ -64,13 +65,13 @@ void screen_filebrowser_data_t::printTheFile() {
     // save the top browser item
     browser().SaveTopSFN();
 
-    std::array<char, FILE_PATH_BUFFER_LEN> path;
+    std::array<char, filename_defs::path_buffer_size> path;
     const auto written = browser().WriteNameToPrint(path.data(), path.size());
     if (written < 0 || static_cast<size_t>(written) >= path.size()) {
         log_error(GUI, "Failed to prepare file path for print");
         return;
     }
-    print_begin(path.data());
+    marlin_client::print_start(path.data());
 }
 
 void screen_filebrowser_data_t::goHome() {

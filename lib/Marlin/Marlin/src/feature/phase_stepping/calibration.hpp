@@ -7,7 +7,6 @@
 
 #include "common.hpp"
 
-#include <cassert>
 #include <inplace_function.hpp>
 #include <tuple>
 #include <optional>

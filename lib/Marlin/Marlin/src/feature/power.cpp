@@ -40,7 +40,7 @@ millis_t Power::lastPowerOn;
 bool Power::is_power_needed() {
   #if ENABLED(AUTO_POWER_FANS)
     // #error dead code found by automatic analyses (see BFW-5461)
-    FANS_LOOP(i) if (thermalManager.fan_speed[i]) return true;
+    if (thermalManager.fan_speed[0]) return true;
   #endif
 
   // If any of the drivers or the bed are enabled...

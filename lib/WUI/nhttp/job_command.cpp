@@ -2,8 +2,8 @@
 #include "handler.h"
 #include "json_parser.h"
 
-#include <cassert>
 #include <cstring>
+#include <bsod/bsod.h>
 
 namespace nhttp::printer {
 
@@ -132,7 +132,7 @@ StatusPage JobCommand::process() {
             return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
     default:
-        assert(0);
+        debug_assert(0);
         return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Invalid command");
     }
 }

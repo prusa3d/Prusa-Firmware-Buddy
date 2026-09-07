@@ -2,10 +2,10 @@
 
 #include <type_traits>
 #include <errno.h>
-#include <cassert>
 #include "core/core.hpp"
 #include "transfers/transfer.hpp"
 #include "lang/i18n.h"
+#include <bsod/bsod.h>
 
 void IGcodeReader::generate_index(Index &, bool) {}
 
@@ -95,12 +95,12 @@ IGcodeReader::Result_t GcodeReaderCommon::stream_get_line_common(GcodeBuffer &b,
     }
 
     // Unreachable, but C++ and its non-exhaustive enums :-|
-    assert(0);
+    debug_assert(0);
     return Result_t::RESULT_ERROR;
 }
 
 bool GcodeReaderCommon::range_valid(size_t start, size_t end) const {
-    assert(start <= end);
+    debug_assert(start <= end);
     if (start == end) {
         // 0-sized range.
         return true;

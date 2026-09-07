@@ -9,8 +9,8 @@
 
 #include <FreeRTOS.h>
 #include <semphr.h>
-#include <assert.h>
 #include <inplace_function.hpp>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -71,8 +71,8 @@ public:
      */
     void to_send(CanardMicrosecond &timestamp, CanardTransferMetadata &meta, uint8_t *buffer, size_t &buffer_size) override {
         [[maybe_unused]] int8_t ret_serialize = serialize_fn(&data, buffer, &buffer_size); // Serialize data
-        assert(buffer != nullptr);
-        assert(ret_serialize == 0); // Serialization should never fail
+        debug_assert(buffer != nullptr);
+        debug_assert(ret_serialize == 0); // Serialization should never fail
 
         meta.priority = priority;
         meta.transfer_kind = CanardTransferKindMessage;
@@ -121,7 +121,7 @@ public:
      */
     [[nodiscard]] T get_data() {
         auto lock = cyphal_task.lock_senders_mutex();
-        assert(lock.is_locked());
+        debug_assert(lock.is_locked());
         return data;
     }
 

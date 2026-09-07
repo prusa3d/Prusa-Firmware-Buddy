@@ -4,7 +4,6 @@
 #include <crc32.h>
 #include <logging/log.hpp>
 #include "transfers/transfer.hpp"
-#include <cassert>
 #include <errno.h> // for EAGAIN
 #include <filename_type.hpp>
 #include <sys/stat.h>
@@ -13,6 +12,7 @@
 #include <bsod.h>
 #include <type_traits>
 #include <config_store/store_instance.hpp>
+#include <utils/byte_utils.hpp>
 
 #if HAS_E2EE_SUPPORT()
     #include <e2ee/sha256_multiuse.hpp>
@@ -281,7 +281,7 @@ void PrusaPackGcodeReader::generate_index(Index &out, bool ignore_crc) {
         return IterateResult_t::Continue;
     });
     if (!std::holds_alternative<std::monostate>(result)) {
-        assert(std::holds_alternative<Result_t>(result));
+        debug_assert(std::holds_alternative<Result_t>(result));
         out = Index();
     }
 }
@@ -328,7 +328,7 @@ IGcodeReader::Result_t PrusaPackGcodeReader::stream_gcode_start(uint32_t offset,
         block_decompressed_offset = 0;
     } else {
         // Index shall not be used when opening at a specific offset.
-        assert(index == nullptr);
+        debug_assert(index == nullptr);
         // offset > 0 - we are starting from arbitrary offset, find nearest block from cache
         if (auto res = read_and_check_header(); res != Result_t::RESULT_OK) {
             return res; // need to check file header somewhere
@@ -681,7 +681,7 @@ constexpr PrusaPackGcodeReader::ImgType thumbnail_format_to_type(bgcode::core::E
     }
 }
 
-std::span<std::byte> PrusaPackGcodeReader::ThumbnailReader::read(std::span<std::byte> buffer) {
+WritableBytes PrusaPackGcodeReader::ThumbnailReader::read(WritableBytes buffer) {
     // thumbnail is read as-is, no decompression
     size_t nread = 0;
     if (size > 0) {
@@ -863,7 +863,7 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size_estimate() {
     uint32_t uncompressed_file_size = static_cast<uint32_t>(compressed_gcode_stream / compressionn_ratio);
 
     [[maybe_unused]] auto seek_res = fseek(file, pos, SEEK_SET);
-    assert(seek_res == 0);
+    debug_assert(seek_res == 0);
 
     return uncompressed_file_size;
 }
@@ -894,7 +894,7 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size() {
             BlockHeader decrypted_gcode_header;
             if (!read_encrypted_block_header(file, decrypted_gcode_header, size_context.decryptor)) {
                 // This should never happen in practise
-                assert(false);
+                debug_assert(false);
             }
             size_context.gcode_stream_size_uncompressed += decrypted_gcode_header.uncompressed_size;
         }
@@ -903,7 +903,7 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size() {
     });
 
     [[maybe_unused]] auto seek_res = fseek(file, pos, SEEK_SET);
-    assert(seek_res == 0);
+    debug_assert(seek_res == 0);
 
     return size_context.gcode_stream_size_uncompressed;
 }

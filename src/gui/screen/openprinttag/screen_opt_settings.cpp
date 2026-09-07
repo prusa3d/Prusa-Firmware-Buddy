@@ -27,7 +27,7 @@ protected:
 using ScreenOPTSettings_ = ScreenMenu<EFooter::Off,
     MI_RETURN,
     MI_OPT_AUTO_SCAN_ON_LOAD,
-    MI_OPT_TAG_LIST>;
+    MI_OPT_READ_TAG>;
 
 class ScreenOPTSettings final : public ScreenOPTSettings_ {
 

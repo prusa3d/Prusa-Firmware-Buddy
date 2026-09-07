@@ -75,7 +75,7 @@ float tmc_period_to_feedrate(AxisEnum axis_id, uint16_t msteps, const uint32_t p
 /**
  * @brief Return the TMC period value for a given feedrate `feedrate`.
  * @param msteps TMC Driver configured microsteps
- * @param feedrate The TMC step period (e.g. the TSTEP or TCOOLTHRS values) to convert
+ * @param feedrate Feedrate (in mm/s) to convert
  * @param steps_per_mm Axis steps per mm
  * @return TMC period value
  */

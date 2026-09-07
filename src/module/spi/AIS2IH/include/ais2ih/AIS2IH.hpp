@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <spi/device.hpp>
+#include <utils/byte_utils.hpp>
 
 namespace AIS2IH {
 
@@ -156,8 +157,8 @@ private:
     template <class Command>
     [[nodiscard]] bool command(const Command &tx, Command &rx) {
         return HWImpl::transmit_receive(
-            std::span<const std::byte> { reinterpret_cast<const std::byte *>(&tx), sizeof(Command) },
-            std::span<std::byte> { reinterpret_cast<std::byte *>(&rx), sizeof(Command) });
+            Bytes { reinterpret_cast<const std::byte *>(&tx), sizeof(Command) },
+            WritableBytes { reinterpret_cast<std::byte *>(&rx), sizeof(Command) });
     }
 };
 } // namespace AIS2IH

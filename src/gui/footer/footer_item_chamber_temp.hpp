@@ -1,8 +1,4 @@
-/**
- * @file footer_item_enclosure.hpp
- * @brief footer item displaying enclosure temperature
- */
-
+/// @file
 #pragma once
 
 #include "footer_items_heaters.hpp"

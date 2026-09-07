@@ -1,6 +1,5 @@
 #include "media_prefetch.hpp"
 
-#include <cassert>
 #include <cctype>
 #include <cstring>
 #include <cinttypes>
@@ -88,7 +87,7 @@ MediaPrefetchManager::StatusAndActive MediaPrefetchManager::read_command(ReadRes
 
     // If we're at the buffer end, return the appropriate error
     if (s.read_head.buffer_pos == s.read_tail.buffer_pos) {
-        assert(s.read_tail.status != Status::ok);
+        debug_assert(s.read_tail.status != Status::ok);
         return { s.read_tail.status, fetch_active };
     }
 
@@ -127,7 +126,7 @@ MediaPrefetchManager::StatusAndActive MediaPrefetchManager::read_command(ReadRes
             uint8_t gcode_len;
             read_entry(gcode_len);
 
-            assert(gcode_len < result.gcode.size());
+            debug_assert(gcode_len < result.gcode.size());
             read_entry_raw(result.gcode.data(), gcode_len);
 
             // The gcode in the buffer was not null-terminated, so add the null here
@@ -140,7 +139,7 @@ MediaPrefetchManager::StatusAndActive MediaPrefetchManager::read_command(ReadRes
             std::array<uint8_t, MAX_CMD_SIZE> compressed_data;
 
             read_entry<uint8_t>(compressed_len);
-            assert(compressed_len < compressed_data.size());
+            debug_assert(compressed_len < compressed_data.size());
             read_entry_raw(compressed_data.data(), compressed_len);
 
             decompress_gcode(compressed_data.data(), compressed_len, result.gcode);
@@ -159,7 +158,7 @@ MediaPrefetchManager::StatusAndActive MediaPrefetchManager::read_command(ReadRes
     result.resume_pos = resume_pos;
 
     // Let the worker know that we've read stuff and it can reuse the memory
-    assert(s.commands_in_buffer > 0);
+    debug_assert(s.commands_in_buffer > 0);
     s.commands_in_buffer--;
     return { Status::ok, fetch_active };
 }
@@ -173,7 +172,7 @@ void MediaPrefetchManager::start(const char *filepath, const GCodeReaderPosition
     {
         std::lock_guard mutex_guard(mutex);
 
-        assert(strlen(filepath) < shared_state.filepath.size());
+        debug_assert(strlen(filepath) < shared_state.filepath.size());
         strlcpy(shared_state.filepath.data(), filepath, shared_state.filepath.size());
 
         manager_state.read_head.gcode_pos = position;
@@ -447,7 +446,7 @@ bool MediaPrefetchManager::fetch_flush_command(AsyncJobExecutionControl &control
 
     // If the gcode pos changed, publish a relevant record
     if (const auto offset = s.gcode_reader_pos; offset != s.write_tail.gcode_pos.offset) {
-        assert(offset >= s.write_tail.gcode_pos.offset);
+        debug_assert(offset >= s.write_tail.gcode_pos.offset);
         const auto offset_diff = offset - s.write_tail.gcode_pos.offset;
 
         if (offset_diff < 256) {
@@ -610,7 +609,7 @@ bool MediaPrefetchManager::fetch_command(AsyncJobExecutionControl &control) {
 void MediaPrefetchManager::fetch_handle_error(AsyncJobExecutionControl &control, IGcodeReader::Result_t error) {
     using SR = IGcodeReader::Result_t;
 
-    assert(error != SR::RESULT_OK);
+    debug_assert(error != SR::RESULT_OK);
     log_debug(MediaPrefetch, "Read error: %i", static_cast<int>(error));
 
     static constexpr EnumArray<SR, Status, static_cast<int>(SR::_RESULT_LAST) + 1> status_map {
@@ -645,7 +644,7 @@ void MediaPrefetchManager::fetch_handle_error(AsyncJobExecutionControl &control,
 }
 
 bool MediaPrefetchManager::can_read_entry_raw(size_t bytes) const {
-    assert(bytes < buffer_size);
+    debug_assert(bytes < buffer_size);
 
     const size_t read_pos = shared_state.read_head.buffer_pos;
     const size_t read_tail = shared_state.read_tail.buffer_pos;
@@ -663,7 +662,7 @@ bool MediaPrefetchManager::can_read_entry_raw(size_t bytes) const {
 }
 
 void MediaPrefetchManager::read_entry_raw(void *target, size_t bytes) {
-    assert(bytes < buffer_size);
+    debug_assert(bytes < buffer_size);
 
     if (!can_read_entry_raw(bytes)) {
         bsod(prefetch_bsod_title);
@@ -680,7 +679,7 @@ void MediaPrefetchManager::read_entry_raw(void *target, size_t bytes) {
 }
 
 bool MediaPrefetchManager::can_write_entry_raw(size_t bytes) const {
-    assert(bytes < buffer_size);
+    debug_assert(bytes < buffer_size);
 
     const size_t write_pos = worker_state.write_tail.buffer_pos;
     const size_t new_write_pos = (write_pos + bytes) % buffer_size;

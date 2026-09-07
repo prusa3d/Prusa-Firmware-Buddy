@@ -18,6 +18,7 @@
 #include "Marlin/src/module/temperature.h"
 #include <utils/variant_utils.hpp>
 
+#include <option/has_crash_detection.h>
 #include <option/has_pause.h>
 static_assert(HAS_PAUSE());
 
@@ -57,6 +58,7 @@ static_assert(HAS_PAUSE());
 #include <sound.hpp>
 #include <feature/safety_timer/safety_timer.hpp>
 #include <mapi/cold_extrude.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 #include <feature/gcode_exception/gcode_exception.hpp>
 
 #include <option/has_human_interactions.h>
@@ -85,8 +87,13 @@ static_assert(HAS_PAUSE());
     #include <feature/openprinttag/filament_usage_tracker/filament_usage_tracker.hpp>
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
+#endif
+
+#include <option/has_filament_tracker.h>
+#if HAS_FILAMENT_TRACKER()
+    #include <feature/filament_tracker/filament_tracker.hpp>
 #endif
 
 LOG_COMPONENT_REF(MarlinServer);
@@ -237,7 +244,7 @@ bool Pause::is_unstoppable() const {
 #endif
     }
 
-    bsod("Unhandled LoadType");
+    bsod_unreachable();
 }
 
 LoadUnloadMode Pause::get_load_unload_mode() {
@@ -265,7 +272,7 @@ LoadUnloadMode Pause::get_load_unload_mode() {
         return LoadUnloadMode::FilamentStuck;
     }
 
-    bsod("Unhandled LoadType");
+    bsod_unreachable();
 }
 
 bool Pause::should_park() {
@@ -367,6 +374,17 @@ bool Pause::ensureSafeTemperatureNotifyProgress() {
 }
 
 [[nodiscard]] Pause::StopConditions Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, StopConditions check_for) {
+#if HAS_AUTO_RETRACT()
+    if (length > 0) {
+        // Deretract before spinning up the progress notifier
+        // It would be tracking the deretract moves, causing erratic progress jumps as the auto_retract resets the E position to the original one at the end
+        auto_retract().maybe_deretract_to_nozzle();
+
+        // Make sure marlin_vars().native_pos is up to date
+        idle(false);
+    }
+#endif
+
     PauseFsmNotifier N(*this, current_position.e, current_position.e + length, marlin_vars().native_pos[MARLIN_VAR_INDEX_E]);
 
     mapi::extruder_move(length, fr_mm_s);
@@ -445,7 +463,8 @@ void Pause::load_start_process([[maybe_unused]] Response response) {
         // When filament is in extruder sensor but not in side sensor, it's not a good idea to push another one in
 
         // Filament should be already out of gears by now, we move it just to be sure it's removable manually
-        std::ignore = do_e_move_notify_progress_coldextrude(-20.f, adjust_feedrate_for_filament(FILAMENT_CHANGE_UNLOAD_FEEDRATE, filament::get_type_to_load()), StopConditions::Accomplished);
+        std::ignore = do_e_move_notify_progress_coldextrude(
+            -20.f, standard_feedrates::extruder(standard_feedrates::Extruder::filament_unload, filament::get_type_to_load()), StopConditions::Accomplished);
         sound::play(SoundType::single_beep);
         set(LoadState::loading_obstruction);
         return;
@@ -537,7 +556,8 @@ void Pause::filament_push_ask_process(Response response) {
 #if ENABLED(PREVENT_COLD_EXTRUSION)
             mapi::ColdExtrudeGuard cold_extrude_guard;
 #endif
-            mapi::extruder_schedule_turning(adjust_feedrate_for_filament(3, filament::get_type_to_load()));
+            mapi::extruder_schedule_turning(
+                standard_feedrates::extruder(standard_feedrates::Extruder::filament_assisted, filament::get_type_to_load()));
         }
 
     } else {
@@ -579,11 +599,13 @@ void Pause::await_filament_process([[maybe_unused]] Response response) {
 void Pause::runout_during_load_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::Ejecting_unstoppable);
 #if HAS_INDX() // We need to extrude a bit (at least 2mm) to lock the head locking mechanism (it is partialy unlocked after toolpick from the tool pick) before doing retracting moves.
-    std::ignore = do_e_move_notify_progress_coldextrude(3.0f, adjust_feedrate_for_filament(FILAMENT_CHANGE_UNLOAD_FEEDRATE, filament::get_type_to_load()), StopConditions::Accomplished);
+    std::ignore = do_e_move_notify_progress_coldextrude(
+        3.0f, standard_feedrates::extruder(standard_feedrates::Extruder::filament_unload, filament::get_type_to_load()), StopConditions::Accomplished);
 #endif
 
     // unload immediately - we even cannot perform ramming as it would have consumed even more filament
-    std::ignore = do_e_move_notify_progress_coldextrude(-std::abs(settings.unload_length), adjust_feedrate_for_filament(FILAMENT_CHANGE_UNLOAD_FEEDRATE, filament::get_type_to_load()), StopConditions::Accomplished);
+    std::ignore = do_e_move_notify_progress_coldextrude(
+        -std::abs(settings.unload_length), standard_feedrates::extruder(standard_feedrates::Extruder::filament_unload, filament::get_type_to_load()), StopConditions::Accomplished);
 
     // retry loading (similar to eject_process' final stages)
     switch (load_type) {
@@ -634,13 +656,15 @@ void Pause::assist_insertion_process([[maybe_unused]] Response response) {
     // Enqueue an E move, but only if there are no more than 4 moves scheduled.
     // This ensures that there is always 0.4mm of movement enqueued in advance,
     // Guaranteeing a maximum movement difference of 0.1mm
-    mapi::extruder_schedule_turning(adjust_feedrate_for_filament(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, filament::get_type_to_load()), 0.1f);
+    mapi::extruder_schedule_turning(
+        standard_feedrates::extruder(standard_feedrates::Extruder::filament_slow_load, filament::get_type_to_load()), 0.1f);
 }
 
 void Pause::load_to_gears_process([[maybe_unused]] Response response) { // slow load
     setPhase(is_unstoppable() ? PhasesLoadUnload::LoadingToGears_unstoppable : PhasesLoadUnload::LoadingToGears_stoppable);
 
-    const auto result = do_e_move_notify_progress_coldextrude(settings.slow_load_length, adjust_feedrate_for_filament(FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, filament::get_type_to_load()), StopConditions::All);
+    const auto result = do_e_move_notify_progress_coldextrude(
+        settings.slow_load_length, standard_feedrates::extruder(standard_feedrates::Extruder::filament_slow_load, filament::get_type_to_load()), StopConditions::All);
 
     if (result == StopConditions::SideFilamentSensorRunout) { // TODO method without param using actual phase
         set(LoadState::runout_during_load);
@@ -719,7 +743,8 @@ void Pause::long_load_process([[maybe_unused]] Response response) {
         planner.apply_settings(s);
     }
 
-    auto move_e_progress = do_e_move_notify_progress_hotextrude(settings.fast_load_length, adjust_feedrate_for_filament(FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, filament::get_type_to_load()), StopConditions::All);
+    auto move_e_progress = do_e_move_notify_progress_hotextrude(
+        settings.fast_load_length, standard_feedrates::extruder(standard_feedrates::Extruder::filament_fast_load, filament::get_type_to_load()), StopConditions::All);
 
     {
         auto s = planner.user_settings;
@@ -736,31 +761,24 @@ void Pause::long_load_process([[maybe_unused]] Response response) {
     handle_filament_removal(LoadState::filament_push_ask);
 }
 
-// Retract just a tiny bit to prevent oozing for a while.
-// Note: current slicer default printer settings for ramming:
-// MINI 2.5mm @ 70mm/s
-// MK3 0.8mm @ 35mm/s
-// MK4* 0.7mm @ 35mm/s
-static constexpr float retract_distance = -4.f; // mm
-static constexpr feedRate_t retract_feedrate = 35; // mm/s
-
 void Pause::purge_process([[maybe_unused]] Response response) {
     // Extrude filament to get into hotend
     setPhase(is_unstoppable() ? PhasesLoadUnload::Purging_unstoppable : PhasesLoadUnload::Purging_stoppable);
 
     planner.synchronize(); // Finish any pending moves before starting the purge
 
-#if HAS_NOZZLE_CLEANER()
-    if (!nozzle_cleaner_purge_sequence()) {
-        return;
-    }
-#else
-    if (!standard_purge_sequence()) {
-        return;
-    }
-#endif
-
+    const auto old_filament = config_store().get_filament_type(settings.virtual_tool());
     config_store().set_filament_type(settings.virtual_tool(), filament::get_type_to_load());
+
+#if HAS_NOZZLE_CLEANER()
+    const bool purge_ok = nozzle_cleaner_purge_sequence();
+#else
+    const bool purge_ok = standard_purge_sequence();
+#endif
+    if (!purge_ok) {
+        config_store().set_filament_type(settings.virtual_tool(), old_filament);
+        return;
+    }
 
     if constexpr (option::has_human_interactions) {
         set(LoadState::color_correct_ask);
@@ -772,7 +790,9 @@ void Pause::purge_process([[maybe_unused]] Response response) {
 }
 
 bool Pause::standard_purge_sequence() {
-    const auto purge_result = do_e_move_notify_progress_hotextrude(settings.purge_length(), adjust_feedrate_for_filament(ADVANCED_PAUSE_PURGE_FEEDRATE, filament::get_type_to_load()), StopConditions::All);
+    const auto purge_result = do_e_move_notify_progress_hotextrude(
+        settings.purge_length(), standard_feedrates::extruder(standard_feedrates::Extruder::advanced_pause_purge, filament::get_type_to_load()), StopConditions::All);
+
     if (purge_result == StopConditions::SideFilamentSensorRunout) {
         set(LoadState::runout_during_load);
         return false;
@@ -783,7 +803,8 @@ bool Pause::standard_purge_sequence() {
     }
     // Skip retraction if Failed
     if (purge_result != StopConditions::Failed) {
-        std::ignore = do_e_move_notify_progress_hotextrude(retract_distance, adjust_feedrate_for_filament(retract_feedrate, filament::get_type_to_load()), StopConditions::UserStopped);
+        std::ignore = do_e_move_notify_progress_hotextrude(
+            -STANDARD_RETRACT_LENGTH, standard_feedrates::extruder(standard_feedrates::Extruder::retract, filament::get_type_to_load()), StopConditions::UserStopped);
     }
 
     return true;
@@ -814,7 +835,8 @@ bool Pause::nozzle_cleaner_purge_sequence() {
         mapi::park(mapi::get_parking_position(mapi::ParkPosition::purge).without_z_move());
         planner.synchronize(); // Wait for the park to finish before continuing
     #if !HAS_INDX() // We do the purgue move in the gcode of the loader on INDX, so we don't want to do it here
-        const auto purge_result = do_e_move_notify_progress_hotextrude(purge_length, adjust_feedrate_for_filament(ADVANCED_PAUSE_PURGE_FEEDRATE, filament::get_type_to_load()), StopConditions::All);
+        const auto purge_result = do_e_move_notify_progress_hotextrude(
+            purge_length, standard_feedrates::extruder(standard_feedrates::Extruder::advanced_pause_purge, filament::get_type_to_load()), StopConditions::All);
         purged += purge_length;
         switch (purge_result) {
         case StopConditions::SideFilamentSensorRunout:
@@ -987,25 +1009,17 @@ void Pause::eject_process([[maybe_unused]] Response response) {
 }
 
 void Pause::load_finalize_process(Response) {
-#if HAS_ANFC()
-    // If tag is detected, assign it to the tool
-    if (auto tag = buddy::openprinttag::ToolTag::for_tool_ephemeral(settings.virtual_tool())) {
-        config_store().opt_tool_assigned_tag.set(settings.virtual_tool().to_raw(), tag->uid_hash());
-
-        // Pop up a "warning" saying that the OpenPrintTag has been assigned
-        // We're using the warning mechanism here because it alows us to pop up the screen asynchronously
-        // and keep autoretracting/cleaning on the background.
-        // The screen will timeout after a few seconds.
-        marlin_server::set_warning(WarningType::OpenPrintTagAssigned);
-    }
-#endif
-
 #if HAS_AUTO_RETRACT()
     // Only retract from nozzle outside printing
     if (!marlin_server::is_printing()) {
         // Needed for progress mapper
         // The process() of the state should never get called though, because end of this function switches to _finished
         set(LoadState::auto_retract);
+
+        if (!ensureSafeTemperatureNotifyProgress()) {
+            return;
+        }
+
         setPhase(PhasesLoadUnload::AutoRetracting);
         const auto vt = stdext::get_optional<VirtualToolIndex>(VirtualToolIndex::currently_selected());
         PauseFsmDurationNotifier progress_notifier(*this, vt ? standard_ramming_sequence(StandardRammingSequence::auto_retract, *vt).duration_estimate_ms() : 0);
@@ -1020,14 +1034,20 @@ void Pause::load_finalize_process(Response) {
 #endif
     // Otherwise prime the nozzle
     else if (load_type == LoadType::filament_change || load_type == LoadType::filament_stuck) {
+        if (!ensureSafeTemperatureNotifyProgress()) {
+            return;
+        }
+
         // Feed a little bit of filament to stabilize pressure in nozzle
 
+        const auto filament = filament::get_type_to_load();
+
         // Last poop after user clicked color - yes
-        plan_e_move(std::abs(retract_distance), 10);
+        plan_e_move(PARK_PAUSE_PRIME_LENGTH, standard_feedrates::extruder(standard_feedrates::Extruder::pause_prime, filament));
 
         // Retract again, it will be unretracted at the end of unpark
         if (settings.retract) {
-            plan_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+            plan_e_move(settings.retract, standard_feedrates::extruder(standard_feedrates::Extruder::retract, filament));
         }
 
         planner.synchronize();
@@ -1036,6 +1056,10 @@ void Pause::load_finalize_process(Response) {
 
 #if HAS_NOZZLE_CLEANER()
     {
+        if (!ensureSafeTemperatureNotifyProgress()) {
+            return;
+        }
+
         // We cant use the regual load_and_execute cause we need to handle user_stop also
         nozzle_cleaner::load_sequence(nozzle_cleaner::Sequence::clean);
         setPhase(PhasesLoadUnload::LoadNozzleCleaning);
@@ -1049,7 +1073,7 @@ void Pause::load_finalize_process(Response) {
 
         if (!marlin_server::is_printing()) {
             // If not printing, park on the nozzle cleaner planchette
-            mapi::park(mapi::ParkingPosition::from_xyz_pos({ { XYZ_NOZZLE_PARK_POINT } }).without_z_move());
+            mapi::park(mapi::get_parking_position(mapi::ParkPosition::park).without_z_move());
         }
     }
 #endif
@@ -1127,6 +1151,8 @@ void Pause::unload_start_process([[maybe_unused]] Response response) {
         if (gcode_exceptions().is_unwinding()) {
             return;
         }
+
+        idle(true);
     }
 #endif
 
@@ -1154,8 +1180,26 @@ void Pause::unload_start_process([[maybe_unused]] Response response) {
 void Pause::filament_stuck_ask_process(Response response) {
     setPhase(PhasesLoadUnload::FilamentStuck);
 
-    if (response == Response::Unload) {
+    switch (response) {
+
+    case Response::_none:
+        break;
+
+    case Response::Unload:
         set(LoadState::unload_wait_temp);
+        break;
+
+    case Response::Ignore:
+        set(LoadState::_finished);
+        break;
+
+    case Response::Disable:
+        config_store().stuck_filament_detection.set(false);
+        set(LoadState::_finished);
+        break;
+
+    default:
+        bsod_unreachable();
     }
 }
 #endif
@@ -1165,7 +1209,8 @@ void Pause::unload_purge_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::Purging_unstoppable);
 
     static constexpr float unload_purge_length = 2.0f; // mm
-    std::ignore = do_e_move_notify_progress_hotextrude(unload_purge_length, adjust_feedrate_for_filament(ADVANCED_PAUSE_PURGE_FEEDRATE, FilamentType::for_tool_heuristic(settings.virtual_tool())), StopConditions::UserStopped);
+    std::ignore = do_e_move_notify_progress_hotextrude(
+        unload_purge_length, standard_feedrates::extruder(standard_feedrates::Extruder::advanced_pause_purge, FilamentType::for_tool_heuristic(settings.virtual_tool())), StopConditions::UserStopped);
 
     set(LoadState::ram_sequence);
 }
@@ -1270,7 +1315,8 @@ void Pause::unload_from_gears_process([[maybe_unused]] Response response) {
     setPhase(PhasesLoadUnload::Unloading_stoppable);
 
     // unload cannot cause a runout -> safe to ignore the result
-    std::ignore = do_e_move_notify_progress_coldextrude(-settings.slow_load_length * (float)1.5, adjust_feedrate_for_filament(FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, FilamentType::for_tool_heuristic(settings.virtual_tool())), StopConditions::UserStopped);
+    std::ignore = do_e_move_notify_progress_coldextrude(
+        -settings.slow_load_length * (float)1.5, standard_feedrates::extruder(standard_feedrates::Extruder::filament_fast_load, FilamentType::for_tool_heuristic(settings.virtual_tool())), StopConditions::UserStopped);
     set(LoadState::unload_finish_or_change);
 }
 
@@ -1492,7 +1538,7 @@ uint32_t Pause::parkMoveXYPercent(float z_move_len, float xy_move_len) const {
 bool Pause::parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) const {
     xy_bool_t pos_nan;
     LOOP_XY(axis) {
-        pos_nan.pos[axis] = isnan(pos0.pos[axis]) || isnan(pos1.pos[axis]);
+        pos_nan[axis] = isnan(pos0[axis]) || isnan(pos1[axis]);
     }
 
     if (pos_nan.y) {
@@ -1531,7 +1577,7 @@ void Pause::park_nozzle_and_notify() {
 
     // Initial retract before move to filament change position
     if (!thermalManager.tooColdToExtrude(active_extruder)) {
-        mapi::retract_to(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+        mapi::retract_to(-settings.retract, standard_feedrates::extruder(standard_feedrates::Extruder::retract, FilamentType::for_current_tool_heuristic()));
     }
 
     // Z lift
@@ -1558,12 +1604,12 @@ void Pause::park_nozzle_and_notify() {
                 });
 
             // We have moved both axes, go to park position if not requested otherwise
-            static constexpr xyz_pos_t park = XYZ_NOZZLE_PARK_POINT_M600;
+            const mapi::ParkingPosition default_park = mapi::get_parking_position(mapi::ParkPosition::filament_change);
             if (std::holds_alternative<mapi::ParkingPosition::Unchanged>(xy_target.x)) {
-                xy_target.x = park.x;
+                xy_target.x = default_park.x;
             }
             if (std::holds_alternative<mapi::ParkingPosition::Unchanged>(xy_target.y)) {
-                xy_target.y = park.y;
+                xy_target.y = default_park.y;
             }
         }
 #else /*CORE_IS_XY*/
@@ -1571,7 +1617,7 @@ void Pause::park_nozzle_and_notify() {
         const xyz_bool_t is_park_axis = park.axes_needing_homing();
         LOOP_XY(axis) {
             // TODO: make homeaxis non-blocking to allow quick_stop
-            if (is_park_axis.pos[axis]) {
+            if (is_park_axis[axis]) {
                 GcodeSuite::G28_no_parser(axis == X_AXIS, axis == Y_AXIS, false,
                     {
                         .only_if_needed = true,
@@ -1594,16 +1640,14 @@ void Pause::park_nozzle_and_notify() {
 }
 
 void Pause::unpark_nozzle_and_notify() {
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     if (crash_s.get_state() == Crash_s::RECOVERY) {
         // With the gcode_interrupt mechanism, gcodes can get executed during the crash recovery process (typically M600 during runout).
-        // At this stage, the crash recovery itself handles retraction, Z lift and unparking,
-        // so let the crash recovery do its' job and don't unpark.
-        // Just let the system know that we've left the filament retracted a bit.
-        retracted_distance_after_unpark = -settings.retract;
+        // In that case, we don't unpark. We just return the extruder to the same position we found it in (happens at the end of filament change)
+        // and crash recovery handles unparking
         return;
     }
-#endif
+#endif // HAS_CRASH_DETECTION()
 
     if (isnan(settings.resume_pos.x) || isnan(settings.resume_pos.y) || isnan(settings.resume_pos.z)) {
         return;
@@ -1642,7 +1686,7 @@ void Pause::unpark_nozzle_and_notify() {
 
     // Unretract
     if (std::abs(settings.retract) > 1e-6f) {
-        plan_e_move(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+        plan_e_move(-settings.retract, standard_feedrates::extruder(standard_feedrates::Extruder::deretract, FilamentType::for_current_tool_heuristic()));
     }
 }
 
@@ -1698,12 +1742,23 @@ void Pause::filament_change(const pause::Settings &settings_, bool is_filament_s
     // Wait for buffered blocks to complete
     planner.synchronize();
 
+    float initial_retracted_distance = 0;
+
+#if HAS_FILAMENT_TRACKER()
+    // Snapshot the current retraction, so the filament can be put back to it at the end
+    const auto tool = PhysicalToolIndex::currently_selected_opt();
+    if (tool.has_value()) {
+        initial_retracted_distance = buddy::filament_tracker().get_retracted_distance(*tool).value_or(0);
+    }
+#endif
+
     invoke_loop();
 
     // Now all extrusion positions are resumed and ready to be confirmed
-    // Set extruder to saved position, minus whatever we've left retracted
-    // retracted_distance_after_unpark should be zero unless we're in gcode interrupt
-    sync_e_position_to(settings.resume_pos.e - retracted_distance_after_unpark);
+    // Put the filament back to the retraction it had when the filament change started;
+    mapi::restore_retracted_distance(initial_retracted_distance, standard_feedrates::current_extruder(standard_feedrates::Extruder::retract));
+
+    sync_e_position_to(settings.resume_pos.e);
     destination.e = settings.resume_pos.e;
 
     feedrate_percentage = saved_feedrate_percentage;
@@ -1768,7 +1823,8 @@ void Pause::unload_filament() {
     const float remaining_unload_length = std::max<float>(std::abs(settings.unload_length) - ram_retracted_distance, 0);
 
     // At this point, we are already rammed (so the filament is out of the nozzle), so we do not need to enforce nozzle temp
-    std::ignore = do_e_move_notify_progress_coldextrude(-remaining_unload_length, adjust_feedrate_for_filament(FILAMENT_CHANGE_UNLOAD_FEEDRATE, FilamentType::for_tool_heuristic(settings.virtual_tool())), StopConditions::UserStopped);
+    std::ignore = do_e_move_notify_progress_coldextrude(
+        -remaining_unload_length, standard_feedrates::extruder(standard_feedrates::Extruder::filament_unload, FilamentType::for_tool_heuristic(settings.virtual_tool())), StopConditions::UserStopped);
 
     {
         auto s = planner.user_settings;
@@ -1925,28 +1981,48 @@ Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p)
     }
     active = true;
     // Turn off print fan during purging to prevent messy purging
-    original_print_fan_speed = thermalManager.get_fan_speed(0);
-    thermalManager.set_fan_speed(0, 0);
+    original_print_fan_speed = thermalManager.get_print_fan_speed();
+    thermalManager.set_print_fan_speed(0);
 }
 
 Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
-    thermalManager.set_fan_speed(0, original_print_fan_speed);
     active = false;
 
-    const float min_layer_h = 0.05f;
-    // do not unpark and wait for temp if not homed or z park len is 0
-    if (!axes_need_homing() && !isnan(pause.settings.resume_pos.z) && std::abs(current_position.z - pause.settings.resume_pos.z) >= min_layer_h && (marlin_client::is_printing() || marlin_client::is_paused())) {
-        // Restore the print temperature before the heatup wait, so we resume fully heated
-        // instead of at the filament default that loading dropped the target to.
-        if (pause.settings.resume_nozzle_temperature.has_value()) {
-            thermalManager.setTargetHotend(*pause.settings.resume_nozzle_temperature, pause.settings.physical_tool());
+    restore_temperature_and_unpark();
+
+    // Only now, so the heatup above does not have to fight the part cooling
+    thermalManager.set_print_fan_speed(original_print_fan_speed);
+
+    // Must run on every path out of the above: this is the only place the load/unload
+    // mode is ever cleared, and a mode left set makes prusa_toolchanger.loop() skip
+    // its "tool fell off" check for the rest of the boot.
+    pause.clr_mode();
+}
+
+void Pause::FSM_HolderLoadUnload::restore_temperature_and_unpark() {
+    if (!marlin_client::is_printing() && !marlin_client::is_paused()) {
+        return;
+    }
+
+    // Restore the print temperature and wait for the heatup, so we resume fully heated
+    // instead of at the filament default that loading dropped the target to. After a
+    // runout the head already sits at the park height, so the unpark below is skipped -
+    // which used to skip this along with it.
+    if (const auto temp = pause.settings.resume_nozzle_temperature) {
+        thermalManager.setTargetHotend(*temp, pause.settings.physical_tool());
+        if (!pause.ensureSafeTemperatureNotifyProgress()) {
+            return;
         }
+    }
+
+    {
+        // Not made redundant by the heatup above: M701/M702 resuming a paused print set a
+        // resume point but never a resume temperature, so this is their only heatup wait.
         if (!pause.ensureSafeTemperatureNotifyProgress()) {
             return;
         }
         pause.unpark_nozzle_and_notify();
     }
-    pause.clr_mode();
 }
 
 bool Pause::FSM_HolderLoadUnload::active = false;

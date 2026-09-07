@@ -5,6 +5,7 @@
 #include <puppies/ac_controller.hpp>
 #include <ac_controller/types.hpp>
 #include <option/has_tool_crash_recovery.h>
+#include <bsod/bsod.h>
 
 namespace leds {
 

@@ -9,8 +9,7 @@
 #include <string_view>
 #include <variant>
 
-// Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
-#include "../../src/gui/file_list_defs.h"
+#include <buddy/filename_defs.hpp>
 
 namespace nhttp::printer {
 
@@ -28,7 +27,7 @@ public:
     using APIVersion = http::APIVersion;
 
 private:
-    char filepath[FILE_PATH_BUFFER_LEN];
+    char filepath[filename_defs::path_buffer_size];
     bool can_keep_alive : 1;
     bool after_upload : 1;
     bool json_errors : 1;

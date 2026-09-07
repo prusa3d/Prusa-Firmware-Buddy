@@ -105,10 +105,7 @@ void GcodeSuite::M81() {
   thermalManager.disable_all_heaters();
   print_job_timer.stop();
   planner.finish_and_disable();
-
-  #if FAN_COUNT > 0
-    thermalManager.zero_fan_speeds();
-  #endif
+  thermalManager.zero_fan_speeds();
 
   safe_delay(1000); // Wait 1 second before switching off
 

@@ -7,14 +7,16 @@
 #include <feature/openprinttag/tool_tag.hpp>
 #include <feature/openprinttag/detail/requests_base.hpp>
 #include <openprinttag/opt_fields.hpp>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 namespace buddy::openprinttag {
 
-class ReadFieldRequestBase : public Request {
+class ReadFieldRequestBase : public TagRequest {
 
 public:
     explicit ReadFieldRequestBase(ToolTagField tag_field)
-        : Request(tag_field.section, tag_field.tag)
+        : TagRequest(tag_field.section, tag_field.tag)
         , field_(tag_field.field) {}
 
     ToolTagField tag_field() const;
@@ -36,7 +38,7 @@ public:
     /// Once @p finished, can be used to obtain the result
     /// Cannot be called before finished()
     Result result() const {
-        assert(this->finished());
+        debug_assert(this->finished());
 
         if (this->has_error()) {
             return std::unexpected(this->error());
@@ -60,7 +62,7 @@ public:
     using ReadRequestMixin<int32_t>::ReadRequestMixin;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &) final;
-    void complete(std::span<const std::byte> event_data) final;
+    void complete(Bytes event_data) final;
 };
 
 class ReadEnumFieldRequestBase : public ReadFieldRequestBase {
@@ -70,7 +72,7 @@ public:
     using ReadFieldRequestBase::ReadFieldRequestBase;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &request) final;
-    void complete(std::span<const std::byte>) final;
+    void complete(Bytes) final;
 
 protected:
     virtual void set_result(int32_t value) = 0;
@@ -102,7 +104,7 @@ public:
     using ReadFieldRequestBase::ReadFieldRequestBase;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &request) final;
-    void complete(std::span<const std::byte>) final;
+    void complete(Bytes) final;
 
 protected:
     virtual void set_result(const uint16_t *elements, size_t count) = 0;
@@ -140,7 +142,7 @@ public:
     using ReadRequestMixin<float>::ReadRequestMixin;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &) final;
-    void complete(std::span<const std::byte> event_data) final;
+    void complete(Bytes event_data) final;
 };
 
 class ReadStringRequestBase : public ReadRequestMixin<std::string_view> {
@@ -153,7 +155,7 @@ public:
     }
 
     void serialize(RequestID, TagID, anfc::modbus::Request &) final;
-    void complete(std::span<const std::byte> event_data) final;
+    void complete(Bytes event_data) final;
 
 protected:
     inline void set_buffer(std::span<char> set) {

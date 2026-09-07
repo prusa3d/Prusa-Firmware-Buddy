@@ -6,6 +6,7 @@
 #include "hw_configuration.hpp"
 #include <raii/scope_guard.hpp>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Touch);
 
@@ -28,7 +29,7 @@ void Touchscreen_GT911::set_enabled(bool set) {
 
 void Touchscreen_GT911::upload_touchscreen_config() {
     static_assert(sizeof(touchscreen_gt911_config) == config_data_size, "wrong size of config");
-    assert(required_recovery_action_ == RecoveryAction::none);
+    debug_assert(required_recovery_action_ == RecoveryAction::none);
 
     is_hw_ok_ = false;
 

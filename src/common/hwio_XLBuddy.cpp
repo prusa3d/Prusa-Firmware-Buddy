@@ -375,10 +375,13 @@ uint32_t analogRead(uint32_t ulPin) {
 void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
-        case MARLIN_PIN(FAN): // print fan
-            Fans::print(active_extruder).set_pwm(ulValue);
+        case MARLIN_PIN(FAN): { // print fan
+            if (auto tool = PhysicalToolIndex::currently_selected_opt()) {
+                Fans::print(*tool).set_pwm(ulValue);
+            }
             buddy::puppies::modular_bed.set_print_fan_active(ulValue > 0);
             return;
+        }
 
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_WR, ulPin); // error: undefined pin analog write

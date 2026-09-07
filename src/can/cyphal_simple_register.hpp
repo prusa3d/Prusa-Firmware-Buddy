@@ -153,10 +153,9 @@ public:
      *   If server uses the same timeouts, it is 2 * get_client_timeout().
      *
      * @param name register name
-     * @param value value to write
-     * @param type type of the register to write
-     * @param remote_node_id node id of remote node
+     * @param reg value and type of the register to write
      * @param response_timeout timeout to receive response in RTOS ticks, 0 to not wait, nullopt for default of 2 * get_client_timeout()
+     * @param remote_node_id node id of remote node
      * @param mutex_timeout timeout to lock mutex to prevent concurrent calls of this function
      * @param tx_timeout timeout to transmit request, discard if it gets stuck in queue for this long
      * @return true if written successfully

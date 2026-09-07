@@ -1,0 +1,2 @@
+set(nrf52840dk_BOARD_ALIAS nrf52840dk/nrf52840)
+set(stm32n657nucleo_BOARD_ALIAS nucleo_n657x0_q)

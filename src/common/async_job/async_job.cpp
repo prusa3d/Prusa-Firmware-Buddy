@@ -1,4 +1,5 @@
 #include "async_job.hpp"
+#include <bsod/bsod.h>
 
 AsyncJobBase::~AsyncJobBase() {
     discard();
@@ -31,7 +32,7 @@ bool AsyncJobBase::try_cancel() {
         return false;
     }
 
-    assert(executor);
+    debug_assert(executor);
     std::lock_guard mutex_guard(executor->mutex);
 
     if (state_ != State::queued) {
@@ -46,7 +47,7 @@ bool AsyncJobBase::try_cancel() {
 void AsyncJobBase::discard() {
     // If the task is active, it can be potentially modified by the executor, and thus we need to synchronize the changes
     if (is_active()) {
-        assert(executor);
+        debug_assert(executor);
         std::lock_guard mutex_guard(executor->mutex);
 
         switch (state_.load()) {
@@ -79,43 +80,44 @@ void AsyncJobBase::discard() {
 }
 
 void AsyncJobBase::unqueue_nolock() {
-    assert(state_ == State::queued);
+    debug_assert(state_ == State::queued);
 
     auto &ex = executor->synchronized_data;
 
     if (previous_job) {
         previous_job->next_job = next_job;
-        previous_job = nullptr;
     } else {
-        assert(ex.first_job == this);
+        debug_assert(ex.first_job == this);
         ex.first_job = next_job;
     }
 
     if (next_job) {
         next_job->previous_job = previous_job;
-        next_job = nullptr;
     } else {
-        assert(ex.last_job == this);
+        debug_assert(ex.last_job == this);
         ex.last_job = previous_job;
     }
+
+    previous_job = nullptr;
+    next_job = nullptr;
 }
 
 void AsyncJobBase::enqueue_nolock() {
-    assert(executor);
-    assert(next_job == nullptr);
-    assert(previous_job == nullptr);
+    debug_assert(executor);
+    debug_assert(next_job == nullptr);
+    debug_assert(previous_job == nullptr);
 
     auto &ex = executor->synchronized_data;
 
     if (ex.first_job != nullptr) {
         // The linked list is not empty -> insert this after the last job
-        assert(ex.last_job != nullptr);
+        debug_assert(ex.last_job != nullptr);
         previous_job = ex.last_job;
         previous_job->next_job = this;
 
     } else {
         // The linked list was empty -> make this a first job and wake the executor
-        assert(!ex.first_job);
+        debug_assert(!ex.first_job);
         ex.first_job = this;
         executor->empty_queue_condition.notify_one();
     }

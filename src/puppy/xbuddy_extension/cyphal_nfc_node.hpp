@@ -4,7 +4,7 @@
 #include "cyphal_presentation.hpp"
 #include "cyphal_types.hpp"
 #include <anfc/modbus.hpp>
-#include <span>
+#include <utils/byte_utils.hpp>
 
 namespace cyphal {
 
@@ -42,7 +42,7 @@ public:
     void consume(anfc::modbus::Event &);
 
     /// Store an event received from the NFC node.
-    void receive_event(std::span<const std::byte>);
+    void receive_event(Bytes);
 
 private:
     [[nodiscard]] bool transmit_accept_event(Presentation &, NodeId);

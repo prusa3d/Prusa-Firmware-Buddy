@@ -262,6 +262,11 @@ ColorRGBW StatusLedsHandler::get_color() const {
     return color;
 }
 
+StateAnimation StatusLedsHandler::current_animation() {
+    std::lock_guard lock(mutex);
+    return is_error_state ? StateAnimation::Error : marlin_to_anim_state();
+}
+
 bool StatusLedsHandler::get_active() {
     std::lock_guard lock(mutex);
     return active;

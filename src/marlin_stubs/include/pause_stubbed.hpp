@@ -132,7 +132,7 @@ public:
     std::optional<LoadUnloadMode> get_mode() const { return load_unload_mode; }
 };
 
-// used by load / unlaod /change filament
+// used by load / unload / change filament
 class Pause : public PausePrivatePhase {
     pause::Settings settings;
     bool user_stop_pending = false;
@@ -142,9 +142,6 @@ class Pause : public PausePrivatePhase {
 
     /// How much filament was retracted thanks to ramming
     float ram_retracted_distance = 0;
-
-    /// How much retraction was left after the unpark
-    float retracted_distance_after_unpark = 0;
 
 #if HAS_NOZZLE_CLEANER()
     uint8_t failed_purge_attempts = 0;
@@ -195,8 +192,8 @@ public:
 
     /**
      * @brief Change tool before load/unload.
-     * @param target_extruder change to this tool [indexed from 0]
-     * @param mode before which operation
+     * @param target_tool change to this tool [indexed from 0]
+     * @param load_type before which operation
      * @param settings_ config for park and othe Pause stuff
      * @return true on success
      */
@@ -396,7 +393,13 @@ private:
         Pause &pause;
 
         static bool active; // we currently support only 1 instance
-        uint16_t original_print_fan_speed;
+        uint8_t original_print_fan_speed;
+
+        /// Bring the nozzle back to the print temperature and return the head to the
+        /// print position. Gives up quietly if the heatup is interrupted, which is why
+        /// it is a function and not inlined into the destructor: the destructor must
+        /// clear the load/unload mode even then.
+        void restore_temperature_and_unpark();
 
     public:
         FSM_HolderLoadUnload(Pause &p);

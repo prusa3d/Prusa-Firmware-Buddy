@@ -4,7 +4,7 @@
 #include "printers.h"
 #include <stdint.h>
 #include <array>
-#include <cassert>
+#include <bsod/bsod.h>
 
 //************************
 //*** System configuration
@@ -96,7 +96,7 @@ inline constexpr uint8_t A = 0;
 inline constexpr uint8_t B = 1;
 inline constexpr auto count = 2;
 inline void assert_idx([[maybe_unused]] const uint8_t idx) {
-    assert(idx == A || idx == B);
+    debug_assert(idx == A || idx == B);
 }
 }; // namespace Branch
 

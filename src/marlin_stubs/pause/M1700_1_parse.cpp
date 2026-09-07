@@ -22,7 +22,7 @@
  *
  *#### Usage
  *
- *    M [ T | W | S | E | B0 ]
+ *    M1700 [ T | W | S | E | B0 | C0 | H0 ]
  *
  *#### Parameters
  *

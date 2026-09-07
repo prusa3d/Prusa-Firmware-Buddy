@@ -482,7 +482,7 @@ static void i2c_free_bus_in_case_of_slave_deadlock(uint32_t clk, hw_pin sda, hw_
     set_pin_od(sda); // reconfigure SDA to open-drain, to be able to move it
     HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '0' while SCL == '1' - start condition
     delay_us_precise(i2c_get_edge_us(clk)); // wait half period
-    HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '1' while SCL == '1' - stop condition
+    HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_SET); // set SDA to '1' while SCL == '1' - stop condition
     delay_us_precise(i2c_get_edge_us(clk)); // wait half period
 }
 

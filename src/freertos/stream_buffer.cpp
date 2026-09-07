@@ -1,16 +1,17 @@
 /// @file
 #include <freertos/stream_buffer.hpp>
 
-#include <cassert>
 #include <cstdlib>
 
 // FreeRTOS.h must be included before stream_buffer.h
 #include <FreeRTOS.h>
 #include <stream_buffer.h>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 namespace freertos {
 
-StreamBufferBase::StreamBufferBase(std::span<std::byte> data_storage) {
+StreamBufferBase::StreamBufferBase(WritableBytes data_storage) {
     // If these asserts start failing, go fix the constants.
     static_assert(stream_buffer_storage_size == sizeof(StaticStreamBuffer_t));
     static_assert(stream_buffer_storage_align == alignof(StaticStreamBuffer_t));
@@ -26,8 +27,8 @@ StreamBufferBase::~StreamBufferBase() {
     vStreamBufferDelete(StreamBufferHandle_t(handle));
 }
 
-std::span<std::byte> StreamBufferBase::receive(std::span<std::byte> buffer) {
-    assert(!xPortIsInsideInterrupt());
+WritableBytes StreamBufferBase::receive(WritableBytes buffer) {
+    debug_assert(!xPortIsInsideInterrupt());
     size_t count = xStreamBufferReceive(StreamBufferHandle_t(handle),
         buffer.data(),
         buffer.size(),
@@ -35,8 +36,8 @@ std::span<std::byte> StreamBufferBase::receive(std::span<std::byte> buffer) {
     return { buffer.data(), count };
 }
 
-std::span<std::byte> StreamBufferBase::receive_from_isr(std::span<std::byte> buffer) {
-    assert(xPortIsInsideInterrupt());
+WritableBytes StreamBufferBase::receive_from_isr(WritableBytes buffer) {
+    debug_assert(xPortIsInsideInterrupt());
     BaseType_t higher_priority_task_woken = pdFALSE;
     size_t count = xStreamBufferReceiveFromISR(StreamBufferHandle_t(handle),
         buffer.data(),
@@ -46,8 +47,8 @@ std::span<std::byte> StreamBufferBase::receive_from_isr(std::span<std::byte> buf
     return { buffer.data(), count };
 }
 
-std::span<const std::byte> StreamBufferBase::send(std::span<const std::byte> buffer) {
-    assert(!xPortIsInsideInterrupt());
+Bytes StreamBufferBase::send(Bytes buffer) {
+    debug_assert(!xPortIsInsideInterrupt());
     const size_t count = xStreamBufferSend(StreamBufferHandle_t(handle),
         buffer.data(),
         buffer.size(),
@@ -55,8 +56,8 @@ std::span<const std::byte> StreamBufferBase::send(std::span<const std::byte> buf
     return buffer.subspan(count);
 }
 
-std::span<const std::byte> StreamBufferBase::send_from_isr(std::span<const std::byte> buffer) {
-    assert(xPortIsInsideInterrupt());
+Bytes StreamBufferBase::send_from_isr(Bytes buffer) {
+    debug_assert(xPortIsInsideInterrupt());
     BaseType_t higher_priority_task_woken = pdFALSE;
     const size_t count = xStreamBufferSendFromISR(StreamBufferHandle_t(handle),
         buffer.data(),

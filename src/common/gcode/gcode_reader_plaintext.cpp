@@ -5,6 +5,8 @@
 #include <filename_type.hpp>
 #include <sys/stat.h>
 #include <cinttypes>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 PlainGcodeReader::PlainGcodeReader(unique_file_ptr &&f, const struct stat &stat_info)
     : GcodeReaderCommon(std::move(f)) {
@@ -13,7 +15,7 @@ PlainGcodeReader::PlainGcodeReader(unique_file_ptr &&f, const struct stat &stat_
 }
 
 bool PlainGcodeReader::stream_metadata_start([[maybe_unused]] const Index *index) {
-    assert(index == nullptr || !index->indexed());
+    debug_assert(index == nullptr || !index->indexed());
     bool success = fseek(file.get(), 0, SEEK_SET) == 0;
     stream_mode_ = success ? StreamMode::metadata : StreamMode::none;
     gcodes_in_metadata = 0;
@@ -21,7 +23,7 @@ bool PlainGcodeReader::stream_metadata_start([[maybe_unused]] const Index *index
 }
 
 IGcodeReader::Result_t PlainGcodeReader::stream_gcode_start(uint32_t offset, bool ignore_crc, [[maybe_unused]] const Index *index) {
-    assert(index == nullptr || !index->indexed());
+    debug_assert(index == nullptr || !index->indexed());
     // There is no CRC in plaintext G-Code.
     (void)ignore_crc;
 
@@ -125,7 +127,7 @@ IGcodeReader::Result_t PlainGcodeReader::stream_get_line(GcodeBuffer &buffer, Co
     return Result_t::RESULT_EOF;
 }
 
-std::span<std::byte> PlainGcodeReader::ThumbnailReader::read(std::span<std::byte> buffer) {
+WritableBytes PlainGcodeReader::ThumbnailReader::read(WritableBytes buffer) {
     // TODO implement reading multiple bytes at a time
     size_t n = buffer.size();
     size_t pos = 0;
@@ -214,6 +216,9 @@ std::optional<IGcodeReader::ThumbnailDetails> PlainGcodeReader::thumbnail_detail
 
 bool PlainGcodeReader::IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larder, unsigned long &num_bytes) const {
     const auto details = thumbnail_details(buffer.line);
+    if (!details.has_value()) {
+        return false;
+    }
 
     if (expected_type != details->type) {
         return false;

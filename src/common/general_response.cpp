@@ -20,6 +20,7 @@ static constexpr EnumArray<Response, const char *, Response::_count> response_st
     R(Change),
     R(Continue),
     R(Cooldown),
+    R(Details),
     R(Disable),
     R(Done),
     R(Filament),

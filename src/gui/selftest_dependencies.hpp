@@ -10,6 +10,11 @@ bool is_completed(TestResult test_result);
 
 #if HAS_SELFTEST_DEPENDENCIES()
 
+using Dependencies = EnumBitset<Action, Action::_count>;
+
+/// @returns dependencies of the action and transitive closure of dependencies of those dependencies
+Dependencies all_transitive_dependencies(Action action);
+
 bool are_dependencies_met(Action action);
 bool are_all_actions_completed();
 void show_unmet_dependencies_warning(Action action);

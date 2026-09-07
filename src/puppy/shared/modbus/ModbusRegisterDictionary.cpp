@@ -1,7 +1,7 @@
 #include "ModbusRegisterDictionary.hpp"
-#include <assert.h>
 #include <string.h>
 #include <span>
+#include <bsod/bsod.h>
 
 namespace modbus::RegisterDictionary {
 
@@ -37,7 +37,7 @@ void AddBlock(BlockType type, uint16_t *pData, uint32_t regAddress, uint32_t reg
 
     if (ppFirstBI != nullptr) {
         BlockInfo *pBI = new BlockInfo();
-        assert(pBI != nullptr);
+        debug_assert(pBI != nullptr);
 
         pBI->pData = pData;
         pBI->regAddress = regAddress;

@@ -8,7 +8,7 @@ namespace mapi {
  * @param distance The distance to move in mm.
  * @param feed_rate The feed rate of the move in mm/s.
  * @param ignore_flow_factor Ignore user-set flow factor (set planner.e_factor = 1 for the move)
- * @returns if the move was successfully queued (result of planner.buffer_line)
+ * @returns if the move was successfully queued
  */
 bool extruder_move(float distance, float feed_rate, bool ignore_flow_factor = true);
 
@@ -35,6 +35,12 @@ void fully_deretract(float fr_mm_s);
 /// Considers auto_retract and filament_tracker
 /// Blocks
 void retract_to(float target_retraction_distance, float fr_mm_s);
+
+/// Moves the extruder so the filament ends up retracted exactly
+/// Unlike retract_to, may move in either direction.
+/// Considers auto_retract and filament_tracker
+/// Blocks
+void restore_retracted_distance(float target_retraction_distance, float fr_mm_s);
 
 /**
  * Make sure a tool with accelerometer is picked up. If not, pick up such a

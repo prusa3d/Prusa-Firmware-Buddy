@@ -6,7 +6,6 @@
 #include <array>
 #include <optional>
 #include <mutex>
-#include <cassert>
 #include <cstring>
 
 namespace crash_dump {

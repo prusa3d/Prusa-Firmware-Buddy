@@ -15,6 +15,7 @@
 #include "screen_menu_tune.hpp"
 #include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
+#include <option/has_crash_detection.h>
 #include <option/has_human_interactions.h>
 #include <option/has_loadcell.h>
 #include <option/has_mmu2.h>
@@ -36,7 +37,7 @@
 
 #include "Marlin/src/module/motion.h"
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -621,7 +622,7 @@ void screen_printing_data_t::updateTimes() {
         PrintTime::print_formatted_duration(time_to_change, w_etime_value_buffer);
         break;
     case CurrentlyShowing::_count:
-        assert(false); // invalid value, should never happen
+        debug_assert(false); // invalid value, should never happen
         break;
     }
 
@@ -640,7 +641,7 @@ void screen_printing_data_t::updateTimes() {
 }
 
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(GCodeInfo::getInstance().GetGcodeFilepath(), marlin_server::PreviewSkipIfAble::preview);
+    marlin_client::print_start(GCodeInfo::getInstance().GetGcodeFilepath(), marlin_client::PreviewSkipIfAble::preview, marlin_client::ResetToolMapping::no);
     screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
     header.SetText(_(caption));
@@ -834,6 +835,7 @@ void screen_printing_data_t::change_print_state() {
             return printing_state_t::STOPPED;
         case State::Finished:
         case State::Exit:
+            stop_pressed = false;
             return printing_state_t::PRINTED;
         case State::PowerPanic_acFault:
         case State::SerialPrintInit:

@@ -5,6 +5,7 @@
 #include "power_panic_storage.hpp"
 #include <logging/log.hpp>
 #include <crc32.h>
+#include <bsod/bsod.h>
 
 namespace power_panic {
 
@@ -87,7 +88,7 @@ void state_t::save() {
 
 void state_t::load() {
     // should be called after init - data should be initialized and valid
-    assert(runtime_data.initialized && runtime_data.valid);
+    debug_assert(runtime_data.initialized && runtime_data.valid);
 }
 
 void erase() {
@@ -123,7 +124,7 @@ void fixed_t::save() {
 }
 
 void fixed_t::load() {
-    assert(runtime_data.initialized && runtime_data.valid);
+    debug_assert(runtime_data.initialized && runtime_data.valid);
 
     // print area
     PrintArea::rect_t rect = {

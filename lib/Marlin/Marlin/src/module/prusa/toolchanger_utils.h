@@ -56,14 +56,18 @@ public:
     static constexpr float DOCK_SAFE_Y_OFFSET = 28.6f; ///< Collision-free distance in front of dock [mm]
     // Absolute safe Y positions (computed from default dock Y, used by external code for boundary checks)
     static constexpr auto SAFE_Y_WITH_TOOL = DOCK_DEFAULT_Y_MM + DOCK_SAFE_Y_OFFSET;
+        #if PRINTER_IS_PRUSA_COREONEL()
+    static constexpr float DOCK_UNLOCK_Y_OFFSET = 6.6f; ///< Y offset for the unlock position [mm]
+        #else
     static constexpr float DOCK_UNLOCK_Y_OFFSET = 10.6f; ///< Y offset for the unlock position [mm]
+        #endif
     static constexpr float DOCK_BACKOFF_Y_OFFSET = 50.0f; ///< Y back-off in front of the dock after parking, to clear it for manual access (tool_return_t::dock_backoff) [mm]
 
     // E-axis lock/unlock mechanism
     static constexpr float E_WIGGLE_DISTANCE = 0.27f; ///< Tooth alignment wiggle distance [mm]
     static constexpr float E_PARTIAL_UNLOCK_DISTANCE = 1.3f; ///< Partial unlock, head still holds nozzle [mm]
     static constexpr float E_FULL_OPEN_DISTANCE = 11.2f; ///< Full open distance [mm]
-    static constexpr float E_FULL_CLOSE_DISTANCE = 10.5f; ///< Full lock distance [mm]
+    static constexpr float E_FULL_CLOSE_DISTANCE = 12.3f; ///< Full lock distance [mm]
 
     // E-axis motor currents for lock/unlock
     static constexpr uint16_t E_WIGGLE_CURRENT_MA = 200; ///< Low current for safe tooth engagement [mA]
@@ -118,6 +122,8 @@ public:
     /// Feedrate for moves around dock
     static float limit_stealth_feedrate(float feedrate);
 
+    static bool is_pos_in_toolchange_area(const xy_pos_t &pos);
+
 public:
     PrusaToolChangerUtils();
 
@@ -141,19 +147,14 @@ public:
         return true;
     }
 
-    const PrusaToolInfo &get_tool_info(PhysicalToolIndex tool_index, bool check_calibrated = false) const;
-    bool is_tool_info_valid(PhysicalToolIndex tool_index, const PrusaToolInfo &info) const;
-    void set_tool_info(PhysicalToolIndex tool_index, const PrusaToolInfo &info);
-
-    [[nodiscard]] PrusaToolInfo create_default_tool_info(PhysicalToolIndex tool_index) const;
-
     #else // !HAS_INDX()
 
     /**
-     * @brief Request change of active dwarf.
-     * This is only to be used in crash recovery, otherwise it could mess up marlin.
+     * @brief Request change of active dwarf and wait for the puppy task to apply it.
+     * Outside of tool_change()'s own sequencing this belongs to crash recovery only - on its own
+     * it leaves marlin's active_extruder disagreeing with the selected dwarf.
+     * Throws a redscreen if the puppy task does not pick the request up in time.
      * @param new_dwarf pointer to dwarf that will be selected as active, nullptr to select no dwarf
-     * If it fails, it throws redscreen.
      */
     void request_active_switch(buddy::puppies::Dwarf *new_dwarf);
 
@@ -188,11 +189,6 @@ public:
 
     buddy::puppies::Dwarf &getTool(PhysicalToolIndex tool);
 
-    const PrusaToolInfo &get_tool_info(const buddy::puppies::Dwarf &dwarf, bool check_calibrated = false) const;
-    bool is_tool_info_valid(const buddy::puppies::Dwarf &dwarf, const PrusaToolInfo &info) const;
-    bool is_tool_info_valid(const buddy::puppies::Dwarf &dwarf) const;
-    void set_tool_info(const buddy::puppies::Dwarf &dwarf, const PrusaToolInfo &info);
-
     /**
      * @brief Get binary mask of all enabled dwarfs.
      * @return high bits for dwarfs that is_enabled()
@@ -215,11 +211,10 @@ public:
         return false;
     }
 
-    [[nodiscard]] PrusaToolInfo compute_synthetic_tool_info(const buddy::puppies::Dwarf &dwarf) const;
     bool autodetect_toolchanger_enabled();
     /**
      * @brief Get picked and parked states and detect which tool is active.
-     * Modifies parked, picked and picked_dwarf.
+     * Modifies picked_dwarf and picked_update.
      */
     void autodetect_active_tool(buddy::puppies::PuppyModbus &);
 
@@ -249,6 +244,16 @@ public:
     /// Should be used only by PhysicalToolIndex class.
     /// Use tool.is_enabled() instead.
     bool is_tool_enabled(PhysicalToolIndex tool, Badge<PhysicalToolIndex>);
+
+    const PrusaToolInfo &get_tool_info(PhysicalToolIndex tool, bool check_calibrated = false) const;
+    [[nodiscard]] PrusaToolInfo create_default_tool_info(PhysicalToolIndex tool_index) const;
+
+    [[nodiscard]] bool is_tool_info_valid(PhysicalToolIndex tool, const PrusaToolInfo &info) const;
+    [[nodiscard]] bool is_tool_info_valid(PhysicalToolIndex tool) const {
+        return is_tool_info_valid(tool, get_tool_info(tool, false));
+    }
+
+    void set_tool_info(PhysicalToolIndex tool, const PrusaToolInfo &info);
 
     [[nodiscard]] uint8_t get_num_enabled_tools() const;
 

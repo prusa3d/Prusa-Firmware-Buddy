@@ -4,12 +4,11 @@
 #include <cmath>
 #include <cinttypes>
 #include <algorithm>
-#include <assert.h>
 
 #include <bsod.h>
 
 void StringBuilder::init(char *buffer, size_t buffer_size) {
-    assert(buffer_size != 0);
+    debug_assert(buffer_size != 0);
 
     buffer_start_ = buffer;
     current_pos_ = buffer;
@@ -61,7 +60,7 @@ StringBuilder &StringBuilder::append_string(const char *str) {
     }
 
     // Accomodate for terminating null
-    assert(current_pos_ != buffer_end_);
+    debug_assert(current_pos_ != buffer_end_);
     char *buffer_pre_end = buffer_end_ - 1;
 
     while (true) {
@@ -100,7 +99,7 @@ StringBuilder &StringBuilder::append_std_string_view(const std::string_view &vie
 StringBuilder &StringBuilder::append_string_view(const string_view_utf8 &str) {
     StringReaderUtf8 reader(str);
 
-    assert(current_pos_ != buffer_end_);
+    debug_assert(current_pos_ != buffer_end_);
     char *buffer_pre_end = buffer_end_ - 1;
 
     while (true) {

@@ -38,11 +38,6 @@
   #include HAL_PATH(../HAL, endstop_interrupts.h)
 #endif
 
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "../feature/bltouch.h"
-#endif
-
 #if HAS_LOADCELL()
   #include "loadcell.hpp"
 #endif
@@ -210,20 +205,6 @@ void Endstops::init() {
     #endif
   #endif
 
-  #if HAS_CALIBRATION_PIN
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #if ENABLED(CALIBRATION_PIN_PULLUP)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      SET_INPUT_PULLUP(CALIBRATION_PIN);
-    #elif ENABLED(CALIBRATION_PIN_PULLDOWN)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      SET_INPUT_PULLDOWN(CALIBRATION_PIN);
-    #else
-      // #error dead code found by automatic analyses (see BFW-5461)
-      SET_INPUT(CALIBRATION_PIN);
-    #endif
-  #endif
-
   #if HAS_CUSTOM_PROBE_PIN
     // #error dead code found by automatic analyses (see BFW-5461)
     #if ENABLED(ENDSTOPPULLUP_ZMIN_PROBE)
@@ -361,10 +342,6 @@ static void print_es_state(const bool is_hit, PGM_P const label=nullptr) {
 }
 
 void __O2 Endstops::M119() {
-  #if ENABLED(BLTOUCH)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    bltouch._set_SW_mode();
-  #endif
   SERIAL_ECHOLNPGM(MSG_M119_REPORT);
   #define ES_REPORT(S) print_es_state(READ(S##_PIN) != S##_ENDSTOP_INVERTING, PSTR(MSG_##S))
   #if HAS_X_MIN
@@ -404,10 +381,6 @@ void __O2 Endstops::M119() {
   #if HAS_CUSTOM_PROBE_PIN
     // #error dead code found by automatic analyses (see BFW-5461)
     print_es_state(READ(Z_MIN_PROBE_PIN) != Z_MIN_PROBE_ENDSTOP_INVERTING, PSTR(MSG_Z_PROBE));
-  #endif
-  #if ENABLED(BLTOUCH)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    bltouch._reset_SW_mode();
   #endif
 } // Endstops::M119
 

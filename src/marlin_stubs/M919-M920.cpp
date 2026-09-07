@@ -109,7 +109,7 @@ void PrusaGcodeSuite::M919() {
  *
  *#### Usage
  *
- *    M919 [ X | Y | Z | E | <TMC reg> ]
+ *    M920 [ X | Y | Z | E | <TMC reg> ]
  *
  *#### Parameters
  *

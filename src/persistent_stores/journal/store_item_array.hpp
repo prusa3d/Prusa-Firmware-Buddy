@@ -102,7 +102,7 @@ public:
         const auto old_value = this->data_array[index];
         const auto new_value = f(old_value);
         if (new_value != old_value) {
-            this->data_array = new_value;
+            this->data_array[index] = new_value;
             static_cast<Child *>(this)->do_save(index);
         }
     }
@@ -115,7 +115,7 @@ public:
             const auto old_value = this->data_array[i];
             const auto new_value = f(old_value);
             if (new_value != old_value) {
-                this->data_array = new_value;
+                this->data_array[i] = new_value;
                 static_cast<Child *>(this)->do_save(i);
             }
         }

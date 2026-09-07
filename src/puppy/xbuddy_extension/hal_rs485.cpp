@@ -4,6 +4,7 @@
 #include <atomic>
 #include <freertos/binary_semaphore.hpp>
 #include <stm32h5xx_hal.h>
+#include <utils/byte_utils.hpp>
 
 static UART_HandleTypeDef huart;
 alignas(uint16_t) static std::byte rx_buf[256];
@@ -147,19 +148,19 @@ void hal::rs485::start_receiving() {
     HAL_UART_TxCpltCallback(&huart);
 }
 
-std::span<std::byte> hal::rs485::receive() {
+WritableBytes hal::rs485::receive() {
     tx_semaphore.acquire();
     return { rx_buf, rx_len };
 }
 
-std::span<std::byte> hal::rs485::receive_timeout(uint32_t timeout_ms) {
+WritableBytes hal::rs485::receive_timeout(uint32_t timeout_ms) {
     if (tx_semaphore.try_acquire_for(timeout_ms)) {
         return { rx_buf, rx_len };
     }
     return {};
 }
 
-void hal::rs485::transmit_and_then_start_receiving(std::span<std::byte> payload) {
+void hal::rs485::transmit_and_then_start_receiving(WritableBytes payload) {
     HAL_UART_Transmit_IT(&huart, (uint8_t *)payload.data(), payload.size());
 }
 

@@ -43,7 +43,11 @@ public:
             { Item::network, { N_("Network Settings"), ItemFlag::network } },
             { Item::user_interface, { N_("UI Settings"), ItemFlag::user_interface } },
             { Item::stats, { N_("Statistics"), ItemFlag::stats } },
-            { Item::hw_config, { N_("HW Configuration"), ItemFlag::hw_config } },
+
+            // The calibrations are done for some hw_config (for example belts -> XY test/calibrations)
+            // Therefore when resetting HW configuration, we need to reset the calibrations as well
+            { Item::hw_config, { N_("HW Configuration"), ItemFlag::hw_config | ItemFlag::calibrations } },
+
             { Item::features, { N_("Printer Functions"), ItemFlag::features } },
             { Item::printer_state, { N_("Printer State"), ItemFlag::printer_state } },
             { Item::user_profiles, { N_("User Presets"), ItemFlag::user_presets } },
@@ -80,4 +84,38 @@ public:
         }
         return result;
     }
+
+public:
+    /// Remove all personal configuration, keep HW config, stats, calibrations
+    static const ItemBitset ownership_transfer;
+
+    /// Keep most things, reset only possible trouble makers (experimental settings, tweaks, ...)
+    static const ItemBitset fix_common_misconfigurations;
+
+    /// Reset everything, keep just HW configuration
+    static const ItemBitset keep_hw_config;
+
+    /// For the factory guys to run after the printer is assembled and tested
+    static const ItemBitset shipping_reset;
+
+    /// Reset everything
+    static const ItemBitset full_reset;
+
+    /// Printer type changed - keep only what is not tied to the printer type
+    static const ItemBitset printer_type_change;
 };
+
+inline constexpr FactoryReset::ItemBitset FactoryReset::ownership_transfer = item_bitset({ Item::hw_config, Item::printer_state, Item::stats, Item::calibrations, Item::common_misconfigurations });
+inline constexpr FactoryReset::ItemBitset FactoryReset::fix_common_misconfigurations = item_bitset_exclude({ Item::common_misconfigurations });
+inline constexpr FactoryReset::ItemBitset FactoryReset::keep_hw_config = item_bitset({ Item::hw_config });
+inline constexpr FactoryReset::ItemBitset FactoryReset::shipping_reset = item_bitset({ Item::hw_config, Item::calibrations });
+inline constexpr FactoryReset::ItemBitset FactoryReset::full_reset = {};
+inline constexpr FactoryReset::ItemBitset FactoryReset::printer_type_change = item_bitset({
+    Item::network,
+        Item::stats,
+        Item::user_interface,
+        Item::user_profiles,
+#if HAS_E2EE_SUPPORT()
+        Item::security,
+#endif
+});

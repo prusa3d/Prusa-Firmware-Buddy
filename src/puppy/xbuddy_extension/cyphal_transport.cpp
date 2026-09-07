@@ -9,6 +9,7 @@
 #include <canard.h>
 #include <o1heap/o1heap.h>
 #include <raii/lock_guard.hpp>
+#include <utils/byte_utils.hpp>
 
 alignas(O1HEAP_ALIGNMENT) static std::array<std::byte, 12 * 1024> memory;
 
@@ -118,7 +119,7 @@ public:
         }
     }
 
-    [[nodiscard]] bool transmit(const CanardMicrosecond deadline, const CanardTransferMetadata &metadata, const std::span<const std::byte> &buffer) {
+    [[nodiscard]] bool transmit(const CanardMicrosecond deadline, const CanardTransferMetadata &metadata, const Bytes &buffer) {
         LockGuard lock { mutex };
         return canardTxPush(&tx_queue, &canard, deadline, &metadata, buffer.size(), buffer.data()) > 0;
     }

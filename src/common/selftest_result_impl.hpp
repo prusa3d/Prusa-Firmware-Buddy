@@ -27,6 +27,8 @@ struct SelftestTool {
     // Same as above.
     TestResult _deprecated_side_fsensor : 2;
     TestResult _dockoffset : 2;
+    // WARNING: This is doubled storage of the Tool Offset Calibration results, to be corrected
+    // TODO: BFW-9196
     TestResult _tooloffset : 2;
     TestResult _gears : 2;
 

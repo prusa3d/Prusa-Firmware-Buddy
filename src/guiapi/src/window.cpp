@@ -12,7 +12,7 @@ bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_
 bool window_t::HasVisibleFlag() const { return flags.visible; };
 bool window_t::IsHiddenBehindDialog() const { return flags.hidden_behind_dialog; }
 bool window_t::IsInvalid() const { return flags.invalid; }
-bool window_t::IsFocused() const { return GetFocusedWindow() == this; }
+bool window_t::IsFocused() const { return this->is_self_or_parent_of(GetFocusedWindow()); }
 win_type_t window_t::GetType() const { return win_type_t(flags.type); }
 bool window_t::IsDialog() const { return GetType() == win_type_t::dialog; }
 bool window_t::ClosedOnTimeout() const { return flags.timeout_close == is_closed_on_timeout_t::yes; }
@@ -341,14 +341,11 @@ window_t *window_t::GetParent() const {
     return parent;
 }
 
-bool window_t::IsChildOf(window_t *win) const {
-    window_t *par = GetParent();
-    while (par) {
-        if (par == win) {
+bool window_t::is_self_or_parent_of(window_t *child) const {
+    for (const window_t *wnd = child; wnd != nullptr; wnd = wnd->GetParent()) {
+        if (wnd == this) {
             return true;
         }
-
-        par = par->GetParent();
     }
     return false;
 }

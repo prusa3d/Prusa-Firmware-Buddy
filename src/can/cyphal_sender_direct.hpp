@@ -9,7 +9,7 @@
 
 #include <FreeRTOS.h>
 #include <semphr.h>
-#include <assert.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -35,10 +35,10 @@ public:
      * @return return from serialization function - 0 on success, negative on error
      */
     void to_send(CanardMicrosecond &timestamp, CanardTransferMetadata &meta, uint8_t *buffer, size_t &buffer_size) override {
-        assert(data != nullptr); // Data should be set before sending
-        assert(buffer != nullptr);
+        debug_assert(data != nullptr); // Data should be set before sending
+        debug_assert(buffer != nullptr);
         [[maybe_unused]] int8_t ret_serialize = serialize(data, buffer, &buffer_size); // Serialize data
-        assert(ret_serialize == 0); // Serialization should never fail
+        debug_assert(ret_serialize == 0); // Serialization should never fail
 
         meta.priority = priority;
         meta.transfer_kind = kind;
@@ -93,7 +93,7 @@ protected:
         , remote_node_id(remote_node_id_)
         , kind(kind_) {
         // Remote node-ID should be set only for requests and responses
-        assert(kind == CanardTransferKindRequest || kind == CanardTransferKindResponse || remote_node_id == CANARD_NODE_ID_UNSET);
+        debug_assert(kind == CanardTransferKindRequest || kind == CanardTransferKindResponse || remote_node_id == CANARD_NODE_ID_UNSET);
     }
 
 public:
@@ -105,7 +105,7 @@ public:
      * @param remote_node_id_ remote node-ID
      */
     void set_remote_node_id(CanardNodeID remote_node_id_) {
-        assert(kind == CanardTransferKindRequest || kind == CanardTransferKindResponse);
+        debug_assert(kind == CanardTransferKindRequest || kind == CanardTransferKindResponse);
         remote_node_id = remote_node_id_;
     }
 
@@ -123,7 +123,7 @@ public:
      * @param transfer_id_ transfer ID to set
      */
     void set_transfer_id(CanardTransferID transfer_id_) {
-        assert(kind == CanardTransferKindResponse);
+        debug_assert(kind == CanardTransferKindResponse);
         next_transfer_id = transfer_id_;
     }
 
@@ -219,7 +219,7 @@ public:
      */
     void send_data(const T &data, std::optional<CanardNodeID> remote_node_id = std::nullopt) {
         [[maybe_unused]] bool ret = send_data_void(reinterpret_cast<const void *>(&data), remote_node_id, portMAX_DELAY);
-        assert(ret);
+        debug_assert(ret);
     }
 
 private:

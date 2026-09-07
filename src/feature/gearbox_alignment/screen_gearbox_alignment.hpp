@@ -2,14 +2,11 @@
 #pragma once
 
 #include "screen_fsm.hpp"
-#include "radio_button_fsm.hpp"
 #include <option/has_gearbox_alignment.h>
 
 static_assert(HAS_GEARBOX_ALIGNMENT());
 
 class ScreenGearboxAlignment final : public ScreenFSM {
-private:
-    RadioButtonFSM radio;
 
 public:
     ScreenGearboxAlignment();

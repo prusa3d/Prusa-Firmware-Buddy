@@ -2,8 +2,11 @@
 #include "tool_offset.hpp"
 #include "dock_position.hpp"
 #include "utils/variant_utils.hpp"
+#include <feature/gcode_exception/gcode_exception.hpp>
+#include <option/has_crash_detection.h>
 #include <option/has_toolchanger.h>
 #include <tool_index.hpp>
+#include <bsod/bsod.h>
 
 #if HAS_TOOLCHANGER()
     #include "Marlin/src/module/stepper.h"
@@ -14,9 +17,9 @@
     #include <puppies/Dwarf.hpp>
     #include <puppies/PuppyModbus.hpp>
 
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
         #include "../../feature/prusa/crash_recovery.hpp"
-    #endif /*ENABLED(CRASH_RECOVERY)*/
+    #endif
 
     #include <config_store/store_instance.hpp>
 
@@ -25,6 +28,10 @@ LOG_COMPONENT_DEF(PrusaToolChanger, logging::Severity::debug);
 using namespace buddy::puppies;
 
 static_assert(EXTRUDERS == dwarfs.size());
+
+bool PrusaToolChangerUtils::is_pos_in_toolchange_area(const xy_pos_t &pos) {
+    return pos.y > SAFE_Y_WITH_TOOL;
+}
 
 float PrusaToolChangerUtils::limit_stealth_feedrate(float feedrate) {
     // If the HWLIMIT_STEALTH_MAX_FEEDRATE changes, this function needs to be revisited
@@ -125,15 +132,21 @@ void PrusaToolChangerUtils::autodetect_active_tool(PuppyModbus &bus) {
 }
 
 void PrusaToolChangerUtils::request_active_switch(Dwarf *new_dwarf) {
-    assert(request_toolchange == false && "Repeated dwarf switch request");
+    debug_assert(request_toolchange == false && "Repeated dwarf switch request");
     request_toolchange_dwarf = new_dwarf;
     request_toolchange = true;
     if (wait([this]() { return !this->request_toolchange.load(); }, WAIT_TIME_TOOL_SELECT) == false) {
-    #if ENABLED(CRASH_RECOVERY)
+        // wait() bails out as soon as the planner starts draining, which is what a failed wait
+        // means here far more often than a puppy task that failed to answer. No error may be
+        // raised while draining - the request stays pending and the puppy task still applies it.
+        if (gcode_exceptions().is_unwinding()) {
+            return;
+        }
+    #if HAS_CRASH_DETECTION()
         if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
             return; // Fail silently, so powerpanic can work
         }
-    #endif /*ENABLED(CRASH_RECOVERY)*/
+    #endif
         toolchanger_error("Tool switch failed");
     }
 }
@@ -269,10 +282,14 @@ void PrusaToolChangerUtils::save_tool_info() {
     }
 }
 
+void PrusaToolChangerUtils::save_tool_offset(PhysicalToolIndex tool) {
+    const auto &offset = hotend_offset[tool];
+    config_store().set_tool_offset(tool, { .x = offset.x, .y = offset.y, .z = offset.z });
+}
+
 void PrusaToolChangerUtils::save_tool_offsets() {
     for (auto tool : PhysicalToolIndex::all()) {
-        const auto &offset = hotend_offset[tool];
-        config_store().set_tool_offset(tool, { .x = offset.x, .y = offset.y, .z = offset.z });
+        save_tool_offset(tool);
     }
 }
 
@@ -283,8 +300,8 @@ void PrusaToolChangerUtils::load_tool_offsets() {
     }
 }
 
-const PrusaToolInfo &PrusaToolChangerUtils::get_tool_info(const Dwarf &dwarf, bool check_calibrated) const {
-    const PrusaToolInfo &info = tool_info[dwarf.dwarf_index()];
+const PrusaToolInfo &PrusaToolChangerUtils::get_tool_info(PhysicalToolIndex tool, bool check_calibrated) const {
+    const PrusaToolInfo &info = tool_info[tool.to_raw()];
 
     if (check_calibrated && (std::isnan(info.dock_x) || std::isnan(info.dock_y) || info.dock_x == 0 || info.dock_y == 0)) {
         toolchanger_error("Dock Position not calibrated");
@@ -293,19 +310,15 @@ const PrusaToolInfo &PrusaToolChangerUtils::get_tool_info(const Dwarf &dwarf, bo
     return info;
 }
 
-bool PrusaToolChangerUtils::is_tool_info_valid(const Dwarf &dwarf) const {
-    return is_tool_info_valid(dwarf, get_tool_info(dwarf));
-}
-
-bool PrusaToolChangerUtils::is_tool_info_valid(const Dwarf &dwarf, const PrusaToolInfo &info) const {
-    const PrusaToolInfo synthetic = compute_synthetic_tool_info(dwarf);
+bool PrusaToolChangerUtils::is_tool_info_valid(PhysicalToolIndex tool, const PrusaToolInfo &info) const {
+    const PrusaToolInfo synthetic = create_default_tool_info(tool);
     const auto dx = info.dock_x - synthetic.dock_x;
     const auto dy = info.dock_y - synthetic.dock_y;
     return sqrt(pow(dx, 2) + pow(dy, 2)) < DOCK_INVALID_OFFSET_MM;
 }
 
-void PrusaToolChangerUtils::set_tool_info(const buddy::puppies::Dwarf &dwarf, const PrusaToolInfo &info) {
-    tool_info[dwarf.dwarf_index()] = info;
+void PrusaToolChangerUtils::set_tool_info(PhysicalToolIndex tool, const PrusaToolInfo &info) {
+    tool_info[tool.to_raw()] = info;
 }
 
 void PrusaToolChangerUtils::toolchanger_error(const char *message) const {
@@ -330,9 +343,11 @@ PrusaToolChangerUtils::StepperConfigGuard::~StepperConfigGuard() {
     stepperY.stall_sensitivity(y_stall_sensitivity);
 }
 
-PrusaToolInfo PrusaToolChangerUtils::compute_synthetic_tool_info(const Dwarf &dwarf) const {
-    return PrusaToolInfo({ .dock_x = DOCK_DEFAULT_FIRST_X_MM + DOCK_OFFSET_X_MM * (dwarf.dwarf_index()),
-        .dock_y = DOCK_DEFAULT_Y_MM });
+PrusaToolInfo PrusaToolChangerUtils::create_default_tool_info(PhysicalToolIndex tool) const {
+    return PrusaToolInfo({
+        .dock_x = DOCK_DEFAULT_FIRST_X_MM + DOCK_OFFSET_X_MM * tool.to_raw(),
+        .dock_y = DOCK_DEFAULT_Y_MM,
+    });
 }
 
 void PrusaToolChangerUtils::ConfRestorer::sample() {

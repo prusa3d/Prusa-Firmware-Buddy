@@ -4,7 +4,6 @@
 #include <bsod.h>
 #include <crc32.h>
 
-#include <cassert>
 #include <cstring>
 
 using bgcode::core::BlockHeader;
@@ -32,7 +31,7 @@ void HMAC::update(uint8_t *data, size_t size) {
 }
 
 void HMAC::finish(uint8_t *output, [[maybe_unused]] size_t size) {
-    assert(size == e2ee::HMAC_SIZE);
+    debug_assert(size == e2ee::HMAC_SIZE);
     mbedtls_md_hmac_finish(&md_ctx, output);
 }
 

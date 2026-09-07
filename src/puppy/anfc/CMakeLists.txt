@@ -48,6 +48,7 @@ target_link_libraries(
   firmware
   PRIVATE STM32C0::HAL
           HAL_Config
+          bsod
           printf::printf
           SG14
           buddy_utils

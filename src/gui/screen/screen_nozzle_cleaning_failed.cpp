@@ -39,7 +39,7 @@ using Frames = FrameDefinitionList<ScreenNozzleCleaningFailed::FrameStorage,
     FrameDefinition<Phase::autoretract, WithFooter<FrameNozzleCleaningProgress, nozzle_cleaning_footer_items>, Phase::autoretract>,
     FrameDefinition<Phase::remove_filament, WithFooter<FramePrompt, nozzle_cleaning_footer_items>, Phase::remove_filament, nozzle_cleaning_failed_phase_error_code_mapper>,
 #endif
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     FrameDefinition<Phase::offer_auto_retract_enable, FramePrompt, Phase::offer_auto_retract_enable, nozzle_cleaning_failed_phase_error_code_mapper>,
 #endif
     FrameDefinition<Phase::warn_abort, WithFooter<FramePrompt, nozzle_cleaning_footer_items>, Phase::warn_abort, nozzle_cleaning_failed_phase_error_code_mapper>>;

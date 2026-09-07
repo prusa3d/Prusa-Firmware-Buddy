@@ -6,7 +6,6 @@
 #include <cstring>
 #include <cstdint>
 #include <atomic>
-#include <cassert>
 #include <cinttypes>
 #include <timing.h>
 #include <mutex>
@@ -204,7 +203,7 @@ static bool is_running(ESPIFOperatingMode mode) {
         return true;
     }
 
-    assert(0);
+    debug_assert(0);
     return false;
 }
 
@@ -224,7 +223,7 @@ static bool can_recieve_data(ESPIFOperatingMode mode) {
         return true;
     }
 
-    assert(0);
+    debug_assert(0);
     return false;
 }
 
@@ -264,8 +263,8 @@ static void espif_tx_update_metrics(uint32_t len) {
 static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
     // We are supposed to be under a mutex by the caller.
     [[maybe_unused]] auto old_semaphore = tx_semaphore_active.exchange(&tx_semaphore);
-    assert(old_semaphore == nullptr);
-    assert(can_be_used_by_dma(data));
+    debug_assert(old_semaphore == nullptr);
+    debug_assert(can_be_used_by_dma(data));
     HAL_StatusTypeDef tx_result = HAL_UART_Transmit_DMA(&uart_handle_for_esp, data, len);
 
     if (tx_result == HAL_OK) {
@@ -273,7 +272,7 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
     } else {
         [[maybe_unused]] auto withdrawn = tx_semaphore_active.exchange(nullptr);
         // It's the one we put in
-        assert(withdrawn == &tx_semaphore);
+        debug_assert(withdrawn == &tx_semaphore);
     }
 
     return tx_result;
@@ -351,14 +350,14 @@ static err_t espif_tx_buffer(const uint8_t *data, size_t len) {
     }
 
     {
-        assert(pbuf->tot_len == length);
+        debug_assert(pbuf->tot_len == length);
         uint8_t *buffer = (uint8_t *)pbuf->payload;
         buffer = buffer_append_unsafe(buffer, new_intron.data(), sizeof(new_intron));
         buffer = buffer_append_unsafe(buffer, &ssid_len, sizeof(ssid_len));
         buffer = buffer_append_unsafe(buffer, (uint8_t *)ssid, ssid_len);
         buffer = buffer_append_unsafe(buffer, &pass_len, sizeof(pass_len));
         buffer = buffer_append_unsafe(buffer, (uint8_t *)pass, pass_len);
-        assert(buffer == (uint8_t *)pbuf->payload + length);
+        debug_assert(buffer == (uint8_t *)pbuf->payload + length);
     }
 
     err_t err = espif_tx_raw(MSG_CLIENTCONFIG_V2, 0, pbuf_variant { std::move(pbuf) });
@@ -413,7 +412,7 @@ void espif_input_once(struct netif *netif) {
             uart_error_occured = true;
             return;
         }
-        assert(can_be_used_by_dma(dma_buffer_rx));
+        debug_assert(can_be_used_by_dma(dma_buffer_rx));
         if (const HAL_StatusTypeDef status = HAL_UART_Receive_DMA(&uart_handle_for_esp, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN); status != HAL_OK) {
             log_warning(ESPIF, "HAL_UART_Receive_DMA() failed: %d", status);
             uart_error_occured = true;
@@ -471,7 +470,7 @@ bool espif_link() {
 }
 
 static void process_link_change(bool link_up, struct netif *netif) {
-    assert(netif != nullptr);
+    debug_assert(netif != nullptr);
     if (link_up) {
         if (!scan.is_running) {
             // Don't change the esp mode if the scan is running
@@ -544,8 +543,8 @@ uint8_t espif::scan::get_ap_count() {
 }
 
 [[nodiscard]] err_t espif::scan::get_ap_info(uint8_t index, std::span<uint8_t> buffer, bool &needs_password) {
-    assert(index < ::scan.ap_count);
-    assert(buffer.size() >= config_store_ns::wifi_max_ssid_len);
+    debug_assert(index < ::scan.ap_count);
+    debug_assert(buffer.size() >= config_store_ns::wifi_max_ssid_len);
     std::lock_guard lock(ScanData::get_ap_info_mutex);
     ::scan.result.ssid = buffer;
 
@@ -705,7 +704,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 break;
             }
             default:
-                assert(false && "internal inconsistency");
+                debug_assert(false && "internal inconsistency");
                 state = Intron;
             }
             break;
@@ -722,7 +721,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
             break;
 
         case APData:
-            assert(rx_len == 33);
+            debug_assert(rx_len == 33);
 
             while (c < end && scan.ap_ssid_read < config_store_ns::wifi_max_ssid_len) {
                 scan.result.ssid[scan.ap_ssid_read++] = *c++;
@@ -770,7 +769,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
                 }
                 break;
             default:
-                assert(false && "internal inconsistency");
+                debug_assert(false && "internal inconsistency");
                 state = Intron;
             }
             break;
@@ -839,7 +838,7 @@ static err_t low_level_output([[maybe_unused]] struct netif *netif, struct pbuf 
 static void force_down() {
     log_info(ESPIF, "Force down");
     struct netif *iface = active_esp_netif; // Atomic load
-    assert(iface != nullptr); // Already initialized
+    debug_assert(iface != nullptr); // Already initialized
     process_link_change(false, iface);
 }
 
@@ -861,7 +860,7 @@ static void reset_intron() {
  */
 err_t espif_init(struct netif *netif) {
     struct netif *previous = active_esp_netif.exchange(netif);
-    assert(previous == nullptr);
+    debug_assert(previous == nullptr);
     (void)previous; // Avoid warnings in release
 
     // Initialize lwip netif
@@ -1021,7 +1020,7 @@ EspFwState esp_fw_state() {
     case ESPIF_ERROR:
         return EspFwState::Unknown;
     }
-    assert(0);
+    debug_assert(0);
     return EspFwState::NoEsp;
 }
 
@@ -1051,7 +1050,7 @@ EspLinkState esp_link_state() {
         }
     }
     }
-    assert(0);
+    debug_assert(0);
     return EspLinkState::Init;
 }
 

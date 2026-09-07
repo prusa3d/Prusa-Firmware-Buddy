@@ -5,10 +5,12 @@
 #include <feature/filament_tracker/filament_tracker.hpp>
 #include <feature/openprinttag/requests_read_multi.hpp>
 #include <feature/openprinttag/requests_write.hpp>
+#include <feature/openprinttag/data_utils.hpp>
 #include <freertos/timing.hpp>
 #include <logging/log.hpp>
 #include <marlin_server.hpp>
 #include <raii/scope_guard.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(OpenPrintTag);
 
@@ -68,7 +70,7 @@ bool FilamentUsageTracker::is_tracking(VirtualToolIndex tool) const {
 
 void FilamentUsageTracker::step() {
 #ifndef UNITTESTS
-    assert(marlin_server::is_marlin_server_thread());
+    debug_assert(marlin_server::is_marlin_server_thread());
 #endif
 
     std::lock_guard _lg(mutex_);
@@ -116,7 +118,7 @@ void FilamentUsageTracker::step() {
 
     auto &tool_data = tool_data_[current_tool_];
 
-    const ToolTag::UIDHash new_assigned_tag = ToolTag::for_tool_assigned(current_tool_).transform([](const ToolTag &t) { return t.uid_hash(); }).value_or(ToolTag::no_tag_hash);
+    const ToolTag::UIDHash new_assigned_tag = ToolTag::for_tool_assigned(current_tool_).transform(&ToolTag::uid_hash).value_or(ToolTag::no_tag_hash);
     if (tool_data.assigned_tag != new_assigned_tag) {
         tool_data = ToolData {
             .base_extruded_distance_mm = filament_tracker().get_extruded_distance(current_tool_),
@@ -132,6 +134,11 @@ void FilamentUsageTracker::step() {
 
     const ToolTag tool_tag { current_tool_, tool_data.assigned_tag };
 
+    if (ToolTag::for_tool_ephemeral(current_tool_) != tool_tag) {
+        // Tag is not present, no point in trying to read/write anything
+        return;
+    }
+
     if (tool_data.init_pending) {
         // We need to first some data from the tag to be able to track
         async_job_.issue([tag = tool_tag](AsyncJobExecutionControl &ctrl, AsyncJobFinishCallback &result) {
@@ -139,7 +146,7 @@ void FilamentUsageTracker::step() {
         });
 
     } else if (tool_data.write_pending) {
-        assert(!std::isnan(tool_data.g_per_mm));
+        debug_assert(!std::isnan(tool_data.g_per_mm));
         const auto &args = write_consumption_args_.emplace(WriteConsumptionArgs {
             .tag = tool_tag,
             .extruded_distance_delta_mm = uncommited_consumption_mm_nolock(current_tool_),
@@ -178,13 +185,15 @@ void FilamentUsageTracker::retry_finish_cb(const AsyncJobFinishCallbackArgs &arg
 }
 
 FilamentUsageTracker::AsyncJobFinishCallback FilamentUsageTracker::tool_init_async([[maybe_unused]] AsyncJobExecutionControl &ctrl, ToolTag tag) {
-    MultiReadFieldRequest<MainField::nominal_full_length, MainField::actual_full_length, MainField::nominal_netto_full_weight, MainField::actual_netto_full_weight, AuxField::consumed_weight> req { tag };
+    MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tag };
     req.issue();
 
     // Wait for the request to be finished
     while (!req.finished()) {
         freertos::delay(10);
     }
+
+    AmountsInfo amounts(req);
 
     // Check possible errors
     for (Request *req : req.requests()) {
@@ -220,15 +229,12 @@ FilamentUsageTracker::AsyncJobFinishCallback FilamentUsageTracker::tool_init_asy
         }
     }
 
-    const float full_length = req.result<MainField::actual_full_length>().value_or(req.result<MainField::nominal_full_length>().value_or(NAN));
-    const float full_weight = req.result<MainField::actual_netto_full_weight>().value_or(req.result<MainField::nominal_netto_full_weight>().value_or(NAN));
-    const float g_per_mm = full_weight / full_length;
-
-    if (std::isnan(g_per_mm)) {
+    if (!amounts.full_length_mm.has_value() || !amounts.full_weight_g.has_value() || !amounts.remaining_weight_g.has_value()) {
         return cannot_track_finish_cb;
     }
 
-    const float remaining_g = full_weight - req.result<AuxField::consumed_weight>().value_or(0);
+    const float g_per_mm = *amounts.full_weight_g / *amounts.full_length_mm;
+    const float remaining_g = *amounts.remaining_weight_g;
 
     return [g_per_mm, remaining_g](const AsyncJobFinishCallbackArgs &args) {
         auto &tool_data = args.tool_data;

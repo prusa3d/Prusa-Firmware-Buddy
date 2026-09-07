@@ -5,6 +5,7 @@
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "gcode_info.hpp"
+#include <option/has_indx.h>
 
 #ifdef PRINT_CHECKING_Q_CMDS
 
@@ -30,7 +31,12 @@ void PrusaGcodeSuite::M862_6() {
     if (parser.boolval('Q')) {
         char temp_buf[sizeof("  M862.6 P\"01234567890123456789\"")];
         // TODO: Fix not reporting MMU
-        for (auto feature : { "Input Shaper" }) {
+        for (auto feature : {
+                 "Input Shaper",
+    #if HAS_INDX()
+                     "INDX lock",
+    #endif
+             }) {
             SERIAL_ECHO_START();
             snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.6 P\"%s\""), feature);
             SERIAL_ECHO(temp_buf);

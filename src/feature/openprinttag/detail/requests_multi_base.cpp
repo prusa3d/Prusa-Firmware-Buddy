@@ -9,4 +9,10 @@ void MultiRequestBase::issue() {
     }
 }
 
+void MultiRequestBase::fail() {
+    for (auto *request : requests()) {
+        request->fail();
+    }
+}
+
 } // namespace buddy::openprinttag

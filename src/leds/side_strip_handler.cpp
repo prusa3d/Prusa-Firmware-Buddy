@@ -111,6 +111,11 @@ leds::ColorRGBW SideStripHandler::color() const {
     return controller_instance().color();
 }
 
+bool SideStripHandler::is_dimmed() const {
+    std::lock_guard lock(mutex);
+    return state == SideStripState::dimmed;
+}
+
 void SideStripHandler::change_state(SideStripState state) {
     if (this->state != state) {
         this->state = state;

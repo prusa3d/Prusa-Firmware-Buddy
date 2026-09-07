@@ -4,6 +4,7 @@
 #include "file_sort.hpp"
 
 #include "config.h"
+#include <option/has_power_panic.h>
 #include <option/signature_oak.h>
 
 #include "marlin_client.hpp"
@@ -12,16 +13,16 @@
 #include "filename_type.hpp"
 #include "settings_ini.hpp"
 #include <utils/string_builder.hpp>
+#include <buddy/filename_defs.hpp>
 #include <sys/unistd.h>
 #include <wui_api.h>
 #include <version/version.hpp>
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     #include "power_panic.hpp"
 #endif
 
 #include "ScreenHandler.hpp"
-#include "screen_move_z.hpp"
 #include "ScreenFactory.hpp"
 #include "gui_media_events.hpp"
 #include "DialogHandler.hpp"
@@ -54,10 +55,6 @@
     #include "screen_menu_filament_mmu.hpp"
 #endif
 
-#include <crash_dump/crash_dump_handlers.hpp>
-#if HAS_SELFTEST()
-    #include <selftest_result_evaluation.hpp>
-#endif
 #include <find_error.hpp>
 #include <transfers/transfer_file_check.hpp>
 #include <guiconfig/guiconfig.h>
@@ -240,7 +237,7 @@ screen_home_data_t::screen_home_data_t()
         sb.append_string("SIGNATURE OAK ");
 #else
         sb.append_string("PRUSA ");
-        sb.append_string(PrinterModelInfo::current().id_str);
+        sb.append_string(PrinterModelInfo::current().display_str());
         sb.append_string(" ");
 #endif
         sb.append_string(version::project_version);
@@ -330,52 +327,6 @@ void screen_home_data_t::filamentBtnSetState() {
 #endif
 }
 
-void screen_home_data_t::handle_crash_dump() {
-    ::crash_dump::BufferT dump_buffer;
-    const auto &present_dumps { ::crash_dump::get_present_dumps(dump_buffer) };
-    if (present_dumps.size() == 0) {
-        return;
-    }
-    if (MsgBoxWarning(_("Crash detected. Save it to USB?"
-                        "\n\nDo not share the file publicly,"
-                        " the crash dump may include unencrypted sensitive information."
-                        " Send it to: reports@prusa3d.com"),
-            Responses_YesNo)
-        == Response::Yes) {
-        MsgBoxIconned box { GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, _("Saving to USB"), is_multiline::yes, &img::info_58x58 };
-        box.Show();
-        draw();
-        for (const auto &dump_handler : present_dumps) {
-            dump_handler->usb_save();
-        }
-        box.Hide();
-    }
-
-    for (const auto &dump_handler : present_dumps) {
-        dump_handler->remove();
-    }
-}
-
-void screen_home_data_t::on_enter() {
-    if (!first_event) {
-        return;
-    }
-    first_event = false;
-
-#if HAS_SELFTEST()
-    static bool first_time_check_st { true };
-    if (first_time_check_st) {
-        first_time_check_st = false;
-        if (!is_selftest_successfully_completed()) {
-            marlin_client::set_warning(WarningType::SelftestNotSuccessfullyCompleted);
-        }
-    }
-#endif
-
-#if !DEVELOPER_MODE()
-    handle_crash_dump();
-#endif
-}
 namespace {
 struct Config {
     enum class Status { missing,
@@ -457,8 +408,6 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 
     AutoRestore avoid_recursion(event_in_progress, true);
 
-    on_enter();
-
     if (media_event != MediaState_t::unknown) {
         switch (MediaState_t(media_event)) {
         case MediaState_t::inserted:
@@ -487,9 +436,9 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
     if (event == GUI_event_t::LOOP) {
         filamentBtnSetState();
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
         if (TaskDeps::check(TaskDeps::Dependency::autostart_done) && !power_panic::is_power_panic_resuming())
-#endif // ENABLED(POWER_PANIC)
+#endif
         { // every time usb is inserted we check wifi credentials
             if (usbInserted) {
                 if (need_check_wifi_credentials) {
@@ -504,28 +453,21 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
 #if HAS_SELFTEST()
         if (!DialogHandler::Access().IsOpen()) {
             if (HAS_HUMAN_INTERACTIONS() &&
-    #if ENABLED(POWER_PANIC)
+    #if HAS_POWER_PANIC()
                 TaskDeps::check(TaskDeps::Dependency::autostart_done) && !power_panic::is_power_panic_resuming() &&
-    #endif // ENABLED(POWER_PANIC)
+    #endif
                 GuiMediaEventsHandler::ConsumeOneClickPrinting() && !usbh_power_cycle::block_one_click_print()) {
                 // TODO this should be done in main thread before Event::MediaInserted is generated
                 // if it is not the latest gcode might not be selected
 
-                std::array<char, FILE_PATH_BUFFER_LEN> filepath;
+                std::array<char, filename_defs::path_buffer_size> filepath;
                 if (find_latest_gcode(filepath.data(), filepath.size())) {
-                    print_begin(filepath.data());
+                    marlin_client::print_start(filepath.data());
                 }
             }
         }
 #endif // HAS_SELFTEST
     }
-
-#if !HAS_LOADCELL()
-    if (event == GUI_event_t::HELD_RELEASED) {
-        open_move_z_screen();
-        return;
-    }
-#endif
 
     screen_t::windowEvent(sender, event, param);
 

@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <cmath>
+#include <cstring>
 
 #include <bsod/bsod.h>
 

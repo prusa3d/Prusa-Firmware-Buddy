@@ -1,4 +1,6 @@
 target_include_directories(firmware PRIVATE .)
+target_link_libraries(firmware PRIVATE font_data)
+
 if(HAS_SELFTEST)
   add_subdirectory(include_${PRINTER})
 endif()
@@ -13,6 +15,7 @@ target_sources(
           gcode_description.cpp
           gui_media_events.cpp
           gui_time.cpp
+          gui_utils.cpp
           guimain.cpp
           img_resources.cpp
           IScreenPrinting.cpp
@@ -40,7 +43,7 @@ target_sources(
           screen_menu.cpp
           screen_menu_control.cpp
           screen_menu_enclosure.cpp
-          screen_menu_error_test.cpp
+          screen_menu_experimental_settings.cpp
           screen_menu_fail_stat.cpp
           screen_menu_fan_info.cpp
           screen_menu_filament.cpp
@@ -60,7 +63,7 @@ target_sources(
           screen_menu_settings.cpp
           screen_menu_statistics.cpp
           screen_menu_system.cpp
-          screen_menu_temperature.cpp
+          screen_menu_temperature_and_fans.cpp
           screen_menu_tune.cpp
           screen_menu_user_interface.cpp
           screen_messages.cpp
@@ -96,11 +99,17 @@ if(TRANSLATIONS_ENABLED)
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)
-  target_sources(firmware PRIVATE MItem_touch.cpp screen_touch_playground.cpp)
+  target_sources(firmware PRIVATE MItem_touch.cpp)
+  if(DEVELOPMENT_ITEMS_ENABLED)
+    target_sources(firmware PRIVATE screen_touch_playground.cpp)
+  endif()
 endif()
 
 if(DEVELOPMENT_ITEMS_ENABLED)
-  target_sources(firmware PRIVATE MItem_development.cpp)
+  target_sources(
+    firmware PRIVATE MItem_development.cpp screen_menu_advanced_footer_settings.cpp
+                     screen_menu_development.cpp screen_menu_error_test.cpp
+    )
 endif()
 
 if(HAS_TOOLCHANGER)
@@ -113,12 +122,6 @@ endif()
 
 if(HAS_REMOTE_BED)
   target_sources(firmware PRIVATE screen_menu_remote_bed.cpp)
-endif()
-
-if(DEBUG)
-  target_sources(firmware PRIVATE screen_menu_experimental_settings_debug.cpp)
-else()
-  target_sources(firmware PRIVATE screen_menu_experimental_settings_release.cpp)
 endif()
 
 if(HAS_SELFTEST)
@@ -176,6 +179,10 @@ endif()
 
 if(HAS_COLDPULL)
   target_sources(firmware PRIVATE screen_cold_pull.cpp)
+endif()
+
+if(HAS_PHASE_STEPPING)
+  target_sources(firmware PRIVATE screen_menu_phase_stepping.cpp)
 endif()
 
 if(HAS_PHASE_STEPPING_CALIBRATION)

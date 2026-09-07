@@ -10,8 +10,9 @@
 #include "screen_menu_tune.hpp"
 #include "img_resources.hpp"
 #include <serial_printing.hpp>
+#include <option/has_crash_detection.h>
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
 #endif
 

@@ -6,6 +6,7 @@
 #include <array>
 #include <compact_pointer.hpp>
 #include <feature/openprinttag/detail/requests_base.hpp>
+#include <feature/openprinttag/detail/requests_util.hpp>
 #include <feature/openprinttag/tool_tag.hpp>
 #include <freertos/mutex.hpp>
 #include <openprinttag/opt_reader.hpp>
@@ -16,6 +17,7 @@
 #include <utils/storage/strong_index_array.hpp>
 #include <utils/uncopyable.hpp>
 #include <variant>
+#include <utils/byte_utils.hpp>
 
 namespace buddy::openprinttag {
 
@@ -26,6 +28,7 @@ namespace buddy::openprinttag {
 class Manager final : public Uncopyable {
 public:
     Manager();
+    ~Manager();
 
     /// Step internal state machine.
     /// This may attempt communication on modbus, using provided client.
@@ -51,9 +54,19 @@ public:
     /// Return TagUID detected on given tool, if any.
     std::optional<TagUID> get_tag_uid_for_tool(VirtualToolIndex);
 
+    struct TagDeviceInfo {
+        anfc::Device device;
+        TagID tag_id;
+    };
+
+    /// @returns Device-specific TagID for the given tag, if the device is currently tracking the tag
+    std::optional<TagDeviceInfo> get_tag_device_info(ToolTag tool_tag);
+
+    std::optional<TagDeviceInfo> get_tag_device_info_nolock(ManagerNoLockBadge, ToolTag tool_tag);
+
 private:
     /// Mutex guarding all the member variables of this Manager.
-    /// Every public method of the Manager is required to obtain the lock.
+    /// Every public method of the Manager is required to obtain the lock or pass the ManagerNoLockBadge.
     /// No other method is allowed to obtain the lock.
     /// No method of Manager is allowed to call public method.
     freertos::Mutex mutex;
@@ -83,14 +96,18 @@ private:
         Manager *manager;
         TagState tag;
         std::optional<anfc::Device> device;
-        bool radio_enabled = false;
-        std::optional<RequestID> enable_radio_request_id;
+
+        /// nullopt - enable radio has not been issued yet
+        /// finished without error - radio is enabled
+        std::optional<EnableRadioRequest> enable_radio_request;
+
+        bool radio_enabled : 1 = false;
 
         [[nodiscard]] bool step(anfc::modbus::Client &);
 
         [[nodiscard]] bool handle_event(anfc::modbus::Client &, const anfc::modbus::Event &);
 
-        void on_request_done(RequestID, std::span<const std::byte>);
+        void on_request_done(RequestID, Bytes);
         void on_tag_detected(TagID, TagUID);
         void on_tag_lost(TagID);
 
@@ -131,12 +148,11 @@ private:
     /// The table holding active requests.
     std::array<ActiveRequestEntry, max_active_requests> active_requests;
 
-    void on_request_done(RequestID, std::span<const std::byte>);
+    void on_request_done(RequestID, Bytes);
     void handle_pending_request(anfc::modbus::Client &);
-    void handle_pending_request(anfc::modbus::Client &, Request &, anfc::Device, TagID);
-    void handle_pending_request(anfc::modbus::Client &, Request &, anfc::Device, TagID, ActiveRequestEntry &);
     void check_timeouts();
     RequestID make_request_id();
+    void add_request_nolock(Request &);
     void remove_request_nolock(Request &);
 };
 

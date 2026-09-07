@@ -9,6 +9,7 @@
 #include <nfcv/rw_interface.hpp>
 #include <inplace_vector.hpp>
 #include <inplace_function.hpp>
+#include <utils/byte_utils.hpp>
 
 namespace openprinttag {
 
@@ -19,13 +20,13 @@ public:
 
     OPTBackend_NFCV(nfcv::ReaderWriterInterface &reader, const Config &initial_config = {});
 
-    [[nodiscard]] IOResult<void> read(TagID tag, PayloadPos start, const std::span<std::byte> &buffer) final;
+    [[nodiscard]] IOResult<void> read(TagID tag, PayloadPos start, const WritableBytes &buffer) final;
 
-    [[nodiscard]] IOResult<void> write(TagID tag, PayloadPos start, const std::span<const std::byte> &buffer) final;
+    [[nodiscard]] IOResult<void> write(TagID tag, PayloadPos start, const Bytes &buffer) final;
 
     [[nodiscard]] bool get_event(Event &e, uint32_t current_time_ms) final;
 
-    [[nodiscard]] IOResult<size_t> get_tag_uid(TagID tag, const std::span<std::byte> &buffer) final;
+    [[nodiscard]] IOResult<size_t> get_tag_uid(TagID tag, const WritableBytes &buffer) final;
 
     [[nodiscard]] virtual IOResult<void> read_tag_info(TagID tag, TagInfo &target) final;
 
@@ -103,10 +104,10 @@ private:
     [[nodiscard]] IOResult<void> io_op(TagID tag, PayloadPos start, size_t buffer_size, const stdext::inplace_function<IOOpFunc> &impl);
 
     /// Helper function for write implementation
-    [[nodiscard]] nfcv::Result<void> write_impl(const TagData &tag_data, PayloadPos start, const std::span<const std::byte> &buffer);
+    [[nodiscard]] nfcv::Result<void> write_impl(const TagData &tag_data, PayloadPos start, const Bytes &buffer);
 
     /// Helper function for read implementation
-    [[nodiscard]] nfcv::Result<void> read_impl(const TagData &tag_data, PayloadPos start, const std::span<std::byte> &buffer);
+    [[nodiscard]] nfcv::Result<void> read_impl(const TagData &tag_data, PayloadPos start, const WritableBytes &buffer);
 
     /// Attempts to mark the tag as lost
     void try_report_tag_lost(TagID tag_id);

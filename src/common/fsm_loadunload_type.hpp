@@ -1,7 +1,7 @@
 // \file
 #pragma once
 
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 
 /// FSM data structure for MOST states of ClientFSM::Load_unload
 /// !!! Not for all states, for example MMU_ERRWaitingForUser uses a different one

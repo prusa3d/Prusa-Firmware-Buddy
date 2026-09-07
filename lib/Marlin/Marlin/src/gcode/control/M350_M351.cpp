@@ -22,6 +22,11 @@
 
 #include "../../inc/MarlinConfig.h"
 
+#include <option/has_phase_stepping.h>
+#if HAS_PHASE_STEPPING()
+  #include <feature/phase_stepping/axes.hpp>
+#endif
+
 #if HAS_DRIVER(TMC2130)
 
 #include "../gcode.h"
@@ -49,13 +54,32 @@
  *
  * Without parameters prints the current microstepping modes
  *
- * Warning: Steps-per-unit remains unchanged.
+ * Warning: Steps-per-unit remains unchanged. Invalidates homing.
  */
 void GcodeSuite::M350() {
+  if(!parser.seen_any()) {
+      // Report only
+      stepper.microstep_readings();
+      return;
+  }
+
+  #if HAS_PHASE_STEPPING()
+    phase_stepping::EnsureDisabled phstep_guard;
+  #endif
+
   if (parser.seen('S')) for (uint8_t i = 0; i <= 4; i++) stepper.microstep_mode(i, parser.value_byte());
   LOOP_XYZE(i) if (parser.seen(axis_codes[i])) stepper.microstep_mode(i, parser.value_byte());
   if (parser.seen('B')) stepper.microstep_mode(4, parser.value_byte());
   stepper.microstep_readings();
+
+
+  #if HAS_PHASE_STEPPING()
+    // FIXME: Code above does not update config store, phstep takes data from config store
+    phase_stepping::initialize_axis_motor_params();
+  #endif
+
+  // Invalidate all homing
+  axes_home_level = AxesHomeLevel::no_axes_homed;
 }
 
 /** @}*/

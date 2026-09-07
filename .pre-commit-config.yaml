@@ -32,6 +32,14 @@ repos:
       pass_filenames: false
       language: python
       language_version: python3
+    - id: forbid-libc-assert
+      name: forbid-libc-assert
+      description: This hook forbids libc assert() in first-party code, use asserts from <bsod/bsod.h> instead.
+      entry: python utils/forbid_libc_assert.py
+      pass_filenames: false
+      always_run: true
+      language: python
+      language_version: python3
     - id: generate-log-components-overview
       name: log-components-doc-generate
       description: This hook generate an overview of currently defined Log Components.
@@ -56,6 +64,7 @@ exclude: |
     lib/Marlin/Marlin/Version.h|
     lib/Marlin/Marlin/src/(?!
        # FILES TO BE FORMATTED
+       core/vector\.hpp$|
        (gcode/)?feature/prusa/|
        (gcode/)?feature/input_shaper/|
        (gcode/)?feature/pressure_advance/|

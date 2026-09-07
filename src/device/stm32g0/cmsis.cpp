@@ -76,7 +76,7 @@
 
 #include "stm32g0xx.h"
 #include <device/cmsis.h>
-#include <assert.h>
+#include <bsod/bsod.h>
 
 #if !defined(HSE_VALUE)
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -264,7 +264,7 @@ void SystemCoreClockUpdate(void) {
     /* HCLK clock frequency */
     SystemCoreClock >>= tmp;
 
-    assert(SystemCoreClock == SYSTEM_CORE_CLOCK);
+    debug_assert(SystemCoreClock == SYSTEM_CORE_CLOCK);
 }
 
 /**

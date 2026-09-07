@@ -16,6 +16,7 @@
 #include <cmsis_os.h>
 #include <cstring>
 #include <sys/stat.h>
+#include <bsod/bsod.h>
 
 using http::ConnectionHandling;
 using http::ContentType;
@@ -232,7 +233,7 @@ JsonResult FileInfo::FileRenderer::renderStateV1(size_t resume_point, JsonOutput
     char *filename = state.owner->filepath;
     get_SFN_path(filename);
     JSONIFY_STR(filename);
-    char long_name[FILE_NAME_BUFFER_LEN];
+    char long_name[filename_defs::filename_buffer_size];
     get_LFN(long_name, sizeof long_name, filename);
     const char *type = file_type_by_ext(long_name);
     // Keep the indentation of the JSON in here!
@@ -265,7 +266,7 @@ JsonResult FileInfo::FileRenderer::renderStateV1(size_t resume_point, JsonOutput
 JsonResult FileInfo::FileRenderer::renderStateOctoprint(size_t resume_point, JsonOutput &output, FileInfo::FileState &state) const {
     char *filename = state.owner->filepath;
     JSONIFY_STR(filename);
-    char long_name[FILE_NAME_BUFFER_LEN];
+    char long_name[filename_defs::filename_buffer_size];
     get_LFN(long_name, sizeof long_name, filename);
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -330,7 +331,7 @@ void FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size,
 
         switch (file_metadata.type) {
         case FileType::Directory:
-            assert(static_cast<bool>(dir_attempt));
+            debug_assert(static_cast<bool>(dir_attempt));
             renderer = DirRenderer { this, std::move(dir_attempt), api };
             break;
         case FileType::File:
@@ -420,7 +421,7 @@ void FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size,
     }
 
     // This place should be unreachable!
-    assert(0);
+    debug_assert(0);
     out = Step { 0, 0, Terminating { 0, Done::CloseFast } };
 }
 

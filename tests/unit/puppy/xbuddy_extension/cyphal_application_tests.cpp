@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <modbus/traits.hpp>
 #include <vector>
+#include <utils/byte_utils.hpp>
 
 // This is needed for linking but we don't need the actual implementation in tests
 void cyphal::Application::log_from_app([[maybe_unused]] std::string_view s) {
@@ -22,6 +23,7 @@ using cyphal::NodeId;
 using cyphal::Presentation;
 using cyphal::Severity;
 using cyphal::TimePoint;
+using cyphal::TransferId;
 using cyphal::UniqueId;
 
 std::vector<uint8_t> mock_firmware_gen() {
@@ -42,7 +44,8 @@ std::array<std::byte, 32> generate_random_digest() {
 }
 
 uint32_t hal::rng::get() {
-    return 0;
+    static uint32_t counter = 0;
+    return ++counter;
 }
 
 // Pretend that this is a firmware for the node.
@@ -104,7 +107,7 @@ public:
 
     struct FileResponse {
         NodeId remote_node_id;
-        uint8_t transfer_id;
+        TransferId transfer_id;
         std::vector<std::byte> data;
 
         constexpr auto operator<=>(const FileResponse &) const = default;
@@ -127,10 +130,10 @@ public:
     void transmit_node_get_info_request(NodeId remote_node_id) {
         node_get_info_request.emplace_back(remote_node_id);
     }
-    void transmit_node_execute_command_request(NodeId remote_node_id, Command command, std::span<std::byte> parameter) {
+    void transmit_node_execute_command_request(NodeId remote_node_id, Command command, Bytes parameter) {
         node_execute_command_request.emplace_back(remote_node_id, command, std::vector<std::byte> { parameter.begin(), parameter.end() });
     }
-    void transmit_file_read_response(NodeId remote_node_id, uint8_t transfer_id, std::span<std::byte> data) {
+    void transmit_file_read_response(NodeId remote_node_id, TransferId transfer_id, WritableBytes data) {
         file_responses.push_back(FileResponse { remote_node_id, transfer_id, std::vector(data.begin(), data.end()) });
     }
 
@@ -142,8 +145,15 @@ public:
         abort();
     }
 
-    void transmit_tool_offset_sensor_config_request([[maybe_unused]] NodeId, [[maybe_unused]] const tool_offset_sensor::Config &) {
-        abort();
+    struct ToolOffsetSensorConfigRequest {
+        NodeId node_id;
+        tool_offset_sensor::Config config;
+        constexpr auto operator<=>(const ToolOffsetSensorConfigRequest &) const = default;
+    };
+    std::vector<ToolOffsetSensorConfigRequest> tool_offset_sensor_config_requests;
+
+    void transmit_tool_offset_sensor_config_request(NodeId node_id, const tool_offset_sensor::Config &config) {
+        tool_offset_sensor_config_requests.push_back({ node_id, config });
     }
 
     struct NfcCommand {
@@ -154,12 +164,12 @@ public:
     std::vector<NfcCommand> nfc_requests;
     std::vector<NfcCommand> nfc_accept_events;
 
-    bool transmit_nfc_command_request(NodeId remote_node_id, std::span<const std::byte> data) final {
+    bool transmit_nfc_command_request(NodeId remote_node_id, Bytes data) final {
         nfc_requests.push_back({ remote_node_id, std::vector<std::byte>(data.begin(), data.end()) });
         return true;
     }
 
-    bool transmit_nfc_command_accept_event(NodeId remote_node_id, std::span<const std::byte> data) final {
+    bool transmit_nfc_command_accept_event(NodeId remote_node_id, Bytes data) final {
         nfc_accept_events.push_back({ remote_node_id, std::vector<std::byte>(data.begin(), data.end()) });
         return true;
     }
@@ -197,6 +207,11 @@ UniqueId make_unique_id(uint32_t x) {
 
 TimePoint make_timepoint(uint32_t ms) {
     return TimePoint { std::chrono::milliseconds { ms } };
+}
+
+ExecuteCommandRequest make_salted_hash_request(NodeId node_id, uint32_t salt) {
+    const auto bytes = trivial_as_bytes(salt);
+    return ExecuteCommandRequest { node_id, Command::get_app_salted_hash, { bytes.begin(), bytes.end() } };
 }
 
 std::vector<std::byte> as_bytes(const anfc::modbus::Event &event) {
@@ -241,6 +256,11 @@ const auto unknown_node_name = [] {
     return as_bytes(std::span { name.data(), name.size() });
 }();
 
+const auto tool_offset_sensor_node_name = [] {
+    std::string_view name { "cz.prusa3d.honeybee.tool_offset_sensor" };
+    return as_bytes(std::span { name.data(), name.size() });
+}();
+
 void setup_nfc_node(Application &app, MockPresentation &mock, NodeId node_id, uint32_t unique_id, uint32_t &time) {
     // node asks for PNP allocation, it is given a node id
     {
@@ -268,11 +288,49 @@ void setup_nfc_node(Application &app, MockPresentation &mock, NodeId node_id, ui
     // node and motherboard respond with a matching hash, no more work is done
     {
         const auto digest = generate_random_digest();
-        const auto received = app.receive_digest(cyphal::FirmwareFile::firmware_anfc, 0, xbuddy_extension::DigestStatus::ok, digest);
+        const auto received = app.receive_digest(cyphal::FirmwareFile::firmware_anfc, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest);
         REQUIRE(received);
         app.receive_node_execute_command_response(node_id, 0, digest);
         const auto mock_before = run(app, mock, make_timepoint(time++));
         REQUIRE(mock == mock_before);
+    }
+}
+
+// Drive a tool offset sensor node from anonymous through full firmware
+// verification into the ToolOffsetSensorAlive state.
+void setup_tool_offset_sensor_node(Application &app, MockPresentation &mock, NodeId node_id, uint32_t unique_id, uint32_t &time) {
+    const auto healthy_firmware = Heartbeat { Health::nominal, Mode::operational, 0 };
+
+    // node asks for PNP allocation, it is given a node id
+    {
+        app.receive_pnp_allocation(make_unique_id(unique_id));
+        const auto mock_before = run(app, mock, make_timepoint(time++));
+        REQUIRE(mock.pnp_allocation.size() == mock_before.pnp_allocation.size() + 1);
+        REQUIRE(mock.pnp_allocation.back().node_id == node_id);
+    }
+    // node sends a heartbeat from its firmware, it receives a node info request
+    {
+        app.receive_node_heartbeat(node_id, make_timepoint(time), healthy_firmware);
+        const auto mock_before = run(app, mock, make_timepoint(time++));
+        REQUIRE(mock.node_get_info_request.size() == mock_before.node_get_info_request.size() + 1);
+        REQUIRE(mock.node_get_info_request.back() == node_id);
+    }
+    // node responds with node info, it receives a hash request (verification is required on first boot)
+    {
+        app.receive_node_get_info_response(node_id, tool_offset_sensor_node_name);
+        const auto mock_before = run(app, mock, make_timepoint(time++));
+        REQUIRE(mock.node_execute_command_request.size() == mock_before.node_execute_command_request.size() + 1);
+        REQUIRE(mock.node_execute_command_request.back().command == Command::get_app_salted_hash);
+        REQUIRE(app.request().hash_request == cyphal::FirmwareFile::firmware_tool_offset_sensor);
+    }
+    // node and motherboard respond with a matching hash, the node becomes alive
+    {
+        const auto digest = generate_random_digest();
+        const auto received = app.receive_digest(cyphal::FirmwareFile::firmware_tool_offset_sensor, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest);
+        REQUIRE(received);
+        app.receive_node_execute_command_response(node_id, 0, digest);
+        run(app, mock, make_timepoint(time++));
+        REQUIRE(app.request().hash_request == cyphal::FirmwareFile::none);
     }
 }
 
@@ -455,8 +513,6 @@ SCENARIO("heartbeat response") {
 }
 
 SCENARIO("happy case") {
-    const std::vector<std::byte> salt = { (std::byte)0, (std::byte)0, (std::byte)0, (std::byte)0 };
-
     const auto lingering_bootloader = Heartbeat { Health::advisory, Mode::software_update, 0 };
     // Means no app, only the bootloader
     const auto empty_bootloader = Heartbeat { Health::warning, Mode::software_update, 0 };
@@ -466,7 +522,6 @@ SCENARIO("happy case") {
 
     const auto start_app = ExecuteCommandRequest { node_id, Command::start_app };
     const auto restart = ExecuteCommandRequest { node_id, Command::restart };
-    const auto get_app_salted_hash = ExecuteCommandRequest { node_id, Command::get_app_salted_hash, salt };
     static const std::string_view dummy_parameter_sv = "/path/to/fw";
     static const std::vector<std::byte> dummy_parameter { (std::byte *)dummy_parameter_sv.begin(), (std::byte *)dummy_parameter_sv.end() };
     const auto software_update = ExecuteCommandRequest { node_id, Command::software_update, dummy_parameter };
@@ -483,8 +538,8 @@ SCENARIO("happy case") {
                 CHECK(mock.node_execute_command_request.back() == software_update);
 
                 // The bootloader wants a bit of a file.
-                uint8_t id = 42;
-                app.receive_file_read_request(node_id, now, id, 0);
+                uint8_t id = 12;
+                app.receive_file_read_request(node_id, now, TransferId { id }, 0);
                 run(app, mock, make_timepoint(4001));
                 auto modbus_request = app.request();
                 CHECK(modbus_request.flash_request == cyphal::FirmwareFile::firmware_ac_controller);
@@ -517,7 +572,7 @@ SCENARIO("happy case") {
                     if (!mock.file_responses.empty()) {
                         const auto &response = mock.file_responses[0];
                         CHECK(response.remote_node_id == node_id);
-                        CHECK(response.transfer_id == id);
+                        CHECK(response.transfer_id == TransferId { id });
 
                         for (auto byte : response.data) {
                             data.push_back(static_cast<uint8_t>(byte));
@@ -527,7 +582,7 @@ SCENARIO("happy case") {
 
                         if (data.size() < mock_firmware.size()) {
                             id++;
-                            app.receive_file_read_request(node_id, now, id, data.size());
+                            app.receive_file_read_request(node_id, now, TransferId { id }, data.size());
                         }
 
                         progress = true;
@@ -624,14 +679,14 @@ SCENARIO("happy case") {
 
                             AND_WHEN("parent system sends file hash to application") {
                                 std::byte digest[32] = {};
-                                (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, 0, xbuddy_extension::DigestStatus::ok, digest);
+                                (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest);
                                 app.receive_node_heartbeat(node_id, make_timepoint(1000), healthy_firmware);
                                 app.receive_node_heartbeat(node_id, make_timepoint(2000), healthy_firmware);
                                 const auto mock_before = run(app, mock, make_timepoint(2500));
 
                                 THEN("application requests hash from node") {
                                     REQUIRE(mock.node_execute_command_request.size() == mock_before.node_execute_command_request.size() + 1);
-                                    CHECK(mock.node_execute_command_request.back() == get_app_salted_hash);
+                                    CHECK(mock.node_execute_command_request.back() == make_salted_hash_request(node_id, app.request().hash_salt));
 
                                     AND_WHEN("node responds with the matching hash") {
                                         app.receive_node_execute_command_response(node_id, 0, digest);
@@ -704,13 +759,13 @@ SCENARIO("happy case") {
 
                     THEN("application requests hash from node and parent system") {
                         REQUIRE(mock.node_execute_command_request.size() == mock_before.node_execute_command_request.size() + 1);
-                        CHECK(mock.node_execute_command_request.back() == get_app_salted_hash);
+                        CHECK(mock.node_execute_command_request.back() == make_salted_hash_request(node_id, app.request().hash_salt));
                         const auto modbus_request = app.request();
                         CHECK(modbus_request.hash_request == cyphal::FirmwareFile::firmware_ac_controller);
 
                         AND_WHEN("they respond with matching hash") {
                             const auto digest = generate_random_digest();
-                            (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, 0, xbuddy_extension::DigestStatus::ok, digest);
+                            (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest);
                             app.receive_node_execute_command_response(node_id, 0, digest);
                             const auto mock_before = run(app, mock, make_timepoint(3));
 
@@ -722,7 +777,7 @@ SCENARIO("happy case") {
                         AND_WHEN("they respond with mismatching hash") {
                             const auto digest1 = generate_random_digest();
                             const auto digest2 = generate_random_digest();
-                            (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, 0, xbuddy_extension::DigestStatus::ok, digest1);
+                            (void)app.receive_digest(cyphal::FirmwareFile::firmware_ac_controller, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest1);
                             app.receive_node_execute_command_response(node_id, 0, digest2);
                             const auto mock_before = run(app, mock, make_timepoint(3));
 
@@ -984,4 +1039,100 @@ SCENARIO("NFC node event routing") {
             }
         }
     }
+}
+
+SCENARIO("tool offset sensor verifies its firmware on first boot") {
+    const auto healthy_firmware = Heartbeat { Health::nominal, Mode::operational, 0 };
+    const auto node_id = NodeId { 1 };
+
+    GIVEN("a freshly allocated tool offset sensor reporting from its firmware") {
+        MockPresentation mock;
+        Application app;
+        uint32_t time = 0;
+
+        app.receive_pnp_allocation(make_unique_id(0x705));
+        run(app, mock, make_timepoint(time++));
+        app.receive_node_heartbeat(node_id, make_timepoint(time), healthy_firmware);
+        run(app, mock, make_timepoint(time++));
+
+        WHEN("it identifies itself as a tool offset sensor") {
+            app.receive_node_get_info_response(node_id, tool_offset_sensor_node_name);
+            const auto mock_before = run(app, mock, make_timepoint(time++));
+
+            THEN("its firmware hash is requested from both the node and the motherboard") {
+                // A node that has never been verified must go through the full
+                // hash verification. The fast reset-recovery path must NOT be
+                // taken on first boot - this guards against the verification
+                // ever being skipped for a node we haven't checked yet.
+                REQUIRE(mock.node_execute_command_request.size() == mock_before.node_execute_command_request.size() + 1);
+                CHECK(mock.node_execute_command_request.back().command == Command::get_app_salted_hash);
+                CHECK(app.request().hash_request == cyphal::FirmwareFile::firmware_tool_offset_sensor);
+            }
+        }
+    }
+}
+
+TEST_CASE("tool offset sensor recovers from a board reset") {
+    const auto healthy_firmware = Heartbeat { Health::nominal, Mode::operational, 0 };
+    const auto bootloader = Heartbeat { Health::advisory, Mode::software_update, 0 };
+    const auto node_id = NodeId { 1 };
+
+    // The non-default configuration we will apply to the node before it resets, and expect to be re-sent after it comes back up.
+    const auto enabled_config = tool_offset_sensor::Config { .ch0_enabled = true, .ch1_enabled = false };
+
+    MockPresentation mock;
+    Application app;
+    uint32_t time = 0;
+    setup_tool_offset_sensor_node(app, mock, node_id, 0xdeadbeef, time);
+
+    app.receive(enabled_config);
+    run(app, mock, make_timepoint(time++));
+    REQUIRE(mock.tool_offset_sensor_config_requests.back().config == enabled_config);
+
+    const auto commands_before = mock.node_execute_command_request.size();
+    const auto info_requests_before = mock.node_get_info_request.size();
+    const auto config_requests_before = mock.tool_offset_sensor_config_requests.size();
+
+    // The reset is observed as a software_update-mode heartbeat
+    app.receive_node_heartbeat(node_id, make_timepoint(time), bootloader);
+    run(app, mock, make_timepoint(time++));
+
+    // The second heartbeat triggers step function again and performs start app command
+    app.receive_node_heartbeat(node_id, make_timepoint(time), bootloader);
+    run(app, mock, make_timepoint(time++));
+
+    // The XBE issues start_app once the bootloader reports BootCancelled
+    const auto start_app = ExecuteCommandRequest { node_id, Command::start_app };
+    REQUIRE(mock.node_execute_command_request.size() == commands_before + 1);
+    CHECK(mock.node_execute_command_request.back() == start_app);
+
+    // The node acknowledges start_app and boots its application.
+    app.receive_node_execute_command_response(node_id, 0, {});
+
+    // Now the app boots and reports heartbeat from healthy firmware
+    app.receive_node_heartbeat(node_id, make_timepoint(time), healthy_firmware);
+    run(app, mock, make_timepoint(time++));
+
+    // The firmware is fully re-verified after the reset: the XBE requests a
+    // fresh salted hash both from the node and from the motherboard. No fresh
+    // GetInfo is issued though - the node identity is remembered across the
+    // reset, so start_app and get_app_salted_hash are the only two commands.
+    CHECK(mock.node_get_info_request.size() == info_requests_before);
+    REQUIRE(mock.node_execute_command_request.size() == commands_before + 2);
+    CHECK(mock.node_execute_command_request.back().command == Command::get_app_salted_hash);
+    REQUIRE(app.request().hash_request == cyphal::FirmwareFile::firmware_tool_offset_sensor);
+
+    const auto digest = generate_random_digest();
+    const auto received = app.receive_digest(cyphal::FirmwareFile::firmware_tool_offset_sensor, app.request().hash_salt, xbuddy_extension::DigestStatus::ok, digest);
+    REQUIRE(received);
+    app.receive_node_execute_command_response(node_id, 0, digest);
+    run(app, mock, make_timepoint(time++));
+
+    // Verification succeeded, the request slot is released again.
+    CHECK(app.request().hash_request == cyphal::FirmwareFile::none);
+
+    // Once the node is alive again its configuration is re-applied.
+    REQUIRE(mock.tool_offset_sensor_config_requests.size() == config_requests_before + 1);
+    CHECK(mock.tool_offset_sensor_config_requests.back().node_id == node_id);
+    CHECK(mock.tool_offset_sensor_config_requests.back().config == enabled_config);
 }

@@ -2,9 +2,9 @@
 #include "app.hpp"
 
 #include "cyphal_application.hpp"
-#include "extension_variant.h"
+#include "option/extension_variant.h"
 #include "hal.hpp"
-#include "hal_mmu.hpp"
+#include "hal_mmu_port.hpp"
 #include "hal_rs485.hpp"
 #include "hal_usb.hpp"
 #include "master_activity.hpp"
@@ -26,6 +26,7 @@
 #endif
 
 #if HAS_MMU2()
+    #include "hal_mmu.hpp"
     #include "mmu.hpp"
 #endif
 
@@ -60,6 +61,14 @@ void read_register_file_callback(xbuddy_extension::modbus::Status &status) {
     status.digest_request.salt_hi = static_cast<uint16_t>(flash_data.hash_salt >> 16);
     const auto log = cyphal::application().get_log();
     status.log_message_sequence = log.sequence;
+
+    // The read callback fills the raw Modbus response buffer, so every field
+    // must be written on every variant — zero where the peripheral is absent.
+#if EXTENSION_IS_XL_CAN()
+    status.fan_power_fault = static_cast<uint16_t>(hal::fan_power::fault_pin_get());
+#else
+    status.fan_power_fault = 0;
+#endif
 }
 
 void read_register_file_callback(xbuddy_extension::modbus::CyphalBridge &bridge) {
@@ -82,7 +91,17 @@ bool write_register_file_callback(const xbuddy_extension::modbus::Config &config
     hal::fan1::set_pwm(config.fan_pwm[0]);
     hal::fan2::set_pwm(config.fan_pwm[1]);
     hal::fan3::set_pwm(config.fan_pwm[2]);
+#if EXTENSION_IS_XL_CAN()
+    // The bridge's fan 5 V rail has a dedicated power switch (the "fully
+    // disable" mechanism per Electro); follow the commanded duty so PWM 0
+    // actually cuts power instead of leaving a stopped-but-powered 4-wire fan.
+    hal::fan_power::enable_pin_set(config.fan_pwm[xbuddy_extension::modbus::XL_CAN_FAN_IDX] > 0);
+#endif
+#if PA6_PIN_DRIVES_W_LED()
     hal::w_led::set_pwm(config.w_led_pwm);
+    // Technically, this frequency is common also for some fans. But they seem to work fine.
+    hal::w_led::set_frequency(config.w_led_frequency);
+#endif
     hal::rgbw_led::set_r_pwm(config.rgbw_led_r_pwm);
     hal::rgbw_led::set_g_pwm(config.rgbw_led_g_pwm);
     hal::rgbw_led::set_b_pwm(config.rgbw_led_b_pwm);
@@ -90,10 +109,10 @@ bool write_register_file_callback(const xbuddy_extension::modbus::Config &config
 #if !EXTENSION_IS_IX()
     hal::usb::power_pin_set(static_cast<bool>(config.usb_power));
 #endif
-    hal::mmu::power_pin_set(static_cast<bool>(config.mmu_power));
-    hal::mmu::nreset_pin_set(static_cast<bool>(config.mmu_nreset));
-    // Technically, this frequency is common also for some fans. But they seem to work fine.
-    hal::w_led::set_frequency(config.w_led_frequency);
+#if HAS_MMU_POWER_PIN()
+    hal::mmu_port::power_pin_set(static_cast<bool>(config.mmu_power));
+#endif
+    hal::mmu_port::nreset_pin_set(static_cast<bool>(config.mmu_nreset));
     // Master's activity. Value that should be changing regularly.
     // If it doesn't change from time to time, it means the master is not properly alive.
     master_activity.store(config.activity, std::memory_order_relaxed);
@@ -338,7 +357,13 @@ public:
 
 class Logic final : public modbus::Callbacks {
 public:
-    modbus::ServerAddress server_address() const final { return modbus::ServerAddress::xbuddy_extension; }
+    modbus::ServerAddress server_address() const final {
+#if EXTENSION_IS_XL_CAN()
+        return modbus::ServerAddress::xl_can;
+#else
+        return modbus::ServerAddress::xbuddy_extension;
+#endif
+    }
 
     Status read_registers(const uint16_t address, std::span<uint16_t> out) final {
         return read_register_file<xbuddy_extension::modbus::Status, xbuddy_extension::modbus::LogMessage, xbuddy_extension::modbus::CyphalBridge>(address, out);

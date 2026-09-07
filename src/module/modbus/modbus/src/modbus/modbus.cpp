@@ -2,9 +2,10 @@
 #include <modbus/modbus.hpp>
 
 #include <cstdlib>
-#include <cassert>
 #include <crc/crc.hpp>
 #include <modbus/modbus_constants.hpp>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 using Status = modbus::Callbacks::Status;
 
@@ -40,24 +41,24 @@ modbus::Callbacks *Dispatch::get_device(ServerAddress server_address) {
     return nullptr;
 }
 
-uint16_t compute_crc(std::span<const std::byte> bytes) {
+uint16_t compute_crc(Bytes bytes) {
     Crc16Modbus crc;
     crc.update(bytes);
     return crc.get();
 }
 
-std::span<std::byte> handle_transaction(
+WritableBytes handle_transaction(
     Dispatch &dispatch,
-    std::span<std::byte> request,
-    std::span<std::byte> response_buffer,
+    WritableBytes request,
+    WritableBytes response_buffer,
     ComputeCRC compute_crc_fn) {
 
     if (request.size() < 4 || compute_crc_fn(request) != 0) {
         return {};
     }
 
-    assert(reinterpret_cast<intptr_t>(response_buffer.data()) % alignof(uint16_t) == 0);
-    assert(reinterpret_cast<intptr_t>(request.data()) % alignof(uint16_t) == 0);
+    debug_assert(reinterpret_cast<intptr_t>(response_buffer.data()) % alignof(uint16_t) == 0);
+    debug_assert(reinterpret_cast<intptr_t>(request.data()) % alignof(uint16_t) == 0);
     std::byte *orig_request = request.data();
 
     auto response = response_buffer.begin();
@@ -234,7 +235,7 @@ std::span<std::byte> handle_transaction(
             resp(std::byte { bytes });
 
             std::byte *out_buffer = response_buffer.data() + (response - response_buffer.begin());
-            std::span<std::byte> out(out_buffer, bytes);
+            WritableBytes out(out_buffer, bytes);
             status = device_callbacks->read_coils(address, no_coils, out);
 
             if (status != Status::Ok) {
@@ -245,7 +246,7 @@ std::span<std::byte> handle_transaction(
         }
         break;
     default: {
-        std::span<std::byte> out { response_buffer.data() + (response - response_buffer.begin()), static_cast<size_t>(response_buffer.end() - response) };
+        WritableBytes out { response_buffer.data() + (response - response_buffer.begin()), static_cast<size_t>(response_buffer.end() - response) };
         status = device_callbacks->custom_function(static_cast<uint8_t>(function), request, out);
         if (status == Status::Ok) {
             response += out.size();
@@ -272,15 +273,15 @@ std::span<std::byte> handle_transaction(
     return { response_buffer.begin(), response };
 }
 
-Status Callbacks::read_coils(uint16_t, uint16_t, std::span<std::byte>) {
+Status Callbacks::read_coils(uint16_t, uint16_t, WritableBytes) {
     return Status::IllegalFunction;
 }
 
-Status Callbacks::write_coils(uint16_t, uint16_t, std::span<const std::byte>) {
+Status Callbacks::write_coils(uint16_t, uint16_t, Bytes) {
     return Status::IllegalFunction;
 }
 
-Status Callbacks::custom_function([[maybe_unused]] uint8_t func_code, [[maybe_unused]] std::span<const std::byte> in, [[maybe_unused]] std::span<std::byte> &out) {
+Status Callbacks::custom_function([[maybe_unused]] uint8_t func_code, [[maybe_unused]] Bytes in, [[maybe_unused]] WritableBytes &out) {
     return Status::IllegalFunction;
 }
 

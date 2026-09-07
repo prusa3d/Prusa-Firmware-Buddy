@@ -9,6 +9,7 @@
 #include <utils/string_builder.hpp>
 #include <gui/event/knob_event.hpp>
 #include <sound.hpp>
+#include <bsod/bsod.h>
 
 #if HAS_TOUCH()
     #include <dialog_numeric_input.hpp>
@@ -24,9 +25,10 @@ WiSpin::WiSpin(float value, const NumericInputConfig &config, const string_view_
 }
 
 void WiSpin::set_value(std::optional<float> val) {
-    if (value_ != val) {
-        assert(val.has_value() || config_.special_value.has_value());
-        value_ = val.value_or(config_.special_value.value_or(0));
+    // note - .value() -> throws BSOD if not set
+    const float target_val = val.has_value() ? *val : config_.special_value.value();
+    if (value_ != target_val) {
+        value_ = target_val;
         change(0);
     }
 }

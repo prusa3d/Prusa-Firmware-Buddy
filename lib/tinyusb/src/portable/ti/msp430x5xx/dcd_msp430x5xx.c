@@ -94,7 +94,8 @@ static void bus_reset(void)
   USBOEPCNT_0 &= ~NAK;
   USBIEPCNT_0 &= ~NAK;
 
-  USBCTL |= FEN; // Enable responding to packets.
+  // Enable responding to packets.
+  USBCTL |= FEN;
 
   // Dedicated buffers in hardware for SETUP and EP0, no setup needed.
   // Now safe to respond to SETUP packets.
@@ -103,13 +104,34 @@ static void bus_reset(void)
   USBKEYPID = 0;
 }
 
+// Controls reset behavior of the USB module on receipt of a bus reset event.
+// - enable: When true, bus reset events will cause a reset the USB module.
+static void enable_functional_reset(const bool enable)
+{
+  // Check whether or not the USB configuration registers were
+  // locked prior to this function being called so that, if
+  // necessary, the lock state can be restored on exit.
+  bool unlocked = (USBKEYPID == 0xA528) ? true : false;
+
+  if(!unlocked) USBKEYPID = USBKEY;
+
+  if(enable)
+  {
+    USBCTL |= FRSTE;
+  }
+  else
+  {
+    USBCTL &= ~FRSTE;
+  }
+
+  if(!unlocked) USBKEYPID = 0;
+}
 
 /*------------------------------------------------------------------*/
 /* Controller API
  *------------------------------------------------------------------*/
-void dcd_init (uint8_t rhport)
-{
-  (void) rhport;
+bool dcd_init(uint8_t rhport, const tusb_rhport_init_t* rh_init) {
+  (void) rhport; (void) rh_init;
 
   USBKEYPID = USBKEY;
 
@@ -131,13 +153,18 @@ void dcd_init (uint8_t rhport)
 
   USBVECINT = 0;
 
-  // Enable reset and wait for it before continuing.
-  USBIE |= RSTRIE;
-
-  // Enable pullup.
-  USBCNF |= PUR_EN;
+  if(USBPWRCTL & USBBGVBV) {// Bus power detected?
+    USBPWRCTL |= VBOFFIE;   // Enable bus-power-removed interrupt.
+    USBIE |= RSTRIE;        // Enable reset and wait for it before continuing.
+    USBCNF |= PUR_EN;       // Enable pullup.
+  } else {
+    USBPWRCTL |= VBONIE;    // Enable bus-power-applied interrupt.
+    USBCNF &= ~USB_EN;      // Disable USB module until bus power is detected.
+  }
 
   USBKEYPID = 0;
+
+  return true;
 }
 
 // There is no "USB peripheral interrupt disable" bit on MSP430, so we have
@@ -192,7 +219,7 @@ void dcd_set_address (uint8_t rhport, uint8_t dev_addr)
   USBFUNADR = dev_addr;
 
   // Response with status after changing device address
-  dcd_edpt_xfer(rhport, tu_edpt_addr(0, TUSB_DIR_IN), NULL, 0);
+  dcd_edpt_xfer(rhport, tu_edpt_addr(0, TUSB_DIR_IN), NULL, 0, false);
 }
 
 void dcd_remote_wakeup(uint8_t rhport)
@@ -306,14 +333,29 @@ bool dcd_edpt_open (uint8_t rhport, tusb_desc_endpoint_t const * desc_edpt)
   return true;
 }
 
+bool dcd_edpt_iso_alloc(uint8_t rhport, uint8_t ep_addr, uint16_t largest_packet_size) {
+  (void)rhport;
+  (void)ep_addr;
+  (void)largest_packet_size;
+  return false;
+}
+
+bool dcd_edpt_iso_activate(uint8_t rhport, const tusb_desc_endpoint_t *desc_ep) {
+  (void)rhport;
+  (void)desc_ep;
+  return false;
+}
+
+
 void dcd_edpt_close_all (uint8_t rhport)
 {
   (void) rhport;
   // TODO implement dcd_edpt_close_all()
 }
 
-bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes)
+bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   (void) rhport;
 
   uint8_t const epnum = tu_edpt_number(ep_addr);
@@ -361,8 +403,9 @@ bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t 
 }
 
 #if 0 // TODO support dcd_edpt_xfer_fifo API
-bool dcd_edpt_xfer_fifo (uint8_t rhport, uint8_t ep_addr, tu_fifo_t * ff, uint16_t total_bytes)
+bool dcd_edpt_xfer_fifo(uint8_t rhport, uint8_t ep_addr, tu_fifo_t * ff, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   (void) rhport;
 
   uint8_t const epnum = tu_edpt_number(ep_addr);
@@ -610,12 +653,64 @@ static void handle_setup_packet(void)
     _setup_packet[i] = setup_buf[i];
   }
 
-  // Clearing SETUPIFG by reading USBVECINT does not set NAK, so now that we
-  // have a SETUP packet, force NAKs until tinyusb can handle the SETUP
-  // packet and prepare for a new xfer.
+  // Force NAKs until tinyusb can handle the SETUP packet and prepare for a new xfer.
   USBIEPCNT_0 |= NAK;
   USBOEPCNT_0 |= NAK;
+
+  // Clear SETUPIFG to avoid handling in the USBVECINT switch statement.
+  // When handled there the NAKs applied to the endpoints above are
+  // cleared by hardware and the host will receive stale/duplicate data.
+  //
+  // Excerpt from MSP430x5xx and MSP430x6xx Family User's Guide:
+  //
+  // "...the SETUPIFG is cleared upon reading USBIV. In addition, the NAK on
+  // input endpoint 0 and output endpoint 0 is also cleared."
+  USBIEPCNF_0 &= ~UBME; // Errata USB10 workaround.
+  USBOEPCNF_0 &= ~UBME; // Errata USB10 workaround.
+  USBIFG &= ~SETUPIFG;
+  USBIEPCNF_0 |= UBME;  // Errata USB10 workaround.
+  USBOEPCNF_0 |= UBME;  // Errata USB10 workaround.
   dcd_event_setup_received(0, (uint8_t*) &_setup_packet[0], true);
+}
+
+static void handle_bus_power_event(void *param) {
+  (void) param;
+
+  tusb_time_delay_ms_api(5);                 // Bus power settling delay.
+
+  USBKEYPID = USBKEY;
+
+  if(USBPWRCTL & USBBGVBV) {          // Event caused by application of bus power.
+    USBPWRCTL |= VBOFFIE;             // Enable bus-power-removed interrupt.
+    USBPLLDIVB = USBPLLDIVB;          // For some reason the PLL will *NOT* lock unless the divider
+                                      // register is re-written. The assumption here is that this
+                                      // register was already properly configured during board-level
+                                      // initialization.
+    USBPLLCTL |= (UPLLEN | UPFDEN);   // Enable the PLL.
+
+    uint16_t attempts = 0;
+    do {                              // Poll the PLL, checking for a successful lock.
+      USBPLLIR = 0;
+      tusb_time_delay_ms_api(1);
+      attempts++;
+    } while ((attempts < 10) && (USBPLLIR != 0));
+
+    // A successful lock is indicated by all PLL-related interrupt flags being cleared.
+    if(!USBPLLIR) {
+      const tusb_rhport_init_t rhport_init = {
+        .role = TUSB_ROLE_DEVICE,
+        .speed = TUSB_SPEED_FULL
+      };
+      dcd_init(0, &rhport_init);         // Re-initialize the USB module.
+    }
+  } else {                            // Event caused by removal of bus power.
+    USBPWRCTL |= VBONIE;              // Enable bus-power-applied interrupt.
+    USBPLLCTL &= ~(UPLLEN | UPFDEN);  // Disable the PLL.
+    USBCNF = 0;                       // Disable the USB module.
+    dcd_event_bus_signal(0, DCD_EVENT_UNPLUGGED, false);
+  }
+
+  USBKEYPID = 0;
 }
 
 void dcd_int_handler(uint8_t rhport)
@@ -628,6 +723,7 @@ void dcd_int_handler(uint8_t rhport)
 
   if(setup_status)
   {
+    enable_functional_reset(true);
     handle_setup_packet();
   }
 
@@ -646,9 +742,30 @@ void dcd_int_handler(uint8_t rhport)
 
   switch(curr_vector)
   {
+    case USBVECINT_NONE:
+      break;
+
     case USBVECINT_RSTR:
+      enable_functional_reset(false); // Errata USB4 workaround.
       bus_reset();
       dcd_event_bus_reset(0, TUSB_SPEED_FULL, true);
+      break;
+
+    case USBVECINT_PWR_VBUSOn:
+    case USBVECINT_PWR_VBUSOff: {
+      USBKEYPID = USBKEY;
+      // Prevent (possibly) unstable power from generating spurious interrupts.
+      USBPWRCTL &= ~(VBONIE | VBOFFIE);
+      USBKEYPID = 0;
+
+      dcd_event_t event;
+
+      event.rhport = 0;
+      event.event_id = USBD_EVENT_FUNC_CALL;
+      event.func_call.func = handle_bus_power_event;
+
+      dcd_event_handler(&event, true);
+      }
       break;
 
     // Clear the (hardware-enforced) NAK on EP 0 after a SETUP packet
@@ -675,10 +792,12 @@ void dcd_int_handler(uint8_t rhport)
       break;
 
     case USBVECINT_INPUT_ENDPOINT0:
+      enable_functional_reset(true);
       transmit_packet(0);
       break;
 
     case USBVECINT_OUTPUT_ENDPOINT0:
+      enable_functional_reset(true);
       receive_packet(0);
       break;
 
@@ -710,9 +829,7 @@ void dcd_int_handler(uint8_t rhport)
 
     default:
       while(true);
-      break;
   }
 
 }
-
 #endif

@@ -2,7 +2,9 @@
 #pragma once
 
 #include "hw_configuration_common.hpp"
+#include <Pin.hpp>
 #include <device/board.h>
+#include <option/has_indx_head.h>
 
 static_assert(BOARD_IS_XBUDDY());
 
@@ -40,6 +42,11 @@ public:
 
     /// Deactivates ext_reset pin correctly based on the revision
     void deactivate_ext_reset() const;
+
+#if HAS_INDX_HEAD()
+    /// Writes the indx_head_reset pin (State::high = reset asserted), compensating for revision-dependent polarity
+    void write_indx_head_reset(Pin::State state) const;
+#endif
 
 private:
     bool has_inverted_mmu_reset() const;

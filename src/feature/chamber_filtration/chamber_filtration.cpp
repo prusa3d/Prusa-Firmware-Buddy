@@ -88,7 +88,7 @@ PWM255 ChamberFiltration::output_pwm() const {
 }
 
 void ChamberFiltration::step() {
-    assert(osThreadGetId() == marlin_server::server_task);
+    debug_assert(osThreadGetId() == marlin_server::server_task);
 
     // The step acutally doesn't need to run often at all,
     // do not run it every marlin cycle

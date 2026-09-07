@@ -48,7 +48,13 @@ void window_file_list_t::set_scroll_offset(int set) {
         return;
     }
 
+    // -1/+1 because ldv counts ".." as index -1
+    // The ldv window is sized to match the screen, so it can reach any scroll_offset
+    // within the menu's max_scroll_offset. Adopt the offset it actually set to stay
+    // in sync even if the request was out of bounds (e.g. a stale restored position
+    // after the directory content changed).
     const int actual = ldv.set_window_offset(set - 1) + 1;
+
     // This must be called AFTER ldv.set_window_offset, as it updates the texts based on the newly shifted window
     WindowMenuVirtualBase::set_scroll_offset(actual);
 }
@@ -65,13 +71,15 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 
     // Now, ldv has adjusted its window offset and we need to synchronize scroll_offset with it properly.
     {
-        // +1 because ldv counts ".." as index -1 :/
-        int target_scroll_offset = std::min(ldv.window_offset() + 1, max_scroll_offset());
+        // +1 because ldv counts ".." as index -1
+        const int anchor_index = ldv.window_offset() + 1;
+
+        int target_scroll_offset = std::min(anchor_index, max_scroll_offset());
 
         // If !topSFN -> we're trying to just focus sfnAtCursor.
         // In this case, it doesn't necessarily have to be on the top and we can be a bit smarter.
         // If the item is within the first visible window, we won't scroll on it, keep the scroll offset on 0
-        if (!topSFN && target_scroll_offset < max_items_on_screen_count()) {
+        if (!topSFN && anchor_index < max_items_on_screen_count()) {
             target_scroll_offset = 0;
         }
 
@@ -109,7 +117,7 @@ void window_file_list_t::Load(WF_Sort_t sort, const char *sfnAtCursor, const cha
 
 const char *window_file_list_t::CurrentLFN(bool *isFile) const {
     const auto focused_slot = this->focused_slot();
-    assert(focused_slot);
+    debug_assert(focused_slot);
 
     auto i = ldv.LongFileNameAt(*focused_slot);
     if (isFile) {
@@ -141,17 +149,18 @@ const char *window_file_list_t::TopItemSFN() {
 }
 
 window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
-    : WindowMenuVirtualSized(parent, rc, CloseScreenReturnBehavior::no) {
+    : WindowMenuVirtualSized(parent, rc, CloseScreenReturnBehavior::no)
+    , ldv(max_items_on_screen_count()) {
 
-    assert(max_items_on_screen_count() <= item_buffer_size);
+    debug_assert(max_items_on_screen_count() <= item_buffer_size);
 
     DisableLongHoldScreenAction();
     Enable();
-    strlcpy(sfn_path, root, FILE_PATH_BUFFER_LEN);
+    strlcpy(sfn_path, root, filename_defs::path_buffer_size);
 }
 
 void window_file_list_t::setup_item(ItemVariant &variant, int index) {
-    assert(index_to_slot(index));
+    debug_assert(index_to_slot(index));
 
     const auto &entry = ldv.LongFileNameAt(*index_to_slot(index));
 

@@ -2,10 +2,8 @@
 #pragma once
 
 #include "WindowMenuInfo.hpp"
-#include "WindowMenuItems.hpp"
-#include "screen_menu.hpp"
+#include <basic_screen_menu.hpp>
 #include <array>
-#include <guiconfig/GuiDefaults.hpp>
 #include <lang/string_view_utf8.hpp>
 #include <otp/types.hpp>
 
@@ -57,15 +55,20 @@ public:
     MI_OTP_INDX_HEAD();
 };
 
-using ScreenMenuBoardInfo__ = ScreenMenu<GuiDefaults::MenuFooter,
-    MI_RETURN,
+class MI_OTP_XL_CAN final : public WindowMenuInfoOtp {
+public:
+    MI_OTP_XL_CAN();
+};
+
+using ScreenMenuBoardInfo__ = BasicScreenMenu<
     MI_OTP_MOTHERBOARD,
     MI_OTP_LOVEBOARD,
     MI_OTP_XLCD,
     MI_OTP_XBUDDY_EXTENSION,
-    MI_OTP_INDX_HEAD>;
+    MI_OTP_INDX_HEAD,
+    MI_OTP_XL_CAN>;
 
-class ScreenMenuBoardInfo : public ScreenMenuBoardInfo__ {
+class ScreenMenuBoardInfo final : public ScreenMenuBoardInfo__ {
 public:
     ScreenMenuBoardInfo();
 };

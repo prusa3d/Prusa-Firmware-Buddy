@@ -2,13 +2,13 @@
 #pragma once
 
 #include <cstddef>
-#include <span>
+#include <utils/byte_utils.hpp>
 
 namespace spi {
 
 template <typename T>
 concept Device = requires(T t) {
-    { t.transmit_receive(std::span<const std::byte> {}, std::span<std::byte> {}) } -> std::same_as<bool>;
+    { t.transmit_receive(Bytes {}, WritableBytes {}) } -> std::same_as<bool>;
 };
 
 } // namespace spi

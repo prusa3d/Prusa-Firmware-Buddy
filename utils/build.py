@@ -142,7 +142,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
                  build_layout: BuildLayout,
                  toolchain: Optional[Path] = None,
                  generator: str = 'Ninja',
-                 generate_dfu: bool = False,
                  signing_key: Optional[Path] = None,
                  version_suffix: Optional[str] = None,
                  version_suffix_short: Optional[str] = None,
@@ -154,7 +153,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         self.toolchain = toolchain or FirmwareBuildConfiguration.default_toolchain(
         )
         self.generator = generator
-        self.generate_dfu = generate_dfu
         self.signing_key = signing_key
         self.version_suffix = version_suffix
         self.version_suffix_short = version_suffix_short
@@ -193,7 +191,6 @@ class FirmwareBuildConfiguration(BuildConfiguration):
         # set general entries
         entries.extend([
             ('BOOTLOADER', 'STRING', self.bootloader.value.upper()),
-            ('GENERATE_DFU', 'BOOL', 'ON' if self.generate_dfu else 'OFF'),
             ('SIGNING_KEY', 'FILEPATH', str(signing_key_flg)),
             ('CMAKE_TOOLCHAIN_FILE', 'FILEPATH', str(self.toolchain)),
             ('CMAKE_BUILD_TYPE', 'STRING', self.build_type.value.title()),
@@ -333,10 +330,10 @@ def build(configuration: BuildConfiguration,
                                        stderr=stderr,
                                        check=False)
         build_returncode = build_process.returncode
-        products.extend(build_dir / fname for fname in [
-            'firmware', 'firmware.bin', 'firmware.bbf', 'firmware.dfu',
-            'firmware.map'
-        ] if (build_dir / fname).exists())
+        products.extend(
+            build_dir / fname for fname in
+            ['firmware', 'firmware.bin', 'firmware.bbf', 'firmware.map']
+            if (build_dir / fname).exists())
     else:
         build_returncode = None
 
@@ -661,11 +658,6 @@ def main():
         type=Path,
         help='Path to a CMake toolchain file to be used.')
     parser.add_argument(
-        '--generate-dfu',
-        action='store_true',
-        help='Generate .dfu versions of the firmware.'
-    )
-    parser.add_argument(
         '--generate-cproject',
         action='store_true',
         help='Generate .cproject and .project files and exit without building.',
@@ -745,7 +737,6 @@ def main():
             bootloader=bootloader,
             build_type=build_type,
             build_layout=build_layout,
-            generate_dfu=args.generate_dfu,
             signing_key=args.signing_key,
             version_suffix=args.version_suffix,
             version_suffix_short=args.version_suffix_short,

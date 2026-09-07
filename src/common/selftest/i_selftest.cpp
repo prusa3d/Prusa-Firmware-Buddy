@@ -5,6 +5,7 @@
 #include <logging/log.hpp>
 #include "marlin_server.hpp"
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
+#include <option/has_crash_detection.h>
 
 LOG_COMPONENT_DEF(Selftest, logging::Severity::debug);
 
@@ -18,7 +19,7 @@ void ISelftest::phaseStart() {
 #if HAS_PHASE_STEPPING()
     phstep_restorer.set_state(false);
 #endif
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     crash_s.set_state(Crash_s::SELFTEST);
 #endif
     marlin_server::fsm_create(PhasesSelftest::_none);
@@ -30,7 +31,7 @@ void ISelftest::phaseFinish() {
 #if HAS_PHASE_STEPPING()
     phstep_restorer.release();
 #endif
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     crash_s.set_state(Crash_s::IDLE);
 #endif
     FSensors_instance().DecEvLock(); // stop blocking autoload and M600

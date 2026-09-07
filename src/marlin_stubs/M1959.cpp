@@ -61,7 +61,7 @@ static constexpr size_t sample_count(FrequencyRange frequency_range) {
     return (frequency_range.end - frequency_range.start) / frequency_range.increment;
 }
 
-class FrequencyRangeSpectrum final : public Spectrum {
+class FrequencyRangeSpectrum final : public vibrate_measure::Spectrum {
 public:
     float max() const final {
         return *std::max_element(samples.begin(), samples.end());
@@ -69,7 +69,7 @@ public:
     size_t size() const final {
         return samples.size();
     }
-    FrequencyGain get(size_t index) const final {
+    vibrate_measure::FrequencyGain get(size_t index) const final {
         return {
             .frequency = static_cast<float>(frequency_range.start + index * frequency_range.increment),
             .gain = samples[index],
@@ -98,7 +98,7 @@ public:
         if (f) {
             std::array<char, 32> buffer;
             for (size_t i = 0; i < size(); ++i) {
-                FrequencyGain fg = get(i);
+                vibrate_measure::FrequencyGain fg = get(i);
                 size_t n = snprintf(buffer.data(), buffer.size(), "%f\t%f\n", (double)fg.frequency, (double)fg.gain);
                 fwrite(buffer.data(), n, 1, f);
             }
@@ -163,7 +163,7 @@ static PhasesInputShaperCalibration parking(Context &context) {
     // Start cooling the hotend even before parking to save some time
     Temperature::disable_hotend();
     if (Temperature::degHotend(hotend) > safe_temperature) {
-        Temperature::set_fan_speed(0, 255);
+        Temperature::set_print_fan_speed(255);
     }
 #endif
 
@@ -269,6 +269,7 @@ static PhasesInputShaperCalibration measuring_axis(
     const AxisEnum logicalAxis,
     const StepEventFlag_t axis_flag,
     FrequencyRangeSpectrum &spectrum) {
+    using namespace vibrate_measure;
 
     fsm::PhaseData data {
         static_cast<uint8_t>(frequency_range.start),
@@ -283,7 +284,7 @@ static PhasesInputShaperCalibration measuring_axis(
     MicrostepRestorer microstepRestorer;
     enable_all_steppers(); // enable all axes to have the same state as printing
 
-    VibrateMeasureParams args {
+    MeasureParams args {
         .excitation_acceleration = acceleration_requested,
         .excitation_cycles = cycles,
         .klipper_mode = klipper_mode,
@@ -297,32 +298,30 @@ static PhasesInputShaperCalibration measuring_axis(
     float frequency = frequency_range.start;
 
     struct {
-        bool aborted = false;
         float prev_progress = -1;
         PhasesInputShaperCalibration phase;
 
     } progress_hook_data {
         .phase = phase
     };
-    const auto progress_hook = [&progress_hook_data](const VibrateMeasureProgressHookParams &params) {
-        progress_hook_data.aborted |= was_abort_requested(progress_hook_data.phase);
-        if (progress_hook_data.aborted) {
-            return false;
+    const auto progress_hook = [&progress_hook_data](const ProgressHookParams &params) -> Result<void> {
+        if (was_abort_requested(progress_hook_data.phase)) {
+            return std::unexpected(Error::aborted);
         }
 
         // data[3] == 1 calibrating
-        if (params.phase == VibrateMeasureProgressHookParams::Phase::calibrating && abs(params.progress - progress_hook_data.prev_progress) >= 0.01f) {
+        if (params.phase == ProgressHookParams::Phase::calibrating && abs(params.progress - progress_hook_data.prev_progress) >= 0.01f) {
             fsm::PhaseData calibrating_data = { 0, 0, static_cast<uint8_t>(255 * params.progress), 1 };
             marlin_server::fsm_change(progress_hook_data.phase, calibrating_data);
             progress_hook_data.prev_progress = params.progress;
         }
 
         idle(true);
-        return true;
+        return {};
     };
 
     for (size_t i = 0; i < spectrum.size(); ++i) {
-        if (was_abort_requested(phase) || progress_hook_data.aborted) {
+        if (was_abort_requested(phase)) {
             return PhasesInputShaperCalibration::abort;
         }
 
@@ -333,10 +332,16 @@ static PhasesInputShaperCalibration measuring_axis(
 
         marlin_server::fsm_change(phase, data);
 
-        auto result = vibrate_measure_repeat(args, frequency, progress_hook);
+        auto result = measure_repeat(args, frequency, progress_hook);
         args.calibrate_accelerometer = false;
         if (!result.has_value()) {
-            return PhasesInputShaperCalibration::measurement_failed;
+            switch (result.error()) {
+            case Error::aborted:
+                return PhasesInputShaperCalibration::abort;
+            case Error::failed:
+                return PhasesInputShaperCalibration::measurement_failed;
+            }
+            bsod_unreachable();
         }
 
         result->gain[logicalAxis] = max(result->gain[logicalAxis] - 1.f, 0.f);
@@ -413,10 +418,10 @@ static PhasesInputShaperCalibration check_result(Context &context) {
 static PhasesInputShaperCalibration computing(Context &context) {
     AxisEnum logicalAxis;
     bool aborted = false;
-    const auto progress_hook = [&](input_shaper::Type type, float progress) {
+    const auto progress_hook = [&](input_shaper::Type type, float progress) -> vibrate_measure::Result<void> {
         aborted |= was_abort_requested(PhasesInputShaperCalibration::computing);
         if (aborted) {
-            return false;
+            return std::unexpected(vibrate_measure::Error::aborted);
         }
 
         fsm::PhaseData data {
@@ -427,7 +432,7 @@ static PhasesInputShaperCalibration computing(Context &context) {
         };
         marlin_server::fsm_change(PhasesInputShaperCalibration::computing, data);
         idle(true);
-        return true;
+        return {};
     };
 
     {

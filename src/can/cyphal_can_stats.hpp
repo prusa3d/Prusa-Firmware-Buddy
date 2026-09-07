@@ -13,6 +13,7 @@
 #include <prusa3d/common/PortIds_0_1.h>
 
 #include <option/cyphal_can_stats.h>
+#include <bsod/bsod.h>
 #if !CYPHAL_CAN_STATS()
     #error
 #endif
@@ -132,7 +133,7 @@ public:
      * @param self pointer to this object
      */
     [[noreturn]] static void task(void *self) {
-        assert(self != nullptr);
+        debug_assert(self != nullptr);
         while (1) {
             reinterpret_cast<CanStats *>(self)->loop();
         }

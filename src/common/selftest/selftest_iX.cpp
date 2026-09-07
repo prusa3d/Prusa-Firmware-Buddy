@@ -68,7 +68,7 @@ const AxisConfig_t selftest::Config_XAxis = {
     .movement_dir = -1,
     .park = true,
     .park_pos = 15,
-}; // MINI has movement_dir -1
+};
 
 const AxisConfig_t selftest::Config_YAxis = {
     .partname = "Y-Axis",
@@ -127,7 +127,7 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .partname = "Bed",
     .type = heater_type_t::Bed,
     .tool_nr = PhysicalToolIndex::from_raw(0),
-    .getTemp = []() { return thermalManager.temp_bed.celsius; },
+    .getTemp = []() -> Hotend::OptionalTemperature { return thermalManager.temp_bed.celsius; },
     .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
     .get_pid = []() { return PID_t {}; },
     .set_pid = [](const PID_t &) {},
@@ -146,6 +146,17 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heater_full_load_max_W = 285,
     .min_pwm_to_measure = 26
 };
+
+#if HAS_HEATERS_SELFTEST_GCODE()
+namespace selftest {
+HeaterConfig_t nozzle_heater_config() {
+    return Config_HeaterNozzle[0];
+}
+HeaterConfig_t bed_heater_config() {
+    return Config_HeaterBed;
+}
+} // namespace selftest
+#endif
 
 static constexpr LoadcellConfig_t Config_Loadcell[] = { {
     .partname = "Loadcell",

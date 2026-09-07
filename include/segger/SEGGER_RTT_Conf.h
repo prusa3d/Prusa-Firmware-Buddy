@@ -79,7 +79,8 @@ Revision: $Rev: 21386 $
     // Up-channel 1: SystemView
     //
     #ifndef SEGGER_RTT_MAX_NUM_UP_BUFFERS
-        #define SEGGER_RTT_MAX_NUM_UP_BUFFERS (2) // Max. number of up-buffers (T->H) available on this target    (Default: 3)
+        // 0: Logging, 1: Heap instrumentation, 2: RTT metrics (rtt_metrics_segger).
+        #define SEGGER_RTT_MAX_NUM_UP_BUFFERS (3) // Max. number of up-buffers (T->H) available on this target    (Default: 3)
     #endif
     //
     // Most common case:

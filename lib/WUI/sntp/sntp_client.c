@@ -1,7 +1,7 @@
 #include "sntp.h"
 #include "sntp_client.h"
 #include "netdev.h"
-#include "tcpip.h"
+#include <lwip/tcpip.h>
 
 #include <option/has_esp.h>
 

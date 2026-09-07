@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <cstdint>
+#include <bsod/bsod.h>
 
 /// Compact pointer using just 2 bytes instead of 4 bytes.
 /// Assuming 4-byte aligned addresses, we're able to fit the entire span of the 256 KB RAM addresses into 16 bits if we strip the lowest 2 bits.
@@ -100,7 +101,7 @@ CompactRAMPointer<T>::CompactRAMPointer(T *ptr) {
     static_assert(alignof(T) >= 4);
 
     const auto ptr_val = reinterpret_cast<uintptr_t>(ptr);
-    assert(ptr_val % 4 == 0); // Check that the pointer is aligned to 4 bytes
+    debug_assert(ptr_val % 4 == 0); // Check that the pointer is aligned to 4 bytes
 
     if (ptr_val == 0) {
         data = 0;
@@ -117,7 +118,7 @@ CompactRAMPointer<T>::CompactRAMPointer(T *ptr) {
     }
 
     else {
-        assert(0);
+        debug_assert(0);
     }
 }
 

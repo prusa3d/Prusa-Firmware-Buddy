@@ -8,6 +8,7 @@
 #include <gcode/gcode_reader_any.hpp>
 #include <async_job/async_job.hpp>
 #include <freertos/mutex.hpp>
+#include <buddy/filename_defs.hpp>
 
 /// Handles loading data from a gcode file, keeps it in the ring buffer, and provides the gcode further down to the pipeline
 class MediaPrefetchManager {
@@ -228,7 +229,7 @@ private:
         size_t commands_in_buffer = 0;
 
         /// A way to pass the filename to the worker in a managed way
-        std::array<char, FILE_PATH_BUFFER_LEN> filepath = { '\0' };
+        std::array<char, filename_defs::path_buffer_size> filepath = { '\0' };
 
     } shared_state;
 

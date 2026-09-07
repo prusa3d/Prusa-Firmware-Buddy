@@ -745,9 +745,14 @@ def pretty(port, what, data):
     elif port == 'prusa3d.nfc.Status.1':
         time_sync_precise, data = unpack_unsigned(data, 1)
         board_orientation, data = unpack_nfc_board_orientation(data)
+        board_temp, data = unpack_celsius(data)
+        mcu_temp, data = unpack_celsius(data)
+        fs_1, data = unpack_unsigned(data, 2)
+        fs_2, data = unpack_unsigned(data, 2)
+        radio_enabled, data = unpack_unsigned(data, 1)
         faults, data = unpack_shared_fault(data)
 
-        return f'time_sync_precise={bool(time_sync_precise)} board_orientation={board_orientation} faults={faults}'
+        return f'time_sync_precise={bool(time_sync_precise)} board_orientation={board_orientation} board_temp={board_temp:.1f}°C mcu_temp={mcu_temp:.1f}°C fs_1={fs_1} fs_2={fs_2} radio_enabled={bool(radio_enabled)} faults={faults}'
 
     elif port == 'prusa3d.nfc.command.AcceptEvent.1':
         if what == 'Request':

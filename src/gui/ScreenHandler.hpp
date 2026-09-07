@@ -123,17 +123,11 @@ public:
         return stack_iterator->creator == creator;
     }
 
-    /**
-     * @brief check if screen is closed
-     * == it is on stack, but is not opened
-     *
-     * @tparam T screen
-     * @return true  screen is closed
-     * @return false screen is not closed
-     */
-    template <class T>
-    bool IsScreenClosed() const {
-        return std::any_of(stack.begin(), ScreenArray::const_iterator(stack_iterator + 1), [](const auto &node) { return node.creator.template is_screen<T>(); });
+    /// @returns whether any screen on stack (including the currently open one) matches the specified predicate
+    template <typename F>
+    bool any_screen_on_stack(F &&f) const {
+        // Note: stack_iterator point to the currently opened screen
+        return std::any_of(std::make_const_iterator(stack.begin()), ScreenArray::const_iterator(stack_iterator + 1), f);
     }
 
     /**
@@ -146,7 +140,7 @@ public:
      */
     template <class T>
     bool IsScreenOnStack() const {
-        return IsScreenOpened<T>() || IsScreenClosed<T>();
+        return any_screen_on_stack([](const auto &node) { return node.creator.template is_screen<T>(); });
     }
 
     // This function is used to keep gui responsive when showing some dialog.

@@ -29,7 +29,8 @@ const img::Resource *icon_for_tool(const std::variant<PhysicalToolIndex, Current
 
 // MI_NOZZLE_TARGET_TEMP
 MI_NOZZLE_TARGET_TEMP::MI_NOZZLE_TARGET_TEMP(std::variant<PhysicalToolIndex, CurrentlySelectedTool> tool)
-    : WiSpin(0, numeric_input_config::nozzle_temperature, string_view_utf8 {}, icon_for_tool(tool))
+    : NumericInputConfigHolder { numeric_input_config::nozzle_temperature(resolve_tool_index(tool).value_or(PhysicalToolIndex::from_raw(0))) }
+    , WiSpin(0, NumericInputConfigHolder::owned_config, string_view_utf8 {}, icon_for_tool(tool))
     , tool_(tool) {
     SetLabel(match(
         tool_,

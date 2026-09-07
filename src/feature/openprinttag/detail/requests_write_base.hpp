@@ -1,7 +1,7 @@
 /// @file
 #pragma once
 
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <string_view>
 
 #include <feature/openprinttag/tool_tag.hpp>
@@ -9,11 +9,11 @@
 
 namespace buddy::openprinttag {
 
-class WriteFieldRequestBase : public Request {
+class WriteFieldRequestBase : public TagRequest {
 
 public:
     explicit WriteFieldRequestBase(ToolTagField tag_field)
-        : Request(tag_field.section, tag_field.tag)
+        : TagRequest(tag_field.section, tag_field.tag)
         , tag_field_(tag_field) {}
 
 protected:
@@ -43,7 +43,7 @@ public:
     using WriteFieldRequestT<float>::WriteFieldRequestT;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &) final;
-    void complete(std::span<const std::byte> event_data) final;
+    void complete(Bytes event_data) final;
 };
 
 } // namespace buddy::openprinttag

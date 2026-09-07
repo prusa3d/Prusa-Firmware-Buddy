@@ -8,7 +8,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <cstddef>
 #ifdef __AVR__
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -95,7 +95,7 @@ public:
         return *this;
     }
 
-    Crc &update(std::span<const std::byte> bytes) {
+    Crc &update(Bytes bytes) {
         const auto *data = reinterpret_cast<const uint8_t *>(bytes.data());
         for (size_t i = 0; i < bytes.size(); ++i) {
             this->update(data[i]);
@@ -105,7 +105,7 @@ public:
 
     [[deprecated("Use overload taking span of bytes")]]
     Crc &update(const uint8_t *buf, size_t len) {
-        return update(std::span<const std::byte>(
+        return update(Bytes(
             reinterpret_cast<const std::byte *>(buf), len));
     }
 

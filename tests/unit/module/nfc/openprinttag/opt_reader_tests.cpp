@@ -7,6 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <ranges>
 
 #include <test_utils/formatters.hpp>
@@ -46,7 +47,7 @@ public:
     std::unordered_map<TagID, ByteString> tag_data;
     std::vector<std::byte> tag_uid { std::byte { 0xBC }, std::byte { 0x6F }, std::byte { 0x2F }, std::byte { 0x66 }, std::byte { 0x08 }, std::byte { 0x01 }, std::byte { 0x04 }, std::byte { 0xE0 } };
 
-    [[nodiscard]] virtual IOResult<void> read(TagID tag, PayloadPos start, const std::span<std::byte> &buffer) final {
+    [[nodiscard]] virtual IOResult<void> read(TagID tag, PayloadPos start, const WritableBytes &buffer) final {
 
         log.reads.push_back(ReadLog {
             .tag = tag,
@@ -68,7 +69,7 @@ public:
         return {};
     }
 
-    [[nodiscard]] virtual IOResult<void> write(TagID tag, PayloadPos start, const std::span<const std::byte> &buffer) final {
+    [[nodiscard]] virtual IOResult<void> write(TagID tag, PayloadPos start, const Bytes &buffer) final {
         log.writes.push_back(WriteLog {
             .tag = tag,
             .seq = log.seq_counter++,
@@ -93,7 +94,7 @@ public:
         return false;
     }
 
-    [[nodiscard]] IOResult<size_t> get_tag_uid(TagID tag, const std::span<std::byte> &buffer) final {
+    [[nodiscard]] IOResult<size_t> get_tag_uid(TagID tag, const WritableBytes &buffer) final {
         if (tag != 0) {
             return std::unexpected(IOError::invalid_id);
         }

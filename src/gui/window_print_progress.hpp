@@ -1,5 +1,4 @@
-// window_progress.hpp
-
+/// @file
 #pragma once
 
 #include "window_numb.hpp"

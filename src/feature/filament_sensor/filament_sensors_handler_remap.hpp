@@ -61,7 +61,7 @@ bool is_remapped();
 /**
  * @brief Enable or disable remap.
  * @param mapping new mapping
- * Use set_map(no_mapping) to clear to default.
+ * Use set_mapping(no_mapping) to clear to default.
  */
 void set_mapping(const Mapping &mapping);
 

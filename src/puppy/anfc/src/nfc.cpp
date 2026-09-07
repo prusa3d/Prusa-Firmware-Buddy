@@ -12,6 +12,7 @@
 #include <bsod/bsod.h>
 
 #include <stm32c0xx_hal.h>
+#include <utils/byte_utils.hpp>
 
 namespace nfc {
 namespace {
@@ -30,14 +31,14 @@ namespace {
             HAL_GPIO_WritePin(chip_select_port, chip_select_pin, GPIO_PIN_SET);
         }
 
-        void unsafe_transmit(const std::span<const std::byte> &tx) final {
+        void unsafe_transmit(const Bytes &tx) final {
             [[maybe_unused]] const auto res = HAL_SPI_Transmit(spi, reinterpret_cast<const uint8_t *>(tx.data()), tx.size(), 100);
             if (res != HAL_OK) {
                 hal::panic();
             }
         }
 
-        void unsafe_receive(const std::span<std::byte> &rx) final {
+        void unsafe_receive(const WritableBytes &rx) final {
             [[maybe_unused]] const auto res = HAL_SPI_Receive(spi, reinterpret_cast<uint8_t *>(rx.data()), rx.size(), 100);
             if (res != HAL_OK) {
                 hal::panic();
@@ -117,7 +118,7 @@ static constexpr st25r39xxb::Amplitude floor_to_valid_amplitude(uint8_t raw_valu
     };
 
     const auto it = std::ranges::lower_bound(conversion_table, raw_value, std::less {}, [](const auto &a) { return a.first; });
-    assert(it != std::end(conversion_table));
+    debug_assert(it != std::end(conversion_table));
     return it->second;
 }
 

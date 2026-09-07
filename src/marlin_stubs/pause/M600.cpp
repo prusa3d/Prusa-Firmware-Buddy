@@ -30,6 +30,7 @@
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
 
+#include <option/has_crash_detection.h>
 #include <option/has_pause.h>
 static_assert(HAS_PAUSE());
 
@@ -39,7 +40,9 @@ static_assert(HAS_PAUSE());
 #include "Marlin/src/feature/prusa/e-stall_detector.h"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
+#include <algorithm>
 #include <cmath>
+#include <feature/safety_timer/safety_timer.hpp>
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include "filament.hpp"
 #include <gcode/gcode_parser.hpp>
@@ -54,9 +57,9 @@ static_assert(HAS_PAUSE());
     #include <module/prusa/spool_join.hpp>
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
-#endif /*ENABLED(CRASH_RECOVERY)*/
+#endif
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
@@ -70,7 +73,9 @@ static_assert(HAS_PAUSE());
 
 static void M600_manual(const GCodeParser2 &);
 
+#include <common/mapi/parking.hpp>
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 /** \addtogroup G-Codes
  * @{
@@ -82,7 +87,7 @@ static void M600_manual(const GCodeParser2 &);
  *
  *#### Usage
  *
- *    M [ E | X | Y | Z | U | L | B | T | A | C | S | N ]
+ *    M600 [ E | X | Y | Z | U | L | B | T | A | C | S | N | P ]
  *
  *#### Parameters
  *
@@ -144,7 +149,7 @@ void GcodeSuite::M600() {
 
 /** @}*/
 
-void M600_execute(xyz_pos_t park_point, VirtualToolIndex target_tool,
+void M600_execute(mapi::ParkingPosition park_position, VirtualToolIndex target_tool,
     xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength,
     std::optional<float> retractLength, std::optional<Color> filament_colour,
     std::optional<FilamentType> filament_type, bool);
@@ -165,23 +170,22 @@ void M600_manual(const GCodeParser2 &p) {
     p.store_option_if_present('X', logical_park_point.x);
     p.store_option_if_present('Y', logical_park_point.y);
 
-    auto park_point = logical_park_point.asNative();
+    const auto park_point = logical_park_point.asNative();
 
-    LOOP_XYZ(i) {
-        if (std::isnan(park_point[i])) {
-            static constexpr xyz_pos_t default_park_point = XYZ_NOZZLE_PARK_POINT_M600;
-            park_point[i] = default_park_point[i];
-        }
+    auto park_position = mapi::get_parking_position(mapi::ParkPosition::filament_change);
+    if (!std::isnan(park_point.x)) {
+        park_position.x = park_point.x;
     }
-
-#if HAS_HOTEND_OFFSET && !HAS_TOOLCHANGER()
-    // #error dead code found by automatic analyses (see BFW-5461)
-    park_point += hotend_offset[active_extruder];
-#endif
+    if (!std::isnan(park_point.y)) {
+        park_position.y = park_point.y;
+    }
+    if (!std::isnan(park_point.z)) {
+        park_position.z = park_point.z;
+    }
 
     const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
 
-    M600_execute(park_point,
+    M600_execute(park_position,
         target_tool,
         p.option<bool>('N') ? no_return : current_position,
         p.option<float>('U'),
@@ -192,7 +196,7 @@ void M600_manual(const GCodeParser2 &p) {
         false);
 }
 
-void M600_execute(xyz_pos_t park_point, VirtualToolIndex target_tool, xyze_float_t resume_point,
+void M600_execute(mapi::ParkingPosition park_position, VirtualToolIndex target_tool, xyze_float_t resume_point,
     std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
     std::optional<Color> filament_colour, std::optional<FilamentType> filament_type,
     bool is_filament_stuck) {
@@ -232,9 +236,13 @@ void M600_execute(xyz_pos_t park_point, VirtualToolIndex target_tool, xyze_float
         Temperature::setTargetHotend(filament_data.nozzle_temperature, physical_target_tool);
     }
 #endif
-    // X/Y are taken as-is from park_point; only Z becomes an AtLeast (never-go-down).
-    mapi::ParkingPosition park_position = mapi::ParkingPosition::from_xyz_pos(park_point);
-    park_position.z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = park_point.z };
+    // X/Y are taken as-is; an absolute Z becomes an AtLeast (never-go-down).
+    if (auto *z = std::get_if<float>(&park_position.z)) {
+        park_position.z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE_M600, .absolute = *z };
+    } else {
+        // Other alternatives express the intended park behavior on their own; flag a caller not asking for any Z handling
+        debug_assert(!std::holds_alternative<mapi::ParkingPosition::Unchanged>(park_position.z));
+    }
     pause::Settings settings;
     settings.SetParkPoint(park_position);
     settings.SetResumePoint(resume_point);
@@ -249,6 +257,12 @@ void M600_execute(xyz_pos_t park_point, VirtualToolIndex target_tool, xyze_float
     } // Initial retract before move to filament change position
     settings.SetExtruder(target_tool);
 
+    // A pause that outlives the safety timer leaves the heaters disabled, which zeroes
+    // both the target and the displayed temperature. Restore them before snapshotting,
+    // otherwise the resume temperature captured below is 0 and turns the nozzle off.
+    // Pause::filament_change() restores anyway; this only moves it ahead of the read.
+    buddy::safety_timer().reset_restore_nonblocking();
+
     const float disp_temp = marlin_vars().hotend(physical_target_tool).display_nozzle;
     const float targ_temp = Temperature::degTargetHotend(physical_target_tool);
 
@@ -256,8 +270,9 @@ void M600_execute(xyz_pos_t park_point, VirtualToolIndex target_tool, xyze_float
         Temperature::setTargetHotend(static_cast<int16_t>(disp_temp), physical_target_tool);
     }
 
-    // Loading drops the target to the new filament's default; restore the print temperature on resume.
-    settings.SetResumeNozzleTemperature(static_cast<int16_t>(targ_temp));
+    // Loading drops the target to the new filament's default; restore the print temperature
+    // on resume. Snapshot what the branch above left in effect, not the pre-raise target.
+    settings.SetResumeNozzleTemperature(static_cast<int16_t>(std::max(disp_temp, targ_temp)));
 
     if (filament_type.has_value()) {
         config_store().set_filament_type(target_tool, filament_type.value());
@@ -302,18 +317,14 @@ void M600_execute(xyz_pos_t park_point, VirtualToolIndex target_tool, xyze_float
  * Only MK3.9/S, MK4/S and XL
  *#### Usage
  *
- *    M1601
+ *    M1601 V<virtual tool>
  *
  */
 #if HAS_LOADCELL()
 void PrusaGcodeSuite::M1601() {
-    auto active_tool = stdext::get_optional<VirtualToolIndex>(VirtualToolIndex::currently_selected());
-    if (!active_tool.has_value()) {
-        bsod_unreachable();
-    }
     M600_execute(
-        XYZ_NOZZLE_PARK_POINT_M600,
-        *active_tool,
+        mapi::get_parking_position(mapi::ParkPosition::filament_change),
+        VirtualToolIndex::from_raw(parser.intval('V', -1)),
         current_position,
         std::nullopt, std::nullopt, std::nullopt,
         std::nullopt, std::nullopt,

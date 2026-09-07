@@ -1,6 +1,8 @@
 #pragma once
 #include "file_sort.hpp"
 #include "mutable_path.hpp"
+#include <bsod/bsod.h>
+#include <buddy/filename_defs.hpp>
 
 class LazyDirViewBase : public FileSort {
 
@@ -10,14 +12,14 @@ public:
 public:
     void Clear();
 
-    /// @param windowIndex index within the window (i.e. [0 - WINDOW_SIZE-1])
+    /// @param windowIndex index within the window (i.e. [0 - window_size-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
     std::pair<const char *, EntryType> LongFileNameAt(size_t windowIndex) const {
         const auto &rec = files_data[indices_data[windowIndex]];
         return std::make_pair(rec.lfn, rec.type);
     }
 
-    /// @param windowIndex index within the window (i.e. [0 - WINDOW_SIZE-1])
+    /// @param windowIndex index within the window (i.e. [0 - window_size-1])
     /// @return pointer to a filename (or nullptr, if there is nothing at that index) and the type of the entry (FILE / DIR)
     std::pair<const char *, EntryType> ShortFileNameAt(size_t windowIndex) const {
         const auto &rec = files_data[indices_data[windowIndex]];
@@ -48,13 +50,12 @@ public:
     ///                      A value of nullptr means put ".." first
     void ChangeDirectory(const char *p, SortPolicy sp = SortPolicy::BY_NAME, const char *firstDirEntry = nullptr);
 
-    /// Sets window offset to the specified position.
-    /// \returns actual offset set
+    /// Sets window offset to the specified position (clamped to the valid range).
+    /// \returns the actual offset set
     int set_window_offset(int target);
 
     /// Moves the window by $amount items (>0 -> down, < -> up).
-    /// Handles amounts larger than window_size.
-    /// Does not handle clipping to valid indexes (maybe TODO)
+    /// Handles amounts larger than window_size and clamps to the valid offset range.
     /// \returns amount of items actually moved.
     int move_window_by(int amount);
 
@@ -71,7 +72,7 @@ public:
 protected:
     int window_size;
 
-    /// roughly WINDOW_SIZE * 100B, can be placed in CCMRAM if needed. For MINI it is only 9 entries -> only 900B
+    /// roughly BUFFER_SIZE * 100B, can be placed in CCMRAM if needed. For MINI it is only 9 entries -> only 900B
     Entry *files_data;
 
     /// files_data are not accessed directly, but through indices
@@ -80,7 +81,7 @@ protected:
     int totalFiles = 0; ///< total number of entries in the directory
     int windowStartingFrom = 0; ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                                 ///< intentionally int, because -1 means ".."
-    char sfnPath[FILE_PATH_BUFFER_LEN]; ///< current directory path - @@TODO this may not be enough - needs checking
+    char sfnPath[filename_defs::path_buffer_size]; ///< current directory path - @@TODO this may not be enough - needs checking
 
     SortPolicy sortPolicy; ///< sort policy set in ChangeDirectory
 
@@ -97,18 +98,20 @@ private:
 /// The entries are sorted according to one of the selected policies: BY_NAME, BY_CRMOD_DATETIME
 /// Sorting is always done directories-first. Directories may be also sorted by name or by their CR/MOD datetime
 /// You can start from a given filename to be displayed first - support for restoring file browser's exact content when returning from One Click Print for example (for going up a directory)
-template <int WINDOW_SIZE>
+/// The window may be smaller than the BUFFER_SIZE backing it (see the constructor), the extra buffer slots are then unused.
+template <int BUFFER_SIZE>
 class LazyDirView : public LazyDirViewBase {
 
 public:
-    LazyDirView() {
+    explicit LazyDirView(int window_size = BUFFER_SIZE) {
+        debug_assert(window_size > 0 && window_size <= BUFFER_SIZE);
         files_data = files_array.data();
         indices_data = indices_array.data();
-        window_size = WINDOW_SIZE;
+        this->window_size = window_size;
         Clear();
     }
 
 protected:
-    std::array<Entry, WINDOW_SIZE> files_array;
-    std::array<Index, WINDOW_SIZE> indices_array;
+    std::array<Entry, BUFFER_SIZE> files_array;
+    std::array<Index, BUFFER_SIZE> indices_array;
 };

@@ -2,7 +2,6 @@
 #include <puppies/PuppyModbus.hpp>
 
 #include <bsod/bsod.h>
-#include <cassert>
 #include <common/metric.h>
 #include <common/power_panic.hpp>
 #include <common/timing.h>
@@ -31,6 +30,19 @@ LIGHTMODBUS_WARN_UNUSED ModbusError modbusStaticAllocator([[maybe_unused]] Modbu
         return MODBUS_ERROR_ALLOC;
     }
     return MODBUS_OK;
+}
+
+CommunicationStatus aggregate_communication_status(std::initializer_list<CommunicationStatus> statuses) {
+    bool any_error = false;
+    bool all_skipped = true;
+    for (auto status : statuses) {
+        any_error |= (status == CommunicationStatus::ERROR);
+        all_skipped &= (status == CommunicationStatus::SKIPPED);
+    }
+
+    return any_error  ? CommunicationStatus::ERROR //
+        : all_skipped ? CommunicationStatus::SKIPPED
+                      : CommunicationStatus::OK;
 }
 
 PuppyModbus::ErrorLogSupressor::ErrorLogSupressor() {
@@ -176,6 +188,15 @@ PuppyModbus::SingleRequestResult PuppyModbus::make_single_request(RequestTiming 
         // request is likely to succeed when retried
         // bus recovery is likely to fix the problem
         return SingleRequestResult::recover_and_retry;
+    case MODBUS_ERROR_FUNCTION:
+    case MODBUS_ERROR_ADDRESS:
+    case MODBUS_ERROR_RANGE:
+    case MODBUS_ERROR_VALUE:
+    case MODBUS_ERROR_BAD_TRANSACTION:
+        // CRC-valid frame that does not match the pending request: almost
+        // certainly a stale response to a previous query.
+        // Retry should recover
+        return SingleRequestResult::retry;
     default:
         // continue error handling
         break;
@@ -226,7 +247,7 @@ CommunicationStatus PuppyModbus::read_input(uint8_t unit, bool *data, uint16_t c
     }
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest02RTU(&master, unit, address, count);
-    assert(modbusIsOk(err));
+    debug_assert(modbusIsOk(err));
 
     active_value = { data, unit, address, count };
 
@@ -247,7 +268,7 @@ CommunicationStatus PuppyModbus::read_input(uint8_t unit, uint16_t *data, uint16
     auto lock = PuppyBus::LockGuard();
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest04RTU(&master, unit, address, count);
-    assert(modbusIsOk(err));
+    debug_assert(modbusIsOk(err));
 
     active_value = { data, unit, address, count };
 
@@ -270,7 +291,7 @@ CommunicationStatus PuppyModbus::read_holding(uint8_t unit, uint16_t *data, uint
     auto lock = PuppyBus::LockGuard();
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest03RTU(&master, unit, address, count);
-    assert(modbusIsOk(err));
+    debug_assert(modbusIsOk(err));
 
     active_value = { data, unit, address, count };
 
@@ -293,7 +314,7 @@ CommunicationStatus PuppyModbus::write_holding(uint8_t unit, const uint16_t *dat
     auto lock = PuppyBus::LockGuard();
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest16RTU(&master, unit, address, count, data);
-    assert(modbusIsOk(err));
+    debug_assert(modbusIsOk(err));
 
     active_value = std::nullopt;
 
@@ -314,7 +335,7 @@ CommunicationStatus PuppyModbus::write_coil(uint8_t unit, bool value, uint16_t a
     auto lock = PuppyBus::LockGuard();
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest05RTU(&master, unit, address, value);
-    assert(modbusIsOk(err));
+    debug_assert(modbusIsOk(err));
 
     active_value = std::nullopt;
 
@@ -331,7 +352,7 @@ CommunicationStatus PuppyModbus::ReadFIFO(uint8_t unit, uint16_t address, std::a
     auto lock = PuppyBus::LockGuard();
 
     [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest24RTU(&master, unit, address);
-    assert(modbusIsOk(err));
+    debug_assert(modbusIsOk(err));
 
     active_value = { static_cast<void *>(buffer.data()), unit, address, static_cast<uint16_t>(buffer.size()) };
 

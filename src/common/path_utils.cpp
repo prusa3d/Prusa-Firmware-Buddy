@@ -2,7 +2,7 @@
 #include "stat_retry.hpp"
 #include <sys/stat.h>
 
-#include "../gui/file_list_defs.h"
+#include <buddy/filename_defs.hpp>
 
 #include <array>
 #include <stdbool.h>
@@ -33,7 +33,7 @@ bool file_exists(const char *path) {
 }
 
 bool make_dirs(std::string_view path) {
-    std::array<char, FILE_PATH_BUFFER_LEN> dir;
+    std::array<char, filename_defs::path_buffer_size> dir;
     size_t path_size = path.rfind('/') + 1;
     if (path_size >= dir.size() || !path.starts_with('/')) {
         return false;

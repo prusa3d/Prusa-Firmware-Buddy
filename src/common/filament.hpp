@@ -12,11 +12,14 @@
 #include <utils/string/inplace_string.hpp>
 #include <utils/enum_array.hpp>
 #include <utils/compact_optional.hpp>
+#include <tool_index.hpp>
 
 #include <option/has_chamber_api.h>
+#include <option/has_chamber_filtration_api.h>
 #include <option/has_filament_heatbreak_param.h>
 #include <option/has_filament_base_preset_param.h>
-#include <tool_index.hpp>
+#include <option/has_anfc.h>
+#include <option/has_ht_hotend.h>
 
 class StringBuilder;
 
@@ -51,6 +54,10 @@ enum class PresetFilamentType : uint8_t {
     PP = 7,
     FLEX = 8,
     PA = 9,
+#if HAS_HT_HOTEND()
+    PPS = 10,
+    PPA = 11,
+#endif
 
     _count
 };
@@ -73,6 +80,12 @@ public:
 
     /// Bed temperature for the filament, in degrees Celsius
     int16_t heatbed_temperature = 60;
+
+#if HAS_ANFC()
+    /// OpenPrintTag linked to the filament
+    /// Note: not using ToolTag::UIDHash here to avoid dependency hell, static_asserted match in the cpp
+    uint16_t openprinttag_uid_hash = 0;
+#endif
 
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
     using BasePreset = CompactOptional<PresetFilamentType, static_cast<PresetFilamentType>(0xff)>;
@@ -101,7 +114,9 @@ public:
 
     /// Ideal chamber temperature we would like to keep during printing
     std::optional<uint8_t> chamber_target_temperature = std::nullopt;
+#endif
 
+#if HAS_CHAMBER_FILTRATION_API()
     /// Whether the filament requires filtration (used in XL enclosure)
     bool requires_filtration = false;
 #endif
@@ -111,6 +126,12 @@ public:
 
     /// Whether the filament is flexible - might require special care in some cases
     bool is_flexible = false;
+
+#if HAS_HT_HOTEND()
+    /// Whether the filament requires the high-temperature Nextruder idler door.
+    /// Preset-only (not persisted to EEPROM for user/adhoc filaments).
+    bool requires_ht_idler_door = false;
+#endif
 
 public:
     constexpr bool operator==(const FilamentTypeParameters &) const = default;
@@ -193,6 +214,10 @@ public:
     /// Returning NoFilament is a last resort.
     static FilamentType for_tool_heuristic(std::variant<VirtualToolIndex, NoTool> tool);
 
+    /// Guesses FilamentType for current tool
+    /// @return for_current_tool_heuristic for current tool
+    static FilamentType for_current_tool_heuristic();
+
     /// \returns whether the filament type is of the specified name.
     /// !!! Prefer using "loaded_filament.matches(b_name)" over "loaded_filament == FilamentType::from_name(b_name)" where it makes sense.
     /// !!! This is because "loaded_filament" could be an ad-hoc filament, which is never returned from FilamentType::from_name.
@@ -256,11 +281,3 @@ public:
 
 constexpr FilamentType FilamentType::none = NoFilamentType {};
 constexpr FilamentType FilamentType::pending_adhoc = PendingAdHocFilamentType {};
-
-/// Scales an extruder-move feedrate for the loaded filament's properties. Currently only slows
-/// flexible filaments down (they buckle/grind in the extruder if pushed too fast); this is the
-/// single place to add any future filament-dependent feedrate rule.
-inline float adjust_feedrate_for_filament(float base, FilamentType filament) {
-    constexpr float flex_feedrate_factor = 1.f / 6.f;
-    return filament.parameters().is_flexible ? base * flex_feedrate_factor : base;
-}

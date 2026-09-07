@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <exception>
 #include <bitset>
+#include <bsod/bsod.h>
 
 string_view_utf8::Length string_view_utf8::computeNumUtf8Chars() const {
     Length r = 0;
@@ -282,7 +283,7 @@ uint8_t StringReaderUtf8::peek() const {
         break;
     }
 
-    assert(0);
+    debug_assert(0);
     return '\0'; // Should not happen
 }
 
@@ -310,9 +311,9 @@ uint8_t StringReaderUtf8::file_peek() const {
 FormatBuilder::FormatBuilder(string_view_utf8 str_view, StringViewUtf8ParamBase &params)
     : reader(str_view)
     , params(params) {
-    assert(!str_view.isNULLSTR());
-    assert(str_view.type() != string_view_utf8::Type::formatted_string);
-    assert(params.buffer.size_bytes() > 0);
+    debug_assert(!str_view.isNULLSTR());
+    debug_assert(str_view.type() != string_view_utf8::Type::formatted_string);
+    debug_assert(params.buffer.size_bytes() > 0);
     params.original = str_view;
 }
 

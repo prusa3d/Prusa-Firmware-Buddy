@@ -2,9 +2,10 @@
 #include "print_status_message_mgr.hpp"
 
 #include <marlin_server.hpp>
+#include <bsod/bsod.h>
 
 PrintStatusMessageGuard::PrintStatusMessageGuard(bool clear_temporary_msg) {
-    assert(marlin_server::is_marlin_server_thread());
+    debug_assert(marlin_server::is_marlin_server_thread());
 
     auto &psm = print_status_message();
     std::scoped_lock guard(psm.mutex_);
@@ -23,7 +24,7 @@ PrintStatusMessageGuard::~PrintStatusMessageGuard() {
     auto &psm = print_status_message();
     std::scoped_lock guard(psm.mutex_);
 
-    assert(psm.active_guard_ == this);
+    debug_assert(psm.active_guard_ == this);
     psm.active_guard_ = parent_guard_;
 }
 

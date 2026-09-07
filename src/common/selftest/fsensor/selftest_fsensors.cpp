@@ -8,13 +8,16 @@
 #include <Marlin/src/module/tool_change.h>
 #include <M70X.hpp>
 #include <feature/filament_sensor/calibrator/filament_sensor_calibrator.hpp>
+#include <feature/filament_sensor/filament_sensor.hpp>
 #include <inplace_vector.hpp>
 #include <mapi/motion.hpp>
 #include <raii/auto_restore.hpp>
 #include <option/has_side_fsensor.h>
+#include <option/has_extruder_fsensor.h>
 #include <option/has_adc_side_fsensor.h>
 #include <option/has_nextruder.h>
 #include <mapi/cold_extrude.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 #include <option/has_indx.h>
 
 #include <option/has_mmu2.h>
@@ -23,6 +26,7 @@
 #endif
 
 #include <option/has_toolchanger.h>
+#include <bsod/bsod.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
@@ -33,15 +37,11 @@ namespace {
 
 using Phase = PhaseSelftestFSensors;
 
+using namespace buddy::standard_feedrates;
+
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
 
     #if HAS_NEXTRUDER()
-/// Used when waiting for the user to insert the filament into the extruder and confirm
-constexpr feedRate_t extruder_assist_slow_feedrate = 3;
-
-/// Used when unloading the filament or doing the extra load
-constexpr feedRate_t extruder_assist_fast_feedrate = 20;
-
 /// Safe distance we can assist with the insertion of the filament by
 /// Basically distance between the filament gear engagement and nozzle
 constexpr float assisted_insertion_safe_distance_mm = 70;
@@ -77,6 +77,7 @@ private:
     void finalize();
 
     [[nodiscard]] bool prepare();
+    [[nodiscard]] bool check_sensors_connected();
     [[nodiscard]] bool initial_remove_filament();
     [[nodiscard]] bool remove_filament_early_check();
     void calibrate(FilamentSensorCalibrator::CalibrationPhase phase);
@@ -110,7 +111,7 @@ private:
 private:
     const SelftestFSensorsParams params_;
 
-    static constexpr size_t max_fsensor_count = HAS_SIDE_FSENSOR() ? 2 : 1;
+    static constexpr size_t max_fsensor_count = HAS_SIDE_FSENSOR() && HAS_EXTRUDER_FSENSOR() ? 2 : 1;
 
     std::array<FilamentSensorCalibrator::Storage, max_fsensor_count> calibrators_storage_;
     stdext::inplace_vector<FilamentSensorCalibrator *, max_fsensor_count> calibrators_ {};
@@ -120,6 +121,9 @@ private:
 };
 
 SelftestFSensorsResult SelftestFSensors::run() {
+    // Block autoload/runout/...
+    FS_EventAutolock fs_lock;
+
 #if PRINTER_IS_PRUSA_MINI()
     if (!ask_mini_has_fsensor()) {
         marlin_server::fsm_destroy(ClientFSM::SelftestFSensors);
@@ -137,6 +141,12 @@ SelftestFSensorsResult SelftestFSensors::run() {
     // Set up for the selftest - pick the right tool, park to the right position, ...
     if (!prepare()) {
         return Result::aborted;
+    }
+
+    // A disconnected sensor device cannot be calibrated, resolve that before asking the user to unload
+    // Aborting here fails the selftest
+    if (!check_sensors_connected()) {
+        return process_and_present_results(true);
     }
 
     // Make sure there is no filament in the filament sensor before continuing
@@ -180,7 +190,8 @@ SelftestFSensorsResult SelftestFSensors::run() {
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
     /// We should not leave the filament in the gears. Move back in the last round.
     mapi::ColdExtrudeGuard cold_extrude_guard;
-    mapi::extruder_move(-assisted_insertion_safe_distance_mm, extruder_assist_fast_feedrate);
+    mapi::extruder_move(
+        -assisted_insertion_safe_distance_mm, current_extruder(Extruder::filament_fast_load));
 #endif
 
     fail_guard.disarm();
@@ -276,6 +287,22 @@ bool SelftestFSensors::prepare() {
     return true;
 }
 
+bool SelftestFSensors::check_sensors_connected() {
+    if (std::ranges::any_of(calibrators_, [](auto *c) { return c->sensor().get_state() == FilamentSensorState::NotConnected; })) {
+        fsm_change_with_tool(Phase::not_connected);
+        switch (marlin_server::wait_for_response(Phase::not_connected)) {
+
+        case Response::Abort:
+            return false;
+
+        default:
+            bsod_unreachable();
+        }
+    }
+
+    return true;
+}
+
 bool SelftestFSensors::initial_remove_filament() {
     while (true) {
         {
@@ -352,6 +379,7 @@ void SelftestFSensors::calibrate(FilamentSensorCalibrator::CalibrationPhase phas
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
     mapi::ColdExtrudeGuard cold_extrude_guard;
     float extruded_distance = 0;
+    const auto extruder_feedrate = current_extruder(Extruder::filament_fast_load);
 #endif
 
     const auto start_time = ticks_ms();
@@ -362,7 +390,7 @@ void SelftestFSensors::calibrate(FilamentSensorCalibrator::CalibrationPhase phas
         // !!! We need to start by wiggling forward to make sure we don't disengage the filament
         if (!planner.busy()) {
             const float distance = extruded_distance <= 0 ? calibration_wiggle_distance_mm : -calibration_wiggle_distance_mm;
-            mapi::extruder_move(distance, extruder_assist_fast_feedrate);
+            mapi::extruder_move(distance, extruder_feedrate);
             extruded_distance += distance;
         }
 #endif
@@ -375,7 +403,7 @@ void SelftestFSensors::calibrate(FilamentSensorCalibrator::CalibrationPhase phas
     }
 
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
-    mapi::extruder_move(-extruded_distance, extruder_assist_fast_feedrate);
+    mapi::extruder_move(-extruded_distance, extruder_feedrate);
     planner.synchronize();
 #endif
 }
@@ -423,7 +451,7 @@ SelftestFSensors::EarlyFailCheckResult SelftestFSensors::check_early_fail([[mayb
         return EarlyFailCheckResult::abort;
     }
 
-#if HAS_SIDE_FSENSOR() && !FILAMENT_SENSOR_IS_NO()
+#if HAS_SIDE_FSENSOR() && HAS_EXTRUDER_FSENSOR()
     const uint8_t cnt_not_ready = std::ranges::count_if(calibrators_, [&](const auto *c) { return !c->is_ready_for_calibration(calib_phase); });
 
     if (cnt_failed > 0 || cnt_not_ready > 0) {
@@ -466,12 +494,13 @@ SelftestFSensors::EarlyFailCheckResult SelftestFSensors::check_early_fail([[mayb
 
 bool SelftestFSensors::ask_insert_filament() {
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
+    const auto filament = FilamentType::for_current_tool_heuristic();
     mapi::ColdExtrudeGuard cold_extrude_guard;
     float inserted_distance = 0;
 
     // On failure, revert to the original extruder position
     ScopeGuard reset_extruder_guard = [&] {
-        mapi::extruder_move(-inserted_distance, extruder_assist_fast_feedrate);
+        mapi::extruder_move(-inserted_distance, extruder(Extruder::filament_unload, filament));
         planner.synchronize();
     };
 #endif
@@ -495,11 +524,11 @@ bool SelftestFSensors::ask_insert_filament() {
         }
 
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
-        inserted_distance += mapi::extruder_schedule_turning(extruder_assist_slow_feedrate);
+        inserted_distance += mapi::extruder_schedule_turning(extruder(Extruder::filament_assisted, filament));
 
         // If we've inserted too much, quickly unload to make sure we don't try to force the filament into a cold nozzle
         if (inserted_distance >= assisted_insertion_safe_distance_mm - assisted_insertion_extra_load_distance_mm - calibration_wiggle_distance_mm) {
-            mapi::extruder_move(-inserted_distance, extruder_assist_fast_feedrate);
+            mapi::extruder_move(-inserted_distance, extruder(Extruder::filament_unload, filament));
             planner.synchronize();
             inserted_distance = 0;
 
@@ -513,7 +542,7 @@ bool SelftestFSensors::ask_insert_filament() {
 
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
     reset_extruder_guard.disarm();
-    mapi::extruder_move(assisted_insertion_extra_load_distance_mm, extruder_assist_fast_feedrate);
+    mapi::extruder_move(assisted_insertion_extra_load_distance_mm, extruder(Extruder::filament_fast_load, filament));
     planner.synchronize();
 #endif
 
@@ -535,11 +564,11 @@ bool SelftestFSensors::ask_remove_filament() {
             return false;
 
         } else {
-            assert(ask_result == AskFilamentCommonResult::not_ready);
+            debug_assert(ask_result == AskFilamentCommonResult::not_ready);
         }
 
 #if SELFTEST_FSENSOR_EXTRUDER_ASSIST()
-        mapi::extruder_schedule_turning(-extruder_assist_fast_feedrate);
+        mapi::extruder_schedule_turning(-current_extruder(Extruder::filament_unload));
 #endif
         idle(true);
     }

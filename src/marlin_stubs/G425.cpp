@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <limits>
 #include <utils/variant_utils.hpp>
+#include <common/mapi/acceleration_limiter.hpp>
 
 #include "core/types.h"
 #include "metric.h"
@@ -54,6 +55,7 @@
 #include "Marlin/src/gcode/gcode.h"
 #include "../../module/stepper.h"
 
+#include <option/has_crash_detection.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include "loadcell.hpp"
@@ -61,7 +63,7 @@
     #include "../../module/probe.h"
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include "src/feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -69,6 +71,7 @@
 #include <bsod_gui.hpp>
 #include <marlin_server.hpp>
 #include <center_approx.hpp>
+#include <printers.h>
 #include <tool_index.hpp>
 #include <utils/storage/strong_index_array.hpp>
 
@@ -92,6 +95,30 @@
 #endif
 
 #define NUM_Z_MEASUREMENTS 20
+
+#if PRINTER_IS_PRUSA_XL()
+
+    #define CALIBRATION_FEEDRATE_TRAVEL 3000 // mm/m
+
+    // The following parameter refers to the conical section of the nozzle tip.
+    #define CALIBRATION_NOZZLE_OUTER_DIAMETER 2.0f // mm
+
+    // The true location and dimension of the calibration pin on the bed.
+    #define CALIBRATION_OBJECT_CENTER \
+        { 180.0f, 180.0f, 4.5f } // mm
+    #define CALIBRATION_OBJECT_DIMENSIONS \
+        { 6.0f, 6.0f, 9.0f } // mm
+
+    // Comment out any sides which are unreachable by the probe. For best
+    // auto-calibration results, all sides must be reachable.
+    #define CALIBRATION_MEASURE_RIGHT
+    #define CALIBRATION_MEASURE_FRONT
+    #define CALIBRATION_MEASURE_LEFT
+    #define CALIBRATION_MEASURE_BACK
+
+#else
+    #error
+#endif
 
 #define HAS_X_CENTER BOTH(CALIBRATION_MEASURE_LEFT, CALIBRATION_MEASURE_RIGHT)
 #define HAS_Y_CENTER BOTH(CALIBRATION_MEASURE_FRONT, CALIBRATION_MEASURE_BACK)
@@ -175,24 +202,6 @@ enum class Phase : uint8_t {
     #define TEMPORARY_BACKLASH_SMOOTHING(value)
 #endif
 
-/// Limit max acceleration to a value, restore old value when destroyed
-class AccelerationLimiter {
-public:
-    AccelerationLimiter(const float max_acceleration_mmss)
-        : previous_x(planner.user_settings.max_acceleration_mm_per_s2[X_AXIS])
-        , previous_y(planner.user_settings.max_acceleration_mm_per_s2[Y_AXIS]) {
-        planner.set_max_acceleration(X_AXIS, max_acceleration_mmss);
-        planner.set_max_acceleration(Y_AXIS, max_acceleration_mmss);
-    }
-    ~AccelerationLimiter() {
-        planner.set_max_acceleration(X_AXIS, previous_x);
-        planner.set_max_acceleration(Y_AXIS, previous_y);
-    }
-
-private:
-    const float previous_x, previous_y;
-};
-
 inline void wait_ms(const uint32_t duration_ms) {
     const uint32_t point = ticks_ms();
     while (ticks_ms() - point < duration_ms) {
@@ -215,8 +224,8 @@ inline void normalize_hotend_offsets() {
         hotend_offset[tool] -= first_hotend_offset;
     }
     [[maybe_unused]] const auto zero_offset = hotend_offset[PhysicalToolIndex::from_raw(0)];
-    assert(zero_offset.x == 0 && zero_offset.y == 0 && zero_offset.z == 0);
-    hotend_offset[PrusaToolChanger::MARLIN_NO_TOOL_PICKED].reset(); // Avoid offset on no tool
+    debug_assert(zero_offset.x == 0 && zero_offset.y == 0 && zero_offset.z == 0);
+    hotend_offset[PrusaToolChanger::MARLIN_NO_TOOL_PICKED] = {}; // Avoid offset on no tool
 }
 #endif
 
@@ -320,7 +329,7 @@ MachinePosXY probe_xy(const MachinePosXYZ &center, const float angle, const uint
 
         // Expect pin hit
         endstops.enable_xy_probe(true);
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
         crash_s.deactivate();
 #endif
 
@@ -333,7 +342,7 @@ MachinePosXY probe_xy(const MachinePosXYZ &center, const float angle, const uint
 
     // No longer expecting pin hit
     const bool reached = endstops.trigger_state();
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     crash_s.activate();
 #endif
     loadcell.set_xy_endstop(false);
@@ -353,7 +362,7 @@ MachinePosXY probe_xy(const MachinePosXYZ &center, const float angle, const uint
 
     // Discard result if not moved enough to reach the pin (probe triggered too early?)
     if ((hit_mm - initial_mm).magnitude() < MIN_TRAVELED_DISTANCE_MM) {
-        hit_mm.reset();
+        hit_mm = {};
     }
 
     // Return to initial
@@ -471,7 +480,7 @@ float probe_z(const MachinePosXYZ &position, float uncertainty, const int num_me
             planner.synchronize();
         }
 
-        float measurement = probe_here(top_expected_position);
+        float measurement = probe_here(top_expected_position, TOTAL_PROBING);
         if (std::isnan(measurement)) {
             fatal_error(ErrCode::ERR_MECHANICAL_PIN_NOT_REACHED);
         }
@@ -544,7 +553,7 @@ const std::optional<MachinePosXYZ> get_single_xyz_center(const MachinePosXYZ &in
     }
 
     // Get XY
-    AccelerationLimiter al(XY_ACCELERATION_MMSS);
+    mapi::AccelerationLimiter al(XY_ACCELERATION_MMSS);
     static constexpr uint8_t MAX_HITS = *std::max_element(std::begin(PHASE_XY_HITS), std::end(PHASE_XY_HITS));
     std::array<MachinePosXY, MAX_HITS> max_hits;
     std::span<MachinePosXY> hits(max_hits.begin(), PHASE_XY_HITS[std::to_underlying(phase)]);
@@ -602,7 +611,7 @@ inline void update_measurements(measurements_t &m, const AxisEnum axis) {
 inline bool calibrate_toolhead(measurements_t &m, const uint8_t extruder) {
     if (extruder >= PhysicalToolIndex::count) {
         SERIAL_ECHOLNPAIR("G425: Tool ", extruder, " not valid.");
-        assert(false);
+        debug_assert(false);
         return false;
     }
     const auto tool = PhysicalToolIndex::from_raw(extruder);
@@ -716,7 +725,7 @@ inline bool calibrate_all_simple() {
     // Disable E steppers to reduce noise on loadcell
     disable_e_steppers();
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     // Disable crash recovery. It would recover, but the measurement will be inaccurate anyway.
     Crash_Temporary_Deactivate ctd;
 #endif
@@ -754,7 +763,7 @@ inline bool calibrate_all_simple() {
     }
 
     if (failed) {
-        mapi::park(mapi::ParkingPosition::from_xyz_pos({ { XYZ_NOZZLE_PARK_POINT_M600 } }));
+        mapi::park(mapi::get_parking_position(mapi::ParkPosition::filament_change));
         marlin_server::set_warning(WarningType::NozzleDoesNotHaveRoundSection);
         return false;
     }
@@ -777,7 +786,7 @@ inline bool calibrate_all_simple() {
     // Check offsets
     for (auto tool : PhysicalToolIndex::all()) {
         if (!tool.is_enabled()) {
-            hotend_offset[tool].reset();
+            hotend_offset[tool] = {};
             continue;
         }
 

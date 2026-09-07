@@ -3,8 +3,11 @@
 #include <cobs/cobs.hpp>
 #include <cstring>
 #include <array>
+#include <cstddef>
 #include <timing.h>
 #include <crc/crc.hpp>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 namespace {
 template <typename T, typename E>
@@ -30,14 +33,14 @@ UartDriver::UartDriver(UART_HandleTypeDef &huart)
 
 UartDriver &UartDriver::get_driver([[maybe_unused]] UART_HandleTypeDef *huart_isr) {
     UartDriver *driver = instance;
-    assert(driver != nullptr && &driver->huart == huart_isr);
+    debug_assert(driver != nullptr && &driver->huart == huart_isr);
     return *driver;
 }
 
 bool UartDriver::send(const CanardFrame &frame, bool store_timestamp) {
     UNUSED(store_timestamp);
     // Check maximal length
-    assert(frame.payload_size <= uart::MAX_PAYLOAD_SIZE); // 64 is max size of CAN FD payload, 2 is the start & stop byte
+    debug_assert(frame.payload_size <= uart::MAX_PAYLOAD_SIZE); // 64 is max size of CAN FD payload, 2 is the start & stop byte
 
     // Check if tx process is not already ongoing (before send buffer is overwritten)
     if (this->huart.gState != HAL_UART_STATE_READY) {
@@ -53,29 +56,30 @@ bool UartDriver::send(const CanardFrame &frame, bool store_timestamp) {
     send_buffer.reset();
 
     // --- 1. Pack CAN ID (4B) ---
-    enforce_bsod(send_buffer.add_bytes({ (const uint8_t *)&frame.extended_can_id, sizeof(frame.extended_can_id) }));
+    enforce_bsod(send_buffer.add_bytes(trivial_as_bytes(frame.extended_can_id)));
 
     // --- 2. Pack payload length (1B) ---
     // Convert and pack payload size
     const uint8_t payload_size = static_cast<uint8_t>(frame.payload_size);
-    enforce_bsod(send_buffer.add_bytes({ (const uint8_t *)&payload_size, sizeof(payload_size) }));
+    enforce_bsod(send_buffer.add_bytes(trivial_as_bytes(payload_size)));
 
     // --- 3. Pack payload data (0-64B) ---
-    assert(frame.payload != nullptr);
-    enforce_bsod(send_buffer.add_bytes({ (const uint8_t *)frame.payload, payload_size }));
+    debug_assert(frame.payload != nullptr);
+    enforce_bsod(send_buffer.add_bytes(Bytes { reinterpret_cast<const std::byte *>(frame.payload), payload_size }));
 
     // --- 4. Calculate and pack CRC16 (2B) ---
     // Get the data added so far for CRC calculation
     auto data = send_buffer.get_used_input_buffer();
-    uint16_t crc = Crc16CcittFalse().update(data.data(), data.size()).get();
+    uint16_t crc = Crc16CcittFalse().update(data).get();
 
     // add CRC and return the result of the addition
-    enforce_bsod(send_buffer.add_bytes({ (const uint8_t *)&crc, uart::CRC_SIZE }));
+    static_assert(sizeof(crc) == uart::CRC_SIZE);
+    enforce_bsod(send_buffer.add_bytes(trivial_as_bytes(crc)));
 
     auto encoded_message = send_buffer.finalize();
     enforce_bsod(encoded_message);
 
-    if (HAL_UART_Transmit_IT(&this->huart, encoded_message->data(), encoded_message->size()) != HAL_OK) {
+    if (HAL_UART_Transmit_IT(&this->huart, reinterpret_cast<const uint8_t *>(encoded_message->data()), encoded_message->size()) != HAL_OK) {
         error_log++;
         return false;
     }
@@ -99,11 +103,11 @@ bool UartDriver::receive(CanardFrame &frame, std::array<uint8_t, CANARD_MTU_CAN_
 
     ReceiveBuffer full_recv_buffer = receive_buffers.peek();
 
-    assert(full_recv_buffer.message().size() != 0);
-    std::span<const uint8_t> decoded_message = full_recv_buffer.message();
+    debug_assert(full_recv_buffer.message().size() != 0);
+    Bytes decoded_message = full_recv_buffer.message();
     size_t decoded_size = decoded_message.size();
 
-    std::array<uint8_t, uart::MAX_FRAME_SIZE> decoded_data;
+    std::array<std::byte, uart::MAX_FRAME_SIZE> decoded_data;
     std::copy(decoded_message.begin(), decoded_message.end(), decoded_data.data());
     // copied, we can remove from the queue to prepare it for rx_callbacks ASAP
     receive_buffers.dequeue();
@@ -111,12 +115,12 @@ bool UartDriver::receive(CanardFrame &frame, std::array<uint8_t, CANARD_MTU_CAN_
     *timestamp_us = get_timestamp_us();
     // extract message
     memcpy(&frame.extended_can_id, &decoded_data[0], sizeof(frame.extended_can_id));
-    frame.payload_size = decoded_data[4];
+    frame.payload_size = std::to_integer<uint8_t>(decoded_data[4]);
     if (decoded_size != static_cast<size_t>(uart::HEADER_SIZE + frame.payload_size + uart::CRC_SIZE)) {
-        assert(false);
+        debug_assert(false);
         return false;
     }
-    std::copy(&decoded_data[uart::HEADER_SIZE], &decoded_data[uart::HEADER_SIZE + frame.payload_size], rx_buffer.data());
+    memcpy(rx_buffer.data(), &decoded_data[uart::HEADER_SIZE], frame.payload_size);
     frame.payload = rx_buffer.data();
 
     // Extract received CRC (little-endian)
@@ -125,9 +129,9 @@ bool UartDriver::receive(CanardFrame &frame, std::array<uint8_t, CANARD_MTU_CAN_
     memcpy(&received_crc, &decoded_data[crc_pos], uart::CRC_SIZE);
 
     // Calculate and check CRC of the extracted message (excluding the CRC bytes)
-    const uint16_t calculated_crc = Crc16CcittFalse().update(decoded_data.data(), uart::HEADER_SIZE + frame.payload_size).get();
+    const uint16_t calculated_crc = Crc16CcittFalse().update(Bytes { decoded_data.data(), uart::HEADER_SIZE + frame.payload_size }).get();
     if (received_crc != calculated_crc) {
-        assert(false);
+        debug_assert(false);
         return false;
     }
 
@@ -152,7 +156,7 @@ void UartDriver::rx_callback() {
         }
     }
 
-    auto finish_cb = [this](std::span<const uint8_t> result) -> void {
+    auto finish_cb = [this](Bytes result) -> void {
         // ignore empty messages
         if (result.empty()) {
             decoder.reset(cobs::CobsStreamDecoder::Mode::decoding);
@@ -182,7 +186,7 @@ void UartDriver::rx_callback() {
     };
 
     decoder.add_byte(
-        uart_rx_byte,
+        std::byte { uart_rx_byte },
         finish_cb,
         error_cb);
 

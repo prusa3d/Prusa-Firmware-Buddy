@@ -29,6 +29,7 @@
 
 #include "bsp/board_api.h"
 #include "tusb.h"
+#include "main.h"
 #include "usbtmc_app.h"
 //--------------------------------------------------------------------+
 // MACRO CONSTANT TYPEDEF PROTYPES
@@ -55,11 +56,13 @@ int main(void)
   board_init();
 
   // init device stack on configured roothub port
-  tud_init(BOARD_TUD_RHPORT);
+  tusb_rhport_init_t dev_init = {
+    .role = TUSB_ROLE_DEVICE,
+    .speed = TUSB_SPEED_AUTO
+  };
+  tusb_init(BOARD_TUD_RHPORT, &dev_init);
 
-  if (board_init_after_tusb) {
-    board_init_after_tusb();
-  }
+  board_init_after_tusb();
 
   while (1)
   {
@@ -121,12 +124,12 @@ void led_blinking_task(void)
     {
       led_state = true;
       board_led_write(true);
-      start_ms = board_millis();
+      start_ms = tusb_time_millis_api();
       doPulse = false;
     }
     else if (led_state == true)
     {
-      if ( board_millis() - start_ms < 750) //Spec says blink must be between 500 and 1000 ms.
+      if ( tusb_time_millis_api() - start_ms < 750) //Spec says blink must be between 500 and 1000 ms.
       {
         return; // not enough time
       }
@@ -137,7 +140,7 @@ void led_blinking_task(void)
   else
   {
     // Blink every interval ms
-    if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
+    if ( tusb_time_millis_api() - start_ms < blink_interval_ms) return; // not enough time
     start_ms += blink_interval_ms;
 
     board_led_write(led_state);

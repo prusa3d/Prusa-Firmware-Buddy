@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <arm_math.h>
 #include <dsp/fast_math_functions.h>
+#include <bsod/bsod.h>
 
 namespace sp {
 
@@ -22,7 +22,7 @@ inline float cos(float x) { return arm_cos_f32(x); }
 inline double cos(double x) { return std::cos(x); }
 
 inline float sqrt(float x) {
-    assert(x >= 0.0f);
+    debug_assert(x >= 0.0f);
     float out = 0.0f;
     arm_sqrt_f32(x, &out);
     return out;

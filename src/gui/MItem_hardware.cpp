@@ -1,18 +1,20 @@
 #include "MItem_hardware.hpp"
 #include "ScreenHandler.hpp"
 #include "WindowMenuSpin.hpp"
+#include "window_msgbox.hpp"
+#include "marlin_client.hpp"
+#include <common/sys.hpp>
+#include <option/has_15gt_belts.h>
 #include <option/has_toolchanger.h>
 #include <option/has_side_fsensor_remap.h>
+#include <option/has_nozzle_cleaner_lite.h>
 #include <common/nozzle_diameter.hpp>
-#include <screen_menu_hardware_checks.hpp>
 #include <common/printer_model_data.hpp>
+#include <common/extended_printer_type.hpp>
+#include <option/has_print_fan_type.h>
 
 #if HAS_CHAMBER_VENTS()
     #include <feature/chamber/chamber_enums.hpp>
-#endif
-
-#if HAS_TOOLCHANGER()
-    #include <module/prusa/toolchanger.h>
 #endif
 
 #include <option/has_side_fsensor_remap.h>
@@ -33,14 +35,6 @@ MI_HARDWARE_CHECK::MI_HARDWARE_CHECK(HWCheckType check_type)
 
 void MI_HARDWARE_CHECK::OnChange([[maybe_unused]] size_t old_index) {
     config_store().visit_hw_check(check_type, [set = static_cast<HWCheckSeverity>(this->get_index())](auto &item) { item.set(set); });
-}
-
-MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHardwareChecks>);
 }
 
 #if HAS_SIDE_FSENSOR_REMAP()
@@ -67,7 +61,7 @@ void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
 }
 #endif
 
-#if HAS_EXTENDED_PRINTER_TYPE()
+#if IS_EXTENDED_PRINTER_TYPE_CONFIGURABLE()
 MI_EXTENDED_PRINTER_TYPE::MI_EXTENDED_PRINTER_TYPE()
     : MenuItemSelectMenu(_("Printer Type")) //
 {
@@ -79,40 +73,67 @@ int MI_EXTENDED_PRINTER_TYPE::item_count() const {
 }
 
 string_view_utf8 MI_EXTENDED_PRINTER_TYPE::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
-    return string_view_utf8::MakeCPUFLASH(PrinterModelInfo::get(extended_printer_type_model[index]).id_str);
+    return string_view_utf8::MakeCPUFLASH(PrinterModelInfo::get(extended_printer_type_model[index]).display_str());
 }
 
 bool MI_EXTENDED_PRINTER_TYPE::on_item_selected(const OnItemSelectedArgs &args) {
-    config_store().extended_printer_type.set(args.new_index);
+    change_extended_printer_type(extended_printer_type_model[args.new_index], ChangeExtendedPrinterTypeMode::standard_with_marlin_client_and_puppies);
+    return true;
+}
+#endif
 
-    #if EXTENDED_PRINTER_TYPE_DETERMINES_MOTOR_STEPS()
-    // Reset motor configuration if the printer types have different motors
-    if (extended_printer_type_has_400step_motors[args.old_index] != extended_printer_type_has_400step_motors[args.new_index]) {
-        {
-            auto &store = config_store();
-            auto transaction = store.get_backend().transaction_guard();
-            store.homing_sens_x.set_to_default();
-            store.homing_sens_y.set_to_default();
-            store.homing_bump_divisor_x.set_to_default();
-            store.homing_bump_divisor_y.set_to_default();
+#if HAS_PRINTER_VARIANT()
+MI_PRINTER_VARIANT::MI_PRINTER_VARIANT()
+    : MenuItemSelectMenu(_("Edition")) {
+    // The selection is derived from the feature flags in Loop(), which the menu fires right after creation.
+}
 
-        #if HAS_PRECISE_HOMING()
-            store.precise_homing_sample_history.set_all_to_default();
-            store.precise_homing_sample_history_index.set_all_to_default();
-        #endif
-        }
-
-        // Reset XY homing sensitivity
-        marlin_client::gcode("M914 X Y");
-
-        // XY motor currents
-        marlin_client::gcode_printf("M906 X%u Y%u", get_rms_current_ma_x(), get_rms_current_ma_y());
-
-        // XY motor microsteps
-        marlin_client::gcode_printf("M350 X%u Y%u", get_microsteps_x(), get_microsteps_y());
+void MI_PRINTER_VARIANT::Loop() {
+    // The current edition is derived from the feature flags (config store is the source of truth).
+    const auto current = printer_variant_from_config();
+    // Flags match no edition (user override) -> show a trailing, display-only "Custom" row.
+    index_mapping.set_item_enabled<Item::custom>(!current.has_value());
+    if (current) {
+        set_current_item(index_mapping.to_index<Item::variant>(std::to_underlying(*current)));
+    } else {
+        set_current_item(index_mapping.to_index<Item::custom>());
     }
-    #endif
+}
 
+int MI_PRINTER_VARIANT::item_count() const {
+    return index_mapping.total_item_count();
+}
+
+string_view_utf8 MI_PRINTER_VARIANT::build_item_text(int index, [[maybe_unused]] MenuItemSelectMenu::ItemTextParams &params) const {
+    const auto mapping = index_mapping.from_index(index);
+    switch (mapping.item) {
+
+    case Item::variant:
+        return string_view_utf8::MakeCPUFLASH(printer_variant_names[mapping.pos_in_section]);
+
+    case Item::custom:
+        return _("Custom");
+    }
+
+    bsod_unreachable();
+}
+
+bool MI_PRINTER_VARIANT::on_item_selected(const OnItemSelectedArgs &args) {
+    const auto mapping = index_mapping.from_index(args.new_index);
+    if (mapping.item != Item::variant) {
+        return false; // "Custom" is display-only, there is no preset to apply
+    }
+    const auto variant = static_cast<PrinterVariant>(mapping.pos_in_section);
+
+    if (MsgBoxWarning(_("Selecting an edition applies that edition's default hardware options, overriding any manual changes. Continue?"),
+            { Response::Yes, Response::No }, 1)
+        != Response::Yes) {
+        return false; // cancelled -> MenuItemSelectMenu keeps the previous edition selected
+    }
+
+    if (apply_printer_variant_defaults(variant)) {
+        sys_reset();
+    }
     return true;
 }
 #endif
@@ -154,14 +175,18 @@ static constexpr const char *chamber_vent_control_items[] = {
 static_assert(VentControl(0) == VentControl::off && VentControl(1) == VentControl::automatic && VentControl(2) == VentControl::manual, "menu item misalignment");
 
 MI_SWITCH_VENT_MECHANISM::MI_SWITCH_VENT_MECHANISM()
-    : MenuItemSwitch(_("Chamber Vent Control"), chamber_vent_control_items, std::to_underlying(config_store().get_vent_control())) {}
+    : MenuItemSwitch(_("Chamber Vent Control"), chamber_vent_control_items, 0) {}
 
 void MI_SWITCH_VENT_MECHANISM::OnChange([[maybe_unused]] size_t old_index) {
     config_store().set_vent_control(VentControl(get_index()));
 }
+
+void MI_SWITCH_VENT_MECHANISM::Loop() {
+    set_current_item(std::to_underlying(config_store().get_vent_control()));
+}
 #endif
 
-#if HAS_PRECISE_HOMING_COREXY()
+#if HAS_SWITCHABLE_HOMING_CALIBRATION()
 constexpr const EnumArray<Tristate::Value, const char *, 3> ask_always_never_texts {
     { Tristate::no, N_("Never") },
     { Tristate::yes, N_("Auto") },
@@ -174,5 +199,53 @@ MI_AUTO_PRECISE_HOMING_CALIBRATION::MI_AUTO_PRECISE_HOMING_CALIBRATION()
 
 void MI_AUTO_PRECISE_HOMING_CALIBRATION::OnChange(size_t) {
     config_store().auto_recalibrate_precise_homing.set(static_cast<Tristate::Value>(get_index()));
+}
+#endif
+#if HAS_EXPANSION_JOINTS_GEN_2()
+MI_EXPANSION_JOINTS_GEN_2::MI_EXPANSION_JOINTS_GEN_2()
+    : WI_ICON_SWITCH_OFF_ON_t(false, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_EXPANSION_JOINTS_GEN_2::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().ejg2_installed.set(value());
+}
+
+void MI_EXPANSION_JOINTS_GEN_2::Loop() {
+    if (const bool installed = config_store().ejg2_installed.get(); value() != installed) {
+        set_value(installed);
+    }
+}
+#endif
+
+#if HAS_NOZZLE_CLEANER_LITE()
+MI_NOZZLE_CLEANER_LITE::MI_NOZZLE_CLEANER_LITE()
+    : WI_ICON_SWITCH_OFF_ON_t(false, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+
+void MI_NOZZLE_CLEANER_LITE::OnChange([[maybe_unused]] size_t old_index) {
+    config_store().nozzle_cleaner_lite_installed.set(value());
+}
+
+void MI_NOZZLE_CLEANER_LITE::Loop() {
+    if (const bool present = config_store().nozzle_cleaner_lite_installed.get(); value() != present) {
+        set_value(present);
+    }
+}
+#endif
+
+#if HAS_15GT_BELTS()
+MI_BELTS_15GT::MI_BELTS_15GT()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().belts_15gt_installed.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_BELTS_15GT::OnChange([[maybe_unused]] size_t old_index) {
+    const bool belts_15gt_installed = value();
+    if (MsgBoxWarning(_("Changing belt type updates X/Y steps/mm, and resets some calibrations. An incorrect setting causes dimensional errors and homing issues. Continue?"),
+            { Response::Yes, Response::No }, 1)
+        != Response::Yes) {
+        set_value(!belts_15gt_installed); // revert the GUI, keep config store intact
+        return;
+    }
+
+    if (config_store().set_belts_15gt(belts_15gt_installed)) {
+        marlin_client::gcode_printf("M92 X%f Y%f", (double)get_steps_per_unit_x(), (double)get_steps_per_unit_y());
+    }
 }
 #endif

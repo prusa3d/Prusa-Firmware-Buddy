@@ -1,5 +1,13 @@
 #include "filament_list.hpp"
 #include "encoded_filament.hpp"
+#include <bsod/bsod.h>
+#include <utils/bitset_utils.hpp>
+
+#ifndef UNITTESTS
+    // Used by generate_filament_list() below, which is itself UNITTESTS-excluded.
+    #include <tool/physical_tool.hpp>
+    #include <feature/compatibility_checks/filament_compatibility.hpp>
+#endif
 
 constinit const FilamentList all_filament_types = [] {
     FilamentList r;
@@ -48,6 +56,30 @@ void generate_filament_list(FilamentList &list, const GenerateFilamentListConfig
         for (UserFilamentType ft; ft.index < user_filament_type_count; ft.index++) {
             is_filament_visible_bitset.set(EncodedFilamentType(ft).data, is_user_filament_visible.test(ft.index));
         }
+
+        // Hide incompatible filaments
+        for (FilamentType ft : all_filament_types) {
+            const auto ix = EncodedFilamentType(ft).data;
+
+            if (!is_filament_visible_bitset.test(ix)) {
+                // Skip slow compatibility check
+                continue;
+            }
+
+            const buddy::filament_compatibility::CompatibilityReportGenerateArgs args {
+                .filament = ft.parameters(),
+                .tools = config.compatible_with_tool,
+                // This one is not worth plumbing through
+                // It only extends the cases where filament is hidden by default
+                // "Show all" will still make it selectable (and you will get an explanatory error when trying to select)
+                .assume_filament_already_inserted = false,
+            };
+            buddy::filament_compatibility::CompatibilityReport report;
+            report.generate_noclear(args);
+            if (report.compatibility_level() >= buddy::compatibility_checks::CompatibilityLevel::fatal_incompatibility) {
+                is_filament_visible_bitset.reset(ix);
+            }
+        }
     }
 
     const auto is_filament_visible = [&](FilamentType ft) {
@@ -56,7 +88,9 @@ void generate_filament_list(FilamentList &list, const GenerateFilamentListConfig
 
     std::bitset<256> is_filament_in_list_bitset;
 
-    /// Appends filament to the list, if it is not already there
+    /// Appends filament to the list, if it is not already there and it is compatible with the target tool(s).
+    /// NoTool (the default filter) accepts everything; a single virtual tool must support it;
+    /// AllTools requires every enabled virtual tool's hotend to support it.
     const auto append_filament = [&](FilamentType ft) {
         const uint8_t ix = EncodedFilamentType(ft).data;
         if (is_filament_in_list_bitset.test(ix)) {
@@ -85,7 +119,9 @@ void generate_filament_list(FilamentList &list, const GenerateFilamentListConfig
     };
 
     if (config.enforce_first_item) {
-        append_filament(config.enforce_first_item);
+        // Kept at position 0 regardless of compatibility, so it bypasses append_filament's filter.
+        list.push_back(config.enforce_first_item);
+        is_filament_in_list_bitset.set(EncodedFilamentType(config.enforce_first_item).data);
     }
 
     // Append visible first, if requested
@@ -104,7 +140,7 @@ void generate_filament_list(FilamentList &list, const GenerateFilamentListConfig
         }
     });
 
-    // Unless we're listing only visible filaments, we should always end up returning all the filaments
-    assert(list.size() == all_filament_types.size() || config.visible_only);
+    // Unless we're filtering, we should always end up returning all the filaments
+    debug_assert(list.size() == all_filament_types.size() || config.visible_only || !std::holds_alternative<NoTool>(config.compatible_with_tool));
 }
 #endif

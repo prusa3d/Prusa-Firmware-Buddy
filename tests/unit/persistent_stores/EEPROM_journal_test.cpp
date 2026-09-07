@@ -1,9 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
-#include "crc32.h"
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
 #include "dummy_eeprom_chip.h"
+#include <crc32.hpp>
 #include <journal/backend.hpp>
 #include <journal/store.hpp>
-#include <storage_drivers/eeprom_storage.hpp>
 
 static constexpr const char *key = "data";
 static constexpr size_t header_size = 6;
@@ -16,70 +17,70 @@ constexpr size_t chip_journal_size = 8096 - chip_journal_start_address;
 using namespace journal;
 
 inline journal::Backend &Test_EEPROM_journal() {
-    return journal::backend_instance<chip_journal_start_address, chip_journal_size, EEPROMInstance>();
+    return journal::backend_instance<chip_journal_start_address, chip_journal_size, get_eeprom_chip>();
 }
 void reinit_journal() {
-    new (&Test_EEPROM_journal()) Backend(chip_journal_start_address, chip_journal_size, EEPROMInstance());
+    new (&Test_EEPROM_journal()) Backend(chip_journal_start_address, chip_journal_size, get_eeprom_chip());
 }
-CATCH_REGISTER_ENUM(Backend::BankState, Backend::BankState::Valid, Backend::BankState::MissingEndItem, Backend::BankState::Corrupted)
-size_t create_transaction(size_t num_of_items, std::span<uint8_t> data, uint16_t start_id = 0) {
+CATCH_REGISTER_ENUM(Backend::BankState, Backend::BankState::Valid, Backend::BankState::MissingEndItem, Backend::BankState::Corrupted);
+
+std::vector<std::byte> create_transaction(size_t num_of_items, uint16_t start_id = 0) {
+    std::vector<std::byte> transaction {};
     if (num_of_items == 0) {
-        return 0;
+        return transaction;
     }
-    num_of_items += start_id;
-
-    Backend::ItemHeader header = { false, 1, 10 };
-    size_t pos = 0;
-
-    for (; start_id < num_of_items - 1; ++start_id) {
-        header.id = start_id;
-        memcpy(data.data() + pos, reinterpret_cast<uint8_t *>(&header), sizeof(header));
-        pos += sizeof(header) + header.len;
+    const auto append = [&transaction](auto obj) {
+        const auto obj_bytes = trivial_as_bytes(obj);
+        transaction.insert(transaction.end(), obj_bytes.begin(), obj_bytes.end());
+    };
+    for (size_t i = 0; i < num_of_items; i++) {
+        const bool last_item = i + 1 == num_of_items;
+        constexpr uint16_t data_len = 10;
+        append(Backend::ItemHeader { last_item, start_id + i, data_len });
+        std::array<std::byte, data_len> data;
+        data.fill(std::byte { 0xAB });
+        append(data);
     }
-
-    header.last_item = true;
-    header.id = start_id;
-    memcpy(data.data() + pos, reinterpret_cast<uint8_t *>(&header), sizeof(header));
-    pos += sizeof(header) + header.len;
-
-    uint32_t crc = crc32_calc_ex(0, data.data(), pos);
-    memcpy(data.data() + pos, reinterpret_cast<uint8_t *>(&crc), sizeof(crc));
-    pos += sizeof(crc);
-    return pos;
+    append(crc32(0, transaction));
+    return transaction;
 }
 
-size_t create_last_item(std::span<uint8_t> data) {
-    memcpy(data.data(), &Backend::LAST_ITEM_STOP, sizeof(Backend::LAST_ITEM_STOP));
-    uint32_t crc = crc32_calc_ex(0, data.data(), sizeof(Backend::LAST_ITEM_STOP));
-    memcpy(data.data() + sizeof(Backend::LAST_ITEM_STOP), reinterpret_cast<uint8_t *>(&crc), sizeof(crc));
-    return sizeof(Backend::LAST_ITEM_STOP) + sizeof(crc);
+std::vector<std::byte> create_last_item() {
+    std::vector<std::byte> last_item {};
+    const auto append = [&last_item](auto obj) {
+        const auto obj_bytes = trivial_as_bytes(obj);
+        last_item.insert(last_item.end(), obj_bytes.begin(), obj_bytes.end());
+    };
+    append(Backend::LAST_ITEM_STOP);
+    append(crc32(0, last_item));
+    return last_item;
 }
 
 TEST_CASE("journal::EEPROM::Test transaction validation") {
     DummyEepromChip storage;
-    size_t pos = create_transaction(3, storage.get(0, 1024));
+    const uint16_t next_free = storage.set(0, create_transaction(3));
     Backend journal(0, 1024, storage);
 
     SECTION("Correct data") {
         auto pos_read = journal.get_next_transaction(0, 1024);
         REQUIRE(pos_read.has_value());
         auto [address, read_pos, num_of_items_loc] = pos_read.value();
-        REQUIRE(read_pos == pos);
+        REQUIRE(read_pos == next_free);
         REQUIRE(num_of_items_loc == 3);
     }
     SECTION("Short buffer") {
-        auto pos_read = journal.get_next_transaction(0, pos - 10);
+        auto pos_read = journal.get_next_transaction(0, next_free - 10);
         REQUIRE_FALSE(pos_read.has_value());
     }
     SECTION("Corrupetd data") {
-        storage.set(4, 0xcf);
-        storage.set(5, 0xcf);
+        storage.set(4, std::byte { 0xcf });
+        storage.set(5, std::byte { 0xcf });
         auto pos_read = journal.get_next_transaction(0, 1024);
         REQUIRE_FALSE(pos_read.has_value());
     }
     SECTION("Missing last item") {
-        Backend::ItemHeader header = { false, 1, 10 };
-        storage.set(pos - 4 - 10 - 3, reinterpret_cast<uint8_t *>(&header), sizeof(header));
+        Backend::ItemHeader header { false, 1, 10 };
+        storage.set(next_free - 4 - 10 - 3, trivial_as_bytes(header));
         auto pos_read = journal.get_next_transaction(0, 1024);
         REQUIRE_FALSE(pos_read.has_value());
     }
@@ -87,75 +88,75 @@ TEST_CASE("journal::EEPROM::Test transaction validation") {
 
 TEST_CASE("journal::EEPROM::Test multiple transactions validation") {
     DummyEepromChip storage;
-    size_t pos = 0;
     Backend journal(0, 1024, storage);
 
     SECTION("Just valid header") {
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Corrupted);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == 0);
         REQUIRE(num_of_transactions == 0);
     }
 
     SECTION("Empty bank") {
-        create_last_item(storage.get(0, 1024));
+        storage.set(0, create_last_item());
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == 0);
         REQUIRE(num_of_transactions == 0);
     }
 
     SECTION("Transaction without end item") {
-        pos += create_transaction(3, storage.get(0, 1024));
+        const uint16_t next_free = storage.set(0, create_transaction(3));
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::MissingEndItem);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 1);
     }
 
     SECTION("Transaction with end item") {
-        pos += create_transaction(3, storage.get(0, 1024));
-        create_last_item(storage.get(pos, 1024 - pos));
+        const uint16_t next_free = storage.set(0, create_transaction(3));
+        storage.set(next_free, create_last_item());
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 1);
     }
 
     SECTION("Multiple transactions") {
-        pos += create_transaction(3, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(5, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(8, storage.get(0 + pos, 1024 - pos));
-        create_last_item(storage.get(0 + pos, 1024 - pos));
+        uint16_t next_free = 0;
+        next_free = storage.set(next_free, create_transaction(3));
+        next_free = storage.set(next_free, create_transaction(5));
+        next_free = storage.set(next_free, create_transaction(8));
+        storage.set(next_free, create_last_item());
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::Valid);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 3);
     }
 
     SECTION("Multiple transactions without ending item") {
-        pos += create_transaction(3, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(5, storage.get(0 + pos, 1024 - pos));
-        pos += create_transaction(8, storage.get(0 + pos, 1024 - pos));
+        uint16_t next_free = 0;
+        next_free = storage.set(next_free, create_transaction(3));
+        next_free = storage.set(next_free, create_transaction(5));
+        next_free = storage.set(next_free, create_transaction(8));
 
         auto res = journal.validate_transactions(0);
         auto [state, num_of_transactions, last_transaction] = res;
         REQUIRE(state == Backend::BankState::MissingEndItem);
-        REQUIRE(last_transaction == pos);
+        REQUIRE(last_transaction == next_free);
         REQUIRE(num_of_transactions == 3);
     }
 }
 
 TEST_CASE("journal::EEPROM::Test item loading") {
     DummyEepromChip storage;
-    size_t pos = 0;
     Backend journal(0, 1024, storage);
 
     size_t num_of_items = 0;
@@ -167,21 +168,22 @@ TEST_CASE("journal::EEPROM::Test item loading") {
     };
 
     SECTION("Single transaction") {
-        pos += create_transaction(3, storage.get(0 + pos, 1024 - pos));
-        journal.load_items(0, pos, load_fnc);
+        const uint16_t next_free = storage.set(0, create_transaction(3));
+        journal.load_items(0, next_free, load_fnc);
         REQUIRE(num_of_items == 3);
     }
     SECTION("Multiple transactions") {
-        pos += create_transaction(3, storage.get(pos, 1024 - pos));
-        pos += create_transaction(3, storage.get(pos, 1024 - pos), 3);
-        journal.load_items(0, pos, load_fnc);
+        uint16_t next_free = 0;
+        next_free = storage.set(next_free, create_transaction(3));
+        next_free = storage.set(next_free, create_transaction(3, 3));
+        journal.load_items(0, next_free, load_fnc);
         REQUIRE(num_of_items == 6);
     }
 }
 
 TEST_CASE("journal::EEPROM::Test Bank choosing") {
     eeprom_chip.clear();
-    Backend config_store(0, 8096, EEPROMInstance());
+    Backend config_store(0, 8096, get_eeprom_chip());
 
     constexpr static uint16_t second_bank_address = 8096 / 2;
     SECTION("Cold start") {
@@ -450,11 +452,16 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
     local_store->init();
     local_store->load_all();
 
+    const auto break_end_item = []() {
+        const uint16_t address = Test_EEPROM_journal().current_address + 1;
+        const auto broken_value = std::byte { static_cast<uint8_t>(eeprom_chip.get(address)) + 2 };
+        eeprom_chip.set(address, broken_value);
+    };
+
     SECTION("Single valid bank") {
 
         SECTION("Missing end item in empty bank") {
-            // break end item
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -475,7 +482,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
 
         SECTION("Missing end item with data in bank") {
             local_store->int_item.set(10);
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -499,7 +506,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
         REQUIRE(Test_EEPROM_journal().current_address == Test_EEPROM_journal().get_current_bank_start_address() + 21);
 
         SECTION("Missing end item, one transaction in bank") {
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -526,7 +533,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
         }
         SECTION("Missing end item multiple transactions in bank") {
             local_store->int_item.set(12);
-            eeprom_chip.set(Test_EEPROM_journal().current_address + 1, eeprom_chip.get(Test_EEPROM_journal().current_address + 1) + 2);
+            break_end_item();
 
             reinit_journal();
             local_store = std::make_unique<Store<TestEEPROMJournalConfigV0, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
@@ -556,7 +563,7 @@ TEST_CASE("journal::EEPROM::Config store - error states") {
 constexpr std::array<int32_t, 64> default_array = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 inline journal::Backend &Small_Test_EEPROM_journal() {
-    return journal::backend_instance<100, 768, EEPROMInstance>();
+    return journal::backend_instance<100, 768, get_eeprom_chip>();
 }
 struct TestEEPROMJournalConfigBigItem : public CurrentStoreConfig<Backend, Small_Test_EEPROM_journal> {
     StoreItem<std::array<int32_t, 64>, default_array, ItemFlags {}, 1> random_data;
@@ -564,7 +571,7 @@ struct TestEEPROMJournalConfigBigItem : public CurrentStoreConfig<Backend, Small
 
 TEST_CASE("journal::EEPROM::Bank migration during transaction") {
     eeprom_chip.clear();
-    new (&Small_Test_EEPROM_journal()) Backend(100, 768, EEPROMInstance());
+    new (&Small_Test_EEPROM_journal()) Backend(100, 768, get_eeprom_chip());
 
     auto local_store = std::make_unique<Store<TestEEPROMJournalConfigBigItem, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
     auto data = default_array;
@@ -582,7 +589,7 @@ TEST_CASE("journal::EEPROM::Bank migration during transaction") {
     Small_Test_EEPROM_journal().transaction_end();
     REQUIRE(Small_Test_EEPROM_journal().current_address == 757);
 
-    new (&Small_Test_EEPROM_journal()) Backend(100, 768, EEPROMInstance());
+    new (&Small_Test_EEPROM_journal()) Backend(100, 768, get_eeprom_chip());
     local_store = std::make_unique<Store<TestEEPROMJournalConfigBigItem, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
     local_store->init();
     local_store->load_all();
@@ -818,4 +825,48 @@ TEST_CASE("journal::EEPROM::Regression BFW-3553") {
     // Check that we still have data
     REQUIRE(store->int_item.get() == i);
     REQUIRE(backend.journal_state == Backend::JournalState::MissingEndItem);
+}
+
+struct StoreConfig_PowerLoss : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
+    StoreItem<int32_t, default_int32_t, ItemFlags {}, 1> int_item;
+};
+
+TEST_CASE("journal::EEPROM::Power loss during bank migration") {
+    eeprom_chip.clear();
+
+    const auto boot = []() -> auto {
+        reinit_journal();
+        auto store = std::make_unique<Store<StoreConfig_PowerLoss, TestDeprecatedEEPROMJournalItemsV0, test_migration_functions_span_v0>>();
+        store->init();
+        store->load_all();
+        return store;
+    };
+
+    int32_t last_safely_stored_value = 0;
+    {
+        auto store = boot();
+        auto &backend = Test_EEPROM_journal();
+
+        // prepare full bank
+        const auto next_bank_before_migration = backend.get_next_bank();
+        constexpr auto single_write_size = Backend::ITEM_HEADER_SIZE + sizeof(int32_t);
+        for (int32_t int_value = 0; backend.fits_in_current_bank(single_write_size + Backend::CRC_SIZE + Backend::END_ITEM_SIZE_WITH_CRC); int_value++) {
+            store->int_item.set(int_value);
+            last_safely_stored_value = int_value;
+        }
+        REQUIRE(backend.get_next_bank() == next_bank_before_migration);
+
+        // trigger migration, then power panic after init_bank
+        // NOTE: PP is simulated by ignoring writes to EEPROM
+        const auto write_limit = GENERATE(range(0, 50));
+        eeprom_chip.set_write_limit(write_limit);
+        store->int_item.set(99);
+        eeprom_chip.set_write_limit(std::nullopt);
+        REQUIRE(backend.get_next_bank() != next_bank_before_migration);
+    }
+
+    {
+        auto store = boot();
+        REQUIRE((store->int_item.get() == last_safely_stored_value || store->int_item.get() == 99));
+    }
 }

@@ -17,12 +17,14 @@
 #include <option/has_filament_sensors_menu.h>
 #include <option/has_coldpull.h>
 #include <option/has_leds.h>
+#include <option/has_power_panic.h>
 #include <option/has_side_leds.h>
 #include <option/buddy_enable_connect.h>
 #include <option/has_auto_retract.h>
 #include <option/has_toolchanger.h>
 #include <option/has_indx.h>
 #include <option/has_wastebin_fill_tracking.h>
+#include <option/has_extruder_fsensor.h>
 #include <meta_utils.hpp>
 #include <gui/menu_item/menu_item_gcode_action.hpp>
 
@@ -108,7 +110,7 @@ protected:
 /// Wastebin submenu: auto-pause the print when the nozzle-cleaner wastebin reaches capacity
 /// (otherwise only a non-blocking warning is shown).
 class MI_NOZZLE_CLEANER_AUTOPAUSE : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Pause on Full Nozzle Cleaner");
+    static constexpr const char *const label = N_("Pause On Full Nozzle Cleaner");
 
 public:
     MI_NOZZLE_CLEANER_AUTOPAUSE();
@@ -139,6 +141,30 @@ public:
 
 #endif
 
+#if HAS_INDX()
+/// Tune menu: fine-tune of the calibrated nozzle cleaner X position
+class MI_NOZZLE_CLEANER_X_OFFSET : public WiSpin {
+    static constexpr const char *const label = N_("Nozzle Cleaner X Offset");
+
+public:
+    MI_NOZZLE_CLEANER_X_OFFSET();
+
+protected:
+    virtual void OnClick() override;
+};
+
+/// Tune menu: fine-tune of the calibrated nozzle cleaner Y position
+class MI_NOZZLE_CLEANER_Y_OFFSET : public WiSpin {
+    static constexpr const char *const label = N_("Nozzle Cleaner Y Offset");
+
+public:
+    MI_NOZZLE_CLEANER_Y_OFFSET();
+
+protected:
+    virtual void OnClick() override;
+};
+#endif
+
 class MI_MESH_BED : public IWindowMenuItem {
     static constexpr const char *const label = N_("Mesh Bed Leveling");
 
@@ -149,11 +175,9 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DISABLE_STEP : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Disable Motors");
-
+class MI_DISABLE_MOTORS : public IWindowMenuItem {
 public:
-    MI_DISABLE_STEP();
+    MI_DISABLE_MOTORS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -167,26 +191,6 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_XFLASH_RESET : public IWindowMenuItem {
-    static constexpr const char *const label = "Delete Crash Dump"; // intentionally not translated, only for debugging
-
-public:
-    MI_XFLASH_RESET();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_DRYRUN : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Dry run (no extrusion)");
-
-public:
-    MI_DRYRUN();
-
-protected:
-    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_TIMEOUT : public WI_ICON_SWITCH_OFF_ON_t {
@@ -274,29 +278,6 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-/******************************************************************/
-// WI_INFO_t
-class MI_INFO_FW : public WI_INFO_t {
-    static constexpr const char *const label = N_("Firmware Version");
-
-public:
-    MI_INFO_FW();
-};
-
-class MI_INFO_BOOTLOADER : public WI_INFO_t {
-    static constexpr const char *const label = N_("Bootloader Version");
-
-public:
-    MI_INFO_BOOTLOADER();
-};
-
-class MI_INFO_MMU : public WI_INFO_t {
-    static constexpr const char *const label = N_("MMU Version");
-
-public:
-    MI_INFO_MMU();
-};
-
 class MI_FS_AUTOLOAD : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Filament Autoloading");
 
@@ -318,6 +299,7 @@ public:
     static std::optional<FilamentSensorStateAndValue> get_value(IFSensor *fsensor);
 };
 
+#if HAS_EXTRUDER_FSENSOR()
 class MI_INFO_EXTRUDER_FILAMENT_SENSOR : public MI_INFO_FILAMENT_SENSOR {
 public:
     MI_INFO_EXTRUDER_FILAMENT_SENSOR(std::variant<PhysicalToolIndex, CurrentlySelectedTool> tool = CurrentlySelectedTool {});
@@ -328,6 +310,7 @@ private:
     const std::variant<PhysicalToolIndex, CurrentlySelectedTool> tool_;
     StringViewUtf8Parameters<4> label_params_;
 };
+#endif // HAS_EXTRUDER_FSENSOR()
 
 class MI_INFO_SIDE_FILAMENT_SENSOR : public MI_INFO_FILAMENT_SENSOR {
 public:
@@ -435,18 +418,6 @@ class MI_INFO_INDX_PARK_FAIL : public MenuItemAutoUpdatingLabel<uint16_t> {
 public:
     MI_INFO_INDX_PARK_FAIL();
 };
-class MI_INFO_INDX_FIFO_ERR : public MenuItemAutoUpdatingLabel<uint16_t> {
-public:
-    MI_INFO_INDX_FIFO_ERR();
-};
-class MI_INFO_INDX_REFRESH_ERR : public MenuItemAutoUpdatingLabel<uint16_t> {
-public:
-    MI_INFO_INDX_REFRESH_ERR();
-};
-class MI_INFO_XEXT_REFRESH_ERR : public MenuItemAutoUpdatingLabel<uint16_t> {
-public:
-    MI_INFO_XEXT_REFRESH_ERR();
-};
 #endif
 
 class MI_FOOTER_RESET : public IWindowMenuItem {
@@ -502,23 +473,15 @@ public:
 };
 
 class MI_DEVHASH_IN_QR : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Device Hash in QR");
+    constexpr static const char *const label = N_("Device Hash In QR");
 
 public:
     MI_DEVHASH_IN_QR();
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_WAVETABLE_XYZ : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Change Wave Table XYZ");
-
-public:
-    MI_WAVETABLE_XYZ();
-    virtual void OnChange(size_t old_index) override;
-};
-
 class MI_LOAD_SETTINGS : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Load Settings from File");
+    constexpr static const char *const label = N_("Load Settings From File");
 
 public:
     MI_LOAD_SETTINGS();
@@ -554,7 +517,7 @@ public:
 class MI_SIDE_LEDS_DIMMED_BRIGTHNESS : public WiSpin {
 
     static constexpr const char *const label =
-    #if PRINTER_IS_PRUSA_COREONE()
+    #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
         N_("Chamber Lights Dimmed");
     #else
         N_("RGB Side Strip Dimmed");
@@ -590,7 +553,7 @@ public:
 };
 #endif
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
 class MI_TRIGGER_POWER_PANIC : public IWindowMenuItem {
     static constexpr const char *const label = N_("Trigger Power Panic");
 
@@ -612,10 +575,6 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
-#endif
-
-#if HAS_MANUAL_BELT_TUNING()
-using MI_MANUAL_BELT_TUNING = WithConstructorArgs<MenuItemGcodeAction, N_("Manual Belt Tuning"), "M961"_tstr>;
 #endif
 
 #if HAS_INDX()

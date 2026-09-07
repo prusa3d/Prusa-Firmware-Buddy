@@ -12,6 +12,9 @@
 #include <marlin_server.hpp>
 #include <mapi/parking.hpp>
 #include <Marlin/src/module/motion.h>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
+#include <feature/compatibility_checks/filament_compatibility.hpp>
 
 namespace multi_filament_change {
 
@@ -37,7 +40,7 @@ Config config_from_current_print_setup() {
 
         auto &item = result[virtual_tool];
 
-        assert(tool_info.used()); // otherwise bug in mapping
+        debug_assert(tool_info.used()); // otherwise bug in mapping
         item.color = tool_info.extruder_colour;
 
         const auto &opt_name = tool_info.filament_name;
@@ -65,7 +68,7 @@ std::optional<Config> config_from_gcode(GCodeBasicParser &parser) {
     // These don't interfere with the G-Code special characters, which is handy for us
 
     Config config;
-    const std::span<std::byte> config_span { reinterpret_cast<std::byte *>(&config), sizeof(config) };
+    const WritableBytes config_span { reinterpret_cast<std::byte *>(&config), sizeof(config) };
     static_assert(std::is_trivially_copyable_v<Config>);
 
     size_t pos = 0;
@@ -133,7 +136,7 @@ void config_to_gcode(const Config &config, StringBuilder &sb) {
     // We're technically going OOB here when passing base64_data_length + 1 (to account for the \0), but StringBuilder always keeps a space for a terminating \0, so this should be completely fine
     mbedtls_base64_encode(reinterpret_cast<uint8_t *>(encode_buf), base64_data_length + 1, &olen, reinterpret_cast<const uint8_t *>(&config), sizeof(Config));
     static_assert(std::is_trivially_copyable_v<Config>);
-    assert(olen == base64_data_length);
+    debug_assert(olen == base64_data_length);
 }
 
 void execute(const Config &tool_config) {
@@ -212,15 +215,13 @@ void execute(const Config &tool_config) {
                     filament_gcodes::AskFilament_t::Never,
                     config.color);
             } else {
-                filament_gcodes::M701_load(
-                    new_filament,
-                    std::nullopt,
-                    Z_AXIS_LOAD_POS,
-                    RetAndCool_t::Return,
-                    tool,
-                    -1,
-                    config.color,
-                    filament_gcodes::ResumePrint_t::No);
+                filament_gcodes::M701_load(filament_gcodes::M701LoadArgs {
+                    .filament_to_be_loaded = new_filament,
+                    .z_min_pos = Z_AXIS_LOAD_POS,
+                    .op_preheat = RetAndCool_t::Return,
+                    .virtual_tool = tool,
+                    .color_to_be_loaded = config.color,
+                });
             }
 #endif
             break;
@@ -228,4 +229,41 @@ void execute(const Config &tool_config) {
         }
     }
 }
+
+bool gui_config_confirm_incompatibilities(const ConfigItem &config, std::variant<VirtualToolIndex, AllTools> tools, Response abort_response, buddy::compatibility_checks::CompatibilityLevel skip_level) {
+    switch (config.action) {
+
+    case Action::keep:
+        // Don't complain about the unchanged state
+        return true;
+
+    case Action::unload:
+        // Let the user unload the filament without complaining
+        return true;
+
+    case Action::change: {
+        buddy::filament_compatibility::CompatibilityReportGenerateArgs args {
+            .filament = config.new_filament.decode().parameters(),
+            .tools = stdext::to_variant(tools),
+            .assume_filament_already_inserted = false,
+        };
+        buddy::filament_compatibility::CompatibilityReport report;
+        report.generate_noclear(args);
+        return report.gui_confirm_all_incompatibilities(abort_response, skip_level);
+    }
+    }
+
+    bsod_unreachable();
+}
+
+bool gui_config_confirm_incompatibilities(const Config &config, Response abort_response, buddy::compatibility_checks::CompatibilityLevel skip_level) {
+    for (auto tool : VirtualToolIndex::all()) {
+        if (!gui_config_confirm_incompatibilities(config[tool], tool, abort_response, skip_level)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 } // namespace multi_filament_change

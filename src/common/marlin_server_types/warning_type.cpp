@@ -1,9 +1,20 @@
 #include "warning_type.hpp"
+#include <option/has_print_sheet_detection.h>
 #include <option/has_wastebin_fill_tracking.h>
 
 #include <bitset>
 #include <option/has_mmu2.h>
 #include <option/has_tool_offset_sensor.h>
+#include <option/has_ceiling_clearance.h>
+#include <option/has_chamber_api.h>
+#include <option/has_chamber_filtration_api.h>
+#include <option/has_chamber_vents.h>
+#include <option/has_emergency_stop.h>
+#include <option/has_ht_hotend.h>
+#include <option/has_human_interactions.h>
+#include <option/has_precise_homing_corexy.h>
+#include <option/has_uneven_bed_prompt.h>
+#include <option/xl_enclosure_support.h>
 
 constexpr PhasesWarning warning_type_phase_constexpr(WarningType warning) {
     switch (warning) {
@@ -48,12 +59,17 @@ constexpr PhasesWarning warning_type_phase_constexpr(WarningType warning) {
         return PhasesWarning::DoorOpen;
 #endif
 
+#if HAS_HT_HOTEND()
+    case WarningType::HotendBurnRisk:
+        return PhasesWarning::HotendBurnRisk;
+#endif
+
 #if HAS_CHAMBER_API()
     case WarningType::FailedToReachChamberTemperature:
         return PhasesWarning::FailedToReachChamberTemperature;
 #endif
 
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
     case WarningType::SteelSheetNotDetected:
         return PhasesWarning::SteelSheetNotDetected;
 #endif
@@ -117,11 +133,6 @@ constexpr uint32_t warning_lifespan_sec_constexpr(WarningType type) {
     case WarningType::OpenChamberVents:
     case WarningType::CloseChamberVents:
         return 60;
-#endif
-
-#if HAS_ANFC()
-    case WarningType::OpenPrintTagAssigned:
-        return 5;
 #endif
 
     default:

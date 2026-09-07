@@ -2,6 +2,7 @@
 
 #include "error_codes.hpp"
 #include "error_list.hpp"
+#include <bsod/bsod.h>
 
 constexpr const ErrDesc &find_error(const ErrCode error_code) {
     // Iterating through error_list to find the error

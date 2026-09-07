@@ -1,12 +1,10 @@
-/**
- * @file screen_filter_change.hpp
- */
+/// @file
 #pragma once
+
 #include "gui.hpp"
 #include "screen.hpp"
 #include "window_text.hpp"
 #include "window_header.hpp"
-#include "status_footer.hpp"
 #include "radio_button.hpp"
 #include <gui/qr.hpp>
 
@@ -19,7 +17,4 @@ class ScreenChangeFilter : public screen_t {
 
 public:
     ScreenChangeFilter();
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

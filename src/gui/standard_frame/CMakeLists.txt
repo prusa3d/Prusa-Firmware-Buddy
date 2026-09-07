@@ -10,3 +10,7 @@ target_sources(
           frame_wait.cpp
           frame_wait_temp.cpp
   )
+
+if(HAS_ANFC)
+  target_sources(firmware PRIVATE frame_opt_prompt.cpp)
+endif()

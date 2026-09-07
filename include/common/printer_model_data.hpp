@@ -161,6 +161,16 @@ inline constexpr std::array printer_model_info {
         .gcode_check_code = 380,
         .id_str = "COREONEOAK",
     },
+    PrinterModelInfo {
+        .model = PrinterModel::xls,
+        .compatibility_group = PrinterModelCompatibilityGroup::xls,
+        .version = { 3, 1, 1 },
+        .help_url = "xlp",
+        .usb_pid = 41,
+        .gcode_check_code = 410,
+        .id_str = "XLP",
+        .display_str_override = "XL+",
+    },
 };
 
 inline constexpr std::array printer_model_mmu_variant {

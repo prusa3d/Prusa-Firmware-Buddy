@@ -5,6 +5,7 @@
 #include <option/has_wastebin_fill_tracking.h>
 #include "cmath_ext.h"
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 Odometer_s Odometer_s::instance_;
 
@@ -84,12 +85,12 @@ void Odometer_s::add_axis(axis_t axis, float value) {
     // This is not a problem, as the updates and storing is called only from
     // marlin. We need the atomics mostly to read them at the same time, while
     // printing.
-    assert(axis < axis_t::count_);
+    debug_assert(axis < axis_t::count_);
     trip_xyz[std::to_underlying(axis)] += std::abs(value);
 }
 
 float Odometer_s::get_axis(axis_t axis) {
-    assert(axis <= axis_t::count_);
+    debug_assert(axis <= axis_t::count_);
     return config_store().get_odometer_axis(std::to_underlying(axis)) + trip_xyz[std::to_underlying(axis)].load();
 }
 

@@ -11,6 +11,7 @@
 #include <cstring>
 #include <freertos/chrono.hpp>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <xbuddy_extension/shared_enums.hpp>
 #include <xbuddy_extension/modbus.hpp>
 #include <ac_controller/types.hpp>
@@ -69,10 +70,10 @@ public:
     virtual void receive_node_heartbeat(NodeId remote_node_id, TimePoint now, const Heartbeat &) = 0;
     virtual void receive_node_execute_command_response(NodeId remote_node_id, uint8_t status, Bytes output) = 0;
     virtual void receive_node_get_info_response(NodeId remote_node_id, Bytes name) = 0;
-    virtual void receive_file_read_request(NodeId remote_node_id, TimePoint now, uint8_t transfer_id, uint32_t offset) = 0;
+    virtual void receive_file_read_request(NodeId remote_node_id, TimePoint now, TransferId transfer_id, uint32_t offset) = 0;
     virtual void receive_ac_controller_status(const ac_controller::Config &, const ac_controller::Status &) = 0;
     virtual void receive_diagnostic_record(NodeId remote_node_id, const Bytes &text) = 0;
-    virtual void receive_nfc_event(cyphal::NodeId remote_node_id, std::span<const std::byte>) = 0;
+    virtual void receive_nfc_event(cyphal::NodeId remote_node_id, Bytes) = 0;
     virtual void receive_tool_offset_sensor_status(const tool_offset_sensor::Status &) = 0;
     virtual void log_from_app(std::string_view s) = 0;
 
@@ -95,7 +96,7 @@ public:
     /// Log message buffer structure exposed via Modbus
     struct LogData {
         uint16_t sequence;
-        std::span<const std::byte> text;
+        Bytes text;
     };
     virtual LogData get_log() const = 0;
 };

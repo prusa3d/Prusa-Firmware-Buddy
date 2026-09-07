@@ -41,6 +41,7 @@
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
 
+#include <option/has_power_panic.h>
 #include <option/has_usb_device.h>
 #if HAS_USB_DEVICE()
     #include <tusb.h>
@@ -81,7 +82,7 @@
 LOG_COMPONENT_REF(MMU2);
 LOG_COMPONENT_REF(Marlin);
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     #include "power_panic.hpp"
 #endif
 
@@ -211,7 +212,7 @@ void app_run(void) {
 #if HAS_GUI()
     LangEEPROM::getInstance();
     Translations::Instance().gettext_hook = []([[maybe_unused]] const char *f) {
-        assert(IS_FLASH_ADDRESS(reinterpret_cast<uintptr_t>(f)));
+        debug_assert(IS_FLASH_ADDRESS(reinterpret_cast<uintptr_t>(f)));
     };
 #endif
 
@@ -258,9 +259,9 @@ static void filament_sensor_irq() {
 
             // Side filament sensor
             auto mapping = side_fsensor_remap::get_mapping();
-            assert(static_cast<size_t>(dwarf.dwarf_index()) < std::size(mapping));
+            debug_assert(static_cast<size_t>(dwarf.dwarf_index()) < std::size(mapping));
             const uint8_t remapped = mapping[dwarf.dwarf_index()];
-            assert(remapped < HOTENDS);
+            debug_assert(remapped < HOTENDS);
 
             /**
              * @brief Mapping of ADC channels to each extruder side filament sensor.

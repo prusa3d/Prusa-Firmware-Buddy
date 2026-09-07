@@ -3,6 +3,7 @@
 #include <feature/motordriver_util.h>
 #include <device/peripherals.hpp>
 #include <hwio_pindef.h>
+#include <bsod/bsod.h>
 
 using namespace phase_stepping;
 using namespace phase_stepping::spi;
@@ -51,7 +52,7 @@ void phase_stepping::spi::set_xdirect(int axis, const CoilCurrents &currents) {
     PHSTEP_TMC_SPI->CR1 |= SPI_CR1_SPE;
 
     // Setup DMA
-    assert(!busy());
+    debug_assert(!busy());
     PHSTEP_TMC_DMA->NDTR = 5;
     PHSTEP_TMC_DMA->PAR = reinterpret_cast<uint32_t>(&PHSTEP_TMC_SPI->DR);
     PHSTEP_TMC_DMA->M0AR = reinterpret_cast<uint32_t>(&xdirect_comm_buffer[0]);

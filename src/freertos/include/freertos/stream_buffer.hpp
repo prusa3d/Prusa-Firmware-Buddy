@@ -1,7 +1,7 @@
 /// @file
 #pragma once
 
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <cstddef>
 #include <freertos/config.hpp>
 
@@ -21,7 +21,7 @@ private:
     alignas(stream_buffer_storage_align) Storage stream_buffer_storage;
 
 protected:
-    StreamBufferBase(std::span<std::byte> data_storage);
+    StreamBufferBase(WritableBytes data_storage);
     ~StreamBufferBase();
     StreamBufferBase(const StreamBufferBase &) = delete;
     StreamBufferBase &operator=(const StreamBufferBase &) = delete;
@@ -34,28 +34,28 @@ public:
      * Return view into provided buffer containing data that was received so far.
      * Must not be called from interrupt!
      */
-    [[nodiscard]] std::span<std::byte> receive(std::span<std::byte> buffer);
+    [[nodiscard]] WritableBytes receive(WritableBytes buffer);
 
     /**
      * Try receiving data from this StreamBuffer into provided buffer.
      * Return view into provided buffer containing data that was received so far.
      * May only be called from interrupt!
      */
-    [[nodiscard]] std::span<std::byte> receive_from_isr(std::span<std::byte> buffer);
+    [[nodiscard]] WritableBytes receive_from_isr(WritableBytes buffer);
 
     /**
      * Try sending data into this StreamBuffer from provided buffer.
      * Return view into provided buffer containing data that was not yet sent.
      * Must not be called from interrupt!
      */
-    [[nodiscard]] std::span<const std::byte> send(std::span<const std::byte> buffer);
+    [[nodiscard]] Bytes send(Bytes buffer);
 
     /**
      * Try sending data into this StreamBuffer from provided buffer.
      * Return view into provided buffer containing data that was not yet sent.
      * May only be called from interrupt!
      */
-    [[nodiscard]] std::span<const std::byte> send_from_isr(std::span<const std::byte> buffer);
+    [[nodiscard]] Bytes send_from_isr(Bytes buffer);
 };
 
 /**

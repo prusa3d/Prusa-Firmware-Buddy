@@ -1,5 +1,5 @@
 #include "marlin_server_state.h"
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 #include "client_response.hpp"
 #include <warning_type.hpp>
 #include "magic_enum.hpp"
@@ -20,6 +20,8 @@
 #include "fsm/filament_change_phases.hpp"
 #include <fsm/print_preview_phases.hpp>
 #include <fsm/preheat_phases.hpp>
+
+#include <bsod/bsod.h>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -88,7 +90,7 @@ NB_MODULE(marlin_server_types_python_module_impl, m) {
     // Export basic enums from marlin_server_state.h
     export_enum<marlin_server::State>(m, "MarlinServerState");
 
-    // Export basic enums from client_fsm_types.h
+    // Export basic enums from client_fsm_types.hpp
     export_enum<ClientFSM>(m, "FSMTypes");
     export_enum<LoadUnloadMode>(m, "LoadUnloadMode");
     export_enum<PreheatMode>(m, "PreheatMode");

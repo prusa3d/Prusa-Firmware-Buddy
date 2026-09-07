@@ -40,3 +40,11 @@ struct DockCalibrationFailedData {
         };
     }
 };
+
+/// Per-dock actions chosen on the dock-selection screen, transferred via FSMResponseVariant.
+/// One bit per dock; a dock is in at most one mask (in neither = keep unchanged).
+struct DockSelection {
+    uint8_t calibrate = 0; ///< Docks to (re)measure and store
+    uint8_t invalidate = 0; ///< Docks whose stored calibration to clear
+};
+static_assert(PhysicalToolIndex::count <= 8, "DockSelection packs one bit per dock into uint8_t masks");

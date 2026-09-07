@@ -34,7 +34,7 @@ public:
     using TempTable = std::span<const short[2]>;
 
     struct Config {
-        BaseHotend::Config base_config;
+        Hotend::Config base_config;
 
         /// Temperature table for mapping raw temperature readouts
         TempTable nozzle_temp_table;
@@ -53,6 +53,11 @@ public:
         /// If true, the pin is actually controlled by digitalWrite() in Temperature::isr
         /// Otherwise, analogWrite() is used
         bool nozzle_heater_soft_pwm : 1;
+
+        /// Maximum nozzle temperature (celsius) below which the extra averaging
+        /// filter is applied. NTC: 50 (filter only at cold temps where noise is worst).
+        /// PT1000 / HT hotend: use a high value (e.g. 500) to always filter.
+        int16_t nozzle_filter_max_temp = 50;
     };
 
 public:

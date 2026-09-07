@@ -7,6 +7,7 @@
 #include "marlin_vars.hpp"
 #include <common/directory.hpp>
 #include <utils/string_builder.hpp>
+#include <buddy/filename_defs.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -198,7 +199,7 @@ void GcodeSuite::M29() {
  *    M30 [filename]
  */
 void GcodeSuite::M30() {
-    ArrayStringBuilder<FF_MAX_LFN> filepath;
+    ArrayStringBuilder<filename_defs::max_filename_length> filepath;
     filepath.append_printf("/usb/%s", parser.string_arg);
     DeleteResult result = DeleteResult::GeneralError;
     if (filepath.is_ok()) {

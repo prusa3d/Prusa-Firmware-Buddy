@@ -21,15 +21,6 @@
             "args": ["-m", "pip", "install", "-e", "./.vscode/simulator_as_qemu", "--disable-pip-version-check"],
         },
         {
-            "label": "Install pre-commit",
-            "type": "process",
-            "command": "${workspaceFolder}/.venv/bin/pre-commit",
-            "windows":{
-                "command": "${workspaceFolder}/.venv/Scripts/pre-commit.exe"
-            },
-            "args": ["install"],
-        },
-        {
             "label": "Prepare Visual Studio Code",
             "runOptions": {
                 "runOn": "folderOpen"
@@ -38,7 +29,6 @@
             "dependsOn": [
                 "Bootstrap",
                 "Install simulator_as_qemu",
-                "Install pre-commit",
             ]
         },
         {

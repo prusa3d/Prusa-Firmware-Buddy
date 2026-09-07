@@ -8,6 +8,7 @@
 #include <option/has_selftest.h>
 #include <option/has_cancel_object.h>
 #include <selftest/selftest_data.hpp>
+#include <buddy/filename_defs.hpp>
 
 namespace marlin_server {
 
@@ -48,8 +49,10 @@ struct Request {
         GCodeLiteral gcode_interrupt; // Type::GcodeInterrupt
         float babystep; // Type::Babystep
         struct {
-            marlin_server::PreviewSkipIfAble skip_preview;
-            char filename[FILE_PATH_BUFFER_LEN];
+            char filename[filename_defs::path_buffer_size];
+            static_assert(std::to_underlying(PreviewSkipIfAble::_count) <= (1 << 2));
+            PreviewSkipIfAble skip_preview : 2;
+            ResetToolMapping reset_tool_mapping : 1;
         } print_start; // Type::PrintStart
         WarningType warning_type;
     };

@@ -5,6 +5,7 @@
 #include <http/chunked.h>
 
 #include <sys/stat.h>
+#include <bsod/bsod.h>
 
 using namespace http;
 
@@ -71,8 +72,8 @@ void GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size, 
     out.next = Continue();
     if (buffer_size >= MIN_CHUNK_SIZE) {
         written += http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer_, size_t buffer_size_) {
-            assert(thumbnail_reader);
-            int got = thumbnail_reader->read({ buffer_, buffer_size_ }).size();
+            debug_assert(thumbnail_reader);
+            int got = thumbnail_reader->read({ reinterpret_cast<std::byte *>(buffer_), buffer_size_ }).size();
             if (got > 0) {
                 return got;
             } else {

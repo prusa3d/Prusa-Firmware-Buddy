@@ -42,8 +42,8 @@
  *
  * - `S` - Set the minimum extrude temperature
  * - `P` - Allow cold extrusion
- *   -`0` - enable cold extrusion
- *   -`1` - disables cold extrusion
+ *   -`0` - disables cold extrusion
+ *   -`1` - enables cold extrusion
  *
  *#### Examples:
  *

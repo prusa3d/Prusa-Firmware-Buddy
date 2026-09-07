@@ -75,13 +75,19 @@ public: // Temperature control
 
     /// Sets the \param target temperature. Can be nullopt if we are not interested in controlling the temperature at all.
     /// \returns the target temperature the chamber was actually set to - might differe because of capabilities().max_temp
+    /// !!! MARLIN THREAD ONLY - we don't want to change it under g-code and thermal model hands
     std::optional<Temperature> set_target_temperature(std::optional<Temperature> target);
 
 #if HAS_CHAMBER_VENTS()
     /// Check the state of chamber grills (vents). Can be open/closed based on chamber target temperature
-    /// @param target The target chamber temperature to base the vent decision on
+    /// @param fil_target The target chamber temperature to base the vent decision on
     /// !HAS TO BE CALLED FROM DEFAULT THREAD ONLY!
     void manage_ventilation_state(std::optional<Temperature> fil_target);
+
+    /// Close the vents at the end of a print, if they are known to be open
+    /// and vent control is set to automatic.
+    /// !HAS TO BE CALLED FROM DEFAULT THREAD ONLY!
+    void close_vents_after_print();
 
     enum class VentState : uint8_t {
         open,

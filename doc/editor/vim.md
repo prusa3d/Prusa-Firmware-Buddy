@@ -37,8 +37,7 @@
         --preset mini \
         -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE=../cmake/GccArmNoneEabi.cmake \
-	-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE \
-        -DGENERATE_BBF=YES ... and other cmake flags
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE
     $ ninja
     ```
 5. Locate a `compile_commands.json` file for `ccls`. By default, `ccls` searches in project's root directory, but `ninja` produces it in the build folder. There are two options:

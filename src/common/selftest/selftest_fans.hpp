@@ -12,6 +12,8 @@
 #include <option/has_bed_fan.h>
 #include <option/has_psu_fan.h>
 #include <option/has_indx.h>
+#include <option/has_cpu_fan.h>
+#include <option/has_xl_can.h>
 
 #if HAS_BED_FAN()
     #include <feature/bed_fan/controller.hpp>
@@ -37,6 +39,12 @@ enum class FanType {
 #if HAS_PSU_FAN()
     psu,
 #endif
+#if HAS_CPU_FAN()
+    cpu,
+#endif
+#if HAS_XL_CAN()
+    bed_mcu,
+#endif
     _count,
 };
 
@@ -57,6 +65,12 @@ static constexpr EnumArray<FanType, const char *, FanType::_count> fan_type_name
 #endif
 #if HAS_PSU_FAN()
         { FanType::psu, "PSU" },
+#endif
+#if HAS_CPU_FAN()
+        { FanType::cpu, N_("CPU") },
+#endif
+#if HAS_XL_CAN()
+        { FanType::bed_mcu, N_("Bed MCU") },
 #endif
 };
 
@@ -156,6 +170,21 @@ public:
 
     void set_pwm(uint8_t pwm) final;
     void record_sample() final;
+};
+#endif
+
+#if HAS_XL_CAN()
+/// XLS Modular Bed cooling fan, driven remotely over the XL-CAN bridge.
+class BedMcuFanHandler final : public FanHandler {
+public:
+    BedMcuFanHandler(const FanRPMRange, const FanRPMRange);
+    ~BedMcuFanHandler();
+
+    void set_pwm(uint8_t pwm) final;
+    void record_sample() final;
+
+private:
+    uint8_t original_pwm;
 };
 #endif
 

@@ -18,6 +18,7 @@
 #endif
 
 #include <option/has_xbuddy_extension.h>
+#include <bsod/bsod.h>
 #if HAS_XBUDDY_EXTENSION()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
@@ -118,7 +119,7 @@ uint64_t get_test_mask(Action action) {
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:
-        return stmHeaters;
+        bsod("This should be gcode");
     case Action::Loadcell:
         return stmLoadcell;
     case Action::ZAlign:
@@ -126,7 +127,7 @@ uint64_t get_test_mask(Action action) {
     case Action::_count:
         break;
     }
-    assert(false);
+    debug_assert(false);
     return stmNone;
 }
 

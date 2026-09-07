@@ -4,69 +4,12 @@
  * @brief Journal storing strategy means that items are stored persistently using a journal. Changes to item value are stored as an entry to a journal, and upon device reset this journal is read from the beginning, adjusting individual items as the history is being read. Specific implementation may vary (see journal/backend for the one used).
  */
 
-#include <cstring>
-#include "store_item.hpp"
-#include "store_item_array.hpp"
-#include <algorithm>
-#include <ranges>
-#include <type_traits>
+#include <span>
 
-#include "utils/utility_extensions.hpp"
-#include "backend.hpp"
-#include <persistent_stores/journal/gen_journal_hashes.hpp>
+#include "store_config.hpp"
 #include <common/visit_all_struct_fields.hpp>
 
 namespace journal {
-
-consteval uint16_t hash(std::string_view name) {
-    return get_generated_hash(name);
-}
-
-template <BackendC BackendT, auto backend>
-struct CurrentStoreConfig {
-    static inline BackendT &get_backend() { return backend(); };
-    using Backend = BackendT;
-
-    template <StoreItemDataC DataT, auto default_val, ItemFlags flags, typename BackendT::Id id, uint8_t hash_alloc_range = 1, bool ram_only = false>
-    using StoreItem = JournalItem<DataT, default_val, flags, backend, id, hash_alloc_range, ram_only>;
-
-    template <StoreItemDataC DataT, auto default_val, ItemFlags flags, typename BackendT::Id id, uint8_t max_item_count, uint8_t item_count>
-    using StoreItemArray = JournalItemArray<DataT, default_val, flags, backend, id, max_item_count, item_count>;
-
-    template <StoreItemDataC DataT, auto default_val, ItemFlags flags, auto hashed_ids>
-    using StoreItemLegacyArray = JournalItemLegacyArray<DataT, default_val, flags, backend, hashed_ids>;
-};
-
-template <BackendC BackendT>
-struct DeprecatedStoreConfig {
-    // we don't care about default val, but we have it anyway to make deprecating an item a ctrl+c and ctrl+v operation (and in case we need it for some reason)
-    template <StoreItemDataC DataT, auto DefaultVal, typename BackendT::Id HashedID>
-    using StoreItem
-        = DeprecatedStoreItem<DataT, DefaultVal, BackendT, HashedID>;
-
-    template <StoreItemDataC DataT, auto DefaultVal, typename BackendT::Id HashedID, uint8_t max_item_count, uint8_t item_count>
-    using StoreItemArray
-        = DeprecatedStoreItemArray<DataT, DefaultVal, BackendT, HashedID, max_item_count, item_count>;
-};
-
-/**
- * @brief Check whether the store's backend's reserved IDs are not causing a collision with pregenerated hash ids
- *
- * @tparam CurrentStoreT
- */
-template <class CurrentStoreT>
-bool consteval has_unique_items() {
-    for (auto reserved : CurrentStoreT::Backend::RESERVED_IDS) {
-        if (auto res = std::ranges::find_if(journal::generated_hashes, [&reserved](const journal::GeneratedPair &elem) {
-                return elem.hashed == reserved;
-            });
-            res != std::end(journal::generated_hashes)) {
-            consteval_assert_false("Some newly added Ids cause collision with reserved backend Ids");
-            return false;
-        }
-    }
-    return true;
-};
 
 /**
  * This class takes Config class as template parameter and it defines the items in ConfigStore, DeprecatedItems class has definition for deprecated items.
@@ -117,9 +60,4 @@ public:
     Store &operator=(Store &&other) = delete;
 };
 
-template <class Config, class DeprecatedItems, const std::span<const journal::Backend::MigrationFunction> &MigrationFunctions>
-inline Store<Config, DeprecatedItems, MigrationFunctions> &store() {
-    static constinit Store<Config, DeprecatedItems, MigrationFunctions> str {};
-    return str;
-}
 } // namespace journal

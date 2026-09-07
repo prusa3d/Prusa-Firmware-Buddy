@@ -9,6 +9,7 @@
 #include "../wui_api.h"
 #include "prusa_api_helpers.hpp"
 
+#include <buddy/filename_defs.hpp>
 #include <transfers/monitor.hpp>
 #include <transfers/changed_path.hpp>
 #include <cstring>
@@ -62,7 +63,7 @@ Selector::Accepted PrusaLinkApiOcto::accept(const RequestParser &parser, Step &o
         } else {
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);
-            char filename[FILE_PATH_BUFFER_LEN + prefix_len];
+            char filename[filename_defs::path_buffer_size + prefix_len];
             if (!parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::Octoprint, out)) {
                 return Accepted::Accepted;
             }

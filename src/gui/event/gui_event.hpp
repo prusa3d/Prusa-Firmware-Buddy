@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cassert>
 #include <concepts>
 
 #include <common/primitive_any.hpp>
+#include <bsod/bsod.h>
 
 template <typename T>
 concept GuiEventType = true;
@@ -31,7 +31,7 @@ public:
     /// Marks the event as accepted.
     /// Accepted events means that it should no longer propagate through the GUI tree
     inline void accept() {
-        assert(!is_accepted_);
+        debug_assert(!is_accepted_);
         is_accepted_ = true;
     }
 

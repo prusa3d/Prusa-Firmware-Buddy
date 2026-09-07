@@ -65,6 +65,9 @@ protected:
     }
 
 protected:
+    /// Resolves the value text color (base highlights the focused & enabled item).
+    /// @param base_color color used when the item is not focused & enabled
+    virtual Color resolved_value_text_color(Color base_color) const;
     void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override;
 
     void click(IWindowMenu &) override;

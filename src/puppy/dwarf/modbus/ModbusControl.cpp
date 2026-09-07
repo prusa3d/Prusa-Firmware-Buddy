@@ -1,6 +1,7 @@
 #include "ModbusControl.hpp"
 #include "ModbusRegisters.hpp"
 #include <cstring>
+#include <algorithm>
 #include <logging/log.hpp>
 #include "Marlin.h"
 #include "Marlin/src/module/temperature.h"
@@ -12,6 +13,8 @@
 #include "timing.h"
 #include "ModbusFIFOHandlers.hpp"
 #include "fanctl.hpp"
+#include <fanctl/CFanCtl3Wire.hpp>
+#include <CFanCtlCommonConsts.hpp>
 #include "utility_extensions.hpp"
 #include "advanced_power.hpp"
 #include "accelerometer.hpp"
@@ -202,7 +205,7 @@ void ProcessModbusMessages() {
         }
         case std::to_underlying(ModbusRegisters::SystemHoldingRegister::fan0_pwm): {
             log_info(ModbusControl, "Set print fan PWM:: %" PRIu32, msg->m_Value);
-            thermalManager.set_fan_speed(0, msg->m_Value);
+            thermalManager.set_print_fan_speed(std::clamp<uint32_t>(msg->m_Value, 0, 255));
             break;
         }
         case std::to_underlying(ModbusRegisters::SystemHoldingRegister::fan1_pwm): {
@@ -277,6 +280,18 @@ void ProcessModbusMessages() {
             static_assert(sizeof(pid) == sizeof(float) * 3);
             Hotend::for_tool(PhysicalToolIndex::from_raw(0)).set_nozzle_pid_config(pid);
 
+            break;
+        }
+
+        case std::to_underlying(ModbusRegisters::SystemHoldingRegister::fan_mode): {
+            log_info(ModbusControl, "Set fan mode: %" PRIu32, msg->m_Value);
+            // 0 = XL/legacy, 1 = XLS native. Mode 1 lowers min_pwm so kickstart
+            // can drive the LDO blower below the 20 % floor required by the
+            // legacy Delta/GOM fans.
+            // The stuck-fan threshold (min_rpm) stays compile-time low on XL —
+            // see FANCTLPRINT_RPM_MIN in CFanCtlCommonConsts.hpp.
+            const uint8_t min_pwm = (msg->m_Value == 0) ? FANCTLPRINT_PWM_MIN : FANCTLPRINT_PWM_MIN_XLS;
+            static_cast<CFanCtl3Wire &>(Fans::print(PhysicalToolIndex::from_raw(0))).set_min_pwm(min_pwm);
             break;
         }
         }

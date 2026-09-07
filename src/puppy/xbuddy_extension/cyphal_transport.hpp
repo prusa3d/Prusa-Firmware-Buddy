@@ -3,7 +3,7 @@
 
 #include <canard.h>
 #include <cstddef>
-#include <span>
+#include <utils/byte_utils.hpp>
 
 namespace cyphal {
 
@@ -27,7 +27,7 @@ public:
     [[nodiscard]] virtual bool transmit(
         const CanardMicrosecond deadline,
         const CanardTransferMetadata &metadata,
-        const std::span<const std::byte> &buffer)
+        const Bytes &buffer)
         = 0;
 
     /// Receive a transfer from cyphal.

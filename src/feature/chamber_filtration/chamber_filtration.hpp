@@ -47,7 +47,7 @@ public:
     void step();
 
     /// \brief Forces/disables the filtration for the current print
-    /// \param set true if the filtration should be forced on (ignore filament needs), false if it should be forced off. Nullopt will disable the override.
+    /// \param set Tristate::yes if the filtration should be forced on (ignore filament needs), Tristate::no if it should be forced off. Tristate::other will disable the override.
     void set_needs_filtration_override(Tristate set);
 
 public:

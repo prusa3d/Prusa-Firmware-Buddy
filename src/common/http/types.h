@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cstdlib>
-#include <cassert>
 #include <cstdint>
+#include <bsod/bsod.h>
 
 namespace http {
 
@@ -32,7 +32,7 @@ constexpr const char *to_str(Method method) {
     case Connect:
         return "CONNECT";
     default:
-        assert(0);
+        debug_assert(0);
     case UnknownMethod:
         return "UNKNOWNMETHOD";
     }
@@ -50,7 +50,7 @@ constexpr bool has_body(Method method) {
         return false;
     default:
     case UnknownMethod:
-        assert(0);
+        debug_assert(0);
         return false;
     }
 }
@@ -96,7 +96,7 @@ constexpr const char *to_str(ContentType content_type) {
     case ContentType::ApplicationOctetStream:
         return "application/octet-stream";
     default:
-        assert(0);
+        debug_assert(0);
         return "application/octet-stream";
     }
 }

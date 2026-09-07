@@ -42,7 +42,7 @@ void WindowMenuFilamentsVisibility::setup_item(ItemVariant &variant, int index) 
     }
 }
 
-// * ScreenFilamentManagementList
+// * ScreenFilamentsVisibility
 ScreenFilamentsVisibility::ScreenFilamentsVisibility()
     : ScreenMenuBase(nullptr, _("FILAMENTS VISIBILITY"), EFooter::Off) {
 }

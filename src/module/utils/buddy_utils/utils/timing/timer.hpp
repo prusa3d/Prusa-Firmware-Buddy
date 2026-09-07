@@ -3,8 +3,8 @@
 
 #include <concepts>
 #include <type_traits>
-#include <cassert>
 #include <cstdint>
+#include <bsod/bsod.h>
 
 namespace utils {
 
@@ -32,7 +32,7 @@ public:
     // !!! Important! std::convertible_to<T> required to disable automatic type inferration from the interval type
     explicit Timer(std::convertible_to<T> auto interval)
         : interval_(interval) {
-        assert(interval > 0);
+        debug_assert(interval > 0);
     }
 
     inline T interval() const {
@@ -40,7 +40,7 @@ public:
     }
 
     inline void set_interval(T set) {
-        assert(set > 0);
+        debug_assert(set > 0);
         interval_ = set;
     }
 

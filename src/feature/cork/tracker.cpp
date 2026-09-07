@@ -5,14 +5,14 @@
 
 #include <algorithm>
 #include <mutex>
-#include <cassert>
 #include <cinttypes>
+#include <bsod/bsod.h>
 
 namespace buddy::cork {
 
 std::optional<Tracker::Slot> *Tracker::get_slot(Cookie cookie) {
     const size_t i = idx(cookie);
-    assert(i <= slots.size());
+    debug_assert(i <= slots.size());
     if (slots[i].has_value() && slots[i]->cookie == cookie) {
         return &slots[i];
     } else {
@@ -115,7 +115,7 @@ bool Tracker::CorkHandle::is_done_and_consumed() {
         }
     }
 
-    assert(false /* Dangling or already consumed handle */);
+    debug_assert(false /* Dangling or already consumed handle */);
     return true;
 }
 

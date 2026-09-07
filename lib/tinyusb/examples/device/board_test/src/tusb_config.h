@@ -23,17 +23,12 @@
  *
  */
 
-#ifndef _TUSB_CONFIG_H_
-#define _TUSB_CONFIG_H_
+#ifndef TUSB_CONFIG_H_
+#define TUSB_CONFIG_H_
 
 #ifdef __cplusplus
  extern "C" {
 #endif
-
-// board_test example is special example that doesn't enable device or host stack
-// This can cause some TinyUSB API missing, this define hack to allow us to fill those API
-// to pass the compilation process
-#define tud_int_handler(x)
 
 //--------------------------------------------------------------------
 // COMMON CONFIGURATION
@@ -46,6 +41,11 @@
 
 #ifndef CFG_TUSB_OS
   #define CFG_TUSB_OS               OPT_OS_NONE
+#endif
+
+// Espressif IDF requires "freertos/" prefix in include path
+#ifdef ESP_PLATFORM
+#define CFG_TUSB_OS_INC_PATH  freertos/
 #endif
 
 // This example only test LED & GPIO, disable both device and host stack
@@ -74,4 +74,4 @@
  }
 #endif
 
-#endif /* _TUSB_CONFIG_H_ */
+#endif /* TUSB_CONFIG_H_ */

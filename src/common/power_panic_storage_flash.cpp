@@ -4,6 +4,7 @@
 #include "power_panic_storage.hpp"
 #include <common/w25x.hpp>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 namespace power_panic {
 
@@ -145,7 +146,7 @@ bool state_stored() {
 }
 
 const char *stored_media_path() {
-    assert(state_stored()); // caller is responsible for checking
+    debug_assert(state_stored()); // caller is responsible for checking
     FLASH_LOAD(fixed.media_SFN_path, runtime_state.media_SFN_path);
     if (storage_instance().fetch_error()) {
         log_error(PowerPanic, "Failed to get media path.");

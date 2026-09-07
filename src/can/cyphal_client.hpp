@@ -6,6 +6,7 @@
 #include "cyphal_sender_direct.hpp"
 #include "cyphal_suber_call.hpp"
 #include "cyphal_task.hpp"
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -65,7 +66,7 @@ protected:
                   return serialize_request(data, buffer, size);
               },
               port_id, CanardTransferKindRequest, remote_node_id, send_timeout, priority) {
-        assert(response_semaphore != nullptr);
+        debug_assert(response_semaphore != nullptr);
     }
 
     /// @brief Serialize request data to buffer.

@@ -10,7 +10,13 @@
 #include <option/has_wastebin.h>
 #include <option/has_wastebin_fill_tracking.h>
 
+#include <option/has_indx.h>
+#if HAS_INDX()
+    #include <nozzle_cleaner.hpp>
+#endif
+
 #include <option/has_toolchanger.h>
+#include <bsod/bsod.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
@@ -22,10 +28,27 @@ static_assert(sizeof(ParkingPosition::AtLeast) == 8);
 
 const ParkArgs ParkArgs::default_args {};
 
-ParkingPosition get_parking_position(ParkPosition position, [[maybe_unused]] std::variant<VirtualToolIndex, NoTool> tool) {
+#if HAS_INDX()
+/// Positions that get apply_nozzle_cleaner_offset() applied are relative to the nozzle cleaner,
+/// so they must lie in the wastebin area, otherwise applying the offset makes no sense
+constexpr bool is_in_wastebin_area(float x, float y) {
+    return x > X_WASTEBIN_SAFE_POINT && y > Y_WASTEBIN_SAFE_POINT;
+}
+
+/// Also checks that X and Y are absolute coordinates - apply_nozzle_cleaner_offset()
+/// silently leaves the Unchanged ones alone
+constexpr bool is_in_wastebin_area(const ParkingPosition &position) {
+    const auto *x = std::get_if<float>(&position.x);
+    const auto *y = std::get_if<float>(&position.y);
+    return x && y && is_in_wastebin_area(*x, *y);
+}
+#endif
+
+ParkingPosition get_parking_position(ParkPosition position, [[maybe_unused]] std::variant<PhysicalToolIndex, NoTool> tool) {
     switch (position) {
     case ParkPosition::park:
 #if HAS_INDX()
+        static_assert(is_in_wastebin_area(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT));
         return apply_nozzle_cleaner_offset({ X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_POINT } });
 #else
         return ParkingPosition(XYZ_NOZZLE_PARK_POINT);
@@ -35,6 +58,7 @@ ParkingPosition get_parking_position(ParkPosition position, [[maybe_unused]] std
     #if HAS_INDX()
         // Wastebin is fixed to the CoreXY gantry, Z does not matter
         static constexpr ParkingPosition base_pos { X_WASTEBIN_POINT, Y_WASTEBIN_POINT, mapi::ParkingPosition::AtLeast { .above_print = 2 } };
+        static_assert(is_in_wastebin_area(X_WASTEBIN_POINT, Y_WASTEBIN_POINT));
         return apply_nozzle_cleaner_offset(base_pos);
 
     #elif PRINTER_IS_PRUSA_iX()
@@ -49,27 +73,94 @@ ParkingPosition get_parking_position(ParkPosition position, [[maybe_unused]] std
 #endif
     }
 
-    case ParkPosition::load:
-        return ParkingPosition { X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = Z_AXIS_LOAD_POS } };
+    case ParkPosition::load: {
+        static constexpr ParkingPosition base_pos { X_AXIS_LOAD_POS, Y_AXIS_LOAD_POS, ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = Z_AXIS_LOAD_POS } };
+#if HAS_INDX()
+        // The load and unload positions coincide with the park and purge points over the wastebin,
+        // so they need the calibrated nozzle cleaner offsets applied as well
+        static_assert(is_in_wastebin_area(base_pos));
+        return apply_nozzle_cleaner_offset(base_pos);
+#else
+        return base_pos;
+#endif
+    }
 
-    case ParkPosition::unload:
-        return ParkingPosition { X_AXIS_UNLOAD_POS, Y_AXIS_UNLOAD_POS, ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = Z_AXIS_UNLOAD_POS } };
+    case ParkPosition::unload: {
+        static constexpr ParkingPosition base_pos { X_AXIS_UNLOAD_POS, Y_AXIS_UNLOAD_POS, ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = Z_AXIS_UNLOAD_POS } };
+#if HAS_INDX()
+        static_assert(is_in_wastebin_area(base_pos));
+        return apply_nozzle_cleaner_offset(base_pos);
+#else
+        return base_pos;
+#endif
+    }
 
     case ParkPosition::loadcell_selftest:
         return ParkingPosition(XYZ_LOADCELL_SELFTEST_POINT);
 
+    case ParkPosition::filament_change: {
+        static constexpr xyz_pos_t filament_change_point { { XYZ_NOZZLE_PARK_POINT_M600 } };
+        static constexpr ParkingPosition base_pos { filament_change_point.x, filament_change_point.y, mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE_M600, .absolute = filament_change_point.z } };
+#if HAS_INDX()
+        static_assert(is_in_wastebin_area(filament_change_point.x, filament_change_point.y));
+        return apply_nozzle_cleaner_offset(base_pos);
+#else
+        return base_pos;
+#endif
+    }
+
+    case ParkPosition::nozzle_cleaning_failed: {
+        static constexpr xyz_pos_t cleaning_failed_point { { XYZ_NOZZLE_CLEANINIG_FAILED_POINT } };
+        static constexpr ParkingPosition base_pos { cleaning_failed_point.x, cleaning_failed_point.y, cleaning_failed_point.z };
+#if HAS_INDX()
+        static_assert(is_in_wastebin_area(cleaning_failed_point.x, cleaning_failed_point.y));
+        return apply_nozzle_cleaner_offset(base_pos);
+#else
+        return base_pos;
+#endif
+    }
+    case ParkPosition::print_end: {
+        static constexpr xyz_pos_t print_end_point { { XYZ_NOZZLE_PARK_POINT_ON_PRINT_END } };
+        static constexpr ParkingPosition base_pos { print_end_point.x, print_end_point.y, print_end_point.z };
+#if HAS_INDX()
+        // The print end park position is over the wastebin, which needs the calibrated nozzle cleaner offsets applied
+        static_assert(is_in_wastebin_area(print_end_point.x, print_end_point.y));
+        return apply_nozzle_cleaner_offset(base_pos);
+#else
+        return base_pos;
+#endif
+    }
+
 #if HAS_WASTEBIN_FILL_TRACKING()
     case ParkPosition::empty_wastebin:
         // Park at the INDX home corner (X to the min endstop, Y all the way back), clear of the
-        // cleaner which sits at high X, and drop the bed low (Z at least 160, or 20 above tall
-        // prints) so there is room to reach in and empty the cleaner.
-        return ParkingPosition { 0.0f, static_cast<float>(Y_MAX_POS), ParkingPosition::AtLeast { .above_print = 20, .absolute = 160 } };
+        // cleaner which sits at high X, and drop the bed near its lowest (Z within 50 of Z_MAX, or
+        // 20 above tall prints) so there is room to reach in and empty the cleaner.
+        return ParkingPosition { 0.0f, static_cast<float>(Y_MAX_POS), ParkingPosition::AtLeast { .above_print = 20, .absolute = Z_MAX_POS - 50 } };
+#endif
+
+#if HAS_NOZZLE_CLEANER() || HAS_NOZZLE_CLEANER_LITE()
+    case ParkPosition::nozzle_cleaner_approach:
+    #if HAS_INDX()
+        return ParkingPosition { .x = X_WASTEBIN_SAFE_POINT, .y = Y_BRUSH_AVOID_POINT, .z = ParkingPosition::AtLeast { .above_print = 3.0f } };
+    #else
+        // No caller reaches these positions on other variants yet.
+        // Fill in the coordinates when one appears.
+        return {};
+    #endif
+
+    case ParkPosition::nozzle_cleaner_exit:
+    #if HAS_INDX()
+        return ParkingPosition { .x = X_WASTEBIN_SAFE_POINT, .y = Y_WASTEBIN_SAFE_POINT, .z = ParkingPosition::AtLeast { .above_print = 3.0f } };
+    #else
+        return {};
+    #endif
 #endif
 
 #if HAS_TOOLCHANGER()
     case ParkPosition::tool_park:
-        if (auto *t = std::get_if<VirtualToolIndex>(&tool)) {
-            const auto xy = prusa_toolchanger.tool_park_position(t->to_physical());
+        if (auto *t = std::get_if<PhysicalToolIndex>(&tool)) {
+            const auto xy = prusa_toolchanger.tool_park_position(*t);
             return { .x = xy.x, .y = xy.y, .z = mapi::ParkingPosition::AtLeast { .above_print = 2 } };
         } else {
             // User-reachable, don't do a BSOD
@@ -176,7 +267,7 @@ namespace {
             : args_(args)
             , destination_z_(destination_z) {
             remaining_distance_to_retract_mm_ = args.retract_distance_mm;
-            assert(remaining_distance_to_retract_mm_ >= 0);
+            debug_assert(remaining_distance_to_retract_mm_ >= 0);
         }
 
     public:
@@ -198,7 +289,7 @@ namespace {
             if (remaining_distance_to_retract_mm_ > 0 && delta_distance_mm > 0) {
 
                 /// Distance we would be able to retract during the full move considering the feedrates
-                const float maximum_move_retraction_mm = delta_distance_mm / fr_mm_s * args_.retract_fr_mm_s;
+                const float maximum_move_retraction_mm = delta_distance_mm / fr_mm_s * args_.evaluate_feedrate();
 
                 const float distance_to_retract_mm = std::min(maximum_move_retraction_mm, remaining_distance_to_retract_mm_);
                 remaining_distance_to_retract_mm_ -= distance_to_retract_mm;
@@ -273,7 +364,7 @@ namespace {
         /// Retracts the remaining distance, in case the retraction was not fully done during the standard moves
         void finalize_retraction() {
             if (remaining_distance_to_retract_mm_ > 0) {
-                mapi::extruder_move(-remaining_distance_to_retract_mm_, args_.retract_fr_mm_s);
+                mapi::extruder_move(-remaining_distance_to_retract_mm_, args_.evaluate_feedrate());
             }
         }
 

@@ -8,6 +8,7 @@
 #include "corexy_transform.hpp"
 
 // sanity checks
+#include <option/has_crash_detection.h>
 #include <option/has_precise_homing.h>
 #if HAS_PRECISE_HOMING()
     #error "HAS_PRECISE_HOMING_COREXY() is mutually exclusive with HAS_PRECISE_HOMING()"
@@ -27,7 +28,7 @@
 #include <lcd/ultralcd.h>
 #include <configuration.hpp> // for axis_home_*_diff
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include "feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -49,6 +50,12 @@ using std::pair;
 #endif
 
 #pragma GCC diagnostic warning "-Wdouble-promotion"
+
+// Outward measurement flex allowance (in phase cycles) for long, flexing gantries. Defined per
+// printer in Configuration_<printer>_adv.h; rigid frames leave it at 0.
+#ifndef XY_HOMING_GANTRY_FLEX_CYCLES
+    #define XY_HOMING_GANTRY_FLEX_CYCLES 0
+#endif
 
 namespace {
 // AB phase grid type for type checking
@@ -141,7 +148,7 @@ static constexpr int16_t phase_per_ustep(const AxisEnum axis) {
     // Originally, we read the microstep configuration from the driver; this no
     // longer make sense with 256 microsteps.
     // Thus, we use the printer defaults instead of stepper_axis(axis).microsteps();
-    assert(axis <= AxisEnum::Z_AXIS);
+    debug_assert(axis <= AxisEnum::Z_AXIS);
     static const int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
     return 256 / MICROSTEPS[axis];
 };
@@ -212,7 +219,7 @@ public:
         : other_stepper(stepper_axis(other_axis)) {
         // check for, but disallow nesting
         ++nesting;
-        assert(nesting == 1);
+        debug_assert(nesting == 1);
 
         planner.synchronize();
         other_orig_cur = other_stepper.rms_current();
@@ -274,11 +281,8 @@ static bool measure_axis_distance(const AxisEnum axis, const ab_steps_t origin_s
     target_steps[axis] += dist;
 
     MachinePosXYZE target_mm;
-    {
-        MachinePosXY target_xy_mm;
-        corexy_ab_to_xy(target_steps.xy(), target_xy_mm);
-        target_mm.set(target_xy_mm);
-    }
+    target_mm.set(corexy_ab_to_xy(target_steps.xy()));
+
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
         target_mm[i] = initial_mm[i];
     }
@@ -297,7 +301,7 @@ static bool measure_axis_distance(const AxisEnum axis, const ab_steps_t origin_s
     }
 
     // prepare stepper for the move
-    assert(MeasurementGuard::is_active());
+    debug_assert(MeasurementGuard::is_active());
     const sensorless_t stealth_states = start_sensorless_homing_per_axis(axis);
     auto &axis_stepper = stepper_axis(axis);
     const int32_t axis_orig_cur = axis_stepper.rms_current();
@@ -439,7 +443,7 @@ static float travel_accel_distance(const float fr_mm_s) {
 }
 
 /// Maximum allowed homing distance difference per axis (max - min)
-static constexpr float axis_home_max_abs_diff(const AxisEnum axis) {
+static float axis_home_max_abs_diff(const AxisEnum axis) {
     return axis_home_max_diff(axis) - axis_home_min_diff(axis);
 }
 
@@ -479,6 +483,12 @@ static bool measure_phase_cycles(const AxisEnum axis, const ab_grid_t &ab_off, x
         measure_bump_max_err_mm);
     const int32_t measure_eps_steps = static_cast<int32_t>(home_max_diff_mm / planner.mm_per_step[axis]
         + phase_cycle_steps(axis) + measure_bump_max_err_steps);
+    // Long gantries (e.g. XL) flex away from the endstop when the carriage is pushed out before
+    // measuring, lengthening the measured travel by a small, roughly constant amount. Absorb this
+    // in the late-trigger (max) bound of both directions, keeping the early-trigger (min) bound
+    // tight. 0 on rigid frames.
+    const int32_t measure_eps_steps_max = measure_eps_steps
+        + static_cast<int32_t>(XY_HOMING_GANTRY_FLEX_CYCLES * phase_cycle_steps(axis));
     const int32_t measure_acc_steps = static_cast<int32_t>(travel_accel_distance(fr_mm_s)
         * std::numbers::sqrt2_v<float> / planner.mm_per_step[axis]);
 
@@ -493,10 +503,10 @@ static bool measure_phase_cycles(const AxisEnum axis, const ab_grid_t &ab_off, x
 
         // measure distance B-/B+
         for (uint8_t dir = 0; dir != 2;) {
-            const int32_t dist_steps = (exp_dist_steps[dir] + measure_eps_steps + measure_acc_steps) * (dir ? measure_dir : -measure_dir);
+            const int32_t dist_steps = (exp_dist_steps[dir] + measure_eps_steps_max + measure_acc_steps) * (dir ? measure_dir : -measure_dir);
             const bool hit = measure_axis_distance(axis, origin_steps, dist_steps, p_steps[slot][dir], p_dist[slot][dir], fr_mm_s);
             const int32_t exp_dir_steps_min = exp_dist_steps[dir] - measure_eps_steps;
-            const int32_t exp_dir_steps_max = exp_dist_steps[dir] + measure_eps_steps;
+            const int32_t exp_dir_steps_max = exp_dist_steps[dir] + measure_eps_steps_max;
 
             // record all probe metric data, split due to maximum size requirements
             const uint32_t ts = ticks_us();
@@ -1014,7 +1024,7 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
     const size_t walk_cycles = static_cast<size_t>(std::floor(walk_dist / (phase_cycle_steps(walk_axis) * planner.mm_per_step[walk_axis] * std::numbers::sqrt2_v<float>)));
     const size_t walk_period = walk_cycles * 2;
     const size_t measure_probes = std::max<size_t>(walk_period, XY_HOMING_ORIGIN_BUMP_RETRIES * 2);
-    assert(measure_probes >= 3 && measure_probes < 128);
+    debug_assert(measure_probes >= 3 && measure_probes < 128);
 
     // absolute measure limit distances
     static_assert(XY_HOMING_ORIGIN_OFFSET > axis_home_max_diff(walk_axis) * 2);
@@ -1148,10 +1158,10 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
 
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
     crash_s.not_for_replay();
     Crash_Temporary_Deactivate ctd;
-    #endif /*ENABLED(CRASH_RECOVERY)*/
+    #endif
 
     // disable endstops locally
     const bool endstops_enabled = endstops.is_enabled();
@@ -1184,10 +1194,10 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
 
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     crash_s.not_for_replay();
     Crash_Temporary_Deactivate ctd;
-#endif /*ENABLED(CRASH_RECOVERY)*/
+#endif
 
     // disable endstops locally
     const bool endstops_enabled = endstops.is_enabled();
@@ -1340,8 +1350,7 @@ bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
         c_ab[X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS] * phase_cycle_steps(B_AXIS) * -X_HOME_DIR
     };
 
-    MachinePosXY c_mm;
-    corexy_ab_to_xy(c_ab_steps, c_mm);
+    const MachinePosXY c_mm = corexy_ab_to_xy(c_ab_steps);
 
     {
         auto target = planner.get_machine_position_mm();

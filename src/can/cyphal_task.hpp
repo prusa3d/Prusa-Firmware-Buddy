@@ -19,6 +19,7 @@
 #include <utils/atomic_circular_queue.hpp>
 
 #include <uavcan/time/Synchronization_1_0.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -368,8 +369,8 @@ public:
         if (period_us == 0) {
             timesync.period_us = 0;
         } else {
-            assert(period_us >= TimeSync::period_min_us);
-            assert(period_us <= TimeSync::period_max_us);
+            debug_assert(period_us >= TimeSync::period_min_us);
+            debug_assert(period_us <= TimeSync::period_max_us);
             timesync.period_us = period_us;
         }
     }

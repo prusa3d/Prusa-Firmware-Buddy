@@ -6,7 +6,6 @@
 #include <optional>
 #include <numeric>
 #include <limits>
-#include <cassert>
 #include <cmath>
 #include <atomic>
 #include <expected>
@@ -186,7 +185,7 @@ public:
     void StoreSample(uint32_t time_us, float currentZ, float currentLoad);
 
     /// Run the analysis and return its result
-    Result Analyse(bool is_nozzle_clean = false);
+    Result Analyse(bool check_angle_after);
 
     /// Clear the analysis window
     void Reset() {
@@ -228,11 +227,12 @@ public:
     /// pre-compression line after accounting for raise time, plus some margin.
     static constexpr float analysisLookahead = analysisBaselineTime + analysisDecompressionGap + analysisExpectedRaiseTime;
 
-    /// A gap between two consecutive samples larger than this many sampling
-    /// intervals (e.g. a puppy reset dropping samples) corrupts the index-based
-    /// time axis; such a probe is failed and retried. Small gaps (1-2 dropped
-    /// samples) are tolerated.
-    static constexpr float maxSampleGapFactor = 4.0f;
+    /// A gap larger than this many sampling intervals corrupts the index-based
+    /// time axis, so such a probe is failed and retried. Sized to tolerate the
+    /// dwarf deglitch filter's worst-case reverting-glitch gap (loadcell_deglitcher.hpp,
+    /// MAX_SKIPPED) plus jitter, while still catching real transport holes
+    /// (e.g. puppy reset), which lose far more samples.
+    static constexpr float maxSampleGapFactor = 5.0f;
 
     /// Currently recorded samples (moving window).
     CircleBufferBaseT<Record> &window;
@@ -313,7 +313,7 @@ public:
 
     /// Calculates the analysisStart and analysisEnd features.
     ///
-    /// Returns true if we have enough data in the window. False otherwise.
+    /// Fails if there is not enough data in the window.
     std::expected<void, AnalysisError> CalculateAnalysisRange(Features &features);
 
     bool CalculateLoadLineApproximationFeatures(Features &features);
@@ -361,7 +361,7 @@ public:
      * @note This function is auto-generated based on trained models.
      *       Hand-made changes will be lost (so don't make them).
      */
-    bool HasOutOfRangeFeature(Features &features, const char **feature, float *value, bool is_nozzle_clean = false) const;
+    bool HasOutOfRangeFeature(Features &features, const char **feature, float *value, bool check_angle_after) const;
 
 protected:
     ProbeAnalysisBase(CircleBufferBaseT<Record> &window, float loadDelay, int skipBorderSamples)

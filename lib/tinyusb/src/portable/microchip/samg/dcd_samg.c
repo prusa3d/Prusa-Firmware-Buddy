@@ -52,37 +52,31 @@ typedef struct
 // Endpoint 0-5, each can only be either OUT or In
 xfer_desc_t _dcd_xfer[EP_COUNT];
 
-void xfer_epsize_set(xfer_desc_t* xfer, uint16_t epsize)
-{
+TU_ATTR_ALWAYS_INLINE static inline void xfer_epsize_set(xfer_desc_t* xfer, uint16_t epsize) {
   xfer->epsize = epsize;
 }
 
-void xfer_begin(xfer_desc_t* xfer, uint8_t * buffer, uint16_t total_bytes)
-{
+TU_ATTR_ALWAYS_INLINE static inline void xfer_begin(xfer_desc_t* xfer, uint8_t * buffer, uint16_t total_bytes) {
   xfer->buffer     = buffer;
   // xfer->ff         = NULL; // TODO support dcd_edpt_xfer_fifo API
   xfer->total_len  = total_bytes;
   xfer->actual_len = 0;
 }
 
-void xfer_end(xfer_desc_t* xfer)
-{
+TU_ATTR_ALWAYS_INLINE static inline void xfer_end(xfer_desc_t* xfer) {
   xfer->buffer     = NULL;
   // xfer->ff         = NULL; // TODO support dcd_edpt_xfer_fifo API
   xfer->total_len  = 0;
   xfer->actual_len = 0;
 }
 
-uint16_t xfer_packet_len(xfer_desc_t* xfer)
-{
+TU_ATTR_ALWAYS_INLINE static inline uint16_t xfer_packet_len(xfer_desc_t* xfer) {
   // also cover zero-length packet
   return tu_min16(xfer->total_len - xfer->actual_len, xfer->epsize);
 }
 
-void xfer_packet_done(xfer_desc_t* xfer)
-{
+TU_ATTR_ALWAYS_INLINE static inline void xfer_packet_done(xfer_desc_t* xfer) {
   uint16_t const xact_len = xfer_packet_len(xfer);
-
   xfer->buffer += xact_len;
   xfer->actual_len += xact_len;
 }
@@ -90,19 +84,15 @@ void xfer_packet_done(xfer_desc_t* xfer)
 //------------- Transaction helpers -------------//
 
 // Write data to EP FIFO, return number of written bytes
-static void xact_ep_write(uint8_t epnum, uint8_t* buffer, uint16_t xact_len)
-{
-  for(uint16_t i=0; i<xact_len; i++)
-  {
+static void xact_ep_write(uint8_t epnum, uint8_t* buffer, uint16_t xact_len) {
+  for(uint16_t i=0; i<xact_len; i++) {
     UDP->UDP_FDR[epnum] = (uint32_t) buffer[i];
   }
 }
 
 // Read data from EP FIFO
-static void xact_ep_read(uint8_t epnum, uint8_t* buffer, uint16_t xact_len)
-{
-  for(uint16_t i=0; i<xact_len; i++)
-  {
+static void xact_ep_read(uint8_t epnum, uint8_t* buffer, uint16_t xact_len) {
+  for(uint16_t i=0; i<xact_len; i++) {
     buffer[i] = (uint8_t) UDP->UDP_FDR[epnum];
   }
 }
@@ -112,24 +102,24 @@ static void xact_ep_read(uint8_t epnum, uint8_t* buffer, uint16_t xact_len)
 #define CSR_NO_EFFECT_1_ALL (UDP_CSR_RX_DATA_BK0 | UDP_CSR_RX_DATA_BK1 | UDP_CSR_STALLSENT | UDP_CSR_RXSETUP | UDP_CSR_TXCOMP)
 
 // Per Specs: CSR need synchronization each write
-static inline void csr_write(uint8_t epnum, uint32_t value)
-{
+TU_ATTR_ALWAYS_INLINE static inline void csr_write(uint8_t epnum, uint32_t value) {
   uint32_t const csr = value;
   UDP->UDP_CSR[epnum] = csr;
 
   volatile uint32_t nop_count;
-  for (nop_count = 0; nop_count < 20; nop_count ++) __NOP();
+  for (nop_count = 0; nop_count < 20; nop_count ++) {
+    __NOP();
+  }
 }
 
 // Per Specs: CSR need synchronization each write
-static inline void csr_set(uint8_t epnum, uint32_t mask)
+TU_ATTR_ALWAYS_INLINE static inline void csr_set(uint8_t epnum, uint32_t mask)
 {
   csr_write(epnum, UDP->UDP_CSR[epnum] | CSR_NO_EFFECT_1_ALL | mask);
 }
 
 // Per Specs: CSR need synchronization each write
-static inline void csr_clear(uint8_t epnum, uint32_t mask)
-{
+TU_ATTR_ALWAYS_INLINE static inline void csr_clear(uint8_t epnum, uint32_t mask) {
   csr_write(epnum, (UDP->UDP_CSR[epnum] | CSR_NO_EFFECT_1_ALL) & ~mask);
 }
 
@@ -155,10 +145,13 @@ static void bus_reset(void)
 }
 
 // Initialize controller to device mode
-void dcd_init (uint8_t rhport)
-{
+bool dcd_init(uint8_t rhport, const tusb_rhport_init_t* rh_init) {
+  (void) rhport;
+  (void) rh_init;
+
   tu_memclr(_dcd_xfer, sizeof(_dcd_xfer));
   dcd_connect(rhport);
+  return true;
 }
 
 // Enable device interrupt
@@ -182,7 +175,7 @@ void dcd_set_address (uint8_t rhport, uint8_t dev_addr)
   (void) dev_addr;
 
   // Response with zlp status
-  dcd_edpt_xfer(rhport, 0x80, NULL, 0);
+  dcd_edpt_xfer(rhport, 0x80, NULL, 0, false);
 
   // DCD can only set address after status for this request is complete.
   // do it at dcd_edpt0_status_complete()
@@ -277,6 +270,19 @@ bool dcd_edpt_open (uint8_t rhport, tusb_desc_endpoint_t const * ep_desc)
   return true;
 }
 
+bool dcd_edpt_iso_alloc(uint8_t rhport, uint8_t ep_addr, uint16_t largest_packet_size) {
+  (void)rhport;
+  (void)ep_addr;
+  (void)largest_packet_size;
+  return false;
+}
+
+bool dcd_edpt_iso_activate(uint8_t rhport, const tusb_desc_endpoint_t *desc_ep) {
+  (void)rhport;
+  (void)desc_ep;
+  return false;
+}
+
 void dcd_edpt_close_all (uint8_t rhport)
 {
   (void) rhport;
@@ -284,8 +290,9 @@ void dcd_edpt_close_all (uint8_t rhport)
 }
 
 // Submit a transfer, When complete dcd_event_xfer_complete() is invoked to notify the stack
-bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes)
+bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   (void) rhport;
 
   uint8_t const epnum = tu_edpt_number(ep_addr);
@@ -311,8 +318,9 @@ bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t 
 }
 
 #if 0 // TODO support dcd_edpt_xfer_fifo API
-bool dcd_edpt_xfer_fifo (uint8_t rhport, uint8_t ep_addr, tu_fifo_t * ff, uint16_t total_bytes)
+bool dcd_edpt_xfer_fifo(uint8_t rhport, uint8_t ep_addr, tu_fifo_t * ff, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   (void) rhport;
   return true;
 }
@@ -344,8 +352,8 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
   csr_clear(epnum, UDP_CSR_FORCESTALL_Msk);
 
   // must also reset EP to clear data toggle
-  UDP->UDP_RST_EP |= (1 << epnum);
-  UDP->UDP_RST_EP &= ~(1 << epnum);
+  UDP->UDP_RST_EP |= (1u << epnum);
+  UDP->UDP_RST_EP &= ~(1u << epnum);
 }
 
 //--------------------------------------------------------------------+
@@ -428,9 +436,8 @@ void dcd_int_handler(uint8_t rhport)
         {
           // write to EP fifo
 #if 0 // TODO support dcd_edpt_xfer_fifo
-          if (xfer->ff)
-          {
-            tu_fifo_read_n_const_addr_full_words(xfer->ff, (void *) &UDP->UDP_FDR[epnum], xact_len);
+          if (xfer->ff) {
+            tu_fifo_read_n_access_mode(xfer->ff, (void *) &UDP->UDP_FDR[epnum], xact_len, true);
           }
           else
 #endif
@@ -463,9 +470,8 @@ void dcd_int_handler(uint8_t rhport)
 
         // Read from EP fifo
 #if 0 // TODO support dcd_edpt_xfer_fifo API
-        if (xfer->ff)
-        {
-          tu_fifo_write_n_const_addr_full_words(xfer->ff, (const void *) &UDP->UDP_FDR[epnum], xact_len);
+        if (xfer->ff) {
+          tu_fifo_write_n_access_mode(xfer->ff, (const void *) &UDP->UDP_FDR[epnum], xact_len, true);
         }
         else
 #endif
@@ -496,5 +502,4 @@ void dcd_int_handler(uint8_t rhport)
     }
   }
 }
-
 #endif

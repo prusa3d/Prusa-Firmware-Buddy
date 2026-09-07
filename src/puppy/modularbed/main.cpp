@@ -69,7 +69,7 @@ int main(void) {
     // initialize HAL
     HAL_StatusTypeDef res = HAL_Init();
     (void)res;
-    assert(HAL_OK == res);
+    debug_assert(HAL_OK == res);
     hal::System::SystemClock_Config();
 
     __libc_init_array();

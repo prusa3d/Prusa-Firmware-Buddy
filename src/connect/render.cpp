@@ -5,6 +5,7 @@
 #include <segmented_json_macros.h>
 #include <lfn.h>
 #include <filename_type.hpp>
+#include <buddy/filename_defs.hpp>
 #include <filepath_operation.h>
 #include <timing.h>
 #include <state/printer_state.hpp>
@@ -23,7 +24,6 @@
     #include <feature/chamber_filtration/chamber_filtration.hpp>
 #endif
 
-#include <cassert>
 #include <cstring>
 #include <cinttypes>
 
@@ -31,6 +31,7 @@
 #include <mbedtls/base64.h>
 
 #include <option/has_mmu2.h>
+#include <bsod/bsod.h>
 
 using json::JsonOutput;
 using json::JsonResult;
@@ -446,7 +447,7 @@ namespace {
                             JSON_FIELD_STR("state", "PAUSED") JSON_COMMA;
                         }
                         // The JobInfo doesn't claim the buffer, so we get it to store the path.
-                        assert(params.job_path() != nullptr);
+                        debug_assert(params.job_path() != nullptr);
                         if (state.has_stat) {
                             JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                             JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
@@ -683,21 +684,21 @@ namespace {
 
     JsonResult render_msg(size_t, JsonOutput &, const RenderState &, const Sleep &) {
         // Sleep is handled on upper layers, not through renderer.
-        assert(0);
+        debug_assert(0);
         return JsonResult::Abort;
     }
 
     JsonResult render_msg(size_t, JsonOutput &, const RenderState &, const ReadCommand &) {
         // Not a message to send to server
-        assert(0);
+        debug_assert(0);
         return JsonResult::Abort;
     }
 
     std::optional<off_t> child_size(const char *base_path, const char *child_name) {
-        char path_buf[FILE_PATH_BUFFER_LEN];
+        char path_buf[filename_defs::path_buffer_size];
         int formatted = snprintf(path_buf, sizeof(path_buf), "%s/%s", base_path, child_name);
-        // Name didn't fit. That, in theory, should not happen, but better safe than sorry...
-        if (formatted >= FILE_NAME_BUFFER_LEN) {
+        // Path didn't fit. That, in theory, should not happen, but better safe than sorry...
+        if (formatted >= static_cast<int>(filename_defs::path_buffer_size)) {
             return {};
         }
         struct stat st = {};
@@ -804,7 +805,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     while ((buffer_size - written) >= (encoded_chunk_size + 1)) { // if there is space for another chunk (and ending \0)
         // read chunk of decoded data
         uint8_t dec_chunk[decoded_chunk_size] = { 0 };
-        size_t decoded_len = thumbnail_reader->read({ dec_chunk, decoded_chunk_size }).size();
+        size_t decoded_len = thumbnail_reader->read({ reinterpret_cast<std::byte *>(dec_chunk), decoded_chunk_size }).size();
         if (decoded_len != decoded_chunk_size) {
             // probably end of data, or error. Either way stop reading and send whatever was read till now.
             // if error happens while sending thumbnail, there is not much that can be done to signal that anyway.
@@ -814,7 +815,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
         [[maybe_unused]] size_t encoded_len;
         // note that mbedtls_base64_encode also writes ending zero, but we want to skip that
         [[maybe_unused]] auto res = mbedtls_base64_encode(buffer, encoded_chunk_size + 1, &encoded_len, dec_chunk, decoded_len);
-        assert(res == 0 && encoded_len == encoded_chunk_size); // should not fail, buffer should always be big enough
+        debug_assert(res == 0 && encoded_len == encoded_chunk_size); // should not fail, buffer should always be big enough
         written += encoded_chunk_size;
         buffer += encoded_chunk_size;
     }
@@ -986,7 +987,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
         case JsonResult::Abort:
             // We use only the primitive output functions and they are not
             // capable of returning Abort.
-            assert(0);
+            debug_assert(0);
             break;
         case JsonResult::Incomplete:
         case JsonResult::BufferTooSmall:
@@ -1098,7 +1099,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
             }
             break;
         case EventType::FileInfo: {
-            assert(event->path.has_value());
+            debug_assert(event->path.has_value());
             SharedPath spath = event->path.value();
             path = spath.path();
 
@@ -1132,16 +1133,16 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
             //   event needs to be resent), it results into the same values
             //   there.
             get_SFN_path(spath.path());
-            get_LFN(spath.name(), FILE_NAME_BUFFER_LEN, spath.path());
+            get_LFN(spath.name(), filename_defs::filename_buffer_size, spath.path());
             break;
         }
         case EventType::FileChanged: {
-            assert(event->path.has_value());
+            debug_assert(event->path.has_value());
             SharedPath spath = event->path.value();
             path = spath.path();
 
             get_SFN_path(spath.path());
-            get_LFN(spath.name(), FILE_NAME_BUFFER_LEN, spath.path());
+            get_LFN(spath.name(), filename_defs::filename_buffer_size, spath.path());
         }
         default:;
         }

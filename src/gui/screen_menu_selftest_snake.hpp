@@ -102,6 +102,8 @@ public:
     static constexpr const char *label { N_("Wizard") };
     ScreenMenuSTSWizard();
 
+    [[nodiscard]] static bool should_show();
+
     virtual void draw() override;
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 

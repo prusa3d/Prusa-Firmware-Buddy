@@ -10,6 +10,7 @@
 #include "../wui_api.h"
 #include "prusa_api_helpers.hpp"
 
+#include <buddy/filename_defs.hpp>
 #include <marlin_client.hpp>
 #include <common/path_utils.h>
 #include <transfers/monitor.hpp>
@@ -177,7 +178,7 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
         static const auto prefix = "/api/v1/files";
         static const size_t prefix_len = strlen(prefix);
         // We need both one SFN + one LFN in case of upload of a file.
-        char filename[FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN + prefix_len];
+        char filename[filename_defs::path_buffer_size + filename_defs::filename_buffer_size + prefix_len];
         if (!parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap, out)) {
             return Accepted::Accepted;
         }

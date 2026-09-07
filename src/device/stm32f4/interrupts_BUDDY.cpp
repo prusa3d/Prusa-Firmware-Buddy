@@ -24,7 +24,6 @@ TRACED_ISR(DMA1_Stream0_IRQHandler, HAL_DMA_IRQHandler, spi_handle_flash->hdmarx
 TRACED_ISR(DMA1_Stream7_IRQHandler, HAL_DMA_IRQHandler, spi_handle_flash->hdmatx);
 
 // SPI for LCD
-TRACED_ISR(DMA1_Stream3_IRQHandler, HAL_DMA_IRQHandler, spi_handle_lcd->hdmarx);
 TRACED_ISR(DMA1_Stream4_IRQHandler, HAL_DMA_IRQHandler, spi_handle_lcd->hdmatx);
 
 // UART for Trinamic driver

@@ -6,6 +6,7 @@
 #include <ranges>
 
 #include <onewire_master/onewire_master.hpp>
+#include <utils/byte_utils.hpp>
 
 namespace {
 
@@ -79,7 +80,7 @@ Sequence bit_tx_sequence(bool bit) {
     };
 }
 
-Sequence tx_sequence(std::span<const std::byte> tx) {
+Sequence tx_sequence(Bytes tx) {
     Sequence sequence;
 
     for (const auto byte : tx) {
@@ -116,7 +117,7 @@ Sequence bit_rx_sequence(bool bit) {
     };
 }
 
-Sequence rx_sequence(std::span<const std::byte> rx) {
+Sequence rx_sequence(Bytes rx) {
     Sequence sequence;
 
     for (const auto byte : rx) {

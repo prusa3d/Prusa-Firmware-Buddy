@@ -2,6 +2,8 @@
 
 #include <bitset>
 #include <raii/scope_guard.hpp>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 using namespace openprinttag;
 
@@ -58,7 +60,7 @@ OPTBackend_NFCV::FieldGuard::~FieldGuard() {
 OPTBackend_NFCV::OPTBackend_NFCV(nfcv::ReaderWriterInterface &reader, const Config &initial_config)
     : reader(reader)
     , discoveries_limiter(initial_config.discovery_interval_ms) {
-    assert(reader.antenna_count() <= MAX_ANTENNA_COUNT);
+    debug_assert(reader.antenna_count() <= MAX_ANTENNA_COUNT);
     set_config(initial_config);
     reset_state();
 }
@@ -95,11 +97,11 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::io_op(TagID tag, PayloadPos start, s
     return {};
 }
 
-OPTBackend::IOResult<void> OPTBackend_NFCV::read(TagID tag, PayloadPos start, const std::span<std::byte> &buffer) {
+OPTBackend::IOResult<void> OPTBackend_NFCV::read(TagID tag, PayloadPos start, const WritableBytes &buffer) {
     // Default lambda capture doesn't fit the stdext::inplace_function so we need a helper to pass the data correctly
     struct {
         PayloadPos start;
-        const std::span<std::byte> &buffer;
+        const WritableBytes &buffer;
     } ref = {
         .start = start,
         .buffer = buffer,
@@ -109,7 +111,7 @@ OPTBackend::IOResult<void> OPTBackend_NFCV::read(TagID tag, PayloadPos start, co
     });
 }
 
-nfcv::Result<void> OPTBackend_NFCV::read_impl(const TagData &tag_data, PayloadPos start, const std::span<std::byte> &buffer) {
+nfcv::Result<void> OPTBackend_NFCV::read_impl(const TagData &tag_data, PayloadPos start, const WritableBytes &buffer) {
     auto block_index = start / tag_data.block_size;
     auto it = buffer.begin();
     int32_t in_block_byte_offset = start % tag_data.block_size;
@@ -129,18 +131,18 @@ nfcv::Result<void> OPTBackend_NFCV::read_impl(const TagData &tag_data, PayloadPo
     return {};
 }
 
-OPTBackend::IOResult<void> OPTBackend_NFCV::write(TagID tag, PayloadPos start, const std::span<const std::byte> &buffer) {
+OPTBackend::IOResult<void> OPTBackend_NFCV::write(TagID tag, PayloadPos start, const Bytes &buffer) {
     // Default lambda capture doesn't fit the stdext::inplace_function so we need a helper to pass the data correctly
     struct {
         PayloadPos start;
-        const std::span<const std::byte> &buffer;
+        const Bytes &buffer;
     } ref = { .start = start, .buffer = buffer };
     return io_op(tag, start, buffer.size(), [this, &ref](const TagData &tag_data) { return write_impl(tag_data, ref.start, ref.buffer); });
 }
 
-nfcv::Result<void> OPTBackend_NFCV::write_impl(const TagData &tag_data, PayloadPos start, const std::span<const std::byte> &buffer) {
+nfcv::Result<void> OPTBackend_NFCV::write_impl(const TagData &tag_data, PayloadPos start, const Bytes &buffer) {
     std::array<std::byte, nfcv::MAX_BLOCK_SIZE_IN_BYTES> tmp_buf {};
-    const std::span<std::byte> tmp_buf_block_span { tmp_buf.data(), tag_data.block_size };
+    const WritableBytes tmp_buf_block_span { tmp_buf.data(), tag_data.block_size };
     auto source_it = buffer.begin();
 
     auto block_index = start / tag_data.block_size;
@@ -203,13 +205,13 @@ bool OPTBackend_NFCV::get_event(Event &e, uint32_t current_time_ms) {
         }
     }
 
-    assert(!events.isEmpty());
+    debug_assert(!events.isEmpty());
 
     e = events.dequeue();
     return true;
 }
 
-OPTBackend::IOResult<size_t> OPTBackend_NFCV::get_tag_uid(TagID tag, const std::span<std::byte> &buffer) {
+OPTBackend::IOResult<size_t> OPTBackend_NFCV::get_tag_uid(TagID tag, const WritableBytes &buffer) {
     if (!is_valid(tag)) {
         return std::unexpected(IOError::invalid_id);
     }
@@ -504,7 +506,7 @@ void OPTBackend_NFCV::run_next_discovery() {
     // let's do the procedure until all the tags answer to Inventory command
     while (const auto inv_res = reader.inventory()) {
         const auto uid = inv_res.value();
-        assert(uid[nfcv::UID_MSB_INDEX] == nfcv::UID_MSB);
+        debug_assert(uid[nfcv::UID_MSB_INDEX] == nfcv::UID_MSB);
 
         // Prevent the tag to repeatedly answering to inventory (it will still answer to addressed commands (the rest of them))
         if (!reader.stay_quiet(uid).has_value()) {

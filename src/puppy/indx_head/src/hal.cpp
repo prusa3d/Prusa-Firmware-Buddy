@@ -89,6 +89,8 @@ void init_tim16();
 namespace hal::peripherals {
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
+DMA_HandleTypeDef hdma_i2c1_rx;
+DMA_HandleTypeDef hdma_i2c1_tx;
 I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
@@ -347,6 +349,10 @@ void hal::init_spi() {
 void hal::init_i2c() {
     using namespace peripherals;
 
+    // I2C runs its transfers over DMA (see hal_i2c.cpp). init_i2c() runs before
+    // init_adc(), so enable the DMA1 clock here too (idempotent).
+    __HAL_RCC_DMA1_CLK_ENABLE();
+
     static constexpr RCC_PeriphCLKInitTypeDef PeriphClkInit {
         .PeriphClockSelection = RCC_PERIPHCLK_I2C1,
         .HSIKerClockDivider = RCC_HSIKER_DIV1,
@@ -397,8 +403,41 @@ void hal::init_i2c() {
         bsod_system();
     }
 
+    // DMA1_Channel2 = I2C1_TX, DMA1_Channel3 = I2C1_RX. These share the
+    // dedicated DMA1_Channel2_3_IRQn vector (independent of the SPI DMA ISR).
+    hdma_i2c1_tx.Instance = DMA1_Channel2;
+    hdma_i2c1_tx.Init.Request = DMA_REQUEST_I2C1_TX;
+    hdma_i2c1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_i2c1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_i2c1_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_i2c1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_i2c1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_i2c1_tx.Init.Mode = DMA_NORMAL;
+    hdma_i2c1_tx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_i2c1_tx) != HAL_OK) {
+        bsod_system();
+    }
+    __HAL_LINKDMA(&hi2c1, hdmatx, hdma_i2c1_tx);
+
+    hdma_i2c1_rx.Instance = DMA1_Channel3;
+    hdma_i2c1_rx.Init.Request = DMA_REQUEST_I2C1_RX;
+    hdma_i2c1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_i2c1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_i2c1_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_i2c1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_i2c1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_i2c1_rx.Init.Mode = DMA_NORMAL;
+    hdma_i2c1_rx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_i2c1_rx) != HAL_OK) {
+        bsod_system();
+    }
+    __HAL_LINKDMA(&hi2c1, hdmarx, hdma_i2c1_rx);
+
     HAL_NVIC_SetPriority(I2C1_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(I2C1_IRQn);
+
+    HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, ISR_PRIORITY_DEFAULT, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 }
 
 void hal::init_adc() {
@@ -951,18 +990,24 @@ extern "C" void EXTI4_15_IRQHandler(void) {
 }
 
 extern "C" void HAL_GPIO_EXTI_Rising_Callback([[maybe_unused]] uint16_t gpio_pin) {
-    assert(gpio_pin == GPIO_PIN_0);
+    debug_assert(gpio_pin == GPIO_PIN_0);
     spi_task::notify_accel_data_ready();
 }
 
 extern "C" void HAL_GPIO_EXTI_Falling_Callback([[maybe_unused]] uint16_t gpio_pin) {
-    assert(gpio_pin == GPIO_PIN_4);
+    debug_assert(gpio_pin == GPIO_PIN_4);
     spi_task::notify_loadcell_data_ready();
 }
 
 extern "C" void DMA1_Channel1_IRQHandler(void) {
     using namespace hal::peripherals;
     HAL_DMA_IRQHandler(&hdma_adc1);
+}
+
+extern "C" void DMA1_Channel2_3_IRQHandler(void) {
+    using namespace hal::peripherals;
+    HAL_DMA_IRQHandler(&hdma_i2c1_tx);
+    HAL_DMA_IRQHandler(&hdma_i2c1_rx);
 }
 
 extern "C" void ADC1_IRQHandler(void) {
@@ -974,6 +1019,25 @@ extern "C" void HAL_ADC_ConvCpltCallback([[maybe_unused]] ADC_HandleTypeDef *had
     using namespace hal;
     if (current_adc_config == ADC_Config::INDUCTION_HEATER) {
         peripherals::adc_semaphore.release_from_isr();
+    }
+}
+
+extern "C" void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *hadc) {
+    // Root cause of the random "INDX stops answering Modbus" hang:
+    // The induction-heater ADC mode switching (config_adc_*, repeated
+    // HAL_ADC_Start_DMA/Stop_DMA in InductionHeater::measure) can occasionally
+    // leave the ADC converting while DMA is not draining -> overrun (OVR). The HAL
+    // clears the OVR flag and calls this callback but does NOT stop the
+    // conversions, so OVR is set again immediately and ADC1_IRQ re-fires forever.
+    // That ISR storm (priority 2) starves the lowest-priority SysTick and PendSV,
+    // freezing the FreeRTOS scheduler: the modbus task never runs again and the
+    // head stays mute until XBuddy hard-resets it.
+    //
+    // Break the storm at the source: disable the overrun interrupt. It is
+    // re-enabled cleanly by the next HAL_ADC_Start_DMA (config_adc_* runs every
+    // heater cycle), so the ADC self-recovers without a reset.
+    if (hadc == &hal::peripherals::hadc1 && (hadc->ErrorCode & HAL_ADC_ERROR_OVR) != 0U) {
+        __HAL_ADC_DISABLE_IT(hadc, ADC_IT_OVR);
     }
 }
 

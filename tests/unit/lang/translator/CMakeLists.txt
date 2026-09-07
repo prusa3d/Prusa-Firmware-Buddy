@@ -22,13 +22,12 @@ add_executable(
   # we need to add mo file generation to test files
   ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/provider.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/fnt-indices.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 
 add_dependencies(translator_tests translations_pofiles_dump)
 
-target_link_libraries(translator_tests Buddy::Lang::Translations)
+target_link_libraries(translator_tests font_data)
 
 # define required search paths
 target_include_directories(

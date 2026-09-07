@@ -1,29 +1,27 @@
 /// @file
 #pragma once
 
-#include "menu_item/menu_item_gcode_action.hpp"
-#include "screen_menu.hpp"
+#include <gui/basic_screen_menu.hpp>
+#include <gui/menu_item/menu_item_gcode_action.hpp>
 #include <option/has_phase_stepping.h>
 
 static_assert(HAS_PHASE_STEPPING(), "Do not #include me if you are not using me");
 
-using MI_PHASE_STEPPING_CALIBRATION = WithConstructorArgs<
-    MenuItemGcodeAction,
-    N_("Calibration"), "M1977"_tstr>;
+class MI_PHASE_STEPPING_CALIBRATION final : public MenuItemGcodeAction {
+public:
+    MI_PHASE_STEPPING_CALIBRATION();
+};
 
-using MI_PHASE_STEPPING_RESTORE_DEFAULTS = WithConstructorArgs<
-    MenuItemGcodeAction,
-    N_("Restore Defaults"), "M1977 D"_tstr>;
+class MI_PHASE_STEPPING_RESTORE_DEFAULTS final : public MenuItemGcodeAction {
+public:
+    MI_PHASE_STEPPING_RESTORE_DEFAULTS();
+};
 
-using ScreenMenuPhaseSteppingBase = ScreenMenu<
-    GuiDefaults::MenuFooter,
-    MI_RETURN,
+using ScreenMenuPhaseSteppingBase = BasicScreenMenu<
     MI_PHASE_STEPPING_CALIBRATION,
     MI_PHASE_STEPPING_RESTORE_DEFAULTS>;
 
 class ScreenMenuPhaseStepping final : public ScreenMenuPhaseSteppingBase {
 public:
-    ScreenMenuPhaseStepping()
-        : ScreenMenuPhaseSteppingBase(_("PHASE STEPPING")) {
-    }
+    ScreenMenuPhaseStepping();
 };

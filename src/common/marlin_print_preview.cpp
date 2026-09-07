@@ -4,7 +4,7 @@
 
 #include "marlin_print_preview.hpp"
 #include <M73_PE.h>
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 #include "client_response.hpp"
 #include "general_response.hpp"
 #include "marlin_server.hpp"
@@ -51,6 +51,57 @@
 #include <mmu2_toolchanger_common.hpp>
 #include <common/gcode/gcode_info_scan.hpp>
 #include <utils/variant_utils.hpp>
+#include <feature/compatibility_checks/filament_compatibility.hpp>
+
+namespace {
+
+/// !!! CHANGES FSM PHASE
+[[nodiscard]] bool confirm_filament_compatibility(FilamentType filament, const FilamentTypeParameters &params, VirtualToolIndex tool, bool assume_filament_already_inserted) {
+    buddy::filament_compatibility::CompatibilityReport report;
+    report.generate_noclear({
+        .filament = params,
+        .tools = tool,
+        .assume_filament_already_inserted = assume_filament_already_inserted,
+    });
+
+    PhasesPrintPreview phase;
+
+    switch (report.compatibility_level()) {
+
+    case buddy::compatibility_checks::CompatibilityLevel::fully_compatible:
+        return true;
+
+    case buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder:
+    case buddy::compatibility_checks::CompatibilityLevel::needs_user_approval:
+        phase = PhasesPrintPreview::filament_incompatible_warning;
+
+        break;
+
+    case buddy::compatibility_checks::CompatibilityLevel::fatal_incompatibility:
+        phase = PhasesPrintPreview::filament_incompatible_fatal;
+        break;
+    }
+
+    const fsm_print_preview::FilamentIncompatibleData data {
+        .encoded_filament = EncodedFilamentType { filament }.data,
+        .target_virtual_tool = tool.to_raw(),
+        .assume_filament_already_inserted = assume_filament_already_inserted,
+    };
+    marlin_server::fsm_change(phase, fsm::serialize_data(data));
+    switch (marlin_server::wait_for_response(phase)) {
+
+    case Response::Ignore:
+        return true;
+
+    case Response::Abort:
+        return false;
+
+    default:
+        bsod_unreachable();
+    }
+}
+
+} // namespace
 
 // would be nice to have option leave phase as it was
 // something like std::pair<enum {delete, leave, has_value },PhasesPrintPreview>
@@ -92,7 +143,9 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
     case State::wastebin_overfill_wait_user:
         return PhasesPrintPreview::wastebin_overfill_warning;
     case State::wastebin_emptying:
-        return std::nullopt; // silent wait for M1986
+        return PhasesPrintPreview::wastebin_emptying;
+    case State::wastebin_emptied_returning:
+        return PhasesPrintPreview::wastebin_emptied_returning;
 #endif
 
     case State::filament_not_inserted_wait_user:
@@ -146,24 +199,22 @@ Response IPrintPreview::GetResponse() {
     return phase ? marlin_server::get_response_from_phase(*phase) : Response::_none;
 }
 
-bool PrintPreview::check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, stdext::inplace_function<uint8_t(uint8_t)> gcode_extruder_getter) {
-    auto gcode_extruder = gcode_extruder_getter(physical_extruder);
-    if (gcode_extruder == no_gcode_value) {
-        return false; // if this physical_extruder is not printing, no need to check its filament
+static bool check_extruder_need_filament_load_tools_mapping(VirtualToolIndex virtual_tool) {
+    const auto gcode_tool = tools_mapping::to_gcode_tool(virtual_tool.to_raw());
+    if (gcode_tool == tools_mapping::no_tool) {
+        return false; // if this virtual_tool is not printing, no need to check its filament
     }
 
-    if (!GCodeInfo::getInstance().get_extruder_info(gcode_extruder).used()) {
+    if (!GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()) {
         return false;
     }
 
-    FilamentSensorState extruder_state = GetExtruderFSensor(physical_extruder) ? GetExtruderFSensor(physical_extruder)->get_state() : FilamentSensorState::Disabled;
-    FilamentSensorState side_state = GetSideFSensor(physical_extruder) ? GetSideFSensor(physical_extruder)->get_state() : FilamentSensorState::Disabled;
+    const auto physical_tool = virtual_tool.to_physical();
+
+    FilamentSensorState extruder_state = GetExtruderFSensor(physical_tool) ? GetExtruderFSensor(physical_tool)->get_state() : FilamentSensorState::Disabled;
+    FilamentSensorState side_state = GetSideFSensor(physical_tool) ? GetSideFSensor(physical_tool)->get_state() : FilamentSensorState::Disabled;
 
     return (extruder_state == FilamentSensorState::NoFilament) || (side_state == FilamentSensorState::NoFilament);
-}
-
-static bool check_extruder_need_filament_load_tools_mapping(uint8_t physical_extruder) {
-    return PrintPreview::check_extruder_need_filament_load(physical_extruder, tools_mapping::no_tool, tools_mapping::to_gcode_tool);
 }
 
 IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
@@ -206,8 +257,8 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
         }
 
         // no MMU, do regular check of filament presence in each tool
-        for (int8_t e = 0; e < EXTRUDERS; e++) { // e == physical_extruder
-            if (check_extruder_need_filament_load_tools_mapping(e)) {
+        for (auto virtual_tool : VirtualToolIndex::all()) {
+            if (check_extruder_need_filament_load_tools_mapping(virtual_tool)) {
                 return State::filament_not_inserted_wait_user;
             }
         }
@@ -215,61 +266,88 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
     }
 }
 
-static void queue_filament_load_gcodes() {
-    // Queue load filament gcode for every tool that doesn't have filament loaded
-    for (int8_t e = 0; e < EXTRUDERS; e++) { // e == physical_extruder
-        auto gcode_extruder = tools_mapping::to_gcode_tool(e);
-        if (gcode_extruder == tools_mapping::no_tool) {
-            // if this physical extruder is not printing, no need to load anything for it
-            continue;
-        }
-
-        // skip for tools that already have filament
-        if (!check_extruder_need_filament_load_tools_mapping(e)) {
-            continue;
-        }
-
-        const auto &extruder_info = GCodeInfo::getInstance().get_extruder_info(gcode_extruder);
-
-        // pass filament type from gcode, so that user doesn't have to select filament type
-        const char *filament_name = extruder_info.filament_name.data();
-
-#if HOTENDS > 1
-        // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
-        // We're loading a new filament, do not fallback into ad-hoc one -> extruder_index = std::nullopt
-        const auto target_temp = FilamentType::from_name(filament_name).parameters().nozzle_temperature;
-        thermalManager.setTargetHotend(target_temp, e);
-#endif
-        marlin_server::enqueue_gcode_printf("M701 S\"%s\" T%d W2", filament_name, e);
-    }
+namespace {
+enum class QueueFilamentGCodesMode : uint8_t {
+    load,
+    change
+};
 }
 
-static void queue_filament_change_gcodes() {
+/// !!! CHANGES FSM PHASE
+[[nodiscard]] static bool queue_filament_gcodes(QueueFilamentGCodesMode mode) {
     buddy::gcode_compatibility::CompatibilityReport report;
     report.generate_toolmapping_only({});
 
-    // Queue change filament gcode for every tool with mismatched filament type
-    for (auto gcode_tool : GcodeToolIndex::all()) {
-        // TODO: Consider spool join? Is it necessary? This will probbaly be pre-filled with defaults, so no spool join
-        const auto virtual_tool = stdext::get_optional<VirtualToolIndex>(gcode_tool.to_virtual());
-        if (!virtual_tool.has_value()) {
-            continue;
+    enum class Pass {
+        check,
+        enqueue,
+    };
+
+    // First check/confirm everything, only then enqueue the gcodes
+    for (const Pass pass : { Pass::check, Pass::enqueue }) {
+
+        // Queue change filament gcode for every tool with mismatched filament type
+        for (auto gcode_tool : GcodeToolIndex::all()) {
+            // TODO: Consider spool join? Is it necessary? This will probbaly be pre-filled with defaults, so no spool join
+            // WARNING: If spool join support is implemented, M1600 and M701 MUST switch from gcode tools to virtual tools
+            // M701 at the time of writing this comment does not have the "P" flag that would support it
+            const auto virtual_tool = stdext::get_optional<VirtualToolIndex>(gcode_tool.to_virtual());
+            if (!virtual_tool.has_value()) {
+                continue;
+            }
+
+            // pass filament type from gcode, so that user doesn't have to select filament type
+            const char *filament_to_load_name = GCodeInfo::getInstance().get_extruder_info(gcode_tool).filament_name.data();
+            const auto filament_to_load = FilamentType::from_gcode_param(filament_to_load_name).value_or(NoFilamentType {});
+
+            const char *gcode;
+            FilamentType filament_to_preheat;
+
+            switch (mode) {
+            case QueueFilamentGCodesMode::change:
+                if (!report.failed(buddy::gcode_compatibility::VirtualToolCheck::filament_type, *virtual_tool)) {
+                    continue;
+                }
+                // M1600 - change, R - add return option, U1 - Ask filament type if unknown, T - tool, Sxxx - preselect filament type
+                gcode = "M1600 S\"%s\" T%d R U1";
+
+                // We're changing -> preheat to the filament that's already inserted and needs to be unloaded
+                filament_to_preheat = FilamentType::for_tool(*virtual_tool);
+                break;
+
+            case QueueFilamentGCodesMode::load:
+                // skip for tools that already have filament
+                if (!check_extruder_need_filament_load_tools_mapping(*virtual_tool)) {
+                    continue;
+                }
+                // M701 - filament load
+                gcode = "M701 S\"%s\" T%d W2";
+
+                filament_to_preheat = filament_to_load;
+                break;
+            }
+
+            switch (pass) {
+
+            case Pass::check:
+                if (filament_to_load && !confirm_filament_compatibility(filament_to_load, filament_to_load.parameters(), *virtual_tool, false)) {
+                    return false;
+                }
+                break;
+
+            case Pass::enqueue:
+                // Start preheating all tools in parallel to speed up the filament changes
+                if (filament_to_preheat) {
+                    thermalManager.setTargetHotend(filament_to_preheat.parameters().nozzle_temperature, virtual_tool->to_physical());
+                }
+
+                marlin_server::enqueue_gcode_printf(gcode, filament_to_load_name, gcode_tool.to_raw());
+                break;
+            }
         }
-
-        if (!report.failed(buddy::gcode_compatibility::VirtualToolCheck::filament_type, *virtual_tool)) {
-            continue;
-        }
-
-        // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
-        auto temp_old = config_store().get_filament_type(*virtual_tool).parameters().nozzle_temperature;
-        thermalManager.setTargetHotend(temp_old, virtual_tool->to_physical());
-
-        // pass filament type from gcode, so that user doesn't have to select filament type
-        const char *filament_name = GCodeInfo::getInstance().get_extruder_info(gcode_tool).filament_name.data();
-
-        // M1600 - change, R - add return option, U1 - Ask filament type if unknown, T - tool, Sxxx - preselect filament type, P - do not use toolmapping
-        marlin_server::enqueue_gcode_printf("M1600 S\"%s\" T%d R U1 P", filament_name, virtual_tool->to_raw());
     }
+
+    return true;
 }
 
 IPrintPreview::State PrintPreview::stateFromFilamentType() const {
@@ -563,6 +641,15 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
 
     case State::wastebin_emptying:
+        // The empty-the-bin prompt (a Warning FSM, drawn over us) only comes up once M1986 is done
+        // parking, so its appearance marks the handover to the trip back.
+        if (marlin_server::is_warning_active(WarningType::NozzleCleanerManualEmpty)) {
+            ChangeState(State::wastebin_emptied_returning);
+            break;
+        }
+        [[fallthrough]];
+
+    case State::wastebin_emptied_returning:
         // M1986 runs as a gcode; wait for the gcode queue to drain before continuing.
         if (marlin_server::is_processing()) {
             break;
@@ -584,8 +671,12 @@ PrintPreview::Result PrintPreview::Loop() {
             return Result::Abort;
 
         case Response::Yes:
+            if (!queue_filament_gcodes(QueueFilamentGCodesMode::load)) {
+                // The function changed the FSM state, reassert
+                ChangeState(State::filament_not_inserted_wait_user);
+                break;
+            }
             ChangeState(State::filament_not_inserted_load);
-            queue_filament_load_gcodes();
             break;
 
         default:
@@ -636,8 +727,12 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
 
         case Response::Change:
+            if (!queue_filament_gcodes(QueueFilamentGCodesMode::change)) {
+                // The function changed the FSM state, reassert
+                ChangeState(State::wrong_filament_wait_user);
+                break;
+            }
             ChangeState(State::wrong_filament_change);
-            queue_filament_change_gcodes();
             break;
 
         case Response::Ok:
@@ -710,7 +805,7 @@ PrintPreview::Result PrintPreview::Loop() {
             compatibility.generate_toolmapping_only({});
 
             // we can skip tools mapping if there is not warning/error in global tools mapping
-            if ((skip_if_able >= marlin_server::PreviewSkipIfAble::tool_mapping) && compatibility.failure_severity() == HWCheckSeverity::Ignore) {
+            if ((skip_if_able >= marlin_server::PreviewSkipIfAble::tool_mapping) && compatibility.compatibility_level() == buddy::compatibility_checks::CompatibilityLevel::fully_compatible) {
                 ChangeState(State::done);
             } else {
                 ChangeState(State::tools_mapping_wait_user);
@@ -755,6 +850,7 @@ PrintPreview::Result PrintPreview::stateToResult() const {
 #if HAS_WASTEBIN_FILL_TRACKING()
     case State::wastebin_overfill_wait_user:
     case State::wastebin_emptying:
+    case State::wastebin_emptied_returning:
 #endif
     case State::wrong_filament_change:
     case State::wrong_filament_wait_user:
@@ -851,19 +947,21 @@ IPrintPreview::State PrintPreview::stateFromPrinterCheck() {
         vtd.reset(buddy::gcode_compatibility::VirtualToolCheck::filament_type);
     }
 
-    switch (report.failure_severity()) {
+    using Compatibility = buddy::compatibility_checks::CompatibilityLevel;
+    switch (report.compatibility_level()) {
 
-    case HWCheckSeverity::Ignore:
+    case Compatibility::fully_compatible:
 #if HAS_WASTEBIN_FILL_TRACKING()
         return stateFromWastebinCheck();
 #else
         return stateFromFilamentPresence();
 #endif
 
-    case HWCheckSeverity::Warning:
+    case Compatibility::compatible_with_reminder:
+    case Compatibility::needs_user_approval:
         return State::gcode_invalid_wait_user;
 
-    case HWCheckSeverity::Abort:
+    case Compatibility::fatal_incompatibility:
         return State::gcode_invalid_wait_user_abort;
     }
 

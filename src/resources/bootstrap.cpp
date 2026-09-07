@@ -93,7 +93,6 @@ static bool is_relevant_bbf_for_bootstrap(FILE *bbf, const char *path, const bud
         // remove the item
         bool success;
         if (d_type == DT_REG) {
-            // copy file
             log_info(Resources, "Removing file %s", path.get());
             success = remove(path.get()) == 0;
         } else if (d_type == DT_DIR) {

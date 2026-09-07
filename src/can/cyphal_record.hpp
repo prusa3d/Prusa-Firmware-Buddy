@@ -44,7 +44,6 @@ class Record {
 
     /**
      * @brief Log a message over Cyphal network.
-     * @param destination this CYPHAL destination
      * @param event the log to be sent
      */
     void member_log_event(logging::FormattedEvent *event);
@@ -86,7 +85,6 @@ public:
 
     /**
      * @brief Log a message over Cyphal network.
-     * @param destination this CYPHAL destination
      * @param event the log to be sent
      */
     static void extern_log_event(logging::FormattedEvent *event);
@@ -117,7 +115,6 @@ extern "C" {
  * @brief Send log over Cyphal Record tooling.
  * @note Wrapper to be used from C code.
  * @warning Do not use from cyphal task or callbacks.
- * @param destination this CYPHAL destination
  * @param event the log to be sent
  */
 void cyphal_log_event(logging::FormattedEvent *event);

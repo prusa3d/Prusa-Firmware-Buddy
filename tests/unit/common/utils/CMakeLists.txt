@@ -7,6 +7,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/inc
   )
 
+target_link_libraries(center_approx buddy_utils)
 add_catch_test(center_approx)
 
 # dynamic_item_mapping
@@ -21,6 +22,7 @@ add_executable(
   )
 target_include_directories(
   printer_model_tests PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include
+                             ${CMAKE_SOURCE_DIR}/src
   )
 add_catch_test(printer_model_tests)
 

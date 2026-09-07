@@ -4,6 +4,7 @@
 #include "hal_mmu.hpp"
 #include <freertos/timing.hpp>
 #include <xbuddy_extension/mmu_bridge.hpp>
+#include <utils/byte_utils.hpp>
 
 using namespace modules::protocol;
 using namespace xbuddy_extension::mmu_bridge;
@@ -315,6 +316,6 @@ void MMU2Serial::flush() {
 
 size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
     flush();
-    hal::mmu::transmit(std::span<const std::byte> { (const std::byte *)buffer, size });
+    hal::mmu::transmit(Bytes { (const std::byte *)buffer, size });
     return size; // a bit speculative
 }

@@ -10,7 +10,7 @@
 
 #include <FreeRTOS.h>
 #include <semphr.h>
-#include <assert.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -108,7 +108,7 @@ public:
         : SuberCallVoid(port_id, EXTENT, kind, timeout)
         , deserialize_fn(deserialize_fn_)
         , callback(callback_) {
-        assert(callback);
+        debug_assert(callback);
     }
 };
 

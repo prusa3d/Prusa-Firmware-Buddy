@@ -1,4 +1,3 @@
-#include <assert.h>
 
 #include <option/has_modular_bed.h>
 #include <option/has_puppies.h>
@@ -47,6 +46,7 @@
 #include <logging/log.hpp>
 
 #include <common/sys.hpp>
+#include <buddy/filename_defs.hpp>
 
 #include <option/has_gui.h>
 
@@ -140,9 +140,16 @@ struct state_print_t {
 // crash recovery data
 struct state_crash_t {
     uint32_t sdpos; /// sdpos of the gcode instruction being aborted
-    xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
-    xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
-    xyze_pos_t crash_position; /// absolute physical XYZE position of the crash location
+
+    /// Value of current_position at the start of the interrupted GCode
+    xyze_pos_t start_current_position;
+
+    /// Basically just crash_machine_position as native coordinates instead of machine
+    xyze_pos_t crash_native_position;
+
+    /// Exact stepper positions at the time of the crash
+    MachinePosXYZE crash_machine_position;
+
     uint16_t segments_finished = 0;
     uint8_t leveling_active; /// state of MBL before crashing
     AxesHomeLevel axes_home_level; /// axis state before crashing
@@ -188,7 +195,7 @@ struct fixed_t {
     xy_pos_t bounding_rect_a;
     xy_pos_t bounding_rect_b;
     bed_mesh_t z_values;
-    char media_SFN_path[FILE_PATH_MAX_LEN];
+    char media_SFN_path[filename_defs::max_path_length];
 
     static void load();
     static void save();
@@ -244,7 +251,7 @@ extern state_t &state_buf;
 struct runtime_state_t {
     bool nested_fault;
     PPState orig_state; // state that was active when power panic was triggered
-    char media_SFN_path[FILE_PATH_MAX_LEN]; // temporary buffer
+    char media_SFN_path[filename_defs::max_path_length]; // temporary buffer
     AxesHomeLevel orig_axes_home_level;
     uint32_t fault_stamp; // time since acFault trigger
 };

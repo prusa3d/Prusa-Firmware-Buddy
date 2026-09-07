@@ -19,11 +19,6 @@ struct TextLayout {
     Font desc_font;
 };
 
-void _bsod(const char *fmt, const char *fine_name, int line_number, ...) {
-    FAIL();
-    std::unreachable();
-}
-
 constexpr std::array<const char *, 9> lang_codes = { "en", "cs", "de", "es", "fr", "it", "ja", "pl", "uk" };
 
 static constexpr Font red_screen_font = GuiDefaults::EnableDialogBigLayout ? GuiDefaults::DefaultFont : Font::small;

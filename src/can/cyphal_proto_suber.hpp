@@ -6,7 +6,7 @@
 #include <canard.h>
 #include "cyphal_proto_portlist.hpp"
 
-#include <assert.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -36,7 +36,7 @@ public:
      * @return 0
      */
     static int8_t dummy_deserialize([[maybe_unused]] uint8_t *const out_obj, [[maybe_unused]] const uint8_t *buffer, size_t *const inout_buffer_size_bytes) {
-        assert(inout_buffer_size_bytes != nullptr);
+        debug_assert(inout_buffer_size_bytes != nullptr);
         *inout_buffer_size_bytes = 0;
         return 0;
     }
@@ -78,7 +78,7 @@ protected:
 
     /// Protected destructor because virtual destructor would cost too much codesize.
     ~ProtoSuber() {
-        assert(raw.user_reference == nullptr); // Subscription should be removed from the list before destruction
+        debug_assert(raw.user_reference == nullptr); // Subscription should be removed from the list before destruction
     }
 
 public:
@@ -105,8 +105,8 @@ public:
      * @param buffer buffer to deserialize the data
      */
     inline static void static_callback(CanardRxSubscription *subscription, const CanardRxTransfer &transfer, uint8_t buffer[MAX_DATA_SIZE]) {
-        assert(subscription != nullptr);
-        assert(subscription->user_reference != nullptr);
+        debug_assert(subscription != nullptr);
+        debug_assert(subscription->user_reference != nullptr);
         reinterpret_cast<ProtoSuber *>(subscription->user_reference)->raw_callback(transfer, buffer);
     }
 

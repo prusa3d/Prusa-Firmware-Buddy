@@ -2,7 +2,7 @@
 
 #include "display_math_helper.h"
 #include "Rect16.h"
-#include <common/abstract_byte_reader.hpp>
+#include <utils/abstract_byte_reader.hpp>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>

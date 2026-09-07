@@ -236,13 +236,12 @@ LoopResult CSelftestPart_Dock::state_measure() {
 
 LoopResult CSelftestPart_Dock::state_compute_position() {
     // Calculate x,y distance between home and dock position
-    ab_steps_t after = {
+    const ab_steps_t after = {
         stepper.position_from_startup(AxisEnum::A_AXIS),
         stepper.position_from_startup(AxisEnum::B_AXIS),
     };
 
-    xy_pos_t diff;
-    corexy_ab_to_xy(position_before_measure - after, diff);
+    const MachinePosXY diff = corexy_ab_to_xy(position_before_measure - after);
 
     // Obtain dock info
     const PrusaToolInfo tool_calibration = {
@@ -251,7 +250,7 @@ LoopResult CSelftestPart_Dock::state_compute_position() {
     };
 
     // Verify dock info
-    if (!prusa_toolchanger.is_tool_info_valid(dwarf, tool_calibration)) {
+    if (!prusa_toolchanger.is_tool_info_valid(dwarf.tool_index(), tool_calibration)) {
         log_error(
             Selftest,
             "Dock %d position %f, %f differs too much from expected",
@@ -260,8 +259,8 @@ LoopResult CSelftestPart_Dock::state_compute_position() {
     }
 
     // Apply tool info
-    old_tool_calibration = prusa_toolchanger.get_tool_info(dwarf);
-    prusa_toolchanger.set_tool_info(dwarf, tool_calibration);
+    old_tool_calibration = prusa_toolchanger.get_tool_info(dwarf.tool_index());
+    prusa_toolchanger.set_tool_info(dwarf.tool_index(), tool_calibration);
 
     result.progress = 70;
 
@@ -281,24 +280,28 @@ LoopResult CSelftestPart_Dock::state_ask_user_install_pins() {
 LoopResult CSelftestPart_Dock::state_selftest_check_todock() {
     IPartHandler::SetFsmPhase(PhasesSelftest::Dock_selftest_park_test);
 
+    const auto ti = prusa_toolchanger.get_tool_info(dwarf.tool_index(), false);
+
     ///@note Cannot use G-code in these steps as we need to control native machine coordinates.
     // Go in front of dock
-    current_position.x = prusa_toolchanger.get_tool_info(dwarf, false).dock_x + PrusaToolChanger::PARK_X_OFFSET_1;
+    current_position.x = ti.dock_x + PrusaToolChanger::PARK_X_OFFSET_1;
     current_position.y = PrusaToolChanger::SAFE_Y_WITH_TOOL;
     line_to_current_position(MMM_TO_MMS(XY_PROBE_SPEED_INITIAL));
 
     // Go to the back of the dock
-    current_position.y = prusa_toolchanger.get_tool_info(dwarf, false).dock_y;
+    current_position.y = ti.dock_y;
     line_to_current_position(MMM_TO_MMS(XY_PROBE_SPEED_INITIAL));
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_Dock::state_selftest_check_unlock() {
+    const auto ti = prusa_toolchanger.get_tool_info(dwarf.tool_index(), false);
+
     { // Set motor current and stall sensitivity to parking and remember old value
         PrusaToolChanger::StepperConfigGuard sc;
 
         // Unlock the clamps
-        current_position.x = prusa_toolchanger.get_tool_info(dwarf, false).dock_x + PrusaToolChanger::PARK_X_OFFSET_2;
+        current_position.x = ti.dock_x + PrusaToolChanger::PARK_X_OFFSET_2;
         line_to_current_position(PrusaToolChanger::SLOW_MOVE_MM_S);
 
         const auto original_acceleration = planner.settings.travel_acceleration;
@@ -308,7 +311,7 @@ LoopResult CSelftestPart_Dock::state_selftest_check_unlock() {
             planner.apply_settings(s);
         }
 
-        current_position.x = prusa_toolchanger.get_tool_info(dwarf, false).dock_x + PrusaToolChanger::PARK_X_OFFSET_3;
+        current_position.x = ti.dock_x + PrusaToolChanger::PARK_X_OFFSET_3;
         line_to_current_position(PrusaToolChanger::SLOW_MOVE_MM_S);
 
         /// @note This synchronization shouldn't be delegated to state_wait_moves_done().
@@ -324,7 +327,7 @@ LoopResult CSelftestPart_Dock::state_selftest_check_unlock() {
     }
 
     // Return a bit to the exact dock position
-    current_position.x = prusa_toolchanger.get_tool_info(dwarf, false).dock_x;
+    current_position.x = ti.dock_x;
     line_to_current_position(PrusaToolChanger::SLOW_MOVE_MM_S);
 
     // Prepare wait for sensors
@@ -457,5 +460,5 @@ LoopResult CSelftestPart_Dock::state_selftest_save_calibration() {
 }
 
 void CSelftestPart_Dock::revert_tool_info() {
-    prusa_toolchanger.set_tool_info(dwarf, old_tool_calibration);
+    prusa_toolchanger.set_tool_info(dwarf.tool_index(), old_tool_calibration);
 }

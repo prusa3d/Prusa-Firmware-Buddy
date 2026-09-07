@@ -6,6 +6,7 @@
 
 #include <prusa3d/nfc/event/Event_1_0.h>
 #include <prusa3d/nfc/util/ReaderError_1_0.h>
+#include <bsod/bsod.h>
 
 using namespace openprinttag;
 

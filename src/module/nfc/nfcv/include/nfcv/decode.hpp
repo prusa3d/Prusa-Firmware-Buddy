@@ -5,6 +5,7 @@
 
 #include <expected>
 #include <span>
+#include <utils/byte_utils.hpp>
 
 namespace nfcv {
 /**
@@ -18,7 +19,7 @@ namespace nfcv {
  * @param output buffer to store decoded data in (can be same buffer as input)
  * @return std::span of decoded data based on @p output, but with actual decoded size
  */
-Result<std::span<std::byte>> decode(const std::span<const std::byte> &input, const std::span<std::byte> &output);
+Result<WritableBytes> decode(const Bytes &input, const WritableBytes &output);
 
-Result<void> parse_response(const std::span<const std::byte> &data, const Command &command);
+Result<void> parse_response(const Bytes &data, const Command &command);
 } // namespace nfcv

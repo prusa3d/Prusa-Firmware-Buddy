@@ -1,9 +1,9 @@
 #include "error_code_mangle.hpp"
 
-#include <cassert>
 #include <utility>
 
 #include <common/printer_model.hpp>
+#include <bsod/bsod.h>
 
 uint16_t map_error_code(ErrCode code) {
     const uint16_t code_num = static_cast<uint16_t>(code);
@@ -22,6 +22,6 @@ uint16_t map_error_code(ErrCode code) {
         return code_num;
     }
 
-    assert(printer_code == ERR_PRINTER_CODE || printer_code == this_printer_code);
+    debug_assert(printer_code == ERR_PRINTER_CODE || printer_code == this_printer_code);
     return this_printer_code * 1000 + base_code;
 }

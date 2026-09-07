@@ -10,6 +10,7 @@
 #include <window_dlg_wait.hpp>
 #include <multi_filament_change.hpp>
 
+#include "gui_time.hpp"
 #include "DialogHandler.hpp"
 
 using namespace screen_mmu_preload_all;

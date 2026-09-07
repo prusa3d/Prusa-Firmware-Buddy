@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pbuf.h"
+#include <lwip/pbuf.h>
 
 #ifdef __cplusplus
 extern "C" {

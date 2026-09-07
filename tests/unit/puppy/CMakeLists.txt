@@ -1,1 +1,2 @@
+add_subdirectory(dwarf)
 add_subdirectory(xbuddy_extension)

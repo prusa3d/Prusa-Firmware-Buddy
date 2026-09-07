@@ -1,6 +1,7 @@
 #include "display_helper.h"
 #include "display.hpp"
 #include <cmath>
+#include <font_data/font_data.hpp>
 #include <guiconfig/guiconfig.h>
 #include <img_resources.hpp>
 #include "display_math_helper.h"
@@ -8,6 +9,7 @@
 #include <sys/fcntl.h>
 #include <sys/unistd.h>
 #include <logging/log.hpp>
+#include <utils/byte_utils.hpp>
 
 #if HAS_ST7789_DISPLAY()
     #include "st7789v.hpp"
@@ -248,16 +250,13 @@ void draw_char(point_ui16_t pt, unichar c, const font_t *pf, Color clr_bg, Color
 void store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, unichar c, const font_t *pf, Color clr_bg, Color clr_fg) {
     [[maybe_unused]] StoreCharInBufferMeasure measure { pf };
 
-    uint32_t chr = get_char_position_in_font(c, pf);
-
     const uint16_t char_w = pf->w; // char width
     const uint16_t char_h = pf->h; // char height
-    const uint16_t bpc = (char_w * char_h + 1) >> 1; // bytes per char
     const uint8_t pms = 15; // pixel mask, cannot be bigger than array to store alpha channel combinations
 
     DispBuffer buff(pms, clr_bg, clr_fg);
 
-    uint8_t *pch = (uint8_t *)(pf->pcs) + (chr * bpc); // font data pointer
+    const uint8_t *pch = pf->character_bitmap(c); // font data pointer
     bool load = true; // load next byte from font data?
     uint8_t crd = 0; // current byte of font data
 
@@ -365,7 +364,7 @@ static void draw_rounded_rect_rad1(Rect16 rect, Color back, Color front, uint8_t
     uint8_t *buffer = borrow_buffer.buffer;
 
     uint16_t h_left = rect.Height();
-    for (uint8_t i = 0; i < loop; i++) { // If rectangle is higher than buffROWS (8 on ILI9488), it has to be separated
+    for (uint8_t i = 0; i < loop; i++) { // If rectangle is higher than buffROWS (4 on ILI9488), it has to be separated
         uint8_t buff_rows_to_draw = (h_left < buffROWS ? h_left : buffROWS);
         // We paint whole rect with front color and then paint the round edge's complement in back color TO AVOID FLICKERING
         store_to_buffer(buffer, Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front);
@@ -410,7 +409,7 @@ void draw_rounded_rect(Rect16 rect, Color back, Color front, uint8_t cor_rad, ui
     uint16_t div = rect.Height() / buff_rows;
     bool carry = true;
     if (div) {
-        carry = rect.Height() % buff_rows != 0; // ILI9488 display buffer has only 8 rows, we need to separate
+        carry = rect.Height() % buff_rows != 0; // ILI9488 display buffer has only 4 rows, we need to separate
     }
     uint16_t h_left = rect.Height();
 
@@ -499,7 +498,7 @@ void enable_resource_file() {
 
 class ResourceFileReader final : public AbstractByteReader {
 public:
-    std::span<std::byte> read(std::span<std::byte> buffer) final {
+    WritableBytes read(WritableBytes buffer) final {
         size_t nread = ::read(resource_fd, buffer.data(), buffer.size());
         return { buffer.data(), nread };
     }

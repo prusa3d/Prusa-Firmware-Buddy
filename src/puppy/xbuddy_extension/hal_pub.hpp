@@ -2,7 +2,7 @@
 #pragma once
 
 #include <cstdint>
-#include <span>
+#include <utils/byte_utils.hpp>
 
 namespace hal {
 
@@ -19,7 +19,7 @@ namespace pub {
     using Identifier = uint32_t;
 
     /** Transmit a data frame. Doesn't block. May fail if TX FIFO is full. */
-    bool transmit(Identifier, std::span<const std::byte>);
+    bool transmit(Identifier, Bytes);
 
     /** Structure for receiving entire frame. */
     struct RxFrame {

@@ -37,29 +37,16 @@ class MsgBoxBase : public IDialog {
 protected:
     window_text_t text;
 
-    // memory space to store radio buttons
-    // template parameter <PhasesPrintPreview> is irrelevant - same size
-    // in case it changes swap <PhasesPrintPreview> with the biggest type
-    // it is checked in BindToFSM method
-    static constexpr size_t mem_space_size = std::max({ sizeof(RadioButtonFSM), sizeof(RadioButton) });
-    using RadioMemSpace = std::array<uint8_t, mem_space_size>;
-    alignas(std::max_align_t) RadioMemSpace radio_mem_space;
-    static_unique_ptr<IRadioButton> pButtons;
+    IRadioButton radio_;
     Response result = Response::_none; // return value
 
 public:
-    MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
 
     [[nodiscard]] inline Response GetResult() const {
         return result;
     }
-
-    // TODO: Get rid of this madness
-    void BindToFSM(FSMAndPhase phase);
-
-    /// Sets response and generates appropriate events as if a button was pressed
-    void generate_response(Response r);
 
     void set_text_alignment(Align_t alignment);
     void set_text_font(Font font);
@@ -75,14 +62,14 @@ protected:
 class MsgBoxIconned : public MsgBoxBase {
 
 public:
-    MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes);
 
     /**
      * @brief ctor for specified icon position (left of the text on LARGE display and above the text on MINI display)
      */
-    MsgBoxIconned(Rect16 rect, const point_ui16_t icon_point, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxIconned(Rect16 rect, const point_ui16_t icon_point, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes);
 
@@ -98,7 +85,7 @@ protected:
 // MsgBoxTitled
 class MsgBoxTitled : public MsgBoxIconned {
 public:
-    MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline, const string_view_utf8 &tit, const img::Resource *title_icon_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes, dense_t dense = dense_t::no);
 
@@ -126,7 +113,7 @@ protected:
 // MsgBoxPepaCentered
 class MsgBoxIconPepaCentered : public MsgBoxIconned {
 public:
-    MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon);
 
 protected:
@@ -138,14 +125,14 @@ protected:
 // MsgBoxError
 class MsgBoxIconnedError : public MsgBoxIconned {
 public:
-    MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline, const img::Resource *icon);
 };
 
 // MsgBoxWait
 class MsgBoxIconnedWait : public MsgBoxIconned {
 public:
-    MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn,
         const string_view_utf8 &txt, is_multiline multiline);
 };
 
