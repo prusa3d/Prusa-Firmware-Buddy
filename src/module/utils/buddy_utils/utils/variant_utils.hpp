@@ -4,6 +4,7 @@
 #include <optional>
 #include <variant>
 #include <utility>
+#include <type_traits>
 #include <utils/overloaded_visitor.hpp>
 
 namespace stdext {
@@ -57,5 +58,10 @@ std::optional<T> get_optional(const std::variant<V...> &v) {
         return std::nullopt;
     }
 }
+
+template <typename T, typename V>
+constexpr bool is_in_variant = []<typename... VT>(std::type_identity<std::variant<VT...>>) {
+    return (std::is_same_v<T, VT> || ...);
+}(std::type_identity<V> {});
 
 } // namespace stdext
