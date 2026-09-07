@@ -8,6 +8,7 @@
 #include <option/has_crash_detection.h>
 #include <option/has_door_sensor_calibration.h>
 #include <option/has_esp.h>
+#include <option/has_gantry_squareness_check.h>
 #include <option/has_gearbox_alignment.h>
 #include <option/has_indx.h>
 #include <option/has_input_shaper_calibration.h>
@@ -70,6 +71,9 @@ enum class ClientFSM : uint8_t {
     NozzleMismatch,
     DockCalibration,
     NozzleCleanerCalibration,
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    GantrySquareness,
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
     WastebinEmptying,

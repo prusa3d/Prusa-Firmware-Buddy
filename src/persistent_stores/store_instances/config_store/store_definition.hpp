@@ -64,6 +64,7 @@
 #include <option/has_psu_fan.h>
 #include <option/has_heatbed_screws_during_transport.h>
 #include <option/has_anfc.h>
+#include <option/has_gantry_squareness_check.h>
 #include <option/has_indx.h>
 #include <option/has_wastebin_fill_tracking.h>
 #include <option/has_side_fsensor.h>
@@ -883,6 +884,10 @@ struct CurrentStore
 #if HAS_INDX()
     StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("Selftest Result - Nozzle Cleaner Calibration")> selftest_result_nozzle_cleaner_calibration;
     StoreItem<std::bitset<PhysicalToolIndex::count>, 0, ItemFlag::calibrations, journal::hash("INDX dock calibrated mask")> indx_dock_calibrated_mask;
+#endif
+
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    StoreItem<TestResult, defaults::test_result_unknown, ItemFlag::calibrations, journal::hash("Selftest Result - Gantry Squareness")> selftest_result_gantry_squareness;
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()

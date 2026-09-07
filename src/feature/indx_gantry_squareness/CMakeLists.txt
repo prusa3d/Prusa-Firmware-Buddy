@@ -1,0 +1,1 @@
+target_sources(firmware PRIVATE indx_gantry_squareness.cpp screen_gantry_squareness.cpp)

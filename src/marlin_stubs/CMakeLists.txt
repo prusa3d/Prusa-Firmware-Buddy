@@ -109,6 +109,10 @@ if(HAS_INDX)
   target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp)
 endif()
 
+if(HAS_GANTRY_SQUARENESS_CHECK)
+  target_sources(firmware PRIVATE M1988.cpp)
+endif()
+
 if(HAS_WASTEBIN_FILL_TRACKING)
   target_sources(firmware PRIVATE M1986.cpp)
 endif()

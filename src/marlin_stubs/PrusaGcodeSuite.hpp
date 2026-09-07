@@ -5,6 +5,7 @@
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 
+#include <option/has_gantry_squareness_check.h>
 #include <option/has_heaters_selftest_gcode.h>
 #include <option/has_esp.h>
 #include <option/has_toolchanger.h>
@@ -180,6 +181,9 @@ void M1981(); //< Filament sensors selftest
 void M1982(); //< INDX dock calibration
 void M1983(); //< INDX nozzle cleaner calibration
 void M1984(); //< Manually park a stuck nozzle into a dock
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+void M1988(); //< Gantry squareness wizard (S = silent measurement)
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
 void M1986(); //< Empty the INDX nozzle-cleaner wastebin (pause, move aside, reset fill counter)

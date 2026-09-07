@@ -452,6 +452,10 @@ bool CurrentStore::set_belts_15gt(bool installed) {
     #if HAS_MANUAL_BELT_TUNING()
     manual_belt_tuning_completed.set_to_default();
     #endif
+    #if HAS_GANTRY_SQUARENESS_CHECK()
+    // Moving the belts on the pulleys changes the gantry squareness.
+    selftest_result_gantry_squareness.set_to_default();
+    #endif
     #if HAS_SELFTEST()
     selftest_result.apply([](SelftestResult &r) {
         r.set_xaxis(TestResult::unknown);

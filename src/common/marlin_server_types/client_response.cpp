@@ -19,6 +19,10 @@
     #include <fsm/nozzle_mismatch_phases.hpp>
 #endif
 
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    #include <fsm/gantry_squareness_phases.hpp>
+#endif
+
 #if HAS_WASTEBIN_FILL_TRACKING()
     #include <fsm/wastebin_emptying_phases.hpp>
 #endif
@@ -86,6 +90,9 @@ constinit const EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM:
         { ClientFSM::NozzleMismatch, nozzle_mismatch_responses },
         { ClientFSM::DockCalibration, dock_calibration_responses },
         { ClientFSM::NozzleCleanerCalibration, nozzle_cleaner_calibration_responses },
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+        { ClientFSM::GantrySquareness, gantry_squareness_responses },
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
         { ClientFSM::WastebinEmptying, wastebin_emptying_responses },

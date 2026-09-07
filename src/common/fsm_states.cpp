@@ -86,6 +86,12 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
         return 3;
 #endif
 
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    case ClientFSM::GantrySquareness:
+        // Also runs nested over ManualBeltTuning (score 2).
+        return 3;
+#endif
+
     case ClientFSM::SafetyTimer:
         // Show over everything except warnings
         return 4;

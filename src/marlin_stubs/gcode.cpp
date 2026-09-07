@@ -19,6 +19,7 @@
 #include <option/has_door_sensor_calibration.h>
 #include <option/has_chamber_vents.h>
 #include <option/has_spool_join.h>
+#include <option/has_gantry_squareness_check.h>
 #include <option/has_indx.h>
 #include <option/has_nozzle_cleaner.h>
 #include <option/has_heaters_selftest_gcode.h>
@@ -338,6 +339,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             break;
         case 1984:
             PrusaGcodeSuite::M1984();
+            break;
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+        case 1988:
+            PrusaGcodeSuite::M1988();
             break;
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()

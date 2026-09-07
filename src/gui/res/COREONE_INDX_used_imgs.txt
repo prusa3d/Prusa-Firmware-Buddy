@@ -42,6 +42,8 @@ flag_pl_16x11.png
 flag_uk_16x11.png
 folder_full_16x16.png
 folder_up_16x16.png
+gantry_squareness_insert.png
+gantry_squareness_remove.png
 hand_qr_59x72.png
 hand_with_filament_150x130.png
 hand_with_filament_ok_150x130.png

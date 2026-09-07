@@ -33,6 +33,9 @@
     #include <feature/indx_dock_calibration/screen_dock_calibration.hpp>
     #include <feature/indx_nozzle_cleaner_calibration/screen_nozzle_cleaner_calibration.hpp>
 #endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    #include <feature/indx_gantry_squareness/screen_gantry_squareness.hpp>
+#endif
 
 #if HAS_WASTEBIN_FILL_TRACKING()
     #include <feature/wastebin_watcher/screen_wastebin_emptying.hpp>
@@ -325,6 +328,9 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMScreenDef<ClientFSM::NozzleMismatch, ScreenNozzleMismatch>,
     FSMScreenDef<ClientFSM::DockCalibration, ScreenDockCalibration>,
     FSMScreenDef<ClientFSM::NozzleCleanerCalibration, ScreenNozzleCleanerCalibration>,
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    FSMScreenDef<ClientFSM::GantrySquareness, ScreenGantrySquareness>,
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
     FSMScreenDef<ClientFSM::WastebinEmptying, ScreenWastebinEmptying>,
