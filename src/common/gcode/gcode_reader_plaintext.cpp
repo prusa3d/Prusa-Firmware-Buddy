@@ -34,21 +34,44 @@ IGcodeReader::Result_t PlainGcodeReader::stream_gcode_start(uint32_t offset, boo
 AbstractByteReader *PlainGcodeReader::stream_thumbnail_start(uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger) {
     // search for begining of thumbnail in file
     static const size_t MAX_SEARCH_LINES = 2048;
-    // We want to do simple scan through beginning of file, so we use gcode stream for that, it doesn't skip towards end of file like metadata stream
-    if (stream_gcode_start() != IGcodeReader::Result_t::RESULT_OK) {
+    if (fseek(file.get(), 0, SEEK_SET) != 0) {
+        stream_mode_ = StreamMode::none;
         return nullptr;
     }
 
     GcodeBuffer buffer;
     unsigned int lines_searched = 0;
-    while (stream_get_line(buffer, Continuations::Discard) == Result_t::RESULT_OK && (lines_searched++) <= MAX_SEARCH_LINES) {
-        long unsigned int num_bytes = 0;
-        if (IsBeginThumbnail(buffer, expected_width, expected_height, expected_type, allow_larger, num_bytes)) {
+    while (stream_get_line_common(buffer, Continuations::Discard) == Result_t::RESULT_OK && (lines_searched++) <= MAX_SEARCH_LINES) {
+        buffer.line.skip_ws();
+        const auto details = thumbnail_details(buffer.line);
+        if (!details.has_value()) {
+            continue;
+        }
+        const bool match = [&] {
+            if (expected_type != details->type) {
+                return false;
+            }
+            if (allow_larger) {
+                return expected_width <= details->width && expected_height <= details->height;
+            } else {
+                return expected_width == details->width && expected_height == details->height;
+            }
+        }();
+        if (match) {
             stream_mode_ = StreamMode::thumbnail;
             thumbnail_reader.gcode_reader = this;
-            thumbnail_reader.thumbnail_size = num_bytes;
+            thumbnail_reader.thumbnail_size = details->num_bytes;
             thumbnail_reader.base64_decoder.reset();
             return &thumbnail_reader;
+        } else {
+            // Optimization: seek to the end of this thumbnail.
+            //
+            // This undershoots due to '; \n' but that's OK -  we end up in
+            // the middle of base64-encoded data and look for prefix that is
+            // not there, then continue with next full line.
+            //
+            // On malformed file it may overshoot too. Cry me a river.
+            fseek(file.get(), details->num_bytes, SEEK_CUR);
         }
     }
 
@@ -212,27 +235,6 @@ std::optional<IGcodeReader::ThumbnailDetails> PlainGcodeReader::thumbnail_detail
     }
 
     return result;
-}
-
-bool PlainGcodeReader::IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larder, unsigned long &num_bytes) const {
-    const auto details = thumbnail_details(buffer.line);
-    if (!details.has_value()) {
-        return false;
-    }
-
-    if (expected_type != details->type) {
-        return false;
-    }
-
-    const bool width_matches = (expected_width == details->width || (allow_larder && expected_width < details->width));
-    const bool height_matches = (expected_height == details->height || (allow_larder && expected_height < details->height));
-
-    if (!width_matches || !height_matches) {
-        return false;
-    }
-
-    num_bytes = details->num_bytes;
-    return true;
 }
 
 bool PlainGcodeReader::valid_for_print([[maybe_unused]] bool full_check) {

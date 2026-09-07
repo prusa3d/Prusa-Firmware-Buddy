@@ -48,17 +48,6 @@ private:
 
     Result_t stream_getc_impl(char &out);
 
-    /**
-     * @brief Check if the line is thumbnail begin.
-     * @param expected_width expected image width
-     * @param expected_height expected image height
-     * @param expected_type expected image format
-     * @param allow_larger allow larger images
-     * @param num_bytes number of bytes of thumbnail
-     * @return true if the line is thumbnail begin
-     */
-    bool IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larger, unsigned long &num_bytes) const;
-
     struct ThumbnailReader final : public AbstractByteReader {
         PlainGcodeReader *gcode_reader = nullptr;
         uint32_t thumbnail_size = 0;
