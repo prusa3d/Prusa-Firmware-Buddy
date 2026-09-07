@@ -1,5 +1,6 @@
 #include "selftest_action_helpers.hpp"
 
+#include <option/has_gantry_squareness_check.h>
 #include <option/has_precise_homing_corexy.h>
 #include <option/has_door_sensor_calibration.h>
 #include <option/has_loadcell.h>
@@ -106,6 +107,10 @@ const char *get_action_label(Action action) {
     #else
         return N_("Dock Position Calibration");
     #endif
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+    case Action::GantrySquareness:
+        return N_("Gantry Squareness");
 #endif
 #if HAS_INDX()
     case Action::NozzleCleanerCalibration:

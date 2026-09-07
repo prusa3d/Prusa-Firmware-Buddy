@@ -8,6 +8,7 @@
 #include <option/has_side_fsensor_remap.h>
 #include <option/has_gearbox_alignment.h>
 #include <option/has_door_sensor_calibration.h>
+#include <option/has_gantry_squareness_check.h>
 #include <option/has_manual_belt_tuning.h>
 #include <option/has_selftest_dependencies.h>
 #include <printers.h>
@@ -163,6 +164,11 @@ void do_snake(Action action, PhysicalToolIndex tool) {
 #if HAS_MANUAL_BELT_TUNING()
         case Action::BeltTuning:
             marlin_client::gcode("M961");
+            break;
+#endif
+#if HAS_GANTRY_SQUARENESS_CHECK()
+        case Action::GantrySquareness:
+            marlin_client::gcode("M1988");
             break;
 #endif
 #if HAS_INDX()

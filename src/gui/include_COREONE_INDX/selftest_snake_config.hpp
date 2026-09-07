@@ -14,6 +14,7 @@ enum class Action : uint8_t {
     XCheck,
     YCheck,
     ZAlign, // also known as z_calib
+    GantrySquareness,
     BeltTuning,
 #if HAS_PRECISE_HOMING_COREXY()
     PreciseHoming,
@@ -48,9 +49,12 @@ constexpr EnumBitset<Action, Action::_count> get_dependencies(Action action) {
     case Action::ZAlign:
         deps.set(Action::DoorSensor);
         break;
-    case Action::BeltTuning:
+    case Action::GantrySquareness:
         deps.set(Action::XCheck);
         deps.set(Action::YCheck);
+        break;
+    case Action::BeltTuning:
+        deps.set(Action::GantrySquareness);
         break;
 #if HAS_PRECISE_HOMING_COREXY()
     case Action::PreciseHoming:

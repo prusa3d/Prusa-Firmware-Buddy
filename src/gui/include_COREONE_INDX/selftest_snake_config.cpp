@@ -91,6 +91,8 @@ TestResult get_test_result(Action action, ToolMask tool) {
         return config_store().selftest_result_phase_stepping.get();
     case Action::BeltTuning:
         return config_store().manual_belt_tuning_completed.get() ? TestResult::passed : TestResult::unknown;
+    case Action::GantrySquareness:
+        return config_store().selftest_result_gantry_squareness.get();
     case Action::_count:
         break;
     }
@@ -107,6 +109,7 @@ uint64_t get_test_mask(Action action) {
     case Action::NozzleCleanerCalibration:
     case Action::InputShaper:
     case Action::PhaseSteppingCalibration:
+    case Action::GantrySquareness:
     case Action::BeltTuning:
 #if HAS_PRECISE_HOMING_COREXY()
     case Action::PreciseHoming:
