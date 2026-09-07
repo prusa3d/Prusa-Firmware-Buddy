@@ -15,6 +15,7 @@
 #include <sampling_rate_tracker.hpp>
 #include <timing.h>
 #include <prusa3d/tool_offset_sensor/Data_1_0.h>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(LDC1612)
 

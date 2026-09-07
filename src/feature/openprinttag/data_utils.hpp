@@ -9,6 +9,8 @@
 #include <filament.hpp>
 #include <filament_meta.hpp>
 #include <option/has_chamber_api.h>
+#include <utils/compact_optional.hpp>
+#include <utils/string_builder.hpp>
 
 namespace buddy::openprinttag {
 
@@ -18,6 +20,8 @@ struct AmountsInfo {
     using Requirements = ValuePack<
         MainField::nominal_netto_full_weight,
         MainField::actual_netto_full_weight,
+        MainField::nominal_full_length,
+        MainField::actual_full_length,
         AuxField::consumed_weight>;
 
     using RequestRef = Requirements::ApplyOn<MultiReadFieldRequestRef>;
@@ -25,12 +29,25 @@ struct AmountsInfo {
     explicit AmountsInfo(const RequestRef &req);
 
     /// Remaining amount of material, in grams
-    /// NAN if unknown
-    std::optional<float> remaining_weight_g;
+    CompactOptional<float, NAN> remaining_weight_g;
 
     /// Netto weight of the full spool, in grams
-    /// NAN if unknown
-    std::optional<float> full_weight_g;
+    CompactOptional<float, NAN> full_weight_g;
+
+    /// Remaining amount of material, in millimetres
+    CompactOptional<float, NAN> remaining_length_mm;
+
+    /// Netto length of the full spool, in millimetres
+    CompactOptional<float, NAN> full_length_mm;
+
+    using WeightStrBuffer = std::array<char, 32>;
+    using LengthStrBuffer = std::array<char, 32>;
+
+    /// Builds "remaining/full g" string
+    void build_weight_str(StringBuilder &sb) const;
+
+    /// Builds "remaining/full m" string
+    void build_length_str(StringBuilder &sb) const;
 };
 
 /// Utilify for determining material type and its abbreviation
@@ -86,9 +103,14 @@ struct FilamentParametersInfo {
 
     FilamentTypeParameters parameters;
 
-    /// Bitset of parameters that the utility failed to deduce
+    /// Bitset of parameters that were not present on the OPT data
+    /// This does not necessarily mean failure though - the params could have been "suggested" from the base type instead
+    /// For a full failure, rather check @p deduction_failed
     /// Indexes correspond with @p filament_type_parameter_index of each member
     MissingParameters missing_parameters;
+
+    /// Denotes whether the data is complete/reliable enough to be used for operations
+    bool data_safe_to_use : 1 = false;
 };
 
 } // namespace buddy::openprinttag

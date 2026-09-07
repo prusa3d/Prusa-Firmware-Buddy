@@ -1,5 +1,6 @@
 #include "TCA6408A.hpp"
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 using namespace buddy::hw;
 
@@ -22,7 +23,7 @@ bool TCA6408A::update_register(Register reg, uint8_t value, uint8_t pin_mask) {
             curr_reg = config_store().io_expander_polarity_register.get();
             break;
         case Register::Input:
-            assert(false);
+            debug_assert(false);
             break;
         }
 

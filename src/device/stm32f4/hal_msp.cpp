@@ -6,11 +6,11 @@
 #include <device/peripherals.hpp>
 #include <buddy/priorities_config.h>
 #include <option/has_burst_stepping.h>
+#include <bsod/bsod.h>
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 #if BOARD_IS_BUDDY()
-static DMA_HandleTypeDef hdma_spi2_rx;
 static DMA_HandleTypeDef hdma_spi2_tx;
 static DMA_HandleTypeDef hdma_spi3_rx;
 static DMA_HandleTypeDef hdma_spi3_tx;
@@ -598,7 +598,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         hdma_spi5_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_spi5_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_spi5_rx.Init.Mode = DMA_NORMAL;
-        hdma_spi5_rx.Init.Priority = DMA_PRIORITY_LOW;
+        hdma_spi5_rx.Init.Priority = DMA_PRIORITY_HIGH;
         hdma_spi5_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
         if (HAL_DMA_Init(&hdma_spi5_rx) != HAL_OK) {
             bsod_system();
@@ -690,23 +690,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
 
         __HAL_LINKDMA(hspi, hdmatx, hdma_spi2_tx);
 
-        /* SPI2_RX Init */
-        hdma_spi2_rx.Instance = DMA1_Stream3;
-        hdma_spi2_rx.Init.Channel = DMA_CHANNEL_0;
-        hdma_spi2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-        hdma_spi2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-        hdma_spi2_rx.Init.MemInc = DMA_MINC_ENABLE;
-        hdma_spi2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-        hdma_spi2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-        hdma_spi2_rx.Init.Mode = DMA_NORMAL;
-        hdma_spi2_rx.Init.Priority = DMA_PRIORITY_LOW;
-        hdma_spi2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-        if (HAL_DMA_Init(&hdma_spi2_rx) != HAL_OK) {
-            bsod_system();
-        }
-
-        __HAL_LINKDMA(hspi, hdmarx, hdma_spi2_rx);
-
     } else if (hspi->Instance == SPI3) {
         /* Peripheral clock enable */
         __HAL_RCC_SPI3_CLK_ENABLE();
@@ -752,7 +735,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         hdma_spi3_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_spi3_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_spi3_rx.Init.Mode = DMA_NORMAL;
-        hdma_spi3_rx.Init.Priority = DMA_PRIORITY_LOW;
+        hdma_spi3_rx.Init.Priority = DMA_PRIORITY_HIGH;
         hdma_spi3_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
         if (HAL_DMA_Init(&hdma_spi3_rx) != HAL_OK) {
             bsod_system();

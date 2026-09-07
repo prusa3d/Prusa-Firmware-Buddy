@@ -113,6 +113,13 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  .resources_tarball_digest : {
+    KEEP(*(.resources_tarball_digest))
+  } >FLASH
+  .bootloader_tarball_digest : {
+    KEEP(*(.bootloader_tarball_digest))
+  } >FLASH
+
   .preinit_array     :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);

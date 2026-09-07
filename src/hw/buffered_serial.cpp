@@ -142,7 +142,7 @@ void BufferedSerial::Open() {
         return;
     }
 
-    assert(rxBufPoolSize <= 256); // uint8_t is used
+    debug_assert(rxBufPoolSize <= 256); // uint8_t is used
     rxBuf.phdma = uart->hdmarx;
     rxBuf.event_group = xEventGroupCreate();
     rxBuf.buffer = rxBufPool;
@@ -227,7 +227,7 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
 
     HAL_StatusTypeDef transmissionReturnStatus = HAL_ERROR;
     if (txMode == CommunicationMode::DMA) {
-        assert(can_be_used_by_dma(buf));
+        debug_assert(can_be_used_by_dma(buf));
         transmissionReturnStatus = HAL_UART_Transmit_DMA(uart, (uint8_t *)buf, len);
     } else {
         transmissionReturnStatus = HAL_UART_Transmit_IT(uart, (uint8_t *)buf, len);
@@ -321,7 +321,7 @@ void BufferedSerial::enable_receive() {
 
 void BufferedSerial::StartReceiving() {
     // Start receiving data
-    assert(can_be_used_by_dma(rxBuf.buffer));
+    debug_assert(can_be_used_by_dma(rxBuf.buffer));
     HAL_UART_Receive_DMA(uart, rxBuf.buffer, rxBuf.buffer_size);
     if (halfDuplexSwitchCallback) {
         halfDuplexSwitchCallback(false);

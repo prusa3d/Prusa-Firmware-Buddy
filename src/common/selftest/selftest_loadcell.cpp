@@ -86,7 +86,12 @@ LoopResult CSelftestPart_Loadcell::stateParking() {
 
 LoopResult CSelftestPart_Loadcell::stateCooldownInit() {
     Hotend::for_tool(rConfig.tool_nr).set_nozzle_target_temp(0); // Disable heating for tested hotend
-    const float temp = Hotend::for_tool(rConfig.tool_nr).nozzle_temp();
+    const auto temp_opt = Hotend::for_tool(rConfig.tool_nr).nozzle_temp();
+    if (!temp_opt.has_value()) {
+        // No reading yet — wait until the next manage tick.
+        return LoopResult::RunCurrent;
+    }
+    const float temp = temp_opt.value();
     rResult.temperature = static_cast<int16_t>(temp);
     need_cooling = temp > rConfig.cool_temp; // Check if temperature is safe
     if (need_cooling) {
@@ -112,7 +117,12 @@ LoopResult CSelftestPart_Loadcell::stateCooldownInit() {
 }
 
 LoopResult CSelftestPart_Loadcell::stateCooldown() {
-    const float temp = Hotend::for_tool(rConfig.tool_nr).nozzle_temp();
+    const auto temp_opt = Hotend::for_tool(rConfig.tool_nr).nozzle_temp();
+    if (!temp_opt.has_value()) {
+        // No reading yet — wait until the next manage tick.
+        return LoopResult::RunCurrent;
+    }
+    const float temp = temp_opt.value();
     rResult.temperature = static_cast<int16_t>(temp);
 
     // still cooling

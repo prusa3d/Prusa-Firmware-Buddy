@@ -1,5 +1,6 @@
 #include "pressure_advance.hpp"
 #include "../precise_stepping/precise_stepping.hpp"
+#include <bsod/bsod.h>
 
 namespace pressure_advance {
 
@@ -15,10 +16,10 @@ const Config &get_axis_e_config() {
 
 void set_axis_e_config(const Config &config) {
     // ensure moves are not being processed as we change parameters
-    assert(PreciseStepping::move_segment_queue_size() == 0);
+    debug_assert(PreciseStepping::move_segment_queue_size() == 0);
 
     // ensure we're not attempting to change global parameters within a guard
-    assert(!PressureAdvanceDisabler::is_active());
+    debug_assert(!PressureAdvanceDisabler::is_active());
 
     // set step generator
     e_axis_config = config;

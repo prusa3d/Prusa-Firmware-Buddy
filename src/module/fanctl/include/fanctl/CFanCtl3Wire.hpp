@@ -175,6 +175,8 @@ public:
     // setters
     virtual bool set_pwm(uint16_t pwm) override; // set PWM value - switch to non closed-loop mode
     bool setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode psm); // set phase shift mode (none/triangle/random)
+    /// Runtime override of the minimum PWM. Used on Dwarf to follow fan_mode.
+    void set_min_pwm(uint8_t v) { m_pwm.set_min_PWM(v); }
     void safe_state() override;
 
     inline void setSkipTacho(skip_tacho_t skip_tacho) {

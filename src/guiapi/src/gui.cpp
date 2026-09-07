@@ -3,7 +3,6 @@
 
 #include "display.hpp"
 #include "gui.hpp"
-#include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
 #include "IDialog.hpp"

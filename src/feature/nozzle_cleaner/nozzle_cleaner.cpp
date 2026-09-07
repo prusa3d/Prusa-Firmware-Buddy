@@ -10,6 +10,13 @@
 #include <option/has_indx.h>
 #include <feature/print_status_message/print_status_message_guard.hpp>
 
+#if HAS_INDX()
+// The config folds the park point into self-contained constants (SanityCheck.h expands it in every TU);
+// keep them tracking the wastebin geometry.
+static_assert(X_NOZZLE_PARK_POINT == X_WASTEBIN_POINT);
+static_assert(Y_NOZZLE_PARK_POINT == Y_WASTEBIN_POINT + 5.f);
+#endif
+
 namespace nozzle_cleaner {
 
 constexpr ConstexprString directory { "nozzle_cleaner" };
@@ -19,22 +26,22 @@ static constexpr EnumArray<Sequence, GCodeFile, static_cast<int>(Sequence::_cnt)
     { Sequence::clean, {
                            .filename = "clean",
                            .directory = directory,
-                           .default_gcode = "G750 X0.65 Y118.5 F18000\n"
-                                            "G750 X0.0 Y98.5 F18000\n"
+                           .default_gcode = "G750 X0.0 Y118.5 F18000\n"
+                                            "G750 Y98.5 F18000\n"
                                             "G750 X-0.5 Y118.5 F18000\n"
                                             "G750 X-0.1 Y98.5 F18000\n"
                                             "G750 X-1.5 Y118.5 F18000\n"
                                             "G750 X-2 Y98.5 F18000\n"
                                             "G750 X-2 Y118.5 F18000\n"
-                                            "G750 X0.65 Y96.5 F18000",
+                                            "G750 X0 Y96.5 F18000",
                        } },
         { Sequence::quick_clean, {
                                      .filename = "quick_clean",
                                      .directory = directory,
                                      .default_gcode = "G1 F21000\n"
-                                                      "G750 Y98.5 X0.65\n"
-                                                      "G750 Y118.5 X-0.35\n"
-                                                      "G750 Y98.5 X-1.35",
+                                                      "G750 Y98.5 X0\n"
+                                                      "G750 Y118.5 X-1.0\n"
+                                                      "G750 Y98.5 X-2.0",
                                  } },
         { Sequence::deep_clean, {
                                     .filename = "deep_clean",
@@ -75,7 +82,7 @@ static constexpr EnumArray<Sequence, GCodeFile, static_cast<int>(Sequence::_cnt)
                                                       "G750 Y93 F21000 A\n"
                                                       "G750 Y76 F21000 A\n"
                                                       "G750 Y93 F21000 A\n"
-                                                      "G750 Y86.5 F21000\n"
+                                                      "G750 Y87 F21000\n"
                                                       "M906 P1\n" // Increase E current for purge
                                                       "G750 E25 F4 L\n" // L: G750 adjusts this E feedrate for the loaded filament
                                                       "M400\n" // planner.synchronize()
@@ -95,39 +102,44 @@ static constexpr EnumArray<Sequence, GCodeFile, static_cast<int>(Sequence::_cnt)
                                                             "G750 Y93 F21000 A\n"
                                                             "G750 Y76 F21000 A\n"
                                                             "G750 Y93 F21000 A\n"
-                                                            "G750 Y86.5 F21000\n"
+                                                            "G750 Y87 F21000\n"
                                                             "M906 P1\n" // Increase E current for purge
                                                             "G750 E25 F4 L\n" // L: G750 adjusts this E feedrate for the loaded filament
                                                             "M400\n" // planner.synchronize()
                                                             "M906 P0\n" // Restore E current
-                                                            "G750 X0.65 Y118.5 F18000\n"
-                                                            "G750 X0.0 Y98.5 F18000\n"
+                                                            "G750 X0.0 Y118.5 F18000\n"
+                                                            "G750 Y98.5 F18000\n"
                                                             "G750 X-0.5 Y118.5 F18000\n"
                                                             "G750 X-0.1 Y98.5 F18000\n"
                                                             "G750 X-1.5 Y118.5 F18000\n"
                                                             "G750 X-2 Y98.5 F18000\n"
                                                             "G750 X-2 Y118.5 F18000\n"
-                                                            "G750 X0.65 Y96.5 F18000",
+                                                            "G750 X0 Y96.5 F18000",
                                        } },
         { Sequence::eject_blob, {
                                     .filename = "eject_blob",
                                     .directory = directory,
                                     .default_gcode = "M204 T5000\n"
-                                                     "G750 X0.65 F21000 A\n"
+                                                     "G750 X0 F21000 A\n"
                                                      "G750 Y86 F21000 A\n"
                                                      "G750 Y93 F21000 A\n"
                                                      "G750 Y83 F21000 A\n"
                                                      "G750 Y93 F21000 A\n"
                                                      "G750 Y76 F21000 A\n"
                                                      "G750 Y93 F21000 A\n"
-                                                     "G750 Y86.5 F21000",
+                                                     "G750 Y86.5 F21000 A\n"
+                                                     "G750 Y101.5 F21000 A\n"
+                                                     "G750 Y79.5 F21000 A\n"
+                                                     "G750 Y93.5 F21000 A\n"
+                                                     "G750 Y83.5 F21000 A\n"
+                                                     "G750 Y87 F21000",
                                 } },
         { Sequence::enter_cleaner, {
                                        .filename = "enter_cleaner",
                                        .directory = directory,
                                        .default_gcode = "G750 X-12 F21000 A\n"
                                                         "G750 Y99.5 F21000 A\n"
-                                                        "G750 X0.65 F21000 A",
+                                                        "G750 X0 F21000 A",
                                    } },
         { Sequence::exit_cleaner, {
                                       .filename = "exit_cleaner",
@@ -139,7 +151,7 @@ static constexpr EnumArray<Sequence, GCodeFile, static_cast<int>(Sequence::_cnt)
                                                    .filename = "enter_cleaner_from_inside",
                                                    .directory = directory,
                                                    .default_gcode = "G750 Y98.5 F21000 A\n"
-                                                                    "G750 X0.65 F21000 A",
+                                                                    "G750 X0 F21000 A",
                                                } },
 #else
     { Sequence::clean, {
@@ -305,9 +317,9 @@ bool execute() {
         reset();
     };
 
-    const auto print_fan_speed = Temperature::fan_speed[0]; // Save print fan before executing the cleaner gcode, we allow the cleaner gcode to play with the print fan
+    const auto print_fan_speed = Temperature::print_fan_speed; // Save print fan before executing the cleaner gcode, we allow the cleaner gcode to play with the print fan
     ScopeGuard restoreFan = [&] {
-        thermalManager.set_fan_speed(0, print_fan_speed); // Restore print fan speed after
+        thermalManager.set_print_fan_speed(print_fan_speed); // Restore print fan speed after
     };
 
     // this means the gcode was loaded successfully -> ready to execute it

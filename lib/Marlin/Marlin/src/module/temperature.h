@@ -29,6 +29,8 @@
 
 #include "../inc/MarlinConfig.h"
 
+#include <optional>
+
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "../feature/power.h"
 #endif
@@ -51,18 +53,6 @@
   #define PID_K2           (1 - float(PID_K1))
   #define HEATBREAK_PID_K2 (1-float(HEATBREAK_PID_K1))
 #endif
-
-// A temperature sensor
-typedef struct TempInfo {
-  static constexpr float celsius_uninitialized = -1.0f;
-
-  uint16_t acc;
-  int16_t raw;
-  float celsius = celsius_uninitialized;
-  inline void reset() { acc = 0; }
-  inline void sample(const uint16_t s) { acc += s; }
-  inline void update() { raw = acc; }
-} temp_info_t;
 
 // A PWM heater with temperature sensor
 typedef struct HeaterInfo : public TempInfo {
@@ -107,6 +97,13 @@ struct TemperatureADCAccumulator {
 #define THERMISTOR_ADC_RESOLUTION       1024           // 10-bit ADC .. shame to waste 12-bits of resolution on 32-bit
 #define THERMISTOR_ABS_ZERO_C           -273.15f       // bbbbrrrrr cold !
 #define THERMISTOR_RESISTANCE_NOMINAL_C 25.0f          // mmmmm comfortable
+
+// Options for Temperature::wait_for_hotend().
+struct WaitForHotendParams {
+  bool no_wait_for_cooling = true;  // Return instead of waiting when the hotend needs to cool down
+  bool fan_cooling = false;         // Assist heating/cooling with the print fan while waiting
+  std::optional<float> early_return_temperature = std::nullopt; // Stop once this temperature is reached without changing the target; capped by the regular target wait (M109 `C`)
+};
 
 class Temperature {
   friend class MarlinTemptableRawMinMax;
@@ -222,44 +219,31 @@ class Temperature {
       static float analog_to_celsius_board(const int raw);
     #endif
 
-    #if FAN_COUNT > 0
+    inline static uint8_t print_fan_speed {}; ///< Configured print fan speed (@note apply_print_fan_speed() is used to apply the speed from print_fan_speed to applied_print_fan_speed)
+    inline static uint8_t applied_print_fan_speed {}; ///< Actually applied (and scaled) print fan speed
 
-      static std::array<uint8_t, FAN_COUNT> fan_speed; ///< Configured fan speed
-      static std::array<uint8_t, FAN_COUNT> applied_fan_speed; ///< Actually applied (and scaled) fan speed
-      /// @note apply_fan_speeds() is used to apply the speed from fan_speed to applied_fan_speed.
+    inline static uint8_t get_print_fan_speed() {
+      return print_fan_speed;
+    }
 
-      #define FANS_LOOP(I) LOOP_L_N(I, FAN_COUNT)
+    /// set the print fan speed for a target extruder
+    /// @note you need to call apply_print_fan_speed() either from planner or elsewhere to actually use the configured fan speed
+    inline static void set_print_fan_speed(uint8_t speed) {
+      print_fan_speed = speed;
+    }
 
-      static uint16_t get_fan_speed(const uint8_t target);
+    static inline void apply_print_fan_speed() {
+      applied_print_fan_speed = print_fan_speed;
+    }
 
-      /**
-       * @brief Apply fan speeds to the fans.
-       */
-      static inline void apply_fan_speeds() {
-        #if FAN_COUNT > 0
-          FANS_LOOP(i) applied_fan_speed[i] = fan_speed[i];
-        #endif
-      }
+    static inline void apply_print_fan_speed(uint8_t delayed_print_fan_speed) {
+      applied_print_fan_speed = delayed_print_fan_speed;
+    }
 
-      /**
-       * @brief Apply fan speeds to the fans.
-       * This is used with fan speeds sampled from fan_speed by planner and delayed to match planner block processing.
-       * @param delayed_fan_speed fan speeds to apply
-       */
-      static inline void apply_fan_speeds(const uint8_t delayed_fan_speed[FAN_COUNT]) {
-        #if FAN_COUNT > 0
-          FANS_LOOP(i) applied_fan_speed[i] = delayed_fan_speed[i];
-        #endif
-      }
-
-      static void set_fan_speed(const uint8_t target, const uint16_t speed);
-      static constexpr inline uint8_t fanPercent(const uint8_t speed) { return ui8_to_percent(speed); }
-    #endif // FAN_COUNT > 0
+    static constexpr inline uint8_t fanPercent(const uint8_t speed) { return ui8_to_percent(speed); }
 
     static inline void zero_fan_speeds() {
-      #if FAN_COUNT > 0
-        FANS_LOOP(i) set_fan_speed(i, 0);
-      #endif
+      set_print_fan_speed(0);
     }
 
     /**
@@ -287,12 +271,12 @@ class Temperature {
 
     [[deprecated("Use the Hotend functions directly")]]
     FORCE_INLINE static float degHotend(const uint8_t E_NAME) {
-      return Hotend::for_tool(HOTEND_INDEX).nozzle_temp();
+      return Hotend::for_tool(HOTEND_INDEX).nozzle_temp().value_or(TempInfo::celsius_uninitialized);
     }
 
     [[deprecated("Use the Hotend functions directly")]]
     inline static float degHotend(PhysicalToolIndex tool) {
-      return Hotend::for_tool(tool).nozzle_temp();
+      return Hotend::for_tool(tool).nozzle_temp().value_or(TempInfo::celsius_uninitialized);
     }
 
     [[deprecated("Use the Hotend functions directly")]]
@@ -325,12 +309,12 @@ class Temperature {
 
       static bool are_hotend_temperatures_reached();
 
-      static bool wait_for_hotend(PhysicalToolIndex target_extruder, const bool no_wait_for_cooling=true, bool fan_cooling=false) {
-        return wait_for_hotend(target_extruder.to_raw(), no_wait_for_cooling, fan_cooling);
+      static bool wait_for_hotend(PhysicalToolIndex target_extruder, WaitForHotendParams params = {}) {
+        return wait_for_hotend(target_extruder.to_raw(), params);
       }
 
       [[deprecated]]
-      static bool wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling=true, bool fan_cooling=false);
+      static bool wait_for_hotend(const uint8_t target_extruder, WaitForHotendParams params = {});
     #endif
 
     #if HAS_HEATED_BED

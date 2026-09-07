@@ -13,6 +13,7 @@
 #include <bit>
 #include <FreeRTOS.h>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(USBHost);
 using Mutex = freertos::Mutex;
@@ -85,7 +86,7 @@ static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation oper
 USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
     // we don't have any io scheduler, but if only tasks with the same priority send
     // their requests, they will be distributed fairly
-    assert(((DWORD)request->data & 3) == 0);
+    debug_assert(((DWORD)request->data & 3) == 0);
     if (xQueueSend(request_queue, &request, portMAX_DELAY) != pdPASS) {
         return USBH_FAIL;
     }

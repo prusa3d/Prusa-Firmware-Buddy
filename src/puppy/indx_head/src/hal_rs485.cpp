@@ -3,6 +3,7 @@
 #include <freertos/binary_semaphore.hpp>
 #include <stm32c0xx_hal.h>
 #include <stm32c0xx_ll_usart.h>
+#include <utils/byte_utils.hpp>
 
 namespace hal::rs485 {
 // Do not mindlessly reorder members, this leads to a better codegen!
@@ -46,7 +47,7 @@ void init() {
     LL_USART_DisableDirectionRx(USART2);
 }
 
-std::span<std::byte> maybe_transmit_and_then_receive(std::span<std::byte> tx_data) {
+WritableBytes maybe_transmit_and_then_receive(WritableBytes tx_data) {
     // clear possible overrun error
     (void)LL_USART_ReceiveData8(USART2);
     LL_USART_ClearFlag_ORE(USART2);

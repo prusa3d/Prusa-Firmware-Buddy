@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <utility>
+#include <bsod/bsod.h>
 
 namespace spi_task {
 AtomicCircularQueue<uint32_t, uint8_t, 128> accel_samples;
@@ -96,7 +97,7 @@ void run() {
     FOREVER_WITH_WATCHDOG(100) {
         spi_task_semaphore.acquire();
         const auto events = spi_events.exchange(0);
-        assert(events != 0);
+        debug_assert(events != 0);
         if (static_cast<bool>(events & Event::accel_data_ready)) {
             accel::get_sample();
         }

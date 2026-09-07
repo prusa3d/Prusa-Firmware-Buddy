@@ -2,8 +2,8 @@
 
 #include <MItem_tools.hpp>
 
-MenuItemGcodeAction::MenuItemGcodeAction(const string_view_utf8 &label, ConstexprString gcode)
-    : IWindowMenuItem(label)
+MenuItemGcodeAction::MenuItemGcodeAction(const string_view_utf8 &label, ConstexprString gcode, const img::Resource *icon)
+    : IWindowMenuItem(label, icon)
     , gcode(gcode) {}
 
 void MenuItemGcodeAction::click(IWindowMenu &) {

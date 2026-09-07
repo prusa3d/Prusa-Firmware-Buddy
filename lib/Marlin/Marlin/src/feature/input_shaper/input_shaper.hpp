@@ -15,6 +15,7 @@
 #include "input_shaper_config.hpp"
 #include "../precise_stepping/fwdecl.hpp"
 #include "../../core/types.h"
+#include "../../core/time_ticks.hpp"
 
 #ifdef COREXY
 constexpr const uint8_t INPUT_SHAPER_MAX_LOGICAL_AXES = 2;
@@ -27,7 +28,8 @@ constexpr const uint8_t INPUT_SHAPER_MAX_PULSES = INPUT_SHAPER_MAX_LENGTH * INPU
 
 constexpr const float INPUT_SHAPER_VELOCITY_EPSILON = 0.0001f;
 constexpr const float INPUT_SHAPER_ACCELERATION_EPSILON = 0.1f;
-constexpr const double INPUT_SHAPER_PULSES_MIN_TIME_DIFF = 0.00001;
+/// 10 µs merge threshold for CoreXY pulse alignment.
+constexpr const TimeTicks INPUT_SHAPER_PULSES_MIN_TIME_DIFF = TimeTicks::from_us(10);
 
 namespace input_shaper {
 
@@ -54,7 +56,7 @@ Shaper get(float damping_ratio, float shaper_freq, float vibration_reduction, in
 } // namespace input_shaper
 
 typedef struct pulse_t {
-    double t;
+    TimeTicks t;
     float a;
 } pulse_t;
 
@@ -68,7 +70,7 @@ typedef struct input_shaper_pulses_t {
     uint8_t num_pulses;
     std::array<pulse_t, INPUT_SHAPER_MAX_PULSES> pulses;
 
-    micro_move_segment_t calc_micro_move_segment(const std::array<const move_t *, INPUT_SHAPER_MAX_PULSES> &moves, double nearest_next_change, uint8_t logical_axis) const;
+    micro_move_segment_t calc_micro_move_segment(const std::array<const move_t *, INPUT_SHAPER_MAX_PULSES> &moves, TimeTicks nearest_next_change, uint8_t logical_axis) const;
 } input_shaper_pulses_t;
 
 typedef struct input_shaper_state_t {
@@ -77,7 +79,7 @@ typedef struct input_shaper_state_t {
 
     // The largest index corresponds to the pointer to the rightmost time point (on the time axis).
     // And index zero corresponds to the pointer to the leftmost time point (on the time axis).
-    std::array<double, INPUT_SHAPER_MAX_PULSES> m_next_change = {};
+    std::array<TimeTicks, INPUT_SHAPER_MAX_PULSES> m_next_change = {};
 
     uint8_t m_logical_axis_pulses_cnt = 0;
     uint8_t m_nearest_next_change_idx = 0;
@@ -92,16 +94,16 @@ typedef struct input_shaper_state_t {
     float half_accel = 0.f;
     float start_pos = 0.f;
 
-    /// beginning of current micro move segment - absolute time in seconds
-    double print_time = 0.;
-    /// end of current micro move segment - absolute time in seconds
-    double nearest_next_change = 0.;
+    /// beginning of current micro move segment
+    TimeTicks print_time;
+    /// end of current micro move segment
+    TimeTicks nearest_next_change;
 
-    void set_nearest_next_change(double new_nearest_next_change);
+    void set_nearest_next_change(TimeTicks new_nearest_next_change);
 
     uint8_t calc_nearest_next_change_idx() const;
 
-    double get_nearest_next_change() const {
+    TimeTicks get_nearest_next_change() const {
         return m_next_change[m_nearest_next_change_idx];
     }
 

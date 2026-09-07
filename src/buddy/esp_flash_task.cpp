@@ -7,6 +7,7 @@
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Buddy);
 

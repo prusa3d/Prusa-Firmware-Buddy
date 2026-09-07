@@ -134,14 +134,6 @@
   #define Z_HOME_POS (Z_HOME_DIR < 0 ? Z_MIN_POS : Z_MAX_POS)
 #endif
 
-/**
- * Z Sled Probe requires Z_SAFE_HOMING
- */
-#if ENABLED(Z_PROBE_SLED)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #define Z_SAFE_HOMING
-#endif
-
 #ifndef MESH_INSET
   #define MESH_INSET 0
 #endif
@@ -561,36 +553,30 @@
 #define HAS_Z3_DIR        (PIN_EXISTS(Z3_DIR))
 #define HAS_Z3_STEP       (PIN_EXISTS(Z3_STEP))
 
-// Extruder steppers and solenoids
+// Extruder steppers
 #define HAS_E0_ENABLE     (PIN_EXISTS(E0_ENABLE))
 #define HAS_E0_DIR        (PIN_EXISTS(E0_DIR))
 #define HAS_E0_STEP       (PIN_EXISTS(E0_STEP))
-#define HAS_SOLENOID_0    (PIN_EXISTS(SOL0))
 
 #define HAS_E1_ENABLE     (PIN_EXISTS(E1_ENABLE))
 #define HAS_E1_DIR        (PIN_EXISTS(E1_DIR))
 #define HAS_E1_STEP       (PIN_EXISTS(E1_STEP))
-#define HAS_SOLENOID_1    (PIN_EXISTS(SOL1))
 
 #define HAS_E2_ENABLE     (PIN_EXISTS(E2_ENABLE))
 #define HAS_E2_DIR        (PIN_EXISTS(E2_DIR))
 #define HAS_E2_STEP       (PIN_EXISTS(E2_STEP))
-#define HAS_SOLENOID_2    (PIN_EXISTS(SOL2))
 
 #define HAS_E3_ENABLE     (PIN_EXISTS(E3_ENABLE))
 #define HAS_E3_DIR        (PIN_EXISTS(E3_DIR))
 #define HAS_E3_STEP       (PIN_EXISTS(E3_STEP))
-#define HAS_SOLENOID_3    (PIN_EXISTS(SOL3))
 
 #define HAS_E4_ENABLE     (PIN_EXISTS(E4_ENABLE))
 #define HAS_E4_DIR        (PIN_EXISTS(E4_DIR))
 #define HAS_E4_STEP       (PIN_EXISTS(E4_STEP))
-#define HAS_SOLENOID_4    (PIN_EXISTS(SOL4))
 
 #define HAS_E5_ENABLE     (PIN_EXISTS(E5_ENABLE))
 #define HAS_E5_DIR        (PIN_EXISTS(E5_DIR))
 #define HAS_E5_STEP       (PIN_EXISTS(E5_STEP))
-#define HAS_SOLENOID_5    (PIN_EXISTS(SOL5))
 
 // Trinamic Stepper Drivers
 #if HAS_TRINAMIC
@@ -636,7 +622,6 @@
 #define HAS_Z3_MIN (PIN_EXISTS(Z3_MIN))
 #define HAS_Z3_MAX (PIN_EXISTS(Z3_MAX))
 #define HAS_Z_MIN_PROBE_PIN (HAS_CUSTOM_PROBE_PIN && PIN_EXISTS(Z_MIN_PROBE))
-#define HAS_CALIBRATION_PIN (PIN_EXISTS(CALIBRATION))
 
 // ADC Temp Sensors (Thermistor or Thermocouple with amplifier ADC interface)
 #define HAS_ADC_TEST(P) (PIN_EXISTS(TEMP_##P) && TEMP_SENSOR_##P != 0)
@@ -683,24 +668,6 @@
 #define HAS_FAN1 (PIN_EXISTS(FAN1))
 #define HAS_FAN2 (PIN_EXISTS(FAN2))
 
-// Servos
-#define HAS_SERVO_0 (PIN_EXISTS(SERVO0) && NUM_SERVOS > 0)
-#define HAS_SERVO_1 (PIN_EXISTS(SERVO1) && NUM_SERVOS > 1)
-#define HAS_SERVO_2 (PIN_EXISTS(SERVO2) && NUM_SERVOS > 2)
-#define HAS_SERVO_3 (PIN_EXISTS(SERVO3) && NUM_SERVOS > 3)
-#define HAS_SERVOS  (NUM_SERVOS > 0)
-
-#if HAS_SERVOS && !defined(Z_PROBE_SERVO_NR)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #define Z_PROBE_SERVO_NR -1
-#endif
-
-#define HAS_SERVO_ANGLES (HAS_Z_SERVO_PROBE && defined(Z_PROBE_SERVO_NR))
-
-#if !HAS_SERVO_ANGLES || ENABLED(BLTOUCH)
-  #undef EDITABLE_SERVO_ANGLES
-#endif
-
 // User Interface
 #define HAS_HOME        (PIN_EXISTS(HOME))
 #define HAS_KILL        (PIN_EXISTS(KILL))
@@ -743,27 +710,23 @@
 #endif
 
 /**
- * Up to 3 PWM fans
+ * PWM fan
  */
 #ifndef FAN_INVERTING
   #define FAN_INVERTING false
 #endif
 
 #if HAS_FAN2
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #define FAN_COUNT 3
+  #error "FAN2 is not supported"
 #elif HAS_FAN1
-  #define FAN_COUNT 2
+  #error "FAN1 is not supported"
 #elif HAS_FAN0
   #define FAN_COUNT 1
 #else
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #define FAN_COUNT 0
+  #error "where is print fan?"
 #endif
 
-#if FAN_COUNT > 0
-  #define WRITE_FAN(n, v) WRITE(FAN##n##_PIN, (v) ^ FAN_INVERTING)
-#endif
+#define WRITE_FAN(n, v) WRITE(FAN##n##_PIN, (v) ^ FAN_INVERTING)
 
 /**
  * MIN/MAX case light PWM scaling
@@ -926,10 +889,6 @@
   #ifndef Z_CLEARANCE_MULTI_PROBE
     // #error dead code found by automatic analyses (see BFW-5461)
     #define Z_CLEARANCE_MULTI_PROBE Z_CLEARANCE_BETWEEN_PROBES
-  #endif
-  #if ENABLED(BLTOUCH) && !defined(BLTOUCH_DELAY)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #define BLTOUCH_DELAY 500
   #endif
 #endif
 

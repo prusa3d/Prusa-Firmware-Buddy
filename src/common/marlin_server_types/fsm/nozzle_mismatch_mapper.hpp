@@ -15,12 +15,8 @@ constexpr std::optional<ErrCode> nozzle_mismatch_phase_error_code_mapper(const F
         return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_TOOL_LOST;
     case PhaseNozzleMismatch::pickup_failed:
         return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_PICKUP_FAILED;
-    case PhaseNozzleMismatch::pickup_failed_confirm_retry:
-        return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_PICKUP_RETRY;
     case PhaseNozzleMismatch::park_failed:
         return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_PARK_FAILED;
-    case PhaseNozzleMismatch::park_failed_confirm_retry:
-        return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_PARK_RETRY;
     case PhaseNozzleMismatch::confirm_abort:
         return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_CONFIRM_ABORT;
     default:

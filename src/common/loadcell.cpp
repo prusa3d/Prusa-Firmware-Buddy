@@ -15,9 +15,14 @@
 #include "position_lookback.hpp"
 #include "bsod.h"
 #include "config_features.h"
-#if ENABLED(POWER_PANIC)
+#include <option/has_power_panic.h>
+#if HAS_POWER_PANIC()
     #include "power_panic.hpp"
 #endif // POWER_PANIC
+#include <option/rtt_metrics_enabled.h>
+#if RTT_METRICS_ENABLED()
+    #include <rtt_metrics_segger/peripheries_metrics.hpp>
+#endif // RTT_METRICS
 #include "../Marlin/src/module/planner.h"
 #include "../Marlin/src/module/endstops.h"
 #include "../Marlin/src/feature/precise_stepping/precise_stepping.hpp"
@@ -100,7 +105,7 @@ Loadcell::Loadcell()
     Clear();
 
     metrics_timer = xTimerCreateStatic("loadcell_metrics", 1, false, nullptr, &report_loadcell_metrics, &metrics_timer_storage);
-    assert(metrics_timer);
+    debug_assert(metrics_timer);
 }
 
 void Loadcell::WaitBarrier(uint32_t ticks_us) {
@@ -161,8 +166,8 @@ float Loadcell::Tare(TareMode mode) {
     if (!probe_should_abort() && !generation_mismatch()) {
         if (tareMode == TareMode::Continuous) {
             // double-check filters are ready after the tare
-            assert(z_filter.initialized());
-            assert(xy_filter.initialized());
+            debug_assert(z_filter.initialized());
+            debug_assert(xy_filter.initialized());
         }
 
         offset = tareSum / requestedTareCount;
@@ -262,6 +267,10 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us, uint32_t sou
 
     const float tared_z_load = get_tared_z_load(loadcellRaw, scale, offset);
 
+#if RTT_METRICS_ENABLED()
+    rtt_metrics::sample_loadcell_tared_z({ tared_z_load });
+#endif
+
     float filtered_z_load = NAN;
     float filtered_xy_load = NAN;
 
@@ -286,7 +295,7 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us, uint32_t sou
                 loadForEndstops = tared_z_load;
                 threshold = thresholdStatic;
             } else {
-                assert(!Endstops::is_z_probe_enabled() || z_filter.initialized());
+                debug_assert(!Endstops::is_z_probe_enabled() || z_filter.initialized());
                 loadForEndstops = filtered_z_load;
                 threshold = thresholdContinuous;
             }
@@ -302,15 +311,18 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us, uint32_t sou
 
             // Trigger XY endstop/probe
             if (xy_endstop_enabled) {
-                assert(xy_filter.initialized());
+                debug_assert(xy_filter.initialized());
+
+                const float xy_threshold = xy_probe_threshold.load(std::memory_order_relaxed);
+                const float xy_hyst = xy_probe_hysteresis.load(std::memory_order_relaxed);
 
                 // Everything as absolute values, watch for changes.
                 // Load perpendicular to the sensor sense vector is not guaranteed to have defined sign.
-                if (abs(filtered_xy_load) > abs(XY_PROBE_THRESHOLD)) {
+                if (abs(filtered_xy_load) > abs(xy_threshold)) {
                     xy_endstop = true;
                     buddy::hw::zMin.isr();
                 }
-                if (abs(filtered_xy_load) < abs(XY_PROBE_THRESHOLD) - abs(XY_PROBE_HYSTERESIS)) {
+                if (abs(filtered_xy_load) < abs(xy_threshold) - abs(xy_hyst)) {
                     xy_endstop = false;
                     buddy::hw::zMin.isr();
                 }
@@ -452,16 +464,43 @@ Loadcell::FailureOnLoadAboveEnforcer::~FailureOnLoadAboveEnforcer() {
 
 Loadcell::HighPrecisionEnabler::HighPrecisionEnabler(Loadcell &lcell, bool enable)
     : m_lcell(lcell)
-    , m_enable(enable) {
-    if (m_enable) {
-        m_lcell.EnableHighPrecision();
+    , m_owns_high_precision(false) {
+    if (!enable) {
+        return;
     }
+    // Only take ownership (and thus only turn it back off later) if HP wasn't already
+    // on -- otherwise we'd steal it out from under whichever scope enabled it first.
+    if (m_lcell.IsHighPrecisionEnabled()) {
+        // This is undesired state and we should avoid nesting if possible
+        // May cause unwanted state of loadcell enabled after return from the nested scope
+        log_warning(Loadcell, "HighPrecisionEnabler: already enabled, not taking ownership");
+        return;
+    }
+    m_lcell.EnableHighPrecision();
+    m_owns_high_precision = true;
 }
 
 Loadcell::HighPrecisionEnabler::~HighPrecisionEnabler() {
-    if (m_enable) {
+    if (m_owns_high_precision) {
         m_lcell.DisableHighPrecision();
     }
+}
+
+void Loadcell::SetXyProbeThreshold(float threshold_g, float hysteresis_g) {
+    xy_probe_threshold = threshold_g;
+    xy_probe_hysteresis = hysteresis_g;
+}
+
+Loadcell::XyProbeThresholdOverride::XyProbeThresholdOverride(Loadcell &lcell, float threshold_g)
+    : m_lcell(lcell)
+    , m_old_threshold(lcell.GetXyProbeThreshold())
+    , m_old_hysteresis(lcell.GetXyProbeHysteresis()) {
+    // Keep the default threshold:hysteresis ratio so the release band scales with the threshold.
+    lcell.SetXyProbeThreshold(threshold_g, threshold_g * (XY_PROBE_HYSTERESIS / XY_PROBE_THRESHOLD));
+}
+
+Loadcell::XyProbeThresholdOverride::~XyProbeThresholdOverride() {
+    m_lcell.SetXyProbeThreshold(m_old_threshold, m_old_hysteresis);
 }
 
 Loadcell::ProbeSafetyArmer::ProbeSafetyArmer(Loadcell &lcell, bool arm)

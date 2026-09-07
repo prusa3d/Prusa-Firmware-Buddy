@@ -8,6 +8,7 @@
 
 #include <uavcan/node/port/List_1_0.h>
 #include <uavcan/time/Synchronization_1_0.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -47,19 +48,19 @@ class PortList {
 
     /// Custom serialize function
     static int8_t serialize(const List *const obj, uint8_t *const buffer, size_t *const inout_buffer_size_bytes) {
-        assert(obj != nullptr);
-        assert(buffer != nullptr);
-        assert(inout_buffer_size_bytes != nullptr);
+        debug_assert(obj != nullptr);
+        debug_assert(buffer != nullptr);
+        debug_assert(inout_buffer_size_bytes != nullptr);
 
         const size_t buffer_size = *inout_buffer_size_bytes; ///< Space we have available
-        assert(buffer_size >= List_SERIALIZATION_BUFFER_SIZE_BYTES_);
+        debug_assert(buffer_size >= List_SERIALIZATION_BUFFER_SIZE_BYTES_);
 
         size_t &used_size = *inout_buffer_size_bytes; ///< Space we have used
         used_size = 0;
 
         /// Add one byte to buffer
         auto add_byte = [buffer, buffer_size](uint8_t value, size_t &position) {
-            assert(position < buffer_size);
+            debug_assert(position < buffer_size);
             buffer[position] = value;
             position++;
         };
@@ -86,7 +87,7 @@ class PortList {
             size_t count = 0;
             for (ProtoPortList *item = obj->publishers; item != nullptr; item = item->portlist_next) {
                 count++;
-                assert(count <= MAX_PUBLISH);
+                debug_assert(count <= MAX_PUBLISH);
                 add_short(item->port_id, used_size);
             }
 
@@ -103,7 +104,7 @@ class PortList {
             size_t count = 0;
             for (ProtoPortList *item = obj->subscribers; item != nullptr; item = item->portlist_next) {
                 count++;
-                assert(count <= MAX_PUBLISH);
+                debug_assert(count <= MAX_PUBLISH);
                 add_short(item->port_id, used_size);
             }
 
@@ -118,7 +119,7 @@ class PortList {
             uint8_t *client_mask = buffer + used_size;
             memset(client_mask, 0, uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_ / 8);
             for (ProtoPortList *item = obj->clients; item != nullptr; item = item->portlist_next) {
-                assert(item->port_id < uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_);
+                debug_assert(item->port_id < uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_);
                 client_mask[item->port_id / 8] |= 1 << (item->port_id % 8);
             }
             used_size += uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_ / 8;
@@ -130,7 +131,7 @@ class PortList {
             uint8_t *server_mask = buffer + used_size;
             memset(server_mask, 0, uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_ / 8);
             for (ProtoPortList *item = obj->servers; item != nullptr; item = item->portlist_next) {
-                assert(item->port_id < uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_);
+                debug_assert(item->port_id < uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_);
                 server_mask[item->port_id / 8] |= 1 << (item->port_id % 8);
             }
             used_size += uavcan_node_port_ServiceIDList_1_0_mask_ARRAY_CAPACITY_ / 8;

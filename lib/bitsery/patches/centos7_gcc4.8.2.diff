@@ -1,0 +1,119 @@
+diff --git a/include/bitsery/details/serialization_common.h b/include/bitsery/details/serialization_common.h
+index 6d5a441..462cee2 100644
+--- a/include/bitsery/details/serialization_common.h
++++ b/include/bitsery/details/serialization_common.h
+@@ -380,7 +380,7 @@ namespace bitsery {
+             template <typename ... TArgs>
+             explicit AdapterAndContextRef(Context& ctx, TArgs&& ... args)
+                 : _adapter{std::forward<TArgs>(args)...},
+-                  _context{ctx}
++                  _context(ctx)
+             {
+             }
+
+diff --git a/include/bitsery/ext/inheritance.h b/include/bitsery/ext/inheritance.h
+index f4c6655..5cd44ab 100644
+--- a/include/bitsery/ext/inheritance.h
++++ b/include/bitsery/ext/inheritance.h
+@@ -36,7 +36,7 @@ namespace bitsery {
+         class InheritanceContext {
+         public:
+             explicit InheritanceContext(MemResourceBase* memResource = nullptr)
+-                :_virtualBases{pointer_utils::StdPolyAlloc<const void*>{memResource}}
++                :_virtualBases{0, std::hash<const void*>{}, std::equal_to<const void*>{}, pointer_utils::StdPolyAlloc<const void*>{memResource}}
+                 {}
+             InheritanceContext(const InheritanceContext&) = delete;
+             InheritanceContext&operator = (const InheritanceContext&) = delete;
+diff --git a/include/bitsery/ext/utils/memory_resource.h b/include/bitsery/ext/utils/memory_resource.h
+index 472965a..18b3f31 100644
+--- a/include/bitsery/ext/utils/memory_resource.h
++++ b/include/bitsery/ext/utils/memory_resource.h
+@@ -24,6 +24,7 @@
+ #define BITSERY_EXT_MEMORY_RESOURCE_H
+
+ #include "../../details/serialization_common.h"
++#include <cstddef>
+ #include <new>
+
+ namespace bitsery {
+@@ -128,6 +129,40 @@ namespace bitsery {
+             public:
+                 using value_type = T;
+
++                using pointer = T*;
++                using const_pointer = const T*;
++                using reference = T&;
++                using const_reference = const T&;
++                using size_type = size_t;
++                using difference_type = ptrdiff_t;
++
++                size_t max_size() const noexcept {
++                    return std::numeric_limits<size_t>::max() / sizeof(value_type);
++                }
++
++                void construct(T *p, const T &val) {
++                    new((void *) p) T(val);
++                }
++
++                template<class U, class... Args>
++                void construct(U *p, Args &&... args) {
++                    new((void *) p) U(std::forward<Args>(args)...);
++                }
++
++                void destroy(T *p) {
++                    p->~T();
++                }
++
++                template<class U>
++                void destroy(U *p) {
++                    p->~U();
++                }
++
++                template<typename U>
++                struct rebind {
++                    using other = StdPolyAlloc<U>;
++                };
++
+                 explicit constexpr StdPolyAlloc(MemResourceBase* memResource)
+                     :_alloc{memResource} {}
+                 explicit constexpr StdPolyAlloc(PolyAllocWithTypeId alloc) : _alloc{alloc} {}
+diff --git a/include/bitsery/ext/utils/pointer_utils.h b/include/bitsery/ext/utils/pointer_utils.h
+index f6f90da..6b65600 100644
+--- a/include/bitsery/ext/utils/pointer_utils.h
++++ b/include/bitsery/ext/utils/pointer_utils.h
+@@ -153,7 +153,7 @@ namespace bitsery {
+             public:
+                 explicit PointerLinkingContextSerialization(MemResourceBase* memResource = nullptr)
+                     : _currId{0},
+-                      _ptrMap{StdPolyAlloc<std::pair<const void* const, PLCInfoSerializer>>{memResource}} {}
++                      _ptrMap{0, std::hash<const void*>{}, std::equal_to<const void*>{}, StdPolyAlloc<std::pair<const void* const, PLCInfoSerializer>>{memResource}} {}
+
+                 PointerLinkingContextSerialization(const PointerLinkingContextSerialization&) = delete;
+
+@@ -198,7 +198,7 @@ namespace bitsery {
+             public:
+                 explicit PointerLinkingContextDeserialization(MemResourceBase* memResource = nullptr)
+                     : _memResource{memResource},
+-                    _idMap{StdPolyAlloc<std::pair<const size_t, PLCInfoDeserializer>>{memResource}} {}
++                    _idMap{0, std::hash<size_t>{}, std::equal_to<size_t>{}, StdPolyAlloc<std::pair<const size_t, PLCInfoDeserializer>>{memResource}} {}
+
+                 PointerLinkingContextDeserialization(const PointerLinkingContextDeserialization&) = delete;
+
+diff --git a/include/bitsery/ext/utils/polymorphism_utils.h b/include/bitsery/ext/utils/polymorphism_utils.h
+index 6678230..a2cef4d 100644
+--- a/include/bitsery/ext/utils/polymorphism_utils.h
++++ b/include/bitsery/ext/utils/polymorphism_utils.h
+@@ -185,11 +185,8 @@ namespace bitsery {
+
+             explicit PolymorphicContext(MemResourceBase* memResource = nullptr)
+                 :_memResource{memResource},
+-                _baseToDerivedMap{pointer_utils::StdPolyAlloc<std::pair<const BaseToDerivedKey,
+-                std::shared_ptr<PolymorphicHandlerBase>>>{memResource}},
+-                 _baseToDerivedArray{pointer_utils::StdPolyAlloc<std::pair<const size_t,
+-                     std::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>>>{memResource}}
+-            {}
++                _baseToDerivedMap{0, BaseToDerivedKeyHashier{}, std::equal_to<BaseToDerivedKey>{}, pointer_utils::StdPolyAlloc<std::pair<const BaseToDerivedKey, std::shared_ptr<PolymorphicHandlerBase>>>{memResource}},
++                _baseToDerivedArray{0, std::hash<size_t>{}, std::equal_to<size_t>{}, pointer_utils::StdPolyAlloc<std::pair<const size_t, std::vector<size_t, pointer_utils::StdPolyAlloc<size_t>>>>{memResource}} {}
+
+             PolymorphicContext(const PolymorphicContext& ) = delete;
+             PolymorphicContext& operator = (const PolymorphicContext&) = delete;

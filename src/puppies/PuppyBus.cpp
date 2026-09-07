@@ -6,6 +6,7 @@
 #include "hwio_pindef.h"
 #include "timing.h"
 #include <freertos/binary_semaphore.hpp>
+#include <bsod/bsod.h>
 
 namespace buddy {
 namespace puppies {
@@ -32,15 +33,15 @@ namespace puppies {
     freertos::BinarySemaphore delay_semaphore;
 
     void PuppyBus::Open() {
-        assert(puppyMutexId == nullptr);
+        debug_assert(puppyMutexId == nullptr);
         puppyMutexId = osMutexCreate(osMutex(puppyMutex));
-        assert(puppyMutexId != nullptr);
+        debug_assert(puppyMutexId != nullptr);
         uart_for_puppies.Open();
     }
 
     void PuppyBus::Close() {
         uart_for_puppies.Close();
-        assert(puppyMutexId != nullptr);
+        debug_assert(puppyMutexId != nullptr);
         osMutexDelete(puppyMutexId);
         puppyMutexId = nullptr;
     }
@@ -98,13 +99,13 @@ namespace puppies {
     }
 
     void PuppyBus::ensure_pause(uint32_t pause_us) {
-        assert(!xPortIsInsideInterrupt());
+        debug_assert(!xPortIsInsideInterrupt());
         const uint32_t elapsed_us = ticks_us() - last_operation_time_us;
         if (pause_us <= elapsed_us) {
             return;
         }
         const uint32_t remaining_us = pause_us - elapsed_us;
-        assert(remaining_us < 0xFFFF);
+        debug_assert(remaining_us < 0xFFFF);
 
         // Delays shorter than 2 us would be more difficult to handle.
         // When ARR is set to N-1, it will take exactly N cycles to generate update event.
@@ -135,7 +136,7 @@ namespace puppies {
 
     PuppyBus::LockGuard::LockGuard() {
         osStatus res = osMutexWait(puppyMutexId, osWaitForever);
-        assert(res == osOK);
+        debug_assert(res == osOK);
         locked = true;
         UNUSED(res);
     }
@@ -149,7 +150,7 @@ namespace puppies {
     PuppyBus::LockGuard::~LockGuard() {
         if (locked) {
             osStatus res = osMutexRelease(puppyMutexId);
-            assert(res == osOK);
+            debug_assert(res == osOK);
             UNUSED(res);
         }
     }

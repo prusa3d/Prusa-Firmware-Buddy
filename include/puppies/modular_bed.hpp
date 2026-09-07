@@ -18,7 +18,7 @@ constexpr size_t bedlet_idx_to_board_number(size_t idx) {
     return idx + 1;
 }
 
-class ModularBed : public ModbusDevice, public AdvancedModularBed {
+class ModularBed : public AdvancedModularBed {
 public:
     static constexpr auto BEDLET_PERIOD_MS = 300;
     static constexpr auto BEDLET_MAX_X = X_HBL_COUNT;
@@ -154,6 +154,9 @@ protected:
     uint16_t expand_to_sides(uint16_t enabled_mask, float target_temp);
 
 private:
+    /// Address of the puppy on the modbus
+    const uint8_t unit;
+
     // Read-side state — populated under mutex by puppy task, read lock-free by Marlin.
     std::array<std::atomic<uint16_t>, BEDLET_COUNT> bedlet_temp {};
     std::atomic<int16_t> heater_current_a { 0 };

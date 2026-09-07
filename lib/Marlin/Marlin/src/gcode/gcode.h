@@ -23,6 +23,7 @@
 
 #include <option/has_mmu2.h>
 #include <option/has_pause.h>
+#include <option/has_tool_offset_pin_calibration.h>
 
 /**
  * gcode.h - Temporary container for all gcode handlers
@@ -58,8 +59,6 @@
  * G28  - Home one or more axes
  * G29  - Start or continue the bed leveling probe procedure (Requires bed leveling)
  * G30  - Single Z probe, probes bed at X Y location (defaults to current XY location)
- * G31  - Dock sled (Z_PROBE_SLED only)
- * G32  - Undock sled (Z_PROBE_SLED only)
  * G34  - Z Stepper automatic alignment using probe: I<iterations> T<accuracy> A<amplification> (Requires Z_STEPPER_AUTO_ALIGN)
  * G38  - Probe in any direction using the Z_MIN_PROBE (Requires G38_PROBE_TARGET)
  * G42  - Coordinated move to a mesh point (Requires AUTO_BED_LEVELING_BLINEAR or AUTO_BED_LEVELING_UBL)
@@ -72,12 +71,6 @@
  *
  * M0   - Unconditional stop - Wait for user to press a button on the LCD.
  * M1   -> M0
- * M3   - Turn ON Laser | Spindle (clockwise), set Power | Speed. (Requires SPINDLE_FEATURE or LASER_FEATURE)
- * M4   - Turn ON Laser | Spindle (counter-clockwise), set Power | Speed. (Requires SPINDLE_FEATURE or LASER_FEATURE)
- * M5   - Turn OFF Laser | Spindle. (Requires SPINDLE_FEATURE or LASER_FEATURE)
- * M7   - Turn mist coolant ON. (Requires COOLANT_CONTROL)
- * M8   - Turn flood coolant ON. (Requires COOLANT_CONTROL)
- * M9   - Turn coolant OFF. (Requires COOLANT_CONTROL)
  * M16  - Expected printer check. (Requires EXPECTED_PRINTER_CHECK)
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
@@ -154,8 +147,6 @@
  * M221 - Set Flow Percentage: "M221 S<percent>"
  * M260 - i2c Send Data
  * M261 - i2c Request Data
- * M280 - Set servo position absolute: "M280 P<index> S<angle|µs>". (Requires servos)
- * M281 - Set servo min|max position: "M281 P<index> L<min> U<max>". (Requires EDITABLE_SERVO_ANGLES)
  * M290 - Babystepping (Requires BABYSTEPPING)
  * M300 - Play beep sound S<frequency Hz> P<duration ms>
  * M301 - Set PID parameters P I and D. (Requires PIDTEMP)
@@ -165,8 +156,6 @@
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M355 - Set Case Light on/off and set brightness. (Requires CASE_LIGHT_PIN)
- * M380 - Activate solenoid on active extruder. (Requires EXT_SOLENOID)
- * M381 - Disable all solenoids. (Requires EXT_SOLENOID)
  * M400 - Finish all moves.
  * M401 - Deploy and activate Z probe. (Requires a probe)
  * M402 - Deactivate and stow Z probe. (Requires a probe)
@@ -195,7 +184,6 @@
  * M701 - Load filament
  * M702 - Unload filament
  * M851 - Set Z probe's XYZ offsets in current units. (Negative values: X=left, Y=front, Z=below)
- * M852 - Set skew factors: "M852 [I<xy>] [J<xz>] [K<yz>]". (Requires SKEW_CORRECTION_GCODE, and SKEW_CORRECTION_FOR_Z for IJ)
  * M876 - Handle Prompt Response. (Requires HOST_PROMPT_SUPPORT and not EMERGENCY_PARSER)
  * M900 - Get or Set Linear Advance K-factor. (PA Compatibility with old LIN_ADVANCE)
  * M906 - Set or get motor current in milliamps using axis codes X, Y, Z, E. Report values if no axis codes given. P selects a motor current profile (HAS_MOTOR_CURRENT_PROFILES). (Requires at least one _DRIVER_TYPE defined as TMC2130/2160/5130/5160/2208/2209/2660)
@@ -206,7 +194,7 @@
  * M7219 - Control Max7219 Matrix LEDs. (Requires MAX7219_GCODE)
  *
  * ************ Custom codes - This can change to suit future G-code regulations
- * G425 - Calibrate using a conductive object. (Requires CALIBRATION_GCODE)
+ * G425 - Calibrate using a conductive object. (Requires HAS_TOOL_OFFSET_PIN_CALIBRATION)
  * G426 - Measure tool offset contactlessly. (Requires HAS_TOOL_OFFSET_SENSOR)
  * M958 - Excite harmonic vibration and measure amplitude
  * M959 - Tune input shaper
@@ -233,6 +221,7 @@
 #include <option/has_i2c_expander.h>
 #include <option/has_local_accelerometer.h>
 #include <option/has_modular_bed.h>
+#include <option/has_print_sheet_detection.h>
 #include <option/has_remote_accelerometer.h>
 #include <option/has_precise_homing_corexy.h>
 #include <option/has_precise_homing.h>
@@ -264,7 +253,7 @@ struct G28Flags {
   /// Relates to HAS_PRECISE_HOMING_COREXY
   bool precise = true;
 
-  #if ENABLED(DETECT_PRINT_SHEET)
+  #if HAS_PRINT_SHEET_DETECTION()
     bool check_sheet = false;
   #endif
 
@@ -438,11 +427,6 @@ private:
 
   #if HAS_BED_PROBE
     static void G30();
-    #if ENABLED(Z_PROBE_SLED)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      static void G31();
-      static void G32();
-    #endif
   #endif
 
   #if ENABLED(Z_STEPPER_AUTO_ALIGN)
@@ -466,7 +450,7 @@ private:
 
   static void G92();
 
-  #if ENABLED(CALIBRATION_GCODE)
+  #if HAS_TOOL_OFFSET_PIN_CALIBRATION()
     static void G425();
   #endif
 
@@ -476,25 +460,6 @@ private:
 
   #if HAS_RESUME_CONTINUE
     static void M0_M1();
-  #endif
-
-  #if HAS_CUTTER
-    // #error dead code found by automatic analyses (see BFW-5461)
-    static void M3_M4(const bool is_M4);
-    static void M5();
-  #endif
-
-  #if ENABLED(COOLANT_CONTROL)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #if ENABLED(COOLANT_MIST)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      static void M7();
-    #endif
-    #if ENABLED(COOLANT_FLOOD)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      static void M8();
-    #endif
-    static void M9();
   #endif
 
   #if ENABLED(EXPECTED_PRINTER_CHECK)
@@ -562,11 +527,8 @@ private:
   static void M92();
   static void M109();
   static void M105();
-
-  #if FAN_COUNT > 0
-    static void M106();
-    static void M107();
-  #endif
+  static void M106();
+  static void M107();
 
   #if DISABLED(EMERGENCY_PARSER)
     static void M108();
@@ -639,15 +601,6 @@ private:
     static void M261();
   #endif
 
-  #if HAS_SERVOS
-    // #error dead code found by automatic analyses (see BFW-5461)
-    static void M280();
-    #if ENABLED(EDITABLE_SERVO_ANGLES)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      static void M281();
-    #endif
-  #endif
-
   #if ENABLED(BABYSTEPPING)
     static void M290();
   #endif
@@ -675,12 +628,6 @@ private:
   #if HAS_CASE_LIGHT
     // #error dead code found by automatic analyses (see BFW-5461)
     static void M355();
-  #endif
-
-  #if EITHER(EXT_SOLENOID, MANUAL_SOLENOID_CONTROL)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    static void M380();
-    static void M381();
   #endif
 
   static void M400();

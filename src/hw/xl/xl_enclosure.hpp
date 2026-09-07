@@ -11,7 +11,7 @@
 #include <pwm_utils.hpp>
 #include <temperature.hpp>
 #include "marlin_server_shared.h"
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 #include <general_response.hpp>
 #include <warning_type.hpp>
 
@@ -28,7 +28,7 @@
 /** @class Enclosure for XL
  * Handling timers for GUI, timers for filtration and filter expiration.
  * There are 2 modes:  MCU cooling (enabled) & enclosure chamber filtration (print filtration)
- * MCU cooling has a priority and is activated on temperatures over 85*C and deactivated after cooldown under 70*C
+ * MCU cooling has a priority and is activated on temperatures over 80*C and deactivated after cooldown under 75*C
  * Print filtration is controlled by chamber filtration and set up by the user (default 40% on smelly filaments).
  * After print ends, fan is ventilation for another 1-30 minutes based on printed material / user preference.
  *

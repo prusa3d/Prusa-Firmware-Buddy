@@ -1,7 +1,5 @@
 #include "CFanCtlPuppy.hpp"
 
-#include <Marlin/src/module/motion.h>
-
 void CFanCtlPuppy::enter_selftest_mode() {
     selftest_mode = true;
 #if HAS_INDX()
@@ -36,7 +34,7 @@ bool CFanCtlPuppy::set_pwm(uint16_t pwm) {
 
 #if HAS_PRINT_FAN_TYPE()
     if (fan_nr == 0) {
-        PrintFanType pft = get_print_fan_type(active_extruder);
+        PrintFanType pft = get_print_fan_type(tool.tool_index());
         remapped_pwm = print_fan_remap_pwm(pft, pwm);
     }
 #endif
@@ -54,7 +52,7 @@ bool CFanCtlPuppy::selftest_set_pwm(uint8_t pwm) {
 
 #if HAS_PRINT_FAN_TYPE()
     if (fan_nr == 0) {
-        PrintFanType pft = get_print_fan_type(tool.dwarf_index());
+        PrintFanType pft = get_print_fan_type(tool.tool_index());
         remapped_pwm = print_fan_remap_pwm(pft, pwm);
     }
 #endif

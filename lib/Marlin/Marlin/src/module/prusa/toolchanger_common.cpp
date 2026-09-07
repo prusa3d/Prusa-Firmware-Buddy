@@ -4,8 +4,10 @@
 #include <module/planner.h>
 #include "Marlin.h"
 #include "timing.h"
+#include <bsod/bsod.h>
+#include <option/has_power_panic.h>
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     #include <power_panic.hpp>
 #endif
 
@@ -58,7 +60,7 @@ bool PrusaToolChangerUtils::wait(const stdext::inplace_function<bool()> &functio
         case WaitMode::default_mode:
             return planner.draining();
         case WaitMode::bail_on_power_panic:
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
             return power_panic::panic_is_active();
 #else
             return false;

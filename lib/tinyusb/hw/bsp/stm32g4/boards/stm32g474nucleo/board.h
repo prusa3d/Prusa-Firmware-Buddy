@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: STM32 G474 Nucleo
+   url: https://www.st.com/en/evaluation-tools/nucleo-g474re.html
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -46,8 +51,7 @@
 #define BUTTON_STATE_ACTIVE   1
 
 // UART Enable for STLink VCOM
-#define UART_DEV              LPUART1
-#define UART_CLK_EN           __HAL_RCC_LPUART1_CLK_ENABLE
+#define UART_ID               11
 #define UART_GPIO_PORT        GPIOA
 #define UART_GPIO_AF          GPIO_AF12_LPUART1
 #define UART_TX_PIN           GPIO_PIN_2

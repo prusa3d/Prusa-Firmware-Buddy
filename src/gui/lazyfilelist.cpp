@@ -1,4 +1,5 @@
 #include "lazyfilelist.hpp"
+#include <bsod/bsod.h>
 
 namespace {
 
@@ -141,7 +142,7 @@ int LazyDirViewBase::move_window_by(int amount) {
             break;
         }
         [[maybe_unused]] const bool moved = MoveDown(step);
-        assert(moved);
+        debug_assert(moved);
         remaining -= step;
     }
 
@@ -151,7 +152,7 @@ int LazyDirViewBase::move_window_by(int amount) {
             break;
         }
         [[maybe_unused]] const bool moved = MoveUp(step);
-        assert(moved);
+        debug_assert(moved);
         remaining += step;
     }
 
@@ -161,7 +162,7 @@ int LazyDirViewBase::move_window_by(int amount) {
 bool LazyDirViewBase::MoveUp(int amount) {
     // This function does not support moving by more whan window_size - 1, because if needs anchor_item to base sorting off.
     // For larger jumps, use move_window_by
-    assert(amount < window_size);
+    debug_assert(amount < window_size);
 
     if (amount == 0) {
         return true;
@@ -258,7 +259,7 @@ bool LazyDirViewBase::MoveUp(int amount) {
 bool LazyDirViewBase::MoveDown(int amount) {
     // This function does not support moving by more whan window_size - 1, because if needs anchor_item to base sorting off.
     // For larger jumps, use move_window_by
-    assert(amount < window_size);
+    debug_assert(amount < window_size);
 
     if (amount == 0) {
         return true;
@@ -311,7 +312,7 @@ bool LazyDirViewBase::MoveDown(int amount) {
     return true;
 }
 int LazyDirViewBase::max_move_up_step() const {
-    assert(windowStartingFrom >= -1);
+    debug_assert(windowStartingFrom >= -1);
     const int to_top = windowStartingFrom + 1;
     return std::min(to_top, window_size - 1);
 }

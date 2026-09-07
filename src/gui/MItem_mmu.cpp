@@ -24,7 +24,7 @@
 #include <MItem_tools.hpp>
 
 /**********************************************************************************************/
-// MI_MMU_LOAD_FILAMENT
+// MI_MMU_PRELOAD
 MI_MMU_PRELOAD::MI_MMU_PRELOAD()
     : IWindowMenuItem(_(label), nullptr,
         // enable the PreLoad menu only if there is no filament already loaded
@@ -78,7 +78,7 @@ void MI_MMU_LOAD_TO_NOZZLE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /**********************************************************************************************/
-// MI_MMU_LOAD_FILAMENT_base
+// MI_MMU_ISSUE_GCODE
 MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode, is_hidden_t hidden)
     : IWindowMenuItem(_(lbl), nullptr, is_enabled_t::yes, hidden)
     , gcode(gcode) {
@@ -316,7 +316,7 @@ MI_INFO_FINDA::MI_INFO_FINDA()
 }
 
 /*****************************************************************************/
-// MI_INFO_FINDA
+// MI_MMU_BOOTLOADER_RESULT
 
 static void MI_MMU_BOOTLOADER_RESULT_label(const std::span<char> &buffer) {
     string_view_utf8 result = [&] {

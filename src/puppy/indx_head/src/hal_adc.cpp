@@ -6,12 +6,13 @@
 #include <algorithm>
 #include <limits>
 #include <numbers>
+#include <bsod/bsod.h>
 
 namespace hal::adc {
 alignas(uint32_t) std::array<uint16_t, std::to_underlying(Channel::_cnt)> impl::buffer {};
 
 uint16_t get_raw(Channel channel) {
-    assert(channel != Channel::_cnt);
+    debug_assert(channel != Channel::_cnt);
     return impl::buffer[std::to_underlying(channel)];
 }
 

@@ -1,0 +1,55 @@
+add_executable(
+  window_file_list_tests
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/mocks.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/ourPosix.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/missing_functions.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/mock_display.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/window_file_list.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/lazyfilelist.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/file_sort.cpp
+  ${CMAKE_SOURCE_DIR}/src/gui/fonts.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/directory.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/i_window_menu.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/window_menu_virtual.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/i_window_menu_item.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/text_roll.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/window.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/Rect16.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_ex.cpp
+  ${CMAKE_SOURCE_DIR}/src/guiapi/src/display_helper.cpp
+  )
+
+target_include_directories(
+  window_file_list_tests
+  PUBLIC .
+         ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock
+         ${CMAKE_SOURCE_DIR}/src
+         ${CMAKE_SOURCE_DIR}/src/guiapi/include
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
+         ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/src/common/marlin_server_types
+         ${CMAKE_SOURCE_DIR}/src/gui/dialogs
+         ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/src/gui
+         ${CMAKE_BINARY_DIR}/include
+         ${CMAKE_SOURCE_DIR}/include
+         ${CMAKE_SOURCE_DIR}/src/lang
+  )
+
+target_link_libraries(
+  window_file_list_tests
+  SG14
+  freertos-mock
+  logging-mock
+  random
+  random_sw
+  font_data
+  )
+
+add_catch_test(window_file_list_tests)

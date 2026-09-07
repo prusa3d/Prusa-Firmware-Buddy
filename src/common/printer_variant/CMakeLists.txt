@@ -1,0 +1,5 @@
+if(PRINTER STREQUAL "COREONE" OR PRINTER STREQUAL "COREONE_INDX")
+  target_sources(firmware PRIVATE coreone.cpp)
+elseif(PRINTER STREQUAL "COREONEL" OR PRINTER STREQUAL "COREONEL_INDX")
+  target_sources(firmware PRIVATE coreonel.cpp)
+endif()

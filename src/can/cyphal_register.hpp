@@ -7,6 +7,7 @@
 #include <uavcan/_register/List_1_0.h>
 
 #include <string>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -210,7 +211,7 @@ public:
         if (register_count + 1 <= max_registers) {
             registers[register_count++] = { .name = name, .port_name_id = INT16_MAX, .is_persistent = is_persistent, .is_mutable = is_mutable, .set_get = set_get };
         } else {
-            assert(false);
+            debug_assert(false);
         }
     }
 
@@ -227,7 +228,7 @@ public:
             registers[register_count++] = { .name = port_name, .port_name_id = port_id, .is_persistent = true, .is_mutable = false, .set_get = nullptr };
             registers[register_count++] = { .name = data_type, .port_name_id = port_id, .is_persistent = true, .is_mutable = false, .set_get = nullptr };
         } else {
-            assert(false);
+            debug_assert(false);
         }
     }
 

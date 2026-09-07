@@ -1,17 +1,27 @@
 /// @file
 #pragma once
 
+#include <variant>
+
 #include <ScreenFactory.hpp>
 #include <i_window_menu_item.hpp>
+#include <tool_index.hpp>
 
 namespace buddy::openprinttag {
 
-/// Menu item that opens OpenPrintTag tag list
-/// That is a screen that allows reading info for tags associated with tools
-class MI_OPT_TAG_LIST final : public IWindowMenuItem {
+class MI_OPT_READ_TAG final : public IWindowMenuItem {
+
 public:
-    MI_OPT_TAG_LIST();
+    using Tool = std::variant<VirtualToolIndex, AllTools>;
+
+    MI_OPT_READ_TAG(Tool tool = AllTools {});
+
     void click(IWindowMenu &) override;
+    void Loop() override;
+
+private:
+    Tool tool_;
+    VirtualToolIndex::DisplayNameParams label_params_;
 };
 
 }; // namespace buddy::openprinttag

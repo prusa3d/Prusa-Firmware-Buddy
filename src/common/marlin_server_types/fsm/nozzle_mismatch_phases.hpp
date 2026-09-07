@@ -27,14 +27,8 @@ enum class PhaseNozzleMismatch : PhaseUnderlyingType {
     /// Nozzle not detected after tool pickup
     pickup_failed,
 
-    /// Prompt to ensure tool is in dock before pickup retry
-    pickup_failed_confirm_retry,
-
     /// Nozzle still detected after parking
     park_failed,
-
-    /// Prompt before park retry
-    park_failed_confirm_retry,
 
     /// Abort confirmation after pickup/park failure
     confirm_abort,

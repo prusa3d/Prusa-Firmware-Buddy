@@ -72,7 +72,7 @@ public:
     }
 
     void irq_trigger() {
-        assert(callback != nullptr);
+        debug_assert(callback != nullptr);
         callback(*this);
     }
 

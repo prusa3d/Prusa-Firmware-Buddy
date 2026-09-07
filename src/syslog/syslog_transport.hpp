@@ -1,7 +1,9 @@
 #pragma once
 
 #include <config_store/constants.hpp>
-#include <sys/socket.h>
+#include <cstdint>
+#include <lwip/ip_addr.h>
+#include <lwip/pbuf.h>
 #include <memory>
 
 #include <atomic>

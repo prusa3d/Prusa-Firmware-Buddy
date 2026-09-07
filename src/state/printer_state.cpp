@@ -1,6 +1,11 @@
 #include "printer_state.hpp"
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
+#include <option/has_crash_detection.h>
+#include <option/has_dwarf.h>
+#include <option/has_power_panic.h>
+#include <option/has_print_sheet_detection.h>
 #include <option/has_serial_print.h>
+#include <option/has_tool_offset_pin_calibration.h>
 #include "custom_uint31_t.hpp"
 
 #include <fsm_states.hpp>
@@ -25,6 +30,7 @@
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_wastebin_fill_tracking.h>
 #include <option/has_indx.h>
+#include <option/has_heaters_selftest_gcode.h>
 #include <option/has_door_sensor_calibration.h>
 #include <option/xbuddy_extension_variant.h>
 #include <option/has_side_fsensor.h>
@@ -34,7 +40,19 @@
 #include <option/has_tool_crash_recovery.h>
 #include <option/has_extruder_fsensor.h>
 #include <option/has_tool_offset_sensor.h>
+#include <printers.h>
+#include <option/has_manual_belt_tuning.h>
+#include <option/has_anfc.h>
+#include <option/has_ceiling_clearance.h>
+#include <option/has_chamber_api.h>
+#include <option/has_coldpull.h>
+#include <option/has_emergency_stop.h>
+#include <option/has_ht_hotend.h>
+#include <option/has_loadcell.h>
+#include <option/has_precise_homing_corexy.h>
+#include <option/has_selftest.h>
 #include <fsm/print_preview_mapper.hpp>
+#include <bsod/bsod.h>
 
 #if HAS_LOADCELL()
     #include <fsm/nozzle_cleaning_failed_phases.hpp>
@@ -54,7 +72,7 @@ using std::tuple;
 
 namespace {
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 // FIXME: these are also caught by the switch statement above, is there any
 // harm in having it in both places? Maybe couple more bytes of flash will
 // be used, so should we just remove it and let the get_print_state handle
@@ -69,7 +87,7 @@ optional<ErrCode> crash_recovery_attention(const PhasesCrashRecovery &phase) {
         return ErrCode::CONNECT_CRASH_RECOVERY_REPEATED_CRASH;
     case PhasesCrashRecovery::home_fail:
         return ErrCode::CONNECT_CRASH_RECOVERY_HOME_FAIL;
-    #if HAS_TOOL_CRASH_RECOVERY()
+    #if HAS_TOOL_CRASH_RECOVERY() && HAS_DWARF()
     case PhasesCrashRecovery::tool_recovery:
         return ErrCode::CONNECT_CRASH_RECOVERY_TOOL_PICKUP;
     #endif
@@ -102,9 +120,12 @@ bool is_warning_attention(const fsm::BaseData &data) {
         // Local issue, do not report to connect
     case ErrCode::ERR_ELECTRO_DISPLAY_PROBLEM_DETECTED:
 #endif
-#if HAS_ANFC()
-        // This is an info screen, do not raise alarms
-    case ErrCode::ERR_CONNECT_OPENPRINTTAG_ASSIGNED:
+#if PRINTER_IS_PRUSA_XL()
+        // Boot-time variant detection messages (incl. the suspected-wiring
+        // one — the printer still boots and works); do not raise attention
+    case ErrCode::ERR_MECHANICAL_PRINTER_DETECTED_AS_XLS:
+    case ErrCode::ERR_MECHANICAL_PRINTER_DETECTED_AS_XL:
+    case ErrCode::ERR_MECHANICAL_XL_CAN_WIRING_SUSPECTED:
 #endif
         return false;
     default:
@@ -217,7 +238,7 @@ DeviceState get_state(bool ready) {
         } else {
             return DeviceState::Busy;
         }
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     case ClientFSM::CrashRecovery:
         if (crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase()))) {
             return DeviceState::Attention;
@@ -237,6 +258,9 @@ DeviceState get_state(bool ready) {
     case ClientFSM::Selftest:
     case ClientFSM::FansSelftest:
     case ClientFSM::SelftestFSensors:
+#endif
+#if HAS_HEATERS_SELFTEST_GCODE()
+    case ClientFSM::HeatersSelftest:
 #endif
 #if HAS_ESP()
     case ClientFSM::NetworkSetup:
@@ -261,8 +285,10 @@ DeviceState get_state(bool ready) {
 #endif
 #if HAS_INDX()
     case ClientFSM::DockCalibration:
-    case ClientFSM::ToolOffsetsCalibration:
     case ClientFSM::NozzleCleanerCalibration:
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    case ClientFSM::ToolOffsetsCalibration:
 #endif
 #if HAS_SERIAL_PRINT()
     case ClientFSM::Serial_printing:
@@ -429,7 +455,7 @@ StateWithDialog get_state_with_dialog(bool ready) {
         return { state, ErrCode::CONNECT_QUICK_PAUSE, fsm_gen, available_responses };
         break;
     }
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     case ClientFSM::CrashRecovery:
         if (auto attention_code = crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())); attention_code.has_value()) {
             const Response *available_responses = ClientResponses::get_available_responses(GetEnumFromPhaseIndex<PhasesCrashRecovery>(data.GetPhase())).data();
@@ -483,6 +509,9 @@ StateWithDialog get_state_with_dialog(bool ready) {
     case ClientFSM::FansSelftest:
     case ClientFSM::SelftestFSensors:
 #endif
+#if HAS_HEATERS_SELFTEST_GCODE()
+    case ClientFSM::HeatersSelftest:
+#endif
 #if HAS_ESP()
     case ClientFSM::NetworkSetup:
 #endif
@@ -506,8 +535,10 @@ StateWithDialog get_state_with_dialog(bool ready) {
 #endif
 #if HAS_INDX()
     case ClientFSM::DockCalibration:
-    case ClientFSM::ToolOffsetsCalibration:
     case ClientFSM::NozzleCleanerCalibration:
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    case ClientFSM::ToolOffsetsCalibration:
 #endif
     case ClientFSM::Preheat:
     case ClientFSM::SafetyTimer:
@@ -612,11 +643,11 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
     case WarningType::ActionSelftestRequired:
         return ErrCode::ERR_SYSTEM_ACTION_SELFTEST_REQUIRED;
 #endif
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     case WarningType::HeatbedColdAfterPP:
         return ErrCode::CONNECT_POWER_PANIC_COLD_BED;
 #endif
-#if ENABLED(CALIBRATION_GCODE)
+#if HAS_TOOL_OFFSET_PIN_CALIBRATION()
     case WarningType::NozzleDoesNotHaveRoundSection:
         return ErrCode::CONNECT_NOZZLE_DOES_NOT_HAVE_ROUND_SECTION;
 #endif
@@ -673,7 +704,7 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::CONNECT_NOZZLE_CLEANER_EMPTY;
 #endif
 
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
     case WarningType::SteelSheetNotDetected:
         return ErrCode::ERR_MECHANICAL_STEEL_SHEET_NOT_DETECTED;
 #endif
@@ -693,6 +724,10 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 #if HAS_EMERGENCY_STOP()
     case WarningType::DoorOpen:
         return ErrCode::ERR_MECHANICAL_DOOR_OPEN;
+#endif
+#if HAS_HT_HOTEND()
+    case WarningType::HotendBurnRisk:
+        return ErrCode::ERR_MECHANICAL_HOTEND_BURN_RISK;
 #endif
 #if HAS_CHAMBER_API()
     case WarningType::FailedToReachChamberTemperature:
@@ -762,9 +797,6 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 #endif
 
 #if HAS_ANFC()
-    case WarningType::OpenPrintTagAssigned:
-        return ErrCode::ERR_CONNECT_OPENPRINTTAG_ASSIGNED;
-
     case WarningType::OpenPrintTagCannotTrack:
         return ErrCode::ERR_CONNECT_OPENPRINTTAG_CANNOT_TRACK;
 
@@ -772,12 +804,23 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::ERR_CONNECT_OPENPRINTTAG_USAGE_WRITE_FAILED;
 #endif
 
+#if PRINTER_IS_PRUSA_XL()
+    case WarningType::PrinterDetectedAsXLS:
+        return ErrCode::ERR_MECHANICAL_PRINTER_DETECTED_AS_XLS;
+
+    case WarningType::PrinterDetectedAsXL:
+        return ErrCode::ERR_MECHANICAL_PRINTER_DETECTED_AS_XL;
+
+    case WarningType::XlCanWiringSuspected:
+        return ErrCode::ERR_MECHANICAL_XL_CAN_WIRING_SUSPECTED;
+#endif
+
     case WarningType::_cnt:
         // Fallthrough to unreachable
         break;
     }
 
-    assert(false);
+    debug_assert(false);
     return ErrCode::ERR_UNDEF;
 }
 

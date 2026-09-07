@@ -43,6 +43,7 @@
 #include "../feature/precise_stepping/precise_stepping.hpp"
 #include "../feature/phase_stepping/phase_stepping.hpp"
 #include "../feature/motordriver_util.h"
+#include <bsod/bsod.h>
 
 // Value by which steps are multiplied to increase the precision of the Planner.
 constexpr const int PLANNER_STEPS_MULTIPLIER = 4;
@@ -119,9 +120,7 @@ typedef struct PlannerBlock {
 
   uint8_t direction_bits;                   // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
-  #if FAN_COUNT > 0
-    uint8_t fan_speed[FAN_COUNT];
-  #endif
+  uint8_t print_fan_speed;
 
   // Fields used by the motion planner to manage acceleration
   float nominal_speed,                      // The nominal speed for this block in (mm/sec)
@@ -208,18 +207,7 @@ typedef struct {
   #endif
 } motion_parameters_t;
 
-#if ENABLED(ARC_SUPPORT)
-// @hejllukas: Disabled because it contains a significant issue causing that the entry speed is calculated incorrectly.
-// #define HINTS_SAFE_EXIT_SPEED
-#endif
-
 struct PlannerHints {
-  #if ENABLED(HINTS_SAFE_EXIT_SPEED)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    float safe_exit_speed_sqr = 0.0;  // Square of the speed considered "safe" at the end of the segment
-                                      // i.e., at or below the exit speed of the segment that the planner
-                                      // would calculate if it knew the as-yet-unbuffered path
-  #endif
   bool raw_block = false;             // Enqueue block without further modifications
   MoveHints move = {};
 };
@@ -623,6 +611,9 @@ class Planner {
     /// Resets machine position to values from stepper
     static void reset_position();
 
+    /// Only sets the position to the planner, not steppers
+    static void set_machine_position_mm_planner_only(const MachinePosXYZE &xyze);
+
     /**
      * Set the planner.position and individual stepper positions.
      *
@@ -780,7 +771,7 @@ class Planner {
       // If there are any moves queued ...
       if (has_unprocessed_blocks_queued()) {
         block_t *const block = &block_buffer[block_buffer_nonbusy];
-        assert(!block->busy);
+        debug_assert(!block->busy);
 
         // Recalculation pending? Don't execute yet.
         if (block->flag.recalculate)
@@ -815,8 +806,8 @@ class Planner {
      * Caller must ensure that there is something to discard.
      */
     FORCE_INLINE static void discard_current_block() {
-      assert(has_blocks_queued());
-      assert(block_buffer[block_buffer_tail].busy);
+      debug_assert(has_blocks_queued());
+      debug_assert(block_buffer[block_buffer_tail].busy);
       block_buffer_tail = next_block_index(block_buffer_tail);
     }
 
@@ -881,15 +872,15 @@ class Planner {
 
     static void calculate_trapezoid_for_block(block_t * const block, const float entry_speed, const float exit_speed);
 
-    static void reverse_pass_kernel(block_t * const previous, block_t* const current, const block_t * const next OPTARG(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr));
+    static void reverse_pass_kernel(block_t * const previous, block_t* const current, const block_t * const next);
     static void forward_pass_kernel(block_t * const previous, block_t* const current, uint8_t prev_index);
 
-    static void reverse_pass(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr));
+    static void reverse_pass();
     static void forward_pass();
 
-    static void recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr));
+    static void recalculate_trapezoids();
 
-    static void recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr));
+    static void recalculate();
 
     #if DISABLED(CLASSIC_JERK)
 

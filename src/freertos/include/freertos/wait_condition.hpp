@@ -3,6 +3,7 @@
 #include <atomic>
 #include <freertos/binary_semaphore.hpp>
 #include <mutex>
+#include <bsod/bsod.h>
 
 namespace freertos {
 
@@ -13,7 +14,7 @@ public:
     template <typename T>
     void wait(std::unique_lock<T> &locked_mutex) {
         // Check that the mutex is locked
-        assert(locked_mutex);
+        debug_assert(locked_mutex);
 
         waiter_count++;
         locked_mutex.unlock();

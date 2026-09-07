@@ -83,7 +83,7 @@ void GcodeSuite::G27() {
 #endif
     };
     if (auto ix = parser.option<size_t>('W', (size_t)0, std::size(where_to_park_list) - 1)) {
-        parking_position = mapi::get_parking_position(where_to_park_list[*ix], VirtualToolIndex::currently_selected());
+        parking_position = mapi::get_parking_position(where_to_park_list[*ix], PhysicalToolIndex::currently_selected());
     }
 
     if (auto x = parser.option<float>('X')) {
@@ -117,7 +117,11 @@ void GcodeSuite::G27() {
     }
 
     parser.store_option_if_present('R', args.retract_distance_mm);
-    parser.store_option_if_present('V', args.retract_fr_mm_s);
+
+    float arg_feedrate;
+    if (parser.store_option_if_present('V', arg_feedrate)) {
+        args.retract_fr_mm_s = arg_feedrate;
+    }
 
     if (auto a = parser.option<float>('A'); a > 0 && a < 90) {
         args.z_ramp_slope = tanf(*a * float(M_PI / 180));

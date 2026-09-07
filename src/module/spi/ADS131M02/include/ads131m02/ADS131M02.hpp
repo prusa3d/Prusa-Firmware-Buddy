@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdint>
 #include <expected>
+#include <utils/byte_utils.hpp>
 
 namespace ADS131M02 {
 
@@ -137,7 +138,7 @@ public:
     virtual void delay(uint32_t ms) const = 0;
 
 protected:
-    static void set_word(std::span<std::byte> buffer, size_t index, uint16_t value) {
+    static void set_word(WritableBytes buffer, size_t index, uint16_t value) {
         std::byte *ptr = buffer.data() + index * word_len;
         *ptr++ = static_cast<std::byte>(value >> 8);
         *ptr++ = static_cast<std::byte>(value);

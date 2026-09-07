@@ -1,22 +1,46 @@
 #include <numeric_input_config_common.hpp>
 
+#include <algorithm>
+
 #include <Configuration.h>
+#include <tool/hotend/hotend.hpp>
+#include <tool/physical_tool.hpp>
+#include <utils/overloaded_visitor.hpp>
 
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
 #endif
 
-const NumericInputConfig numeric_input_config::nozzle_temperature = {
-    .max_value = HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN,
-    .special_value = 0,
-    .unit = Unit::celsius,
-};
+static float max_nozzle_target_temp(std::variant<PhysicalToolIndex, AllTools> tool) {
+    const Hotend::TargetTemperature max_nozzle_temp = match(
+        tool,
+        [](PhysicalToolIndex t) { return Hotend::for_tool(t).max_nozzle_temp(); },
+        [](AllTools) {
+            // A filament preset is not tied to a tool, so offer the range of the hottest installed hotend.
+            Hotend::TargetTemperature m = 0;
+            for (PhysicalToolIndex t : PhysicalToolIndex::all().skip_all_disabled()) {
+                m = std::max(m, Hotend::for_tool(t).max_nozzle_temp());
+            }
+            return m;
+        });
+    return max_nozzle_temp - HEATER_MAXTEMP_SAFETY_MARGIN;
+}
 
-const NumericInputConfig numeric_input_config::filament_nozzle_temperature = {
-    .min_value = EXTRUDE_MINTEMP,
-    .max_value = HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN,
-    .unit = Unit::celsius,
-};
+NumericInputConfig numeric_input_config::nozzle_temperature(std::variant<PhysicalToolIndex, AllTools> tool) {
+    return {
+        .max_value = max_nozzle_target_temp(tool),
+        .special_value = 0,
+        .unit = Unit::celsius,
+    };
+}
+
+NumericInputConfig numeric_input_config::filament_nozzle_temperature(std::variant<PhysicalToolIndex, AllTools> tool) {
+    return {
+        .min_value = EXTRUDE_MINTEMP,
+        .max_value = max_nozzle_target_temp(tool),
+        .unit = Unit::celsius,
+    };
+}
 
 const NumericInputConfig numeric_input_config::bed_temperature = {
     .max_value = (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN),

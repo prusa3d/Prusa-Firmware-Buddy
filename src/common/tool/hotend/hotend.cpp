@@ -9,8 +9,6 @@
     #include "hotend/dummy_hotend.hpp"
 #endif
 
-static_assert(Hotend::temperature_uninitialized == TempInfo::celsius_uninitialized);
-
 Hotend &Hotend::for_tool(uint8_t tool) {
     return for_tool(PhysicalToolIndex::from_raw_notool(tool));
 }

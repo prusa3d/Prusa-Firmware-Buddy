@@ -2,7 +2,7 @@
 
 #include <logging/log.hpp>
 #include <cstdint>
-#include <cassert>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_DEF(RingAllocator, logging::Severity::info);
 
@@ -11,10 +11,10 @@ namespace buddy {
 RingAllocator::RingAllocator(const std::span<uint8_t> &buffer)
     : buffer(buffer) {
     // Check: All pointers are aligned to (at least) 4.
-    assert(reinterpret_cast<uintptr_t>(buffer.data()) % alignment == 0);
-    assert(size() > sizeof(Record));
+    debug_assert(reinterpret_cast<uintptr_t>(buffer.data()) % alignment == 0);
+    debug_assert(size() > sizeof(Record));
     // Check: Buffer is smaller than our available offset (2^16)
-    assert(size() < 65536);
+    debug_assert(size() < 65536);
     Record *head = reinterpret_cast<Record *>(buffer.data());
     head->next = head->prev = 0;
     head->in_use = false;
@@ -28,10 +28,10 @@ void RingAllocator::free(void *ptr) {
     uint8_t *ptr_b = reinterpret_cast<uint8_t *>(ptr);
     ptr_b -= sizeof(Record);
     // Check this is "our" pointer
-    assert(ptr_b >= buffer.data());
-    assert(ptr_b < buffer.data() + size());
+    debug_assert(ptr_b >= buffer.data());
+    debug_assert(ptr_b < buffer.data() + size());
     Record *rec = reinterpret_cast<Record *>(ptr_b);
-    assert(rec->in_use);
+    debug_assert(rec->in_use);
 
     rec->in_use = false;
 #ifdef EXTRA_RING_ALLOCATOR_LOGGING
@@ -66,7 +66,7 @@ void RingAllocator::merge(Record *l, Record *r) {
     }
 
     if (r->next) {
-        assert(get_prev(get_next(r)) == r);
+        debug_assert(get_prev(get_next(r)) == r);
         Record *r_next = get_next(r);
         r_next->prev = offset_between(l, r_next);
         l->next = offset_between(l, r_next);
@@ -129,8 +129,8 @@ void *RingAllocator::allocate(size_t size) {
 }
 
 void RingAllocator::split(Record *record, size_t current_size, size_t new_size) {
-    assert(current_size >= new_size);
-    assert(new_size % alignment == 0);
+    debug_assert(current_size >= new_size);
+    debug_assert(new_size % alignment == 0);
     size_t extra = current_size - new_size;
     // The "tail" is not large enough to hold even the record.
     if (extra < sizeof(Record)) {
@@ -139,7 +139,7 @@ void RingAllocator::split(Record *record, size_t current_size, size_t new_size) 
 
     uint8_t *record_pos = reinterpret_cast<uint8_t *>(record);
     Record *new_record = reinterpret_cast<Record *>(record_pos + new_size);
-    assert(reinterpret_cast<uintptr_t>(new_record) % alignment == 0);
+    debug_assert(reinterpret_cast<uintptr_t>(new_record) % alignment == 0);
     new_record->in_use = false;
     new_record->prev = new_record->next = 0;
     new_record->prev = encode_offset(new_size);
@@ -159,8 +159,8 @@ size_t RingAllocator::available_size(Record *record) const {
     const uintptr_t end_pos = reinterpret_cast<uintptr_t>(buffer.data()) + size();
     const uintptr_t next_pos = record->next ? reinterpret_cast<uintptr_t>(record) + decode_offset(record->next) : end_pos;
 
-    assert(next_pos >= rec_pos + sizeof(Record));
-    assert(next_pos <= end_pos);
+    debug_assert(next_pos >= rec_pos + sizeof(Record));
+    debug_assert(next_pos <= end_pos);
     return next_pos - rec_pos;
 }
 
@@ -187,7 +187,7 @@ RingAllocator::Record *RingAllocator::get_prev(Record *rec) const {
 }
 
 uint16_t RingAllocator::offset_between(const Record *from, const Record *to) const {
-    assert(from <= to);
+    debug_assert(from <= to);
 
     // Compute the raw byte difference between two pointers:
     auto diff = reinterpret_cast<const std::uint8_t *>(to)
@@ -200,7 +200,7 @@ uint16_t RingAllocator::offset_between(const Record *from, const Record *to) con
 #ifdef UNITTESTS
 void RingAllocator::sanity_check() {
     Record *r = reinterpret_cast<Record *>(buffer.data());
-    assert(r != nullptr);
+    debug_assert(r != nullptr);
 
     bool seen_head = false;
     bool first = true;
@@ -208,29 +208,29 @@ void RingAllocator::sanity_check() {
 
     while (r != nullptr) {
         if (r == alloc_head) {
-            assert(!seen_head);
+            debug_assert(!seen_head);
             seen_head = true;
         }
 
         if (get_next(r) != nullptr) {
-            assert(get_next(r) > r);
+            debug_assert(get_next(r) > r);
             get_next(r)->prev = r->next;
         }
 
         if (first) {
             first = false;
         } else {
-            assert(r->prev != 0);
-            assert(get_next(get_prev(r)) == r);
+            debug_assert(r->prev != 0);
+            debug_assert(get_next(get_prev(r)) == r);
         }
 
-        assert(last_in_use || r->in_use);
+        debug_assert(last_in_use || r->in_use);
         last_in_use = r->in_use;
 
         r = get_next(r);
     }
 
-    assert(seen_head);
+    debug_assert(seen_head);
 }
 #endif
 

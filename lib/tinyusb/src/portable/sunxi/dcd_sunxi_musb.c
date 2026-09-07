@@ -35,7 +35,6 @@
 #include <f1c100s-irq.h>
 #include <device/dcd.h>
 #include "musb_def.h"
-#include "bsp/board.h"
 
 typedef uint32_t u32;
 typedef uint16_t u16;
@@ -58,7 +57,7 @@ typedef struct TU_ATTR_PACKED
 
 typedef struct
 {
-  tusb_control_request_t setup_packet;
+  CFG_TUD_MEM_ALIGN tusb_control_request_t setup_packet;
   uint16_t     remaining_ctrl; /* The number of bytes remaining in data stage of control transfer. */
   int8_t       status_out;
   pipe_state_t pipe0;
@@ -97,22 +96,12 @@ static void usb_phy_write(int addr, int data, int len)
 	}
 }
 
-static void delay_ms(uint32_t ms)
-{
-#if CFG_TUSB_OS == OPT_OS_NONE
-  int now = board_millis();
-  while (board_millis() - now <= ms) asm("nop");
-#else
-  osal_task_delay(ms);
-#endif
-}
-
 static void USBC_HardwareReset(void)
 {
   // Reset phy and controller
   USBC_REG_set_bit_l(USBPHY_CLK_RST_BIT, USBPHY_CLK_REG);
 	USBC_REG_set_bit_l(BUS_RST_USB_BIT, BUS_CLK_RST_REG);
-  delay_ms(2);
+  tusb_time_delay_ms_api(2);
 
 	USBC_REG_set_bit_l(USBPHY_CLK_GAT_BIT, USBPHY_CLK_REG);
   USBC_REG_set_bit_l(USBPHY_CLK_RST_BIT, USBPHY_CLK_REG);
@@ -184,7 +173,7 @@ static void USBC_ForceVbusValidToHigh(void)
 	USBC_Writel(reg_val, USBC_REG_ISCR(USBC0_BASE));
 }
 
-void USBC_SelectBus(u32 io_type, u32 ep_type, u32 ep_index)
+static void USBC_SelectBus(u32 io_type, u32 ep_type, u32 ep_index)
 {
 	u32 reg_val = 0;
 
@@ -350,7 +339,7 @@ static void USBC_INT_DisableRxEp(u8 ep_index)
  * INTERNAL FUNCTION DECLARATION
  *------------------------------------------------------------------*/
 
-static dcd_data_t _dcd;
+CFG_TUD_MEM_ALIGN static dcd_data_t _dcd;
 
 static inline free_block_t *find_containing_block(free_block_t *beg, free_block_t *end, uint_fast16_t addr)
 {
@@ -543,12 +532,12 @@ static void pipe_read_write_packet_ff(tu_fifo_t *f, volatile void *fifo, unsigne
   tu_fifo_buffer_info_t info;
   ops[dir].tu_fifo_get_info(f, &info);
   unsigned total_len = len;
-  len = TU_MIN(total_len, info.len_lin);
-  ops[dir].pipe_read_write(info.ptr_lin, fifo, len);
+  len = TU_MIN(total_len, info.linear.len);
+  ops[dir].pipe_read_write(info.linear.ptr, fifo, len);
   unsigned rem = total_len - len;
   if (rem) {
-    len = TU_MIN(rem, info.len_wrap);
-    ops[dir].pipe_read_write(info.ptr_wrap, fifo, len);
+    len = TU_MIN(rem, info.wrapped.len);
+    ops[dir].pipe_read_write(info.wrapped.ptr, fifo, len);
     rem -= len;
   }
   ops[dir].tu_fifo_advance(f, total_len - rem);
@@ -560,7 +549,7 @@ static void pipe_read_write_packet_ff(tu_fifo_t *f, volatile void *fifo, unsigne
 
 static void process_setup_packet(uint8_t rhport)
 {
-  uint32_t *p = (uint32_t*)&_dcd.setup_packet;
+  uint32_t *p = (uint32_t*)(uintptr_t) &_dcd.setup_packet;
   p[0]        = USBC_Readl(USBC_REG_EPFIFO0(USBC0_BASE));
   p[1]        = USBC_Readl(USBC_REG_EPFIFO0(USBC0_BASE));
 
@@ -594,7 +583,7 @@ static bool handle_xfer_in(uint_fast8_t ep_addr)
   if (len) {
     volatile void* addr = (volatile void*)(USBC_REG_EPFIFO1(USBC0_BASE) + (epnum_minus1 << 2));
     if (_dcd.pipe_buf_is_fifo[TUSB_DIR_IN] & TU_BIT(epnum_minus1)) {
-      pipe_read_write_packet_ff((tu_fifo_t *)buf, addr, len, TUSB_DIR_IN);
+      pipe_read_write_packet_ff((tu_fifo_t *)(uintptr_t) buf, addr, len, TUSB_DIR_IN);
     } else {
       pipe_write_packet(buf, addr, len);
       pipe->buf       = buf + len;
@@ -622,7 +611,7 @@ static bool handle_xfer_out(uint_fast8_t ep_addr)
   if (len) {
     volatile void* addr = (volatile void*)(USBC_REG_EPFIFO1(USBC0_BASE) + (epnum_minus1 << 2));
     if (_dcd.pipe_buf_is_fifo[TUSB_DIR_OUT] & TU_BIT(epnum_minus1)) {
-      pipe_read_write_packet_ff((tu_fifo_t *)buf, addr, len, TUSB_DIR_OUT);
+      pipe_read_write_packet_ff((tu_fifo_t *)(uintptr_t )buf, addr, len, TUSB_DIR_OUT);
     } else {
       pipe_read_packet(buf, addr, len);
       pipe->buf       = buf + len;
@@ -865,8 +854,9 @@ static void usb_isr_handler(void) {
 	dcd_int_handler(0);
 }
 
-void dcd_init(uint8_t rhport)
-{
+bool dcd_init(uint8_t rhport, const tusb_rhport_init_t* rh_init) {
+  (void) rh_init;
+
   dcd_disconnect(rhport);
   USBC_HardwareReset();
   USBC_PhyConfig();
@@ -893,6 +883,8 @@ void dcd_init(uint8_t rhport)
   f1c100s_intc_set_isr(F1C100S_IRQ_USBOTG, usb_isr_handler);
 
   dcd_connect(rhport);
+
+  return true;
 }
 
 // Connect by enabling internal pull-up resistor on D+/D-
@@ -957,7 +949,7 @@ void dcd_remote_wakeup(uint8_t rhport)
 {
   (void)rhport;
   USBC_REG_set_bit_b(USBC_BP_POWER_D_RESUME, USBC_REG_PCTL(USBC0_BASE));
-  delay_ms(10);
+  tusb_time_delay_ms_api(10);
   USBC_REG_clear_bit_b(USBC_BP_POWER_D_RESUME, USBC_REG_PCTL(USBC0_BASE));
 }
 
@@ -1087,9 +1079,25 @@ void dcd_edpt_close(uint8_t rhport, uint8_t ep_addr)
   musb_int_unmask();
 }
 
+  #if 0
+bool dcd_edpt_iso_alloc(uint8_t rhport, uint8_t ep_addr, uint16_t largest_packet_size) {
+  (void)rhport;
+  (void)ep_addr;
+  (void)largest_packet_size;
+  return false;
+}
+
+bool dcd_edpt_iso_activate(uint8_t rhport, const tusb_desc_endpoint_t *desc_ep) {
+  (void)rhport;
+  (void)desc_ep;
+  return false;
+}
+  #endif
+
 // Submit a transfer, When complete dcd_event_xfer_complete() is invoked to notify the stack
-bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes)
+bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   (void)rhport;
   bool ret;
   // TU_LOG1("X %x %d\r\n", ep_addr, total_bytes);
@@ -1107,8 +1115,9 @@ bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t t
 }
 
 // Submit a transfer where is managed by FIFO, When complete dcd_event_xfer_complete() is invoked to notify the stack - optional, however, must be listed in usbd.c
-bool dcd_edpt_xfer_fifo(uint8_t rhport, uint8_t ep_addr, tu_fifo_t * ff, uint16_t total_bytes)
+bool dcd_edpt_xfer_fifo(uint8_t rhport, uint8_t ep_addr, tu_fifo_t * ff, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   (void)rhport;
   bool ret;
   // TU_LOG1("X %x %d\r\n", ep_addr, total_bytes);
@@ -1215,5 +1224,4 @@ void dcd_int_handler(uint8_t rhport)
     rxis &= ~TU_BIT(num);
   }
 }
-
 #endif

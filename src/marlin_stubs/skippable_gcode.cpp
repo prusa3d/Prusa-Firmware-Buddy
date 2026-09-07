@@ -1,15 +1,15 @@
 #include "skippable_gcode.hpp"
 
-#include <cassert>
+#include <bsod/bsod.h>
 
 SkippableGCode::Guard::Guard() {
     skippable_gcode().skip_requested_ = false;
     [[maybe_unused]] const auto was_running = skippable_gcode().is_running_.exchange(true);
-    assert(!was_running);
+    debug_assert(!was_running);
 }
 SkippableGCode::Guard::~Guard() {
     [[maybe_unused]] const auto was_running = skippable_gcode().is_running_.exchange(false);
-    assert(was_running);
+    debug_assert(was_running);
 }
 
 bool SkippableGCode::Guard::is_skip_requested() const {

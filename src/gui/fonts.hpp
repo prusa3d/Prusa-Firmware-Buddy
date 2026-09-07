@@ -4,8 +4,10 @@
 
 #pragma once
 #include <stdint.h>
-#include <guiconfig/guiconfig.h>
-#include "font_character_sets.hpp"
+#include <printers.h>
+#include <font_data/font_data.hpp>
+#include <option/enable_translation_ja.h>
+#include <option/enable_translation_uk.h>
 
 enum class Font : uint8_t {
     small = 0,
@@ -24,55 +26,59 @@ enum class Font : uint8_t {
 #endif
 };
 
-struct font_t {
-    uint8_t w; // char width [pixels]
-    uint8_t h; // char height [pixels]
-    FontCharacterSet charset; // character set (see README_FONT)
-    const void *pcs; // charset data pointer
-};
+using font_t = font_data::Font;
+using font_size_t = font_data::FontSize;
+
+#if PRINTER_IS_PRUSA_MINI()
+    #if ENABLE_TRANSLATION_JA()
+inline constexpr const font_t &font_regular_7x13 = font_data::regular_7x13_latin_and_katakana;
+inline constexpr const font_t &font_regular_9x16 = font_data::regular_9x16_latin_and_katakana;
+inline constexpr const font_t &font_regular_11x18 = font_data::regular_11x18_latin_and_katakana;
+    #elif ENABLE_TRANSLATION_UK()
+inline constexpr const font_t &font_regular_7x13 = font_data::regular_7x13_latin_and_cyrillic;
+inline constexpr const font_t &font_regular_9x16 = font_data::regular_9x16_latin_and_cyrillic;
+inline constexpr const font_t &font_regular_11x18 = font_data::regular_11x18_latin_and_cyrillic;
+    #else
+inline constexpr const font_t &font_regular_7x13 = font_data::regular_7x13_latin_and_accents;
+inline constexpr const font_t &font_regular_9x16 = font_data::regular_9x16_latin_and_accents;
+inline constexpr const font_t &font_regular_11x18 = font_data::regular_11x18_latin_and_accents;
+    #endif
+#else
+inline constexpr const font_t &font_regular_9x16 = font_data::regular_9x16_full;
+inline constexpr const font_t &font_bold_11x19 = font_data::bold_11x19_full;
+inline constexpr const font_t &font_bold_13x22 = font_data::bold_13x22_full;
+inline constexpr const font_t &font_bold_30x53 = font_data::bold_30x53_digits;
+#endif
 
 const font_t *resource_font(Font id);
 
 /**
- * @brief Font size in pixels.
- */
-struct font_size_t {
-    uint8_t w; ///< Char width [pixels]
-    uint8_t h; ///< Char height [pixels]
-
-    constexpr bool operator==(const font_size_t &rhs) const {
-        return w == rhs.w && h == rhs.h;
-    }
-};
-
-/**
  * @brief Get font size in pixels.
  * This can be used in constant expresisons.
- * @todo Refactor fonts to have public info in '.hpp' and private data in '.cpp'.
  */
 consteval font_size_t resource_font_size(Font id) {
     switch (id) {
 #if PRINTER_IS_PRUSA_MINI()
     case Font::small:
-        return { 7, 13 };
+        return font_regular_7x13.size();
     case Font::normal:
     case Font::big: // Big font removed to save flash
-        return { 11, 18 };
+        return font_regular_11x18.size();
     case Font::special:
-        return { 9, 16 };
+        return font_regular_9x16.size();
 #endif
 
 #if not PRINTER_IS_PRUSA_MINI()
     case Font::small:
-        return { 9, 16 };
+        return font_regular_9x16.size();
     case Font::normal:
-        return { 11, 19 };
+        return font_bold_11x19.size();
     case Font::big:
-        return { 13, 22 };
+        return font_bold_13x22.size();
     case Font::special:
-        return { 9, 16 };
+        return font_regular_9x16.size();
     case Font::large:
-        return { 30, 53 };
+        return font_bold_30x53.size();
 #endif
 
     default:

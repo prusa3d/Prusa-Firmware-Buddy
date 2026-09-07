@@ -13,6 +13,7 @@
 #include "SteelSheets.hpp"
 #include <bsod.h>
 #include <config_store/store_instance.hpp>
+#include <config_store/store_c_api.h>
 #include <gcode/gcode.h>
 #include <tool_index.hpp>
 
@@ -235,14 +236,13 @@ LoopResult CSelftestPart_FirstLayer::stateShowCalibrateMsg() {
     return LoopResult::RunNext;
 }
 
-static constexpr float axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-static constexpr float z_offset_step = 1.0F / axis_steps_per_unit[AxisEnum::Z_AXIS];
 static constexpr float nozzle_to_probe[] = NOZZLE_TO_PROBE_OFFSET;
 static constexpr float z_offset_def = nozzle_to_probe[AxisEnum::Z_AXIS];
 
 LoopResult CSelftestPart_FirstLayer::stateInitialDistanceInit() {
     float diff = probe_offset.z - z_offset_def;
 
+    const float z_offset_step = 1.0f / get_steps_per_unit_z();
     if (diff > -z_offset_step && diff < z_offset_step) {
         // Current value is the same as default value => we don't have to ask user to choose
         skip_user_changing_initial_distance = true;
@@ -299,7 +299,7 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateWaitNozzle() {
-    (void)thermalManager.wait_for_hotend(active_extruder, true, false);
+    (void)thermalManager.wait_for_hotend(active_extruder, { .no_wait_for_cooling = true, .fan_cooling = false });
     return LoopResult::RunNext;
 }
 

@@ -8,6 +8,7 @@
 #include <hw_configuration.hpp>
 #include <option/has_indx.h>
 #include <option/has_indx_head.h>
+#include <bsod/bsod.h>
 
 #if HAS_INDX()
     #include <fanctl/xlbuddy/CFanCtlPuppy.hpp>
@@ -17,9 +18,12 @@
     #error "Dynamic PWM is only for MK4/COREONE/COREONEL, fix your CMakeLists.txt!"
 #endif
 
-CFanCtlCommon &Fans::print([[maybe_unused]] size_t index) {
+CFanCtlCommon &Fans::print(PhysicalToolIndex) {
 #if HAS_INDX()
     static auto instance = CFanCtlPuppy(0, 0, false, FANCTLPRINT_RPM_MAX);
+
+    // All physical tools share the same fan
+    // static_assert(PhysicalToolIndex::count == 1);
 #else
     static auto instance = CFanCtl3WireDynamic(
         buddy::hw::fanPrintPwm,
@@ -31,10 +35,9 @@ CFanCtlCommon &Fans::print([[maybe_unused]] size_t index) {
         skip_tacho_t::yes,
         FANCTLPRINT_MIN_PWM_TO_MEASURE_RPM);
 
-    if (index) {
-        bsod("Print fan %u does not exist", index);
-    }
+    static_assert(PhysicalToolIndex::count == 1);
 #endif
+
     return instance;
 };
 
@@ -48,9 +51,12 @@ static auto read_heat_tacho = []() {
 };
 #endif
 
-CFanCtlCommon &Fans::heat_break([[maybe_unused]] size_t index) {
+CFanCtlCommon &Fans::heat_break(PhysicalToolIndex) {
 #if HAS_INDX()
     static auto instance = CFanCtlPuppy(0, 1, true, FANCTLHEATBREAK_RPM_MAX);
+
+    // All physical tools share the same fan
+    // static_assert(PhysicalToolIndex::count == 1);
 #else
     static CFanCtl3Wire instance = CFanCtl3Wire(
         write_heat_pwm,
@@ -67,10 +73,9 @@ CFanCtlCommon &Fans::heat_break([[maybe_unused]] size_t index) {
             .has_inverted_pwm = buddy::hw::Configuration::Instance().has_inverted_fans(),
         });
 
-    if (index) {
-        bsod("Heat break fan %u does not exist", index);
-    }
+    static_assert(PhysicalToolIndex::count == 1);
 #endif
+
     return instance;
 };
 

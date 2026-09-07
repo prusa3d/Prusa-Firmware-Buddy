@@ -33,10 +33,12 @@
     #define STEPPING_INLINE __attribute__((always_inline)) inline
 #endif
 
-constexpr const double EPSILON = 0.000000001;
 constexpr const float EPSILON_FLOAT = 0.0000001f;
+/// ≈1 ns slack for segment-boundary compares, same magnitude as the old double EPSILON.
+inline const TimeTicks EPSILON_TICKS = TimeTicks::from_seconds(1e-9);
 
-constexpr const double MAX_PRINT_TIME = 10000000.;
+/// Maximum print time sentinel (10^7 s ≈ 116 days); motion halts and resets above this.
+inline const TimeTicks MAX_PRINT_TIME_TICKS = TimeTicks::from_seconds(1e7);
 
 template <typename Type>
 STEPPING_INLINE Type calc_distance(const Type start_v, const Type half_accel, const Type move_time) {
@@ -53,7 +55,7 @@ STEPPING_INLINE xyze_double_t calc_end_position(const double start_v, const doub
 }
 
 STEPPING_INLINE xyze_double_t calc_end_position_move(const move_t *move) {
-    return calc_end_position(move->start_v, move->half_accel, move->move_time, move->start_pos, move->axes_r);
+    return calc_end_position(move->start_v, move->half_accel, move->move_time.to_seconds(), move->start_pos, move->axes_r);
 }
 
 STEPPING_INLINE float fast_sqrt(float in) {
@@ -109,7 +111,7 @@ STEPPING_INLINE double get_move_start_v(const move_t &move, const int axis) {
 }
 
 STEPPING_INLINE double get_move_end_v(const move_t &move, const int axis) {
-    return (move.start_v + 2. * move.half_accel * move.move_time) * move.axes_r[axis];
+    return (move.start_v + 2. * move.half_accel * move.move_time.to_seconds()) * move.axes_r[axis];
 }
 
 STEPPING_INLINE double get_move_start_pos(const move_t &move, const int axis) {
@@ -118,7 +120,7 @@ STEPPING_INLINE double get_move_start_pos(const move_t &move, const int axis) {
 
 STEPPING_INLINE double get_move_end_pos(const move_t &move, const int axis) {
     const double axis_r = move.axes_r[axis];
-    return move.start_pos[axis] + calc_distance<double>(move.start_v * axis_r, move.half_accel * axis_r, move.move_time);
+    return move.start_pos[axis] + calc_distance<double>(move.start_v * axis_r, move.half_accel * axis_r, move.move_time.to_seconds());
 }
 
 // True - Positive direction

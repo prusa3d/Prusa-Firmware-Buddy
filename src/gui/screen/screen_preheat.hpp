@@ -21,7 +21,7 @@ public:
     ScreenPreheat();
     ~ScreenPreheat();
 
-    static bool handle_filament_selection(FilamentType filament_type, PreheatData::ToolIndex tool);
+    static bool handle_filament_selection(FilamentType filament_type, PreheatData::ToolIndex tool, PreheatMode mode);
 
 protected:
     inline PhasesPreheat get_phase() const {

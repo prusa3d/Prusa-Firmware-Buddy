@@ -14,7 +14,7 @@ static auto read_print_tacho = []() {
     return buddy::hw::fanPrintTach.readb();
 };
 
-CFanCtlCommon &Fans::print(size_t index) {
+CFanCtlCommon &Fans::print(PhysicalToolIndex) {
     static CFanCtl3Wire instance = CFanCtl3Wire(
         write_print_pwm,
         read_print_tacho,
@@ -30,9 +30,7 @@ CFanCtlCommon &Fans::print(size_t index) {
             .has_inverted_pwm = false,
         });
 
-    if (index) {
-        bsod("Print fan %u does not exist", index);
-    }
+    static_assert(PhysicalToolIndex::count == 1);
     return instance;
 };
 
@@ -44,7 +42,7 @@ static auto read_heat_tacho = []() {
     return buddy::hw::fanHeatBreakTach.readb();
 };
 
-CFanCtlCommon &Fans::heat_break(size_t index) {
+CFanCtlCommon &Fans::heat_break(PhysicalToolIndex) {
     static CFanCtl3Wire instance = CFanCtl3Wire(
         write_heat_pwm,
         read_heat_tacho,
@@ -60,9 +58,7 @@ CFanCtlCommon &Fans::heat_break(size_t index) {
             .has_inverted_pwm = false,
         });
 
-    if (index) {
-        bsod("Heat break fan %u does not exist", index);
-    }
+    static_assert(PhysicalToolIndex::count == 1);
     return instance;
 };
 

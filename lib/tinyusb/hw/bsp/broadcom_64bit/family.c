@@ -24,8 +24,19 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   manufacturer: Raspberry Pi
+*/
+
 #include "bsp/board_api.h"
 #include "board.h"
+
+// Suppress warning caused by mcu driver
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wredundant-decls"
+#endif
 
 #include "broadcom/cpu.h"
 #include "broadcom/gpio.h"
@@ -33,6 +44,10 @@
 #include "broadcom/mmu.h"
 #include "broadcom/caches.h"
 #include "broadcom/vcmailbox.h"
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 // LED
 #define LED_PIN               18
@@ -44,8 +59,7 @@
 //--------------------------------------------------------------------+
 // Forward USB interrupt events to TinyUSB IRQ Handler
 //--------------------------------------------------------------------+
-void USB_IRQHandler(void)
-{
+void USB_IRQHandler(void) {
   tud_int_handler(0);
 }
 
@@ -56,8 +70,7 @@ void USB_IRQHandler(void)
 //--------------------------------------------------------------------+
 // Board porting API
 //--------------------------------------------------------------------+
-void board_init(void)
-{
+void board_init(void) {
   setup_mmu_flat_map();
   init_caches();
 
@@ -97,60 +110,54 @@ void board_init(void)
   BP_EnableIRQs();
 }
 
-void board_led_write(bool state)
-{
-  gpio_set_value(LED_PIN, state ? LED_STATE_ON : (1-LED_STATE_ON));
+void board_led_write(bool state) {
+  gpio_set_value(LED_PIN, state ? LED_STATE_ON : (1 - LED_STATE_ON));
 }
 
-uint32_t board_button_read(void)
-{
+uint32_t board_button_read(void) {
   return 0;
 }
 
-int board_uart_read(uint8_t* buf, int len)
-{
-  (void) buf; (void) len;
+int board_uart_read(uint8_t* buf, int len) {
+  (void) buf;
+  (void) len;
   return 0;
 }
 
-int board_uart_write(void const * buf, int len)
-{
-  for (int i = 0; i < len; i++) {
-    const char* cbuf = buf;
-    while (!UART1->STAT_b.TX_READY) {}
-    if (cbuf[i] == '\n') {
-      UART1->IO = '\r';
-      while (!UART1->STAT_b.TX_READY) {}
+int board_uart_write(void const* buf, int len) {
+  const uint8_t* p = (const uint8_t*) buf;
+  int count = 0;
+  while (count < len) {
+    if (!UART1->STAT_b.TX_READY) {
+      break;
     }
-    UART1->IO = cbuf[i];
+    UART1->IO = p[count];
+    count++;
   }
-  return len;
+  return count;
 }
 
-#if CFG_TUSB_OS  == OPT_OS_NONE
+#if CFG_TUSB_OS == OPT_OS_NONE
 volatile uint32_t system_ticks = 0;
 
-void TIMER_1_IRQHandler(void)
-{
+void TIMER_1_IRQHandler(void) {
   system_ticks++;
   SYSTMR->C1 += 977;
   SYSTMR->CS_b.M1 = 1;
 }
 
-uint32_t board_millis(void)
-{
+uint32_t tusb_time_millis_api(void) {
   return system_ticks;
 }
+
 #endif
 
-void HardFault_Handler (void)
-{
+void HardFault_Handler(void) {
   // asm("bkpt");
 }
 
 // Required by __libc_init_array in startup code if we are compiling using
 // -nostdlib/-nostartfiles.
-void _init(void)
-{
+void _init(void) {
 
 }

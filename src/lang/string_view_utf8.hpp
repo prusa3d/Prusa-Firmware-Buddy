@@ -4,7 +4,6 @@
 // #include "unicode.h"
 #include <string.h>
 #include <stdio.h>
-#include "assert.h"
 #include <cstdlib>
 #include <span>
 #include <type_traits>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "footer_line.hpp"
-#include <client_fsm_types.h>
+#include <client_fsm_types.hpp>
 
 #include <window_progress.hpp>
 #include <window_frame.hpp>

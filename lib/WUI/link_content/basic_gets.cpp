@@ -1,7 +1,7 @@
 #include "basic_gets.h"
 #include "filament.hpp"
 #include "marlin_client.hpp"
-#include "lwip/init.h"
+#include <lwip/init.h>
 #include "netdev.h"
 #include <config_store/store_instance.hpp>
 #include <option/has_tool_mapping.h>
@@ -12,6 +12,7 @@
 #include <otp.hpp>
 #include <filepath_operation.h>
 #include <filename_type.hpp>
+#include <buddy/filename_defs.hpp>
 #include <state/printer_state.hpp>
 
 #include <dirent.h>
@@ -346,8 +347,8 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
         has_job = true;
     }
 
-    char lfn_buffer[FILE_NAME_MAX_LEN];
-    char sfn_buffer[FILE_PATH_MAX_LEN];
+    char lfn_buffer[filename_defs::max_filename_length];
+    char sfn_buffer[filename_defs::max_path_length];
     {
         auto lock = MarlinVarsLockGuard();
         marlin_vars().media_LFN.copy_to(lfn_buffer, sizeof(lfn_buffer), lock);
@@ -406,8 +407,8 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
         state = "ERROR";
         break;
     }
-    char filename[FILE_NAME_MAX_LEN];
-    char sfn_path[FILE_PATH_MAX_LEN];
+    char filename[filename_defs::max_filename_length];
+    char sfn_path[filename_defs::max_path_length];
     {
         auto lock = MarlinVarsLockGuard();
         marlin_vars().media_LFN.copy_to(filename, sizeof(filename), lock);

@@ -24,48 +24,74 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   manufacturer: NXP
+*/
+
 #include "bsp/board_api.h"
+#include "board/clock_config.h"
+#include "board/pin_mux.h"
 #include "board.h"
 
 // Suppress warning caused by mcu driver
 #ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
+#include "fsl_clock.h"
 #include "fsl_device_registers.h"
 #include "fsl_gpio.h"
 #include "fsl_iomuxc.h"
-#include "fsl_clock.h"
 #include "fsl_lpuart.h"
+#include "fsl_ocotp.h"
 
 #ifdef __GNUC__
-#pragma GCC diagnostic pop
+  #pragma GCC diagnostic pop
 #endif
 
-#include "clock_config.h"
+/* --- Note about USB buffer RAM ---
+  For M7 core it's recommended to put USB buffer in DTCM for better performance (flexspi_nor linker default)
+  Otherwise you have to put the buffer in a non-cacheable section by configurate MPU manually or using BOARD_ConfigMPU():
+  - Define CFG_TUSB_MEM_SECTION=__attribute__((section("NonCacheable")))
+  - (IAR only) Change __NCACHE_REGION_SIZE in linker script to cover the size of non-cacheable section, multiple of 2^N
 
-#if defined(BOARD_TUD_RHPORT) && CFG_TUD_ENABLED
-  #define PORT_SUPPORT_DEVICE(_n)  (BOARD_TUD_RHPORT == _n)
-#else
-  #define PORT_SUPPORT_DEVICE(_n)  0
-#endif
-
-#if defined(BOARD_TUH_RHPORT) && CFG_TUH_ENABLED
-  #define PORT_SUPPORT_HOST(_n)    (BOARD_TUH_RHPORT == _n)
-#else
-  #define PORT_SUPPORT_HOST(_n)    0
-#endif
+  For secondary M4 core, the USB controller doesn't support transfer from DTCM so OCRAM must be used:
+  - __NCACHE_REGION_SIZE is defined by the linker script by default
+  - Define CFG_TUSB_MEM_SECTION=__attribute__((section("NonCacheable")))
+*/
 
 // needed by fsl_flexspi_nor_boot
-TU_ATTR_USED
-const uint8_t dcd_data[] = { 0x00 };
+TU_ATTR_USED const uint8_t dcd_data[] = {0x00};
 
 //--------------------------------------------------------------------+
 //
 //--------------------------------------------------------------------+
 
-static void init_usb_phy(USBPHY_Type* usb_phy) {
+// unify naming convention
+#if !defined(USBPHY1) && defined(USBPHY)
+  #define USBPHY1 USBPHY
+#endif
+
+static void init_usb_phy(uint8_t usb_id) {
+  USBPHY_Type *usb_phy;
+
+  if (usb_id == 0) {
+    usb_phy = USBPHY1;
+    CLOCK_EnableUsbhs0PhyPllClock(kCLOCK_Usbphy480M, BOARD_XTAL0_CLK_HZ);
+    CLOCK_EnableUsbhs0Clock(kCLOCK_Usb480M, BOARD_XTAL0_CLK_HZ);
+  }
+#ifdef USBPHY2
+  else if (usb_id == 1) {
+    usb_phy = USBPHY2;
+    CLOCK_EnableUsbhs1PhyPllClock(kCLOCK_Usbphy480M, BOARD_XTAL0_CLK_HZ);
+    CLOCK_EnableUsbhs1Clock(kCLOCK_Usb480M, BOARD_XTAL0_CLK_HZ);
+  }
+#endif
+  else {
+    return;
+  }
+
   // Enable PHY support for Low speed device + LS via FS Hub
   usb_phy->CTRL |= USBPHY_CTRL_SET_ENUTMILEVEL2_MASK | USBPHY_CTRL_SET_ENUTMILEVEL3_MASK;
 
@@ -80,162 +106,120 @@ static void init_usb_phy(USBPHY_Type* usb_phy) {
   usb_phy->TX = phytx;
 }
 
-void board_init(void)
-{
-  // make sure the dcache is on.
+void board_init(void) {
+// make sure the dcache is on.
 #if defined(__DCACHE_PRESENT) && __DCACHE_PRESENT
-  if (SCB_CCR_DC_Msk != (SCB_CCR_DC_Msk & SCB->CCR)) SCB_EnableDCache();
+  if (SCB_CCR_DC_Msk != (SCB_CCR_DC_Msk & SCB->CCR)) {
+    SCB_EnableDCache();
+  }
 #endif
 
-  // Init clock
+  BOARD_InitBootPins();
   BOARD_BootClockRUN();
   SystemCoreClockUpdate();
 
-#ifdef TRACE_ETM
-  // RT1011 ETM pins
-//  IOMUXC_SetPinMux(IOMUXC_GPIO_11_ARM_TRACE3, 0U);
-//  IOMUXC_SetPinMux(IOMUXC_GPIO_12_ARM_TRACE2, 0U);
-//  IOMUXC_SetPinMux(IOMUXC_GPIO_13_ARM_TRACE1, 0U);
-//  IOMUXC_SetPinMux(IOMUXC_GPIO_AD_00_ARM_TRACE0, 0U);
-//  IOMUXC_SetPinMux(IOMUXC_GPIO_AD_02_ARM_TRACE_CLK, 0U);
-//  CLOCK_EnableClock(kCLOCK_Trace);
-#endif
+  BOARD_ConfigMPU(); // defined in board.h
 
-  // Enable IOCON clock
-  CLOCK_EnableClock(kCLOCK_Iomuxc);
+#ifdef TRACE_ETM
+  //CLOCK_EnableClock(kCLOCK_Trace);
+#endif
 
 #if CFG_TUSB_OS == OPT_OS_NONE
   // 1ms tick timer
   SysTick_Config(SystemCoreClock / 1000);
-
 #elif CFG_TUSB_OS == OPT_OS_FREERTOS
+  // Explicitly disable systick to prevent its ISR from running before scheduler start
+  SysTick->CTRL &= ~1U;
   // If freeRTOS is used, IRQ priority is limit by max syscall ( smaller is higher )
   NVIC_SetPriority(USB_OTG1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
-#ifdef USBPHY2
+  #ifdef USBPHY2
   NVIC_SetPriority(USB_OTG2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
-#endif
+  #endif
 #endif
 
-  // LED
-  IOMUXC_SetPinMux( LED_PINMUX, 0U);
-  IOMUXC_SetPinConfig( LED_PINMUX, 0x10B0U);
-
-  gpio_pin_config_t led_config = { kGPIO_DigitalOutput, 0, kGPIO_NoIntmode };
-  GPIO_PinInit(LED_PORT, LED_PIN, &led_config);
   board_led_write(true);
 
-  // Button
-  IOMUXC_SetPinMux( BUTTON_PINMUX, 0U);
-  IOMUXC_SetPinConfig(BUTTON_PINMUX, 0x01B0A0U);
-  gpio_pin_config_t button_config = { kGPIO_DigitalInput, 0, kGPIO_IntRisingEdge, };
-  GPIO_PinInit(BUTTON_PORT, BUTTON_PIN, &button_config);
-
   // UART
-  IOMUXC_SetPinMux( UART_TX_PINMUX, 0U);
-  IOMUXC_SetPinMux( UART_RX_PINMUX, 0U);
-  IOMUXC_SetPinConfig( UART_TX_PINMUX, 0x10B0u);
-  IOMUXC_SetPinConfig( UART_RX_PINMUX, 0x10B0u);
-
   lpuart_config_t uart_config;
   LPUART_GetDefaultConfig(&uart_config);
   uart_config.baudRate_Bps = CFG_BOARD_UART_BAUDRATE;
   uart_config.enableTx = true;
   uart_config.enableRx = true;
 
-  uint32_t freq;
-  if (CLOCK_GetMux(kCLOCK_UartMux) == 0) /* PLL3 div6 80M */
-  {
-    freq = (CLOCK_GetPllFreq(kCLOCK_PllUsb1) / 6U) / (CLOCK_GetDiv(kCLOCK_UartDiv) + 1U);
-  }
-  else
-  {
-    freq = CLOCK_GetOscFreq() / (CLOCK_GetDiv(kCLOCK_UartDiv) + 1U);
-  }
-
-  if ( kStatus_Success != LPUART_Init(UART_PORT, &uart_config, freq) ) {
+  if (kStatus_Success != LPUART_Init(UART_PORT, &uart_config, UART_CLK_ROOT)) {
     // failed to init uart, probably baudrate is not supported
     // TU_BREAKPOINT();
   }
 
   //------------- USB -------------//
   // Note: RT105x RT106x and later have dual USB controllers.
-
-  // Clock
-  CLOCK_EnableUsbhs0PhyPllClock(kCLOCK_Usbphy480M, 480000000U);
-  CLOCK_EnableUsbhs0Clock(kCLOCK_Usb480M, 480000000U);
-
-#ifdef USBPHY1
-  init_usb_phy(USBPHY1);
-#else
-  init_usb_phy(USBPHY);
-#endif
-
+  init_usb_phy(0);// USB0
 #ifdef USBPHY2
-  // USB1
-  CLOCK_EnableUsbhs1PhyPllClock(kCLOCK_Usbphy480M, 480000000U);
-  CLOCK_EnableUsbhs1Clock(kCLOCK_Usb480M, 480000000U);
-  init_usb_phy(USBPHY2);
+  init_usb_phy(1);// USB1
 #endif
 }
 
 //--------------------------------------------------------------------+
 // USB Interrupt Handler
 //--------------------------------------------------------------------+
-void USB_OTG1_IRQHandler(void)
-{
-  #if PORT_SUPPORT_DEVICE(0)
-    tud_int_handler(0);
-  #endif
-
-  #if PORT_SUPPORT_HOST(0)
-    tuh_int_handler(0, true);
-  #endif
+void USB_OTG1_IRQHandler(void) {
+  tusb_int_handler(0, true);
 }
 
-void USB_OTG2_IRQHandler(void)
-{
-  #if PORT_SUPPORT_DEVICE(1)
-    tud_int_handler(1);
-  #endif
-
-  #if PORT_SUPPORT_HOST(1)
-    tuh_int_handler(1, true);
-  #endif
+void USB_OTG2_IRQHandler(void) {
+  tusb_int_handler(1, true);
 }
 
 //--------------------------------------------------------------------+
 // Board porting API
 //--------------------------------------------------------------------+
 
-void board_led_write(bool state)
-{
-  GPIO_PinWrite(LED_PORT, LED_PIN, state ? LED_STATE_ON : (1-LED_STATE_ON));
+void board_led_write(bool state) {
+  GPIO_PinWrite(LED_PORT, LED_PIN, state ? LED_STATE_ON : (1 - LED_STATE_ON));
 }
 
-uint32_t board_button_read(void)
-{
-  // active low
+uint32_t board_button_read(void) {
   return BUTTON_STATE_ACTIVE == GPIO_PinRead(BUTTON_PORT, BUTTON_PIN);
 }
 
-int board_uart_read(uint8_t* buf, int len)
-{
+size_t board_get_unique_id(uint8_t id[], size_t max_len) {
+  (void) max_len;
+
+#if FSL_FEATURE_OCOTP_HAS_TIMING_CTRL
+  OCOTP_Init(OCOTP, CLOCK_GetFreq(kCLOCK_IpgClk));
+#else
+  OCOTP_Init(OCOTP, 0u);
+#endif
+
+  // Reads shadow registers 0x01 - 0x04 (Configuration and Manufacturing Info)
+  // into 8 bit wide destination, avoiding punning.
+  for (int i = 0; i < 4; ++i) {
+    uint32_t wr = OCOTP_ReadFuseShadowRegister(OCOTP, i + 1);
+    for (int j = 0; j < 4; j++) {
+      id[i * 4 + j] = wr & 0xff;
+      wr >>= 8;
+    }
+  }
+  OCOTP_Deinit(OCOTP);
+
+  return 16;
+}
+
+int board_uart_read(uint8_t *buf, int len) {
   int count = 0;
 
-  while( count < len )
-  {
+  while (count < len) {
     uint8_t const rx_count = LPUART_GetRxFifoCount(UART_PORT);
-    if (!rx_count)
-    {
+    if (!rx_count) {
       // clear all error flag if any
       uint32_t status_flags = LPUART_GetStatusFlags(UART_PORT);
-      status_flags  &= (kLPUART_RxOverrunFlag | kLPUART_ParityErrorFlag | kLPUART_FramingErrorFlag | kLPUART_NoiseErrorFlag);
+      status_flags &= (kLPUART_RxOverrunFlag | kLPUART_ParityErrorFlag | kLPUART_FramingErrorFlag |
+                       kLPUART_NoiseErrorFlag);
       LPUART_ClearStatusFlags(UART_PORT, status_flags);
       break;
     }
 
-    for(int i=0; i<rx_count; i++)
-    {
+    for (int i = 0; i < rx_count; i++) {
       buf[count] = LPUART_ReadByte(UART_PORT);
       count++;
     }
@@ -244,9 +228,18 @@ int board_uart_read(uint8_t* buf, int len)
   return count;
 }
 
-int board_uart_write(void const * buf, int len) {
-  LPUART_WriteBlocking(UART_PORT, (uint8_t const*)buf, len);
-  return len;
+int board_uart_write(void const *buf, int len) {
+  const uint8_t *p     = (const uint8_t *)buf;
+  int            count = 0;
+  while (count < len) {
+    if (LPUART_GetStatusFlags(UART_PORT) & kLPUART_TxDataRegEmptyFlag) {
+      LPUART_WriteByte(UART_PORT, p[count]);
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
 }
 
 #if CFG_TUSB_OS == OPT_OS_NONE
@@ -255,7 +248,14 @@ void SysTick_Handler(void) {
   system_ticks++;
 }
 
-uint32_t board_millis(void) {
+uint32_t tusb_time_millis_api(void) {
   return system_ticks;
+}
+#endif
+
+#ifdef __clang__
+void _exit(int __status) {
+  (void) __status;
+  while (1) {}
 }
 #endif

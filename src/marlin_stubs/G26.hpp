@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
+#include <bsod/bsod.h>
 
 class FirstLayer {
 private:
@@ -18,12 +19,12 @@ private:
 
 public:
     FirstLayer() {
-        assert(!instance_);
+        debug_assert(!instance_);
         instance_ = this;
     }
 
     ~FirstLayer() {
-        assert(instance_ == this);
+        debug_assert(instance_ == this);
         instance_ = nullptr;
         disable_all_steppers();
     }

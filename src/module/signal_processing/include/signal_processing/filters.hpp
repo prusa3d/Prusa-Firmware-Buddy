@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cassert>
 #include <chrono>
 #include <concepts>
 #include <cmath>
@@ -11,6 +10,7 @@
 #include <numeric>
 #include <signal_processing/math.hpp>
 #include <signal_processing/pipeline.hpp>
+#include <bsod/bsod.h>
 
 // This file defines various standard filters. Each filter is implemented as a
 // class with a process() method that takes a single sample and returns the
@@ -48,7 +48,7 @@ public:
 
         // Correlate coefficients with delay line walking backwards from
         // write_pos (the newest sample, multiplied by coeffs[0]), wrapping
-        // around. For symmetric filters this is equivalent to convolution.        T result = T { 0 };
+        // around. For symmetric filters this is equivalent to convolution.
         T result = T { 0 };
         std::size_t coeff_idx = 0;
         std::size_t delay_idx = write_pos + 1;
@@ -262,9 +262,9 @@ template <typename T, std::size_t N>
 std::array<T, N> hamming_lowpass_coeffs(T cutoff_hz, T sample_rate) {
     static_assert(N > 0, "Filter length must be greater than 0");
     static_assert(N % 2 == 1, "N should be odd for symmetric FIR filter");
-    assert(sample_rate > T { 0 });
-    assert(cutoff_hz > T { 0 });
-    assert(cutoff_hz < sample_rate / T { 2 });
+    debug_assert(sample_rate > T { 0 });
+    debug_assert(cutoff_hz > T { 0 });
+    debug_assert(cutoff_hz < sample_rate / T { 2 });
 
     std::array<T, N> coeffs {};
 
@@ -304,7 +304,7 @@ template <typename T, std::size_t N>
 std::array<T, N> gaussian_lowpass_coeffs(T sigma) {
     static_assert(N > 0, "Filter length must be greater than 0");
     static_assert(N % 2 == 1, "N should be odd for symmetric FIR filter");
-    assert(sigma > T { 0 });
+    debug_assert(sigma > T { 0 });
 
     std::array<T, N> coeffs {};
     const int M = static_cast<int>(N - 1) / 2;
@@ -328,9 +328,9 @@ std::array<T, N> gaussian_lowpass_coeffs(T sigma) {
 
 template <typename T, std::size_t N>
 std::array<T, N> gaussian_lowpass_coeffs_fc(T cutoff_hz, T sample_rate) {
-    assert(sample_rate > T { 0 });
-    assert(cutoff_hz > T { 0 });
-    assert(cutoff_hz < sample_rate / T { 2 });
+    debug_assert(sample_rate > T { 0 });
+    debug_assert(cutoff_hz > T { 0 });
+    debug_assert(cutoff_hz < sample_rate / T { 2 });
     // Approximate relationship between sigma and -3dB cutoff frequency
     // For Gaussian: fc_3dB ≈ 0.133 * fs / sigma
     // Therefore: sigma ≈ 0.133 * fs / fc
@@ -341,9 +341,9 @@ std::array<T, N> gaussian_lowpass_coeffs_fc(T cutoff_hz, T sample_rate) {
 // Bilinear transform prewarping: returns normalized prewarped frequency c.
 template <typename T>
 T bilinear_prewarp(T cutoff_hz, T sample_rate) {
-    assert(sample_rate > T { 0 });
-    assert(cutoff_hz > T { 0 });
-    assert(cutoff_hz < sample_rate / T { 2 });
+    debug_assert(sample_rate > T { 0 });
+    debug_assert(cutoff_hz > T { 0 });
+    debug_assert(cutoff_hz < sample_rate / T { 2 });
     const T omega_c = T { 2 } * std::numbers::pi_v<T> * cutoff_hz;
     const T omega_d = T { 2 } * sample_rate * sp::tan(omega_c / (T { 2 } * sample_rate));
     return omega_d / (T { 2 } * sample_rate);
@@ -410,8 +410,8 @@ public:
 
     explicit LeakyMean(T leak)
         : leak(leak) {
-        assert(leak > T { 0 });
-        assert(leak <= T { 1 });
+        debug_assert(leak > T { 0 });
+        debug_assert(leak <= T { 1 });
     }
 
     T process(T sample) {
@@ -449,7 +449,7 @@ public:
     CubicSoftClip(T min_value, T max_value)
         : min_value(min_value)
         , max_value(max_value) {
-        assert(min_value < max_value);
+        debug_assert(min_value < max_value);
         recompute_scale();
     }
 
@@ -483,11 +483,11 @@ public:
         , attack_coeff(attack_coeff)
         , release_coeff(release_coeff)
         , rms_squared(target_rms * target_rms) {
-        assert(target_rms > T { 0 });
-        assert(attack_coeff > T { 0 });
-        assert(attack_coeff <= T { 1 });
-        assert(release_coeff > T { 0 });
-        assert(release_coeff <= T { 1 });
+        debug_assert(target_rms > T { 0 });
+        debug_assert(attack_coeff > T { 0 });
+        debug_assert(attack_coeff <= T { 1 });
+        debug_assert(release_coeff > T { 0 });
+        debug_assert(release_coeff <= T { 1 });
     }
 
     T process(T sample) {
@@ -618,14 +618,14 @@ template <typename T>
 auto agc(T target_rms, sp::Duration attack_time, sp::Duration release_time) {
     const T attack_seconds = std::chrono::duration<float>(attack_time).count();
     const T release_seconds = std::chrono::duration<float>(release_time).count();
-    assert(attack_seconds > T { 0 });
-    assert(release_seconds > T { 0 });
+    debug_assert(attack_seconds > T { 0 });
+    debug_assert(release_seconds > T { 0 });
 
     return [=]<Source S>(S &&s) {
         const sp::SamplingFreq sampling_freq = s.sampling_freq();
-        assert(sampling_freq > sp::SamplingFreq { 0 });
-        assert(attack_seconds > T { 0 });
-        assert(release_seconds > T { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(attack_seconds > T { 0 });
+        debug_assert(release_seconds > T { 0 });
 
         // Convert time constant in seconds to samples, then to coefficient
         const T attack_time_samples = attack_seconds * static_cast<T>(sampling_freq);
@@ -653,7 +653,7 @@ template <typename T, std::size_t N>
 auto hamming_lowpass(T cutoff_hz) {
     return [cutoff_hz]<Source S>(S &&s) {
         const sp::SamplingFreq sampling_freq = s.sampling_freq();
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
         return FilterNode<std::remove_cvref_t<S>, sp::FIR<T, N>> {
             std::forward<S>(s),
             sp::hamming_lowpass_coeffs<T, N>(cutoff_hz, static_cast<T>(sampling_freq))
@@ -670,7 +670,7 @@ template <typename T, std::size_t N>
 auto gaussian_lowpass_fc(T cutoff_hz) {
     return [cutoff_hz]<Source S>(S &&s) {
         const sp::SamplingFreq sampling_freq = s.sampling_freq();
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
         return FilterNode<std::remove_cvref_t<S>, sp::FIR<T, N>> {
             std::forward<S>(s),
             sp::gaussian_lowpass_coeffs_fc<T, N>(cutoff_hz, static_cast<T>(sampling_freq))
@@ -682,7 +682,7 @@ template <typename T>
 auto butterworth_lowpass_1st(T cutoff_hz) {
     return [cutoff_hz]<Source S>(S &&s) {
         const sp::SamplingFreq sampling_freq = s.sampling_freq();
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
         return FilterNode<std::remove_cvref_t<S>, sp::Biquad<T>> {
             std::forward<S>(s),
             sp::butterworth_lowpass_biquad_1st<T>(cutoff_hz, static_cast<T>(sampling_freq))
@@ -694,7 +694,7 @@ template <typename T>
 auto butterworth_lowpass_2nd(T cutoff_hz) {
     return [cutoff_hz]<Source S>(S &&s) {
         const sp::SamplingFreq sampling_freq = s.sampling_freq();
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
         return FilterNode<std::remove_cvref_t<S>, sp::Biquad<T>> {
             std::forward<S>(s),
             sp::butterworth_lowpass_biquad_2nd<T>(cutoff_hz, static_cast<T>(sampling_freq))
@@ -706,7 +706,7 @@ template <typename T>
 auto butterworth_lowpass_4th(T cutoff_hz) {
     return [cutoff_hz]<Source S>(S &&s) {
         const sp::SamplingFreq sampling_freq = s.sampling_freq();
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
         return FilterNode<std::remove_cvref_t<S>, sp::BiquadCascade<T, 2>> {
             std::forward<S>(s),
             sp::butterworth_lowpass_biquads_4th<T>(cutoff_hz, static_cast<T>(sampling_freq))

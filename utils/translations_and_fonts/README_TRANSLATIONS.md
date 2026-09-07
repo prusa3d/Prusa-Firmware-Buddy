@@ -40,9 +40,8 @@ path_to_PO - path to ZIP file OR directory containing translated texts in separa
 5. Delete unused strings
 6. Replace unsupported characters
 7. Regenerate MO files
-8. Regenerate fonts with updated set of characters
-9. Check if fonts contain previously unknown unsupported character
-10. Run unit tests and make sure they all passed
+8. Build the firmware
+9. Run unit tests and make sure they all passed
 
 # HOW TO UPDATE TRANSLATIONS STEP BY STEP
 1. POT file contains all texts marked for translation. We use gettext to generate it. If you want to learn, how gettext works, [click here](https://www.labri.fr/perso/fleury/posts/programming/a-quick-gettext-tutorial.html).
@@ -105,15 +104,15 @@ python3 utils/translations_and_fonts/replace_unsupported_chars.py src/lang/po/
 msgfmt src/lang/po/XX/Prusa-Buddy-Firmware_XX.po -o temporary.mo   # replace XX with language code
 ```
 
-8. Regenerating fonts
-To safe space, our fonts have only set of characters, that are used in the translations. Fonts have to be regenerated because new translations could contain an unknown character.
-[tutorial](README_FONTS.md)
+8. Build the firmware
+Unused glyphs are skipped and font data are embedded into the firmware.
+A glyph outside of the source pngs fails the build. You need to resolve this manually:
+ * try finding similar glyph and add a new rule to `replace_unsupported_chars.py`
+ * try different translation
+ * as a last resort, provide updated source pngs
+In any case, you need to retry the procedure from step 5.
 
-9. Check if fonts contain previously unknown unsupported character. Go to `src/gui/res/fnt_png` and look for any "empty square" in the font - That is the symptom of unknown unsupported character.
-Remember the position in the font (row & column starting from 0) and look at the `src/guiapi/include/fnt-XXXX-indices` (XXXX is "full"/"standard"/"digits" based on the examined font). There you can find the unsupported character by row and column.
-Once you remove / replace those characters in PO files, you have to redo updating translations from step 5.
-
-10. Building and running unit tests
+9. Building and running unit tests
 ```bash
 mkdir -p build_tests
 cd build_tests

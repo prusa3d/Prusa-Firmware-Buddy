@@ -34,18 +34,27 @@ static constexpr auto index_mapping_items = std::to_array<DynamicIndexMappingRec
 
 class SelectDocksMenu;
 
+/// Per-dock action, indices match dock_toggle_items below
+enum class DockAction : uint8_t {
+    keep,
+    calibrate,
+    invalidate,
+};
+
 static constexpr const char *dock_toggle_items[] {
-    N_("Skip"),
+    N_("Keep"),
     N_("Calibrate"),
+    N_("Invalidate"),
 };
 
 class MI_DOCK_TOGGLE final : public MenuItemSwitch {
 
 public:
-    MI_DOCK_TOGGLE(SelectDocksMenu &menu, PhysicalToolIndex tool, bool already_calibrated, bool selected)
-        : MenuItemSwitch(string_view_utf8 {}, dock_toggle_items, selected ? 1 : 0)
+    MI_DOCK_TOGGLE(SelectDocksMenu &menu, PhysicalToolIndex tool, bool already_calibrated, DockAction action)
+        : MenuItemSwitch(string_view_utf8 {}, dock_toggle_items, static_cast<size_t>(action))
         , menu_(menu)
         , dock_(tool) {
+        // have to use quick_cycle eventhough we have 3 items to avoid stack overflow
         set_behavior(Behavior::quick_cycle);
         SetLabel(_("Dock %i").formatted(label_params_, tool.display_index()));
         SetIconId(already_calibrated ? &img::ok_color_16x16 : &img::nok_color_16x16);
@@ -54,8 +63,21 @@ public:
 protected:
     void OnChange(size_t) override;
 
-    void printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, ropfn raster_op) const override {
-        MenuItemSwitch::printExtension(extension_rect, current_item() ? COLOR_ORANGE : COLOR_GRAY, color_back, raster_op);
+    virtual Color resolved_value_text_color([[maybe_unused]] Color base_color) const override {
+        Color action_color = COLOR_GRAY;
+        switch (static_cast<DockAction>(current_item())) {
+        case DockAction::keep:
+            action_color = COLOR_GRAY;
+            break;
+        case DockAction::calibrate:
+            action_color = COLOR_LIGHT_GREEN;
+            break;
+        case DockAction::invalidate:
+            action_color = COLOR_ORANGE;
+            break;
+        }
+
+        return action_color;
     }
 
 private:
@@ -88,13 +110,10 @@ public:
         , calibrated_docks(config_store().indx_dock_calibrated_mask.get())
         , dock_count_(dock_count) {
 
-        const auto all_docks_mask = (1 << dock_count_) - 1;
-        if (preselect_all) {
-            // Pre-select every dock — user explicitly asked for a known dock count
-            selected_docks = all_docks_mask;
-        } else {
-            // Pre-select only uncalibrated docks
-            selected_docks = ~calibrated_docks.to_ulong() & all_docks_mask;
+        for (uint8_t i = 0; i < dock_count_; ++i) {
+            // Known dock count (4/8): default every dock to Calibrate.
+            // "Other": default only uncalibrated docks to Calibrate, keep the rest.
+            actions_[i] = (preselect_all || !calibrated_docks.test(i)) ? DockAction::calibrate : DockAction::keep;
         }
 
         index_mapping_.set_section_size<Item::dock>(dock_count_);
@@ -116,7 +135,8 @@ public:
 
         case Item::dock: {
             const auto dock_index = nth_dock(m.pos_in_section);
-            variant.emplace<MI_DOCK_TOGGLE>(*this, dock_index, calibrated_docks.test(dock_index.to_raw()), selected_docks.test(dock_index.to_raw()));
+            const auto raw = dock_index.to_raw();
+            variant.emplace<MI_DOCK_TOGGLE>(*this, dock_index, calibrated_docks.test(raw), actions_[raw]);
             break;
         }
 
@@ -126,10 +146,12 @@ public:
         }
     }
 
-    DockMask selected_docks;
+    void set_action(PhysicalToolIndex dock, DockAction action) {
+        actions_[dock.to_raw()] = action;
+    }
 
-    /// Result: nullopt = aborted, otherwise bitmask as uint8_t for FSMResponseVariant transfer
-    std::optional<uint8_t> result;
+    /// Result: nullopt = aborted, otherwise per-dock actions for FSMResponseVariant transfer
+    std::optional<DockSelection> result;
 
 private:
     /// Get the dock index for the nth dock in the list
@@ -137,17 +159,31 @@ private:
         return PhysicalToolIndex::from_raw(n);
     }
 
+    std::array<DockAction, PhysicalToolIndex::count> actions_ {};
     const DockMask calibrated_docks;
     const uint8_t dock_count_;
     DynamicIndexMapping<index_mapping_items> index_mapping_;
 };
 
 void MI_DOCK_TOGGLE::OnChange(size_t) {
-    menu_.selected_docks.set(dock_.to_raw(), current_item() == 1);
+    menu_.set_action(dock_, static_cast<DockAction>(current_item()));
 }
 
 void MI_CONTINUE::click(IWindowMenu &) {
-    menu_.result = static_cast<uint8_t>(menu_.selected_docks.to_ulong());
+    DockSelection sel;
+    for (uint8_t i = 0; i < menu_.dock_count_; ++i) {
+        switch (menu_.actions_[i]) {
+        case DockAction::keep:
+            break;
+        case DockAction::calibrate:
+            sel.calibrate |= (1 << i);
+            break;
+        case DockAction::invalidate:
+            sel.invalidate |= (1 << i);
+            break;
+        }
+    }
+    menu_.result = sel;
     Screens::Access()->Close();
 }
 
@@ -172,7 +208,7 @@ private:
 
 } // namespace
 
-std::optional<uint8_t> select_docks_dialog(uint8_t dock_count, bool preselect_all) {
+std::optional<DockSelection> select_docks_dialog(uint8_t dock_count, bool preselect_all) {
     SelectDocksDialog d(dock_count, preselect_all);
     Screens::Access()->gui_loop_until_dialog_closed();
     return d.result();

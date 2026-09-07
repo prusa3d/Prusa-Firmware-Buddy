@@ -24,6 +24,7 @@
   // #error dead code found by automatic analyses (see BFW-5461)
 
 #include "../../inc/MarlinConfig.h"
+#include <bsod/bsod.h>
 
 #if ENABLED(USE_WATCHDOG)
   // #error dead code found by automatic analyses (see BFW-5461)

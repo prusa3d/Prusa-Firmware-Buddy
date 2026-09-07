@@ -17,6 +17,7 @@
 #include <config_store/store_instance.hpp>
 
 #include <option/has_usb_device.h>
+#include <bsod/bsod.h>
 #if HAS_USB_DEVICE()
     #include <USBSerial.h>
 #endif
@@ -113,7 +114,7 @@ static void M971_error_syntax() {
 }
 
 static void M971_reset_axis(const OptionsM971 &options, AxisEnum axis) {
-    assert(!phase_stepping::is_enabled(axis));
+    debug_assert(!phase_stepping::is_enabled(axis));
     if (options.forward) {
         phase_stepping::remove_from_persistent_storage(axis, phase_stepping::CorrectionType::forward);
     }
@@ -304,7 +305,7 @@ public:
     }
 
     void on_calibration_phase_result(float forward_score, float backward_score) override {
-        assert(_current_calibration_phase < _calibration_results.size());
+        debug_assert(_current_calibration_phase < _calibration_results.size());
 
         _calibration_results[_current_calibration_phase] = { forward_score, backward_score };
         SERIAL_ECHO("Phase ");

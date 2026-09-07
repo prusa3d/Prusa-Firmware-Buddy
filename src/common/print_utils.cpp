@@ -21,12 +21,13 @@
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
 #endif
 
+#include <option/has_power_panic.h>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     #include "power_panic.hpp"
 #endif
 
@@ -35,7 +36,7 @@
  * Auto-start gcode.
  */
 void run_once_after_boot() {
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     if (power_panic::state_stored()) {
         // Data has been saved: ensure we're coming either from self-reset (we reached the end of
         // the PP cycle due to a short power burst) OR brown-out has been detected. Clear the data
@@ -78,13 +79,6 @@ void print_utils_loop() {
             TaskDeps::provide(TaskDeps::Dependency::autostart_done);
         }
     }
-}
-
-void print_begin(const char *filename, marlin_server::PreviewSkipIfAble skip_preview) {
-    marlin_client::print_start(filename, skip_preview);
-    // FIXME: This should not be here and it should be handled
-    // in Marlin. Needs refactoring!
-    oProgressData.mInit();
 }
 
 DeleteResult remove_file(const char *path) {

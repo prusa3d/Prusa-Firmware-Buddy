@@ -10,11 +10,12 @@
 #include <stdbool.h>
 #include <bitset>
 
-#include <buddy/filename_defs.h>
+#include <buddy/filename_defs.hpp>
 #include "window.hpp"
 #include "display_helper.h"
 #include "lazyfilelist.hpp"
 #include "text_roll.hpp"
+#include <i_window_menu_item.hpp>
 #include <window_menu_virtual.hpp>
 #include <guiconfig/GuiDefaults.hpp>
 #include <array>
@@ -43,8 +44,9 @@ public:
         : IWindowMenuItem(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 };
 
-// Needs smaller item size, otherwise wouldn't fit into MINI's RAM
-class window_file_list_t : public WindowMenuVirtualSized<WindowMenuVirtualBase::default_item_buffer_size, 32> {
+// Items sized for WindowMenuItem. The other item being used is MI_RETURN,
+// which adds no members over IWindowMenuItem.
+class window_file_list_t : public WindowMenuVirtualSized<WindowMenuVirtualBase::default_item_buffer_size, sizeof(WindowMenuItem)> {
 
 public:
     static constexpr const char *root = "/usb";
@@ -59,7 +61,7 @@ public:
 
 public:
     // TODO private
-    char sfn_path[FILE_PATH_BUFFER_LEN]; // this is a Short-File-Name path where we start the file dialog
+    char sfn_path[filename_defs::path_buffer_size]; // this is a Short-File-Name path where we start the file dialog
 
 public:
     window_file_list_t(window_t *parent, Rect16 rc); // height is calculated from LazyDirViewSize
@@ -69,7 +71,7 @@ public:
     const char *CurrentLFN(bool *isFile = nullptr) const;
     const char *CurrentSFN(bool *isFile = nullptr) const;
 
-    /// @return true if path is either empty or contains just a "/"
+    /// @return true if path is either empty or equal to the root path
     static bool IsPathRoot(const char *path);
 
 protected:

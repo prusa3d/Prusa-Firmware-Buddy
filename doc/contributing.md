@@ -42,7 +42,7 @@ All the source code in this repository is automatically formatted:
 - Python files using [yapf](https://github.com/google/yapf),
 - and CMake files using [cmake-format](https://github.com/cheshirekow/cmake_format).
 
-If you want to contribute, make sure to install [pre-commit](https://pre-commit.com) and then run `pre-commit install` within the repository. This makes sure that all your future commits will be formatted appropriately. Our build server automatically rejects improperly formatted pull requests.
+Running `./utils/bootstrap.py` installs the [prek](https://github.com/j178/prek) Git hooks for you, so all your future commits will be formatted appropriately. Our build server automatically rejects improperly formatted pull requests. To run the checks manually, use `prek run -c .pre-commit-config.yaml`. The `-c .pre-commit-config.yaml` flag pins prek to the root config so it does not descend into the nested configs of vendored libraries under `lib/`; bootstrap bakes the same flag into the installed hook.
 
 ### Files: Include Guards
 Use the `#pragma once` as a file guard.
@@ -68,6 +68,8 @@ This does not apply to 3rd party code in our repository.
 
 ## Documentation
 
+### Documentation: API
+
 API documentation goes to the declaration (header file), using doxygen syntax.
 Prefer `///` over `/** */` variant. This includes whatever the user of the API
 might need to know - invariants, corner cases, error conditions, intended uses.
@@ -75,10 +77,29 @@ No need to overdo on the formal part of doxygen - eg. there's no need to fill in
 `@return` for a `bool is_enabled() const` method, since the meaning of it is
 obvious.
 
+### Documentation: Comments
+
 Implementation details can be documented as inline comments inside the relevant
 code.
 
-### G-Code command documentation
+Do not restate what the code already says. If a comment is needed to make code
+readable, first try rewriting the code so the comment is not needed.
+
+Reserve comments for intent the code cannot carry: rationale, trade-offs,
+constraints, workarounds.
+
+Comments tend to rot as the codebase evolves. A comment that contradicts the
+code is worse than no comment. Avoid referring to aspects of the source code
+that are likely to change: identifiers, file names, line numbers, etc.
+When you change code, update or delete the comments around it.
+
+Write for a reader who has never seen any other version of the code.
+It is always now and history is in the version control system.
+A comment says what is, not what changed.
+
+Be terse if possible.
+
+### Documentation: G-Code command
  - Use following format and syntax
 ```
 /**

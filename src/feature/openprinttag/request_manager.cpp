@@ -12,25 +12,11 @@
 #include <prusa3d/nfc/event/Event_1_0.h>
 #include <logging/log.hpp>
 #include <timing.h>
+#include <utils/byte_utils.hpp>
 
 LOG_COMPONENT_REF(OpenPrintTag);
 
 static constexpr int32_t request_timeout_ms = 5000;
-
-static void serialize_enable_radio(uint16_t request_id, anfc::modbus::Request &request) {
-    prusa3d_nfc_command_Request_Request_1_0 object;
-    memset(&object, 0, sizeof(object));
-    object.request_id.value = request_id;
-    prusa3d_nfc_request_RequestData_1_0_select_enable_radio_(&object.request);
-    request.data = {};
-    auto buffer = std::as_writable_bytes(std::span { request.data });
-    size_t size = buffer.size();
-    if (prusa3d_nfc_command_Request_Request_1_0_serialize_(&object, reinterpret_cast<uint8_t *>(buffer.data()), &size) == 0) {
-        request.size = static_cast<uint16_t>(size);
-    } else {
-        bsod_unreachable();
-    }
-}
 
 static void serialize_forget_tag(uint16_t request_id, buddy::openprinttag::TagID tag_id, anfc::modbus::Request &request) {
     prusa3d_nfc_command_Request_Request_1_0 object;
@@ -81,6 +67,13 @@ Manager::Manager() {
     devices[VirtualToolIndex::from_raw(0)].device = anfc::Device::anfc0;
 }
 
+Manager::~Manager() {
+    // Destroy the requests first, otherwise ugly race conditions
+    for (auto &device : devices) {
+        device.enable_radio_request.reset();
+    }
+}
+
 bool Manager::step(anfc::modbus::Client &client) {
     std::lock_guard lock { mutex };
 
@@ -91,7 +84,7 @@ bool Manager::step(anfc::modbus::Client &client) {
     });
 }
 
-void Manager::on_request_done(RequestID request_id, std::span<const std::byte> raw_event_data) {
+void Manager::on_request_done(RequestID request_id, Bytes raw_event_data) {
     for (auto &entry : active_requests) {
         if (entry.request && entry.request_id == request_id) {
             entry.request->complete(raw_event_data);
@@ -103,14 +96,7 @@ void Manager::on_request_done(RequestID request_id, std::span<const std::byte> r
     log_error(OpenPrintTag, "stray request %d", request_id.to_underlying());
 }
 
-void Manager::DeviceState::on_request_done(RequestID request_id, std::span<const std::byte> raw_event_data) {
-    // handle enable_radio completion
-    if (enable_radio_request_id == request_id) {
-        enable_radio_request_id = std::nullopt;
-        radio_enabled = true;
-        return;
-    }
-
+void Manager::DeviceState::on_request_done(RequestID request_id, Bytes raw_event_data) {
     // handle forget_tag completion
     if (auto *f = std::get_if<TagForgetting>(&tag); f && f->request_id == request_id) {
         tag = TagUnused {};
@@ -161,43 +147,42 @@ void Manager::handle_pending_request(anfc::modbus::Client &client) {
     if (pending_requests.empty()) {
         return;
     }
-
     buddy::openprinttag::Request &pending_request = pending_requests.back();
-    const ToolTag &tool_tag = pending_request.tool_tag();
-    const DeviceState &device = devices[tool_tag.tool()];
-    if (auto *d = std::get_if<TagDetected>(&device.tag); d && d->tag_uid.hash() == tool_tag.uid_hash() && device.device) {
-        return handle_pending_request(client, pending_request, *device.device, d->tag_id);
+
+    // The request could have failed during the last serialize() or could have been failed externally
+    // Discard the request in that case
+    if (pending_request.finished()) {
+        pending_requests.remove(pending_request);
+        return;
     }
 
-    log_warning(OpenPrintTag, "tag not found for request");
-    pending_requests.remove(pending_request);
-    pending_request.set_finished(std::unexpected(Request::Error::other));
-}
-
-void Manager::handle_pending_request(anfc::modbus::Client &client, Request &pending_request, anfc::Device device, TagID tag_id) {
-    for (ActiveRequestEntry &entry : active_requests) {
-        if (entry.request == nullptr) {
-            return handle_pending_request(client, pending_request, device, tag_id, entry);
-        }
+    const auto active_entry = std::ranges::find_if(active_requests, [](const auto &e) { return e.request == nullptr; });
+    if (active_entry == active_requests.end()) {
+        // No free slot, try again later
+        return;
     }
-    // no free slot, try again later
-}
 
-void Manager::handle_pending_request(anfc::modbus::Client &client, Request &pending_request, anfc::Device device, TagID tag_id, ActiveRequestEntry &entry) {
     const RequestID request_id = make_request_id();
     anfc::modbus::Request modbus_request = {};
-    pending_request.serialize(request_id, tag_id, modbus_request);
-    if (client.write(device, modbus_request)) {
-        pending_requests.remove(pending_request);
-        entry = ActiveRequestEntry {
-            .request = &pending_request,
-            .request_id = request_id,
-            .sent_at = ticks_ms(),
-        };
-    } else {
+
+    const auto target_device = pending_request.serialize(ManagerNoLockBadge {}, request_id, modbus_request);
+
+    if (!target_device.has_value()) {
+        return;
+    }
+
+    if (!client.write(*target_device, modbus_request)) {
         log_warning(OpenPrintTag, "failed to write request");
         // keep pending request at its position in queue and try later
+        return;
     }
+
+    pending_requests.remove(pending_request);
+    *active_entry = ActiveRequestEntry {
+        .request = &pending_request,
+        .request_id = request_id,
+        .sent_at = ticks_ms(),
+    };
 }
 
 bool Manager::DeviceState::step(anfc::modbus::Client &client) {
@@ -205,27 +190,32 @@ bool Manager::DeviceState::step(anfc::modbus::Client &client) {
         return true;
     }
 
+    if (!radio_enabled) {
+        if (!enable_radio_request.has_value()) {
+            // Enable radio request has not been issued yed - issue
+            enable_radio_request.emplace(*device, true);
+            manager->add_request_nolock(*enable_radio_request);
+
+        } else if (!enable_radio_request->finished()) {
+            // Wait for the request to finish
+
+        } else if (enable_radio_request->has_error()) {
+            // Error - reset the request, re-issue
+            manager->add_request_nolock(*enable_radio_request);
+
+        } else {
+            // Done!
+            radio_enabled = true;
+        }
+    }
+
     anfc::modbus::Event modbus_event;
     if (!client.read(*device, modbus_event)) {
         return false;
     }
 
-    if (!radio_enabled && !enable_radio_request_id) {
-        enable_radio_request_id = manager->make_request_id();
-        anfc::modbus::Request request;
-        serialize_enable_radio(enable_radio_request_id->to_underlying(), request);
-        if (!client.write(*device, request)) {
-            enable_radio_request_id = std::nullopt;
-            return false;
-        }
-        // Continue to process events (to receive the ack)
-    }
-
-    // Only process other requests after radio is enabled
-    if (radio_enabled) {
-        manager->handle_pending_request(client);
-        forget_lost_tag(client);
-    }
+    manager->handle_pending_request(client);
+    forget_lost_tag(client);
 
     return handle_event(client, modbus_event);
 }
@@ -299,6 +289,10 @@ RequestID Manager::make_request_id() {
 void Manager::add_request(Badge<Request>, Request &request) {
     std::lock_guard lock { mutex };
 
+    add_request_nolock(request);
+}
+
+void Manager::add_request_nolock(Request &request) {
     remove_request_nolock(request);
     pending_requests.push_front(request);
 
@@ -344,9 +338,26 @@ std::optional<Manager::TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex to
     return std::nullopt;
 }
 
+std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info(ToolTag tool_tag) {
+    std::lock_guard lock { mutex };
+    return get_tag_device_info_nolock({}, tool_tag);
+}
+
+std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info_nolock(ManagerNoLockBadge, ToolTag tool_tag) {
+    const DeviceState &device = devices[tool_tag.tool()];
+    auto *d = std::get_if<TagDetected>(&device.tag);
+    if (d && d->tag_uid.hash() == tool_tag.uid_hash() && device.device) {
+        return TagDeviceInfo {
+            .device = *device.device,
+            .tag_id = d->tag_id,
+        };
+    } else {
+        return std::nullopt;
+    }
+}
+
 Manager &manager() {
     static Manager instance;
     return instance;
 }
-
 } // namespace buddy::openprinttag

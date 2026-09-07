@@ -10,6 +10,7 @@
 #include <interrupt_disabler.hpp>
 #include <timing.h>
 #include <atomic>
+#include <bsod/bsod.h>
 
 // Minimum number of free slots in the move segment queue must be available in the queue in all circumstances.
 // 1 free slot is required to ensure that we can add the empty ending move anytime.
@@ -140,10 +141,10 @@ public:
     // event beyond the flush time. Because for the same state of the move segment queue, some step
     // event generator could generate step events far away from others, which could let to incorrect
     // ordering of step events.
-    static double max_lookback_time;
+    static TimeTicks max_lookback_time;
 
     static xyze_double_t initial_start_pos; // Initial absolute position (mm, cartesian)
-    static double total_print_time; // Cumulative time since beginning of motion (s)
+    static TimeTicks total_print_time; // Cumulative time since beginning of motion
     static xyze_double_t total_start_pos; // Current absolute position (mm, cartesian)
     static xyze_msteps_t total_start_pos_msteps; // Current absolute position in mini-steps (msteps, cartesian)
 
@@ -285,14 +286,14 @@ public:
     // Discard the current move segment.
     // Caller must ensure that there is something to discard.
     FORCE_INLINE static void discard_current_move_segment() {
-        assert(has_move_segments_queued());
+        debug_assert(has_move_segments_queued());
         move_segment_queue.tail = move_segment_queue_next_index(move_segment_queue.tail);
     }
 
     // Discard the current unprocessed move segment.
     // Caller must ensure that there is something to discard.
     FORCE_INLINE static void discard_current_unprocessed_move_segment() {
-        assert(has_unprocessed_move_segments_queued());
+        debug_assert(has_unprocessed_move_segments_queued());
         move_segment_queue.unprocessed = move_segment_queue_next_index(move_segment_queue.unprocessed);
     }
 
@@ -368,8 +369,8 @@ public:
 
     FORCE_INLINE static move_t *move_segment_queue_next_move(const move_t &move) {
         int32_t move_idx = &move - &move_segment_queue.data[0];
-        assert(move_idx >= 0 && move_idx < MOVE_SEGMENT_QUEUE_SIZE); // move_idx out of bounds of the move queue.
-        assert(move_idx != move_segment_queue.head); // Input move segment is out of the move queue.
+        debug_assert(move_idx >= 0 && move_idx < MOVE_SEGMENT_QUEUE_SIZE); // move_idx out of bounds of the move queue.
+        debug_assert(move_idx != move_segment_queue.head); // Input move segment is out of the move queue.
 
         if (uint8_t next_move_idx = move_segment_queue_next_index(uint8_t(move_idx)); next_move_idx == move_segment_queue.head) {
             return nullptr;
@@ -388,9 +389,9 @@ public:
 
     static void update_maximum_lookback_time();
 
-    static double get_first_move_delay();
+    static TimeTicks get_first_move_delay();
     static uint32_t get_first_move_delay_us() {
-        return static_cast<uint32_t>(get_first_move_delay() * 1e6);
+        return static_cast<uint32_t>(get_first_move_delay().to_us_floor());
     }
 
     // This function must be called after the whole actual move segment is processed or the artificially
@@ -429,13 +430,13 @@ public:
 
     // Return true whether the specified (logical) axis is moving
     FORCE_INLINE static bool is_axis_moving(const AxisEnum logical_axis) {
-        assert(logical_axis < PS_AXIS_COUNT);
+        debug_assert(logical_axis < PS_AXIS_COUNT);
         return (current_move_flags & (MOVE_FLAG_X_ACTIVE << (MoveFlag_t)logical_axis));
     }
 
     // Return true whether the specified physical axis is moving given a logical one
     FORCE_INLINE static bool is_physical_axis_moving(const AxisEnum logical_axis) {
-        assert(logical_axis < PS_AXIS_COUNT);
+        debug_assert(logical_axis < PS_AXIS_COUNT);
         bool moving = false;
 #ifdef COREXY
         if ((logical_axis == A_AXIS || logical_axis == B_AXIS)) {
@@ -451,7 +452,7 @@ public:
 
     // Return true whether the specified (logical) axis is moving at cruising speed
     FORCE_INLINE static bool is_axis_cruising(const AxisEnum logical_axis) {
-        assert(logical_axis < PS_AXIS_COUNT);
+        debug_assert(logical_axis < PS_AXIS_COUNT);
         MoveFlag_t active_mask = (MOVE_FLAG_X_ACTIVE << (MoveFlag_t)logical_axis);
         MoveFlag_t move_flags = current_move_flags; // take a snapshot to perform both checks
         return (move_flags & active_mask) && (move_flags & MOVE_FLAG_CRUISE_PHASE);
@@ -462,7 +463,7 @@ public:
     //       each axis needs to be checked independently to check whether it's used after kinematic
     //       translation via Stepper::axis_is_moving()
     FORCE_INLINE static bool is_physical_axis_cruising(const AxisEnum logical_axis) {
-        assert(logical_axis < PS_AXIS_COUNT);
+        debug_assert(logical_axis < PS_AXIS_COUNT);
         MoveFlag_t active_mask;
 #ifdef COREXY
         if ((logical_axis == A_AXIS || logical_axis == B_AXIS)) {

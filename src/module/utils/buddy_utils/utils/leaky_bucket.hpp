@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cassert>
 #include <cstdint>
 #include <limits>
+#include <bsod/bsod.h>
 
 /// @brief The LeakyBucket class implements the Leaky Bucket algorithm for rate limiting.
 class LeakyBucket {
@@ -23,7 +23,7 @@ public:
     /// In case both are 0, the rule about interval takes precedence - it always
     /// fits.
     void set_parameters(uint32_t capacity, uint32_t interval) {
-        assert(static_cast<uint64_t>(capacity) * static_cast<uint64_t>(interval) < static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
+        debug_assert(static_cast<uint64_t>(capacity) * static_cast<uint64_t>(interval) < static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
         this->interval = interval;
         // We keep the size in the amount needed to clear the bucket, not in samples.
         this->capacity = capacity * interval;

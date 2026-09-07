@@ -8,6 +8,7 @@
 #include <ScreenHandler.hpp>
 #include <utils/string_builder.hpp>
 #include <screen/screen_preheat.hpp>
+#include <bsod/bsod.h>
 
 #if HAS_CHAMBER_API()
     #include <feature/chamber/chamber.hpp>
@@ -70,7 +71,7 @@ MI_FILAMENT_BASE_PRESET::MI_FILAMENT_BASE_PRESET()
 
 MI_FILAMENT_BASE_PRESET::T MI_FILAMENT_BASE_PRESET::value() const {
     const auto i = current_item();
-    assert(i >= 0);
+    debug_assert(i >= 0);
     return i == 0 ? T(std::nullopt) : static_cast<PresetFilamentType>(i - 1);
 }
 
@@ -93,12 +94,15 @@ string_view_utf8 MI_FILAMENT_BASE_PRESET::build_item_text(int index, ItemTextPar
 #endif
 
 // * MI_FILAMENT_NOZZLE_TEMPERATURE
+// A filament preset is not tool-specific, so allow the range of any installed hotend (AllTools).
 MI_FILAMENT_NOZZLE_TEMPERATURE::MI_FILAMENT_NOZZLE_TEMPERATURE()
-    : WiSpin(0, numeric_input_config::filament_nozzle_temperature, HAS_MINI_DISPLAY() ? _("Nozzle Temp") : _("Nozzle Temperature")) {}
+    : NumericInputConfigHolder { numeric_input_config::filament_nozzle_temperature(AllTools {}) }
+    , WiSpin(0, NumericInputConfigHolder::owned_config, HAS_MINI_DISPLAY() ? _("Nozzle Temp") : _("Nozzle Temperature")) {}
 
 // * MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE
 MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE::MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE()
-    : WiSpin(0, numeric_input_config::nozzle_temperature, HAS_MINI_DISPLAY() ? _("Preheat Temp") : _("Nozzle Preheat Temperature")) {}
+    : NumericInputConfigHolder { numeric_input_config::nozzle_temperature(AllTools {}) }
+    , WiSpin(0, NumericInputConfigHolder::owned_config, HAS_MINI_DISPLAY() ? _("Preheat Temp") : _("Nozzle Preheat Temperature")) {}
 
 // * MI_FILAMENT_BED_TEMPERATURE
 MI_FILAMENT_BED_TEMPERATURE::MI_FILAMENT_BED_TEMPERATURE()
@@ -127,10 +131,42 @@ MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE::MI_FILAMENT_TARGET_CHAMBER_TEMPERATURE()
 #endif
 
 // * MI_FILAMENT_REQUIRES_FILTRATION
-#if HAS_CHAMBER_API()
+#if HAS_CHAMBER_FILTRATION_API()
 MI_FILAMENT_REQUIRES_FILTRATION::MI_FILAMENT_REQUIRES_FILTRATION()
     : WI_ICON_SWITCH_OFF_ON_t(false, _("Requires Filtration")) {}
 
+#endif
+
+// * MI_FILAMENT_ASSIGNED_OPENPRINTTAG
+#if HAS_ANFC()
+MI_FILAMENT_ASSIGNED_OPENPRINTTAG::MI_FILAMENT_ASSIGNED_OPENPRINTTAG()
+    : WI_ICON_SWITCH_OFF_ON_t(false, _("OpenPrintTag Linked"), &img::openprinttag_white_16x16) {}
+
+void MI_FILAMENT_ASSIGNED_OPENPRINTTAG::set_value(Value set) {
+    original_uid_hash_ = set;
+    WI_ICON_SWITCH_OFF_ON_t::set_value(set != no_tag_hash);
+}
+
+void MI_FILAMENT_ASSIGNED_OPENPRINTTAG::OnChange(size_t) {
+    if (WI_ICON_SWITCH_OFF_ON_t::value()) {
+        if (original_uid_hash_ == no_tag_hash) {
+            MsgBoxError(_("OpenPrintTag must be assigned during filament load."), Responses_Ok);
+
+            // Set the switch value to false,
+            // but keep the original_uid_hash_, so that the user can reenable the assign while we still remember the hash value
+            WI_ICON_SWITCH_OFF_ON_t::set_value(false);
+
+        } else {
+            // We still remember the original_uid_hash_, allow re-enabling
+        }
+
+    } else {
+        const auto r = MsgBoxWarning(_("Unlink OpenPrintTag from the filament? Filament usage tracking will be disabled."), Responses_YesNo);
+        if (r != Response::Yes) {
+            WI_ICON_SWITCH_OFF_ON_t::set_value(true);
+        }
+    }
+}
 #endif
 
 // * MI_FILAMENT_IS_ABRASIVE
@@ -164,7 +200,7 @@ ScreenFilamentDetail::ScreenFilamentDetail(PreheatModeParams params)
     : ScreenFilamentDetail(N_("CUSTOM PARAMETERS")) {
 
     setup(PendingAdHocFilamentType {});
-    setup_preheat_mode_confirm(params.tool);
+    setup_preheat_mode_confirm(params);
 }
 
 ScreenFilamentDetail::ScreenFilamentDetail(const char *title)
@@ -255,14 +291,14 @@ void ScreenFilamentDetail::setup(FilamentType filament_type) {
     setup(filament_type, filament_type.parameters());
 }
 
-void screen_filament_detail::ScreenFilamentDetail::setup_preheat_mode_confirm(PreheatModeParams::ToolIndex tool) {
+void screen_filament_detail::ScreenFilamentDetail::setup_preheat_mode_confirm(PreheatModeParams params) {
     auto &confirm_item = Item<MI_CONFIRM>();
     confirm_item.set_is_hidden(false);
-    confirm_item.callback = [this, tool] {
+    confirm_item.callback = [this, params] {
         // handle_filament_selection is reading from the filament parameters for checking, so we need to update them
         save_changes();
 
-        if (ScreenPreheat::handle_filament_selection(PendingAdHocFilamentType {}, tool)) {
+        if (ScreenPreheat::handle_filament_selection(PendingAdHocFilamentType {}, params.tool, params.mode)) {
             Screens::Access()->Close();
         }
     };

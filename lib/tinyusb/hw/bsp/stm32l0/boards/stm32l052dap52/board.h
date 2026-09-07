@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: STM32 L052 DAP
+   url: n/a
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -42,8 +47,7 @@
 #define BUTTON_STATE_ACTIVE   0
 
 // UART
-#define UART_DEV              USART2
-#define UART_CLK_EN           __HAL_RCC_USART2_CLK_ENABLE
+#define UART_ID               2
 #define UART_GPIO_PORT        GPIOA
 #define UART_GPIO_AF          GPIO_AF4_USART2
 #define UART_TX_PIN           GPIO_PIN_2
@@ -54,16 +58,17 @@
 //--------------------------------------------------------------------+
 static inline void board_stm32l0_clock_init(void)
 {
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
-  static RCC_CRSInitTypeDef RCC_CRSInitStruct;
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct = {0};
+  RCC_CRSInitTypeDef RCC_CRSInitStruct = {0};
 
   /* Enable HSI Oscillator to be used as System clock source
      Enable HSI48 Oscillator to be used as USB clock source */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI48;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
   /* Select HSI48 as USB clock source */

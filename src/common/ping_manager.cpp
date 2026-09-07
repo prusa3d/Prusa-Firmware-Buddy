@@ -16,6 +16,7 @@
 
 #include <mutex>
 #include <memory>
+#include <bsod/bsod.h>
 
 using std::lock_guard;
 using std::unique_ptr;
@@ -77,7 +78,7 @@ void PingManager::get_stats(Stat *stats) {
 }
 
 void PingManager::set_ip(size_t slot, ip4_addr_t ip) {
-    assert(slot < nslots);
+    debug_assert(slot < nslots);
 
     auto &stat = stats[slot];
     if (stat.ip.addr == ip.addr) {
@@ -132,7 +133,7 @@ void PingManager::set_host_inner(size_t slot, const char *host) {
 }
 
 void PingManager::set_host(size_t slot, const char *host) {
-    assert(slot < nslots);
+    debug_assert(slot < nslots);
     freertos::BinarySemaphore semaphore;
     struct SetHostData {
         PingManager *manager;

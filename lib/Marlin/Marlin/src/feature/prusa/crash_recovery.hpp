@@ -1,7 +1,9 @@
 #pragma once
 #include "inc/MarlinConfigPre.h"
+#include <bsod/bsod.h>
+#include <option/has_crash_detection.h>
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 
     #include <array>
     #include <optional>
@@ -95,9 +97,14 @@ public:
         return false;
     }
 
-    xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
-    xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
-    xyze_pos_t crash_position; /// absolute machine XYZE position of the crash location
+    /// Value of current_position at the start of the interrupted GCode
+    xyze_pos_t start_current_position;
+
+    /// Basically just crash_machine_position as native coordinates instead of machine
+    xyze_pos_t crash_native_position;
+
+    /// Exact stepper positions at the time of the crash
+    MachinePosXYZE crash_machine_position;
 
     Crash_s_Counters counters;
     using Counter = Crash_s_Counters::Counter;
@@ -292,7 +299,7 @@ public:
         orig_state = crash_s.is_active();
         if (orig_state) {
             // Crash state shouldn't be changed while moving.
-            assert(!planner.processing() || planner.draining());
+            debug_assert(!planner.processing() || planner.draining());
             crash_s.deactivate();
         }
     }
@@ -300,7 +307,7 @@ public:
         if (orig_state) {
             // Restore previous state, as long as we ensure the motion has been stopped/is stopping
             // NOTE: that the assertion order is important if the block is aborted while checking!
-            assert(!planner.processing() || planner.draining());
+            debug_assert(!planner.processing() || planner.draining());
             crash_s.activate();
         }
     }
@@ -312,10 +319,10 @@ public:
     [[nodiscard]] bool get_orig_state() const { return orig_state; }
 };
 
-#else // ENABLED(CRASH_RECOVERY)
+#else
 // #error dead code found by automatic analyses (see BFW-5461)
 
-/// Stubs for printers without CRASH_RECOVERY support
+/// Stubs for printers without crash detection support
 static constexpr struct {
     static constexpr bool did_trigger() { return false; }
 } crash_s;

@@ -36,13 +36,12 @@ public:
     // (e.g. nozzle stuck halfway) and are reported as `unknown` so the debouncer never settles
     // on them. Only `present` is safe to heat — below the present threshold the LC circuit has
     // no/insufficient energy sink and would burn the TVS/MOSFET at full power.
-    static constexpr float nozzle_present_decay_threshold = 0.095f;
+    static constexpr float nozzle_present_decay_threshold = 0.085f;
     static constexpr float nozzle_absent_decay_threshold = 0.04f;
 
     void heater_control(int32_t target_centideg, int32_t current_centideg);
 
-    /// @returns current square of the duty cycle (0-1)
-    fpm::fixed_16_16 current_duty_cycle_sq() const;
+    uint8_t current_pwm() const;
 
 private:
     RingdownAnalysis last_analysis;

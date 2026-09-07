@@ -6,6 +6,7 @@
 #include <cstring>
 #include <prusa3d/nfc/command/Request_1_0.h>
 #include <prusa3d/nfc/event/Event_1_0.h>
+#include <utils/byte_utils.hpp>
 
 namespace buddy::openprinttag {
 
@@ -29,7 +30,7 @@ using Func = bool(const prusa3d_nfc_util_Value_1_0 *const);
 /// Deserialize read_field response, returning the Value on success or an Error.
 /// The event parameter is used for storage - the returned pointer points into it.
 static std::expected<const prusa3d_nfc_util_Value_1_0 *, Error> deserialize_read_field_value(
-    std::span<const std::byte> event_data,
+    Bytes event_data,
     prusa3d_nfc_event_Event_1_0 &event,
     Func func) {
     size_t size = event_data.size();
@@ -81,7 +82,7 @@ void ReadInt32FieldRequest::serialize(RequestID request_id, TagID tag_id, anfc::
         request);
 }
 
-void ReadInt32FieldRequest::complete(std::span<const std::byte> event_data) {
+void ReadInt32FieldRequest::complete(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
     const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_int32__);
     if (!value_or_error) {
@@ -100,13 +101,17 @@ void ReadFloatFieldRequest::serialize(RequestID request_id, TagID tag_id, anfc::
         request);
 }
 
-void ReadFloatFieldRequest::complete(std::span<const std::byte> event_data) {
+void ReadFloatFieldRequest::complete(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
     const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_float__);
     if (!value_or_error) {
         return set_finished(std::unexpected(value_or_error.error()));
     }
     result_ = value_or_error.value()->float_;
+    if (!std::isfinite(result_)) {
+        // Only accept "real" float numbers
+        return set_finished(std::unexpected(Error::wrong_field_type));
+    }
     set_finished({});
 }
 
@@ -119,7 +124,7 @@ void ReadEnumFieldRequestBase::serialize(RequestID request_id, TagID tag_id, anf
         request);
 }
 
-void ReadEnumFieldRequestBase::complete(std::span<const std::byte> event_data) {
+void ReadEnumFieldRequestBase::complete(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
     const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_int32__);
     if (!value_or_error) {
@@ -137,7 +142,7 @@ void ReadEnumArrayRequestBase::serialize(RequestID request_id, TagID tag_id, anf
         request);
 }
 
-void ReadEnumArrayRequestBase::complete(std::span<const std::byte> event_data) {
+void ReadEnumArrayRequestBase::complete(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
     const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_uint16_array_);
     if (!value_or_error) {
@@ -156,7 +161,7 @@ void ReadStringRequestBase::serialize(RequestID request_id, TagID tag_id, anfc::
         request);
 }
 
-void ReadStringRequestBase::complete(std::span<const std::byte> event_data) {
+void ReadStringRequestBase::complete(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
     const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_string_);
     if (!value_or_error) {

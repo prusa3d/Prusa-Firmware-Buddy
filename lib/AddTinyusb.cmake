@@ -6,11 +6,10 @@ add_library(
   tinyusb
   tinyusb/src/class/cdc/cdc_device.c
   tinyusb/src/class/cdc/cdc_host.c
-  tinyusb/src/class/cdc/cdc_rndis_host.c
   tinyusb/src/common/tusb_fifo.c
   tinyusb/src/device/usbd.c
-  tinyusb/src/device/usbd_control.c
   tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
+  tinyusb/src/portable/synopsys/dwc2/dwc2_common.c
   tinyusb/src/tusb.c
   )
 

@@ -11,6 +11,10 @@ public:
     // Issues/reissues all requests
     void issue();
 
+    /// Marks all requests as failed (Error::other)
+    /// Alternative to calling issue()
+    void fail();
+
     inline bool finished() const {
         return requests_span_.back()->finished();
     }

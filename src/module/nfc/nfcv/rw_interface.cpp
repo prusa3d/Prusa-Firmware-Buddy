@@ -1,6 +1,7 @@
 #include <nfcv/rw_interface.hpp>
 
 #include <limits>
+#include <utils/byte_utils.hpp>
 
 using namespace nfcv;
 
@@ -65,7 +66,7 @@ Result<TagInfo> ReaderWriterInterface::get_system_info(const UID &uid) {
     return { response };
 }
 
-Result<void> ReaderWriterInterface::read_single_block(const UID &uid, BlockID block_id, const std::span<std::byte> &buffer) {
+Result<void> ReaderWriterInterface::read_single_block(const UID &uid, BlockID block_id, const WritableBytes &buffer) {
     nfcv::Command cmd { nfcv::command::ReadSingleBlock {
         .request { .uid = uid, .block_address = block_id },
         .response { buffer },
@@ -73,7 +74,7 @@ Result<void> ReaderWriterInterface::read_single_block(const UID &uid, BlockID bl
     return nfcv_command(cmd);
 }
 
-Result<void> ReaderWriterInterface::write_single_block(const UID &uid, BlockID block_id, const std::span<const std::byte> &buffer) {
+Result<void> ReaderWriterInterface::write_single_block(const UID &uid, BlockID block_id, const Bytes &buffer) {
     nfcv::Command cmd { nfcv::command::WriteSingleBlock {
         .request { .uid = uid, .block_address = block_id, .block_buffer = buffer },
     } };

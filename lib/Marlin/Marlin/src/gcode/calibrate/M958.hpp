@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <limits>
-#include <optional>
+#include <expected>
 
 #include <option/has_local_accelerometer.h>
 #include <option/has_remote_accelerometer.h>
@@ -14,6 +13,16 @@
 #include <freertos/critical_section.hpp>
 
 static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
+
+namespace vibrate_measure {
+
+enum class Error {
+    aborted,
+    failed,
+};
+
+template <typename T>
+using Result = std::expected<T, Error>;
 
 struct FrequencyGain {
     float frequency;
@@ -40,19 +49,18 @@ public:
     const uint16_t *saved_mres() const { return state.data(); }
 };
 
-/// \returns false if the measurement should be aborted
 /// \param progress is in range 0-1
-using SamplePeriodProgressHook = stdext::inplace_function<bool(float progress)>;
+using SamplePeriodProgressHook = stdext::inplace_function<Result<void>(float progress)>;
 
-float maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook);
+Result<float> maybe_calibrate_and_get_accelerometer_sample_period(PrusaAccelerometer &accelerometer, bool calibrate_accelerometer, const SamplePeriodProgressHook &progress_hook);
 
-float get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer);
+Result<float> get_accelerometer_sample_period(const SamplePeriodProgressHook &progress_hook, PrusaAccelerometer &accelerometer);
 
 [[nodiscard]] StepEventFlag_t setup_steppers(StepEventFlag_t axis_flag);
 
 float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]);
 
-struct VibrateMeasureParams {
+struct MeasureParams {
     /// How much we're exciting the vibrations, in m/s^2.
     float excitation_acceleration = NAN;
 
@@ -86,13 +94,14 @@ struct VibrateMeasureParams {
     bool setup(const MicrostepRestorer &microstep_restorer);
 };
 
-struct VibrateMeasureRange {
+struct MeasureRange {
     float start_frequency;
     float end_frequency;
     float frequency_increment;
 };
 
-struct VibrateMeasureResult {
+/// Single point in amplitude frequency response
+struct ResponseSample {
     float excitation_frequency;
     xyz_float_t gain;
     xyz_float_t amplitude;
@@ -102,7 +111,7 @@ struct VibrateMeasureResult {
     }
 };
 
-struct VibrateMeasureProgressHookParams {
+struct ProgressHookParams {
     enum class Phase {
         /// Calibrating accelerometer phase
         calibrating,
@@ -111,29 +120,27 @@ struct VibrateMeasureProgressHookParams {
         measuring,
     };
 
-    /// Phase of \p vibrate_measure. Phases have separate progress reporting.
+    /// Phase of \p measure. Phases have separate progress reporting.
     Phase phase;
 
     /// Progress (0-1) withing the \p phase
     float progress;
 };
 
-/// \returns \p false if the measurement should be aborted
-using VibrateMeasureProgressHook = stdext::inplace_function<bool(const VibrateMeasureProgressHookParams &params)>;
+using ProgressHook = stdext::inplace_function<Result<void>(const ProgressHookParams &params)>;
 
-std::optional<VibrateMeasureResult> vibrate_measure_repeat(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook);
+Result<ResponseSample> measure_repeat(const MeasureParams &args, float frequency, const ProgressHook &progress_hook);
 
-/// Same as \p vibrate_measure_repeat, but does not retry on failure.
-std::optional<VibrateMeasureResult> vibrate_measure(const VibrateMeasureParams &args, float frequency, const VibrateMeasureProgressHook &progress_hook);
+/// Same as \p measure_repeat, but does not retry on failure.
+Result<ResponseSample> measure(const MeasureParams &args, float frequency, const ProgressHook &progress_hook);
 
-/// \returns false if the measurement should be aborted
-using FindBestShaperProgressHook = stdext::inplace_function<bool(input_shaper::Type checked_type, float progress)>;
+using FindBestShaperProgressHook = stdext::inplace_function<Result<void>(input_shaper::Type checked_type, float progress)>;
 
 input_shaper::AxisConfig find_best_shaper(const FindBestShaperProgressHook &progress_hook, const Spectrum &psd, input_shaper::AxisConfig default_config);
 
 /// Something that just vibrates.
 ///
-/// Unlike the vibrate_measure, this just vibrates. And it doesn't need an accelerometer.
+/// Unlike \p measure, this just vibrates. And it doesn't need an accelerometer.
 ///
 /// Fill the structure with requested data, call `setup`. After that, each call
 /// to step queues one period of the vibration. The parameters can be changed
@@ -157,3 +164,5 @@ struct Vibrate {
     /// Parameters can be changed in between.
     void step();
 };
+
+} // namespace vibrate_measure

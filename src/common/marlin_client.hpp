@@ -1,7 +1,7 @@
 #pragma once
 
 #include "marlin_events.h"
-#include "marlin_server_types/client_fsm_types.h"
+#include "marlin_server_types/client_fsm_types.hpp"
 #include "encoded_fsm_response.hpp"
 #include <warning_type.hpp>
 #include "marlin_vars.hpp"
@@ -38,6 +38,8 @@ int get_id();
 void set_event_notify(uint64_t notify_events);
 
 // enqueue gcode - thread-safe version
+//
+// A gcode that doesn't fit into the request buffer is a programmer error and sends a warning to marlin server.
 void gcode(const char *gcode);
 
 enum class GcodeTryResult {
@@ -55,11 +57,14 @@ GcodeTryResult gcode_try(const char *gcode);
 void __attribute__((format(__printf__, 1, 2)))
 gcode_printf(const char *format, ...);
 
-// inject gcode - thread-safe version
-void inject(InjectQueueRecord record);
+/// inject gcode - thread-safe version
+///
+/// @returns false if the record was dropped because the inject queue
+// stayed full even after several retries.
+bool inject(InjectQueueRecord record);
 
 // inject gcode directly - thread-safe version
-inline void inject(ConstexprString gcode) { inject(GCodeLiteral(gcode)); };
+inline bool inject(ConstexprString gcode) { return inject(GCodeLiteral(gcode)); };
 
 /// See marlin_server::gcode_interrupt for the documentation.
 /// !!! ONLY USE IF YOU 100% KNOW WHAT YOU'RE DOING
@@ -112,7 +117,10 @@ void test_start(const uint64_t test_mask);
 void test_abort();
 #endif
 
-void print_start(const char *filename, marlin_server::PreviewSkipIfAble skip_preview);
+using PreviewSkipIfAble = marlin_server::PreviewSkipIfAble;
+using ResetToolMapping = marlin_server::ResetToolMapping;
+
+void print_start(const char *filename, PreviewSkipIfAble skip_preview = PreviewSkipIfAble::no, ResetToolMapping reset_tool_mapping = ResetToolMapping::yes);
 
 // Should only be called after calling marlin_print_start with skip_preview = true
 // to see if it really started. Calling it after a call to marlin_print_start with

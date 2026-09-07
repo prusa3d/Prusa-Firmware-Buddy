@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <guitypes.hpp>
 #include <span>
@@ -50,7 +51,7 @@ public:
      * @param header QOI header
      * @return size of QOI image
      */
-    static constexpr size_ui16_t get_image_size(std::span<uint8_t, HEADER_SIZE> header) {
+    static constexpr size_ui16_t get_image_size(std::span<const std::byte, HEADER_SIZE> header) {
         return {
             static_cast<uint16_t>(
                 static_cast<uint16_t>(header[4]) << 24
@@ -70,7 +71,7 @@ public:
      * Do not push header bytes into decoder.
      * Precondition: !pull_pixel()
      */
-    void push_byte(uint8_t byte);
+    void push(std::byte byte);
 
     /**
      * @brief Pull a pixel from QOI decoder.

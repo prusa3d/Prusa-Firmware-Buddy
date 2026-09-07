@@ -21,6 +21,7 @@
  */
 
 #include "../../inc/MarlinConfig.h"
+#include <option/has_crash_detection.h>
 
 #if ENABLED(BEZIER_CURVE_SUPPORT)
   // #error dead code found by automatic analyses (see BFW-5461)
@@ -32,7 +33,7 @@
 #include "../../module/motion.h"
 #include "../../module/planner_bezier.h"
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
   // #error dead code found by automatic analyses (see BFW-5461)
   #include <feature/prusa/crash_recovery.hpp>
 #endif
@@ -58,7 +59,7 @@ void GcodeSuite::G5() {
     }
   #endif
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     // #error dead code found by automatic analyses (see BFW-5461)
     // allow full instruction recovery
     crash_s.set_gcode_replay_flags(Crash_s::RECOVER_FULL);

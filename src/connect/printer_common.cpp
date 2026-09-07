@@ -5,6 +5,7 @@
 
 #include <support_utils.h>
 #include <version/version.hpp>
+#include <bsod/bsod.h>
 
 namespace connect_client {
 

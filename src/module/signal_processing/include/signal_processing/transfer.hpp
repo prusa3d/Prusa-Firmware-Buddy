@@ -6,12 +6,12 @@
 #include <cstring>
 #include <algorithm>
 #include <utility>
-#include <cassert>
 #include <numbers>
 
 #include "math.hpp"
 #include "windowing.hpp"
 #include "fft.hpp"
+#include <bsod/bsod.h>
 
 namespace sp {
 
@@ -40,17 +40,17 @@ public:
         , sampling_freq(sampling_freq) {}
 
     Complex &operator[](size_t bin) {
-        assert(bin < bins.size());
+        debug_assert(bin < bins.size());
         return reinterpret_cast<Complex &>(bins[bin]);
     }
 
     const Complex &operator[](size_t bin) const {
-        assert(bin < bins.size());
+        debug_assert(bin < bins.size());
         return reinterpret_cast<const Complex &>(bins[bin]);
     }
 
     float get_frequency(size_t bin) const {
-        assert(bin < bins.size());
+        debug_assert(bin < bins.size());
         return (sampling_freq * static_cast<float>(bin)) / static_cast<float>((bins.size() - 1) * 2);
     }
 
@@ -86,17 +86,17 @@ public:
         , sampling_freq(sampling_freq) {}
 
     MagPhase &operator[](size_t bin) {
-        assert(bin < bins.size());
+        debug_assert(bin < bins.size());
         return reinterpret_cast<MagPhase &>(bins[bin]);
     }
 
     const MagPhase &operator[](size_t bin) const {
-        assert(bin < bins.size());
+        debug_assert(bin < bins.size());
         return reinterpret_cast<const MagPhase &>(bins[bin]);
     }
 
     float get_frequency(size_t bin) const {
-        assert(bin < bins.size());
+        debug_assert(bin < bins.size());
         return (sampling_freq * static_cast<float>(bin)) / static_cast<float>((bins.size() - 1) * 2);
     }
 
@@ -203,10 +203,10 @@ public:
         , write_pos(0)
         , total_samples(0)
         , samples_since_window(0) {
-        assert((window_size & (window_size - 1)) == 0 && "Window size must be power of 2");
-        assert(window_size >= 8 && "Window size must be at least 8");
-        assert(overlap >= 0.0f && overlap < 1.0f && "Overlap must be in [0, 1)");
-        assert(hop_size > 0 && "Overlap too large: hop size must be positive");
+        debug_assert((window_size & (window_size - 1)) == 0 && "Window size must be power of 2");
+        debug_assert(window_size >= 8 && "Window size must be at least 8");
+        debug_assert(overlap >= 0.0f && overlap < 1.0f && "Overlap must be in [0, 1)");
+        debug_assert(hop_size > 0 && "Overlap too large: hop size must be positive");
 
         // Preallocate all buffers
         x_buffer.resize(window_size);
@@ -224,7 +224,7 @@ public:
     // y: output sample
     // Processes a window when enough new samples for a hop have arrived.
     void push(float x, float y) {
-        assert(!Gxx.empty() && "Cannot push after finalize()");
+        debug_assert(!Gxx.empty() && "Cannot push after finalize()");
 
         x_buffer[write_pos] = x;
         y_buffer[write_pos] = y;
@@ -244,7 +244,7 @@ public:
     // Finalize processing. Call when no more samples will be pushed.
     // Processes any remaining partial window if enough samples are available.
     TransferFunction finalize(float sampling_freq) {
-        assert(!Gxx.empty() && "Cannot finalize more than once");
+        debug_assert(!Gxx.empty() && "Cannot finalize more than once");
 
         // Process a final partial window if enough new samples are available.
         if (samples_since_window >= hop_size && total_samples > 0) {

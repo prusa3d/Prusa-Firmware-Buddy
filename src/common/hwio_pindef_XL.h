@@ -148,7 +148,9 @@ inline Pin::State xyProbeReadFn();
     MACRO_FUNCTION(buddy::hw::OutputPin, AD2setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p6, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, espPower, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p4, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
     MACRO_FUNCTION(buddy::hw::OutputPin, GPIOReset, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler) \
-    MACRO_FUNCTION(buddy::hw::InputPin, fan1_tach0, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p5, IMode::input COMMA Pull::none, buddy::hw::noHandler)
+    MACRO_FUNCTION(buddy::hw::InputPin, fan1_tach0, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p5, IMode::input COMMA Pull::none, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::InputPin, cpuFanTach, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p5, IMode::input COMMA Pull::up, buddy::hw::noHandler) \
+    MACRO_FUNCTION(buddy::hw::OutputPin, cpuFanPwm, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p14, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)
 
 // These pins shall not be configured automatically. The intialization code shall determine what gets initialized based on board revision
 #define RUNTIME_PIN_TABLE(MACRO_FUNCTION) \

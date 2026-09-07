@@ -139,7 +139,7 @@ namespace {
                 return TaskResult::RerunLater;
             }
 
-            assert(0); // Unreachable
+            debug_assert(0); // Unreachable
             return TaskResult::TaskDone;
         }
     };
@@ -171,7 +171,7 @@ namespace {
             , printer(printer)
             , planner(planner) {}
         virtual TaskResult step() override {
-            assert(background_cmd != nullptr);
+            debug_assert(background_cmd != nullptr);
             switch (auto result = background_cmd_step(*background_cmd, printer); result) {
             case BackgroundResult::More:
                 // Try another iteration (maybe, if there's time).
@@ -188,7 +188,7 @@ namespace {
                 return TaskResult::RerunLater;
             }
 
-            assert(0); // Unreachable
+            debug_assert(0); // Unreachable
             return TaskResult::TaskDone;
         }
     };
@@ -205,7 +205,7 @@ namespace {
             , printer(printer)
             , planner(planner) {}
         virtual TaskResult step() override {
-            assert(transfer != nullptr);
+            debug_assert(transfer != nullptr);
 
             switch (auto result = transfer->step(printer.is_printing()); result) {
             case Transfer::State::Downloading:
@@ -223,7 +223,7 @@ namespace {
                 return TaskResult::WakeUp;
             }
 
-            assert(0); // Unreachable
+            debug_assert(0); // Unreachable
             return TaskResult::TaskDone;
         }
     };

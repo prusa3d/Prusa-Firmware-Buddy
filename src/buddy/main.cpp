@@ -41,6 +41,7 @@
 #include <buddy/logging.h>
 #include <i2c.hpp>
 #include <option/buddy_enable_connect.h>
+#include <option/has_power_panic.h>
 #include <option/has_puppies.h>
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
@@ -53,6 +54,7 @@
 #include <option/has_phase_stepping.h>
 #include <option/has_burst_stepping.h>
 #include <option/has_indx.h>
+#include <option/has_indx_head.h>
 #include <option/has_internal_storage_flash.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/buddy_enable_wui.h>
@@ -60,6 +62,7 @@
 #include <option/has_nfc.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_local_accelerometer.h>
+#include <option/has_cpu_fan.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -76,6 +79,11 @@
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <sensor_data.hpp>
 
+#include <option/rtt_metrics_enabled.h>
+#if RTT_METRICS_ENABLED()
+    #include <rtt_metrics_task/rtt_metrics_task.hpp>
+#endif
+
 #if BUDDY_ENABLE_CONNECT()
     #include "connect/run.hpp"
 #endif
@@ -85,7 +93,7 @@
 #endif
 #if ENABLED(RESOURCES())
     #include "resources/bootstrap.hpp"
-    #include "resources/revision_standard.hpp"
+    #include "resources/revision.hpp"
 #endif
 
 #if HAS_POWER_PANIC()
@@ -165,6 +173,9 @@ struct TaskControlBlock {
 #if BUDDY_ENABLE_CONNECT()
     StaticTask_t connect;
 #endif
+#if RTT_METRICS_ENABLED()
+    StaticTask_t rtt_metrics;
+#endif
 };
 static TaskControlBlock task_control_block;
 
@@ -185,6 +196,9 @@ struct TaskStack {
 #endif
 #if BUDDY_ENABLE_CONNECT()
     uint32_t connect[2336];
+#endif
+#if RTT_METRICS_ENABLED()
+    uint32_t rtt_metrics[100];
 #endif
 };
 static TaskStack __attribute__((section(".ccmram"))) task_stack;
@@ -248,9 +262,10 @@ static void resources_update() {
 }
 
 // Initializes static variables of singletons which are accessed from ISRs (requires locking a mutex)
+// Note: Hotend/Tool initialization is NOT done here — it is deferred to after ADC init
+// to allow hotend model detection from ADC readings.
 static void init_isr_statics() {
     EMotorStallDetector::Instance();
-    Hotend::for_tool(PhysicalToolIndex::from_raw(0));
     Fans::print(PhysicalToolIndex::from_raw(0));
     Fans::heat_break(PhysicalToolIndex::from_raw(0));
 #if XL_ENCLOSURE_SUPPORT()
@@ -258,6 +273,9 @@ static void init_isr_statics() {
 #endif
 #if HAS_INDX()
     Fans::dock_fan();
+#endif
+#if HAS_CPU_FAN()
+    Fans::cpu();
 #endif
     sensor_data();
     GetExtruderFSensor(0);
@@ -297,6 +315,14 @@ extern "C" void main_cpp(void) {
     // Required time is at least 6us. We use 2ms to force pause of at least 1ms
     freertos::delay(2);
 
+    // Initialize tool/hotend AFTER the ADC is ready — on HT-capable builds the
+    // LocalHotend ctor reads the ADC to detect the NTC vs PT1000 hotend.
+    // ISR ordering (BFW-8126): Hotend is accessed from the Marlin temperature ISR, so
+    // it must be constructed before that ISR is armed — it is, the temperature timer is
+    // started in Temperature::init() on the marlin task (created below). The ADC IRQ
+    // enabled just above never touches Hotend (it only fills the DMA buffer the ISR reads).
+    Hotend::for_tool(PhysicalToolIndex::from_raw(0));
+
 #if PRINTER_IS_PRUSA_XL()
     // Read Sandwich hw revision
     SandwichConfiguration::Instance();
@@ -328,6 +354,10 @@ extern "C" void main_cpp(void) {
 
 #if HAS_GUI()
     spi_init_lcd();
+#endif
+
+#if HAS_GUI() && !BOARD_IS_XLBUDDY()
+    hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on older versions of XL. Not needed without display.
 #endif
 
 #if BOARD_IS_XLBUDDY()
@@ -365,6 +395,11 @@ extern "C" void main_cpp(void) {
     #else
     buddy::hw::ext_pwr_enable.set();
     #endif
+#endif
+
+#if HAS_INDX_HEAD()
+    // The indx_head_reset pin table init state holds the head in reset only on BOM >= 37, re-assert so older boards do too
+    buddy::hw::Configuration::Instance().write_indx_head_reset(buddy::hw::Pin::State::high);
 #endif
 
     /*
@@ -426,6 +461,10 @@ extern "C" void main_cpp(void) {
     spi_init_accelerometer();
 #endif
 
+#if HAS_LOCAL_ACCELEROMETER()
+    prusa_accelerometer_local_init();
+#endif
+
 #if defined(spi_init_tmc)
     spi_init_tmc();
 #elif HAS_TMC_UART()
@@ -440,10 +479,6 @@ extern "C" void main_cpp(void) {
 
 #if HAS_MMU2_OVER_UART()
     uart_init_mmu();
-#endif
-
-#if HAS_GUI() && !(BOARD_IS_XLBUDDY())
-    hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on older versions of XL. Not needed without display.
 #endif
 
 #if HAS_PUPPIES()
@@ -562,6 +597,10 @@ extern "C" void main_cpp(void) {
     TaskDeps::wait(TaskDeps::Tasks::syslog);
     logging::syslog_reconfigure();
     metrics_reconfigure();
+
+#if RTT_METRICS_ENABLED()
+    create_task("rtt_metrics", rtt_metrics_task, TASK_PRIORITY_RTT_METRICS_TASK, task_stack.rtt_metrics, task_control_block.rtt_metrics);
+#endif
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -578,13 +617,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-
-#if HAS_GUI()
-    if (hspi == spi_handle_lcd) {
-        display::spi_rx_complete();
-    }
-#endif
-
     if (hspi == spi_handle_flash) {
         SpiFlashBus::instance().on_rx_complete();
     }
@@ -654,10 +686,6 @@ void init_error_screen() {
 #endif
 
 #if HAS_GUI()
-    #if !(_DEBUG) && !(BOARD_IS_XLBUDDY())
-    hw_tim2_init(); // TIM2 is used to generate buzzer PWM, except on XL. Not needed without display.
-    #endif
-
     init_only_littlefs();
 
     displayTaskHandle = create_task("display", gui_error_run, TASK_PRIORITY_DISPLAY_TASK, task_stack.display, task_control_block.display);

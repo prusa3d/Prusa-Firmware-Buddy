@@ -1,13 +1,13 @@
 #pragma once
 #include "types.h"
 
-#include <cassert>
 #include <cstdbool>
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
 #include <optional>
+#include <bsod/bsod.h>
 
 namespace http {
 
@@ -28,7 +28,7 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
          */
         const size_t skip = 6; // 4 digits + \r\n
         const size_t tail = 2; // \r\n at the end
-        assert(buffer_len > skip + tail);
+        debug_assert(buffer_len > skip + tail);
 
         const size_t available = std::min(buffer_len - skip - tail, static_cast<size_t>(0xffff));
         std::optional<size_t> written = renderer(buffer + skip, available);
@@ -36,7 +36,7 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
             // No chunk to render, bail out.
             return 0;
         } else {
-            assert(*written <= available);
+            debug_assert(*written <= available);
             // Bug mitigation. If the renderer reports to have written more
             // than the buffer size - as easily done with snprintf, which
             // reports how much it _wanted_ to write even if the buffer is too
@@ -47,7 +47,7 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
         // Render the header separately so we don't overwrite the buffer with \0
         char header[skip + 1];
         const size_t header_size = snprintf(header, sizeof(header), "%04zX\r\n", *written);
-        assert(header_size == skip);
+        debug_assert(header_size == skip);
 
         memcpy(buffer, header, header_size);
         memcpy(buffer + skip + *written, "\r\n", tail);

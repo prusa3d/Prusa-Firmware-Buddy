@@ -5,6 +5,7 @@
 
 #include <ini.h>
 #include <otp.hpp>
+#include <buddy/filename_defs.hpp>
 #include <odometer.hpp>
 #include <netdev.h>
 #include <print_utils.hpp>
@@ -50,7 +51,6 @@ static_assert(HAS_CHAMBER_FILTRATION_API());
 #endif
 #include <client_response.hpp>
 
-#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -62,6 +62,7 @@ static_assert(HAS_CHAMBER_FILTRATION_API());
 #include <config_store/store_instance.hpp>
 
 #include <option/has_mmu2.h>
+#include <bsod/bsod.h>
 #if HAS_MMU2()
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
     #include <mmu2/mmu2_fsm.hpp>
@@ -195,12 +196,12 @@ MarlinPrinter::MarlinPrinter() {
 
 void MarlinPrinter::renew(std::optional<SharedBuffer::Borrow> new_borrow) {
     if (new_borrow.has_value()) {
-        static_assert(SharedBuffer::SIZE >= FILE_NAME_BUFFER_LEN + FILE_PATH_BUFFER_LEN);
+        static_assert(SharedBuffer::SIZE >= filename_defs::filename_buffer_size + filename_defs::path_buffer_size);
         borrow = BorrowPaths(move(*new_borrow));
         // update variables from marlin server, sample LFN+SFN atomically
         auto lock = MarlinVarsLockGuard();
-        marlin_vars().media_SFN_path.copy_to(borrow->path(), FILE_PATH_BUFFER_LEN, lock);
-        marlin_vars().media_LFN.copy_to(borrow->name(), FILE_NAME_BUFFER_LEN, lock);
+        marlin_vars().media_SFN_path.copy_to(borrow->path(), filename_defs::path_buffer_size, lock);
+        marlin_vars().media_LFN.copy_to(borrow->name(), filename_defs::filename_buffer_size, lock);
     } else {
         borrow.reset();
     }
@@ -412,7 +413,7 @@ std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) co
         break;
 #endif
     default:
-        assert(0);
+        debug_assert(0);
         return nullopt;
     }
     if (netdev_get_status(id) != NETDEV_NETIF_UP) {
@@ -466,7 +467,7 @@ bool MarlinPrinter::job_control(JobControl control) {
             return false;
         }
     }
-    assert(0);
+    debug_assert(0);
     return false;
 }
 
@@ -537,7 +538,7 @@ Printer::StartPrintResult MarlinPrinter::start_print(const char *path, [[maybe_u
 #endif
     }
 
-    print_begin(path, marlin_server::PreviewSkipIfAble::all);
+    marlin_client::print_start(path, marlin_server::PreviewSkipIfAble::all);
     if (!marlin_client::is_print_started()) {
         return std::unexpected("Can't print now");
     }

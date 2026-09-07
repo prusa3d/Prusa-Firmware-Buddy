@@ -4,6 +4,7 @@
 #include <feature/auto_retract/auto_retract.hpp>
 #include <gcode/gcode_parser.hpp>
 #include <module/planner.h>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(PRUSA_GCODE);
 
@@ -27,7 +28,7 @@ namespace PrusaGcodeSuite {
 void M1705() {
     if (std::holds_alternative<NoTool>(PhysicalToolIndex::currently_selected())) {
         log_error(PRUSA_GCODE, "autoretract on invalid tool");
-        assert(false);
+        debug_assert(false);
         return;
     }
 

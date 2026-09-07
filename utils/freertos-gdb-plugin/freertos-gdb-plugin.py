@@ -199,7 +199,10 @@ class FreeRTOS(gdb.Command):
 
     def __init__(self):
         super(FreeRTOS, self).__init__('freertos', gdb.COMMAND_USER)
-        self._save_state()
+
+        # Deferred until the first task switch so that merely loading the
+        # plugin does not require a target.
+        self._saved_regs = None
 
     def invoke(self, arg, from_tty):
         args = arg.strip().split()
@@ -278,6 +281,9 @@ class FreeRTOS(gdb.Command):
         print('Unknown thread {}.'.format(args[0]))
 
     def _switch_to_task(self, task, fpu_stacked=False):
+        if self._saved_regs is None:
+            self._save_state()
+
         if task.is_running():
             if in_handler_mode():
                 setup_exception_return(fpu_stacked)

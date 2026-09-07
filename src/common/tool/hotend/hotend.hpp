@@ -4,12 +4,17 @@
 #include <tool_index.hpp>
 #include <utils/uncopyable.hpp>
 #include <utils/variant_utils.hpp>
+#include <utils/compact_optional.hpp>
 #include <module/temperature/hotend_regulator/hotend_regulator.hpp>
+#include <module/temperature/temp_defines.hpp>
 #include <pwm_utils.hpp>
 #include <atomic>
 #include <option/has_indx.h>
 
-struct FilamentTypeParameters;
+namespace buddy::filament_compatibility {
+struct CompatibilityReport;
+struct CompatibilityReportGenerateArgs;
+} // namespace buddy::filament_compatibility
 
 /// Class representing a hotend
 /// This is an abstract class, hotend implementations differ
@@ -19,11 +24,33 @@ class Hotend : public Uncopyable {
 public:
     /// in °C
     using Temperature = float;
-    static constexpr Temperature temperature_uninitialized = -1;
+    using OptionalTemperature = CompactOptional<Temperature, NAN>;
 
     /// in °C
     /// <= 0 = no target temperature/invalid value
     using TargetTemperature = int16_t;
+
+    /// Maps a requested print-fan PWM to the PWM actually applied, given the hotend's live state
+    /// (e.g. nozzle temperature). Default: identity. A hotend that must protect the print fan at
+    /// high nozzle temperatures installs a clamping mapping alongside its config (see tools_xbuddy).
+    using PrintFanPWMMapping = PWM255 (*)(const Hotend &hotend, PWM255 requested_pwm);
+
+    /// Static, per-hotend configuration common to all Hotend implementations.
+    /// The owning tool factory keeps the instance alive; Hotend stores a reference to it.
+    struct Config {
+        /// Minimum acceptable temperature for the hotend
+        /// Exceeding this limit results in a RSOD
+        /// Formerly done by the HEATER_0_MINTEMP macro
+        TargetTemperature min_nozzle_temp;
+
+        /// Maximum acceptable temperature for the hotend
+        /// Exceeding this limit results in a RSOD
+        /// Formerly done by the HEATER_0_MAXTEMP macro
+        TargetTemperature max_nozzle_temp;
+
+        /// Print-fan PWM mapping (e.g. high-temperature clamp). Default: identity, no limiting.
+        PrintFanPWMMapping print_fan_pwm_mapping = +[](const Hotend &, PWM255 pwm) { return pwm; };
+    };
 
 public:
     /// @returns Hotend of the tool
@@ -36,10 +63,26 @@ public:
     static Hotend &for_tool(uint8_t tool);
 
 public:
-    virtual bool supports_filament(const FilamentTypeParameters &filament) const = 0;
+    using FilamentCompatibilityReport = buddy::filament_compatibility::CompatibilityReport;
+    using FilamentCompatibilityReportGenerateArgs = buddy::filament_compatibility::CompatibilityReportGenerateArgs;
+
+    /// !!! MUST BE THREAD-SAFE, CAN BE CALLED FROM ANY THREAD
+    virtual void filament_compatibility_report(FilamentCompatibilityReport &report, const FilamentCompatibilityReportGenerateArgs &args) const = 0;
+
+    /// Maximum nozzle temperature (from the hotend config).
+    /// DummyHotend (NoTool) is constructed with a zero config, so this returns 0.
+    TargetTemperature max_nozzle_temp() const { return base_config_.max_nozzle_temp; }
+
+    /// The static per-hotend config (temperature limits, print-fan PWM mapping, ...).
+    const Config &config() const { return base_config_; }
+
+    /// Nozzle temperature above which a burn risk warning is shown when the door opens.
+    /// A burn is a burn regardless of hotend model, so this is a fixed constant rather
+    /// than per-hotend data — barely reachable by the standard hotend, relevant for HT.
+    static constexpr TargetTemperature burn_warning_temp = 290;
 
     /// Current temperature of the nozzle
-    Temperature nozzle_temp() const {
+    OptionalTemperature nozzle_temp() const {
         return nozzle_temp_;
     }
 
@@ -103,7 +146,8 @@ public:
 #endif
 
 protected:
-    explicit Hotend() = default;
+    explicit Hotend(const Config &config)
+        : base_config_(config) {}
 
 protected:
     /// This function is called from the DefaultTask at regular intervals (from temperature.manage_heater())
@@ -121,13 +165,16 @@ protected:
 
 protected:
     HotendPIDConfig nozzle_pid_config_;
-    Temperature nozzle_temp_ = temperature_uninitialized;
+    OptionalTemperature nozzle_temp_ = std::nullopt; // temp uninitialized
 
 #if HAS_TEMP_HEATBREAK
-    Temperature heatbreak_temp_ = temperature_uninitialized;
+    Temperature heatbreak_temp_ = TempInfo::celsius_uninitialized;
 #endif
 
     TargetTemperature nozzle_target_temp_ = 0;
+
+    /// Static per-hotend configuration; owned by the tool factory, referenced here.
+    const Config &base_config_;
 
 #if HAS_TEMP_HEATBREAK_CONTROL
     TargetTemperature heatbreak_target_temp_ = 0;
@@ -137,10 +184,6 @@ protected:
     /// For local hotends, this is set in Hotend::manage and potentially used for soft pwm control
     /// For remote hotends, this is retrieved from the remote board and only used for display/reporting purposes
     /// Possibly accessed from isr_soft_pwm, thus needs to be atomic
-    ///
-    /// @note
-    /// Some hotends might not have a simple pwm value to represent the current power used to heatup the nozzle.
-    /// For such hotends (like indx head, this value should be ignored)
     std::atomic<uint8_t> nozzle_heater_pwm_ = 0;
 
 #if HAS_TEMP_HEATBREAK

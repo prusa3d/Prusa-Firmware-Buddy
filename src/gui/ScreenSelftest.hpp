@@ -2,13 +2,10 @@
 
 #include <array>
 
-#include "gui.hpp"
 #include "screen.hpp"
 #include "window_header.hpp"
-#include "status_footer.hpp"
 #include <common/fsm_base_types.hpp>
 #include "static_alocation_ptr.hpp"
-#include "printer_selftest.hpp" // SelftestMask_t
 #include <selftest_frame.hpp>
 #include <option/has_indx.h>
 
@@ -17,7 +14,7 @@ class ScreenSelftest : public screen_t {
     static constexpr size_t storage_size = 2048;
 #elif HAS_INDX()
     // INDX adds a screen for picking up tool
-    static constexpr size_t storage_size = 1578;
+    static constexpr size_t storage_size = 1592;
 #else
     static constexpr size_t storage_size = 1560;
 #endif

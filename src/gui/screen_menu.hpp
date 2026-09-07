@@ -64,6 +64,13 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
+    /// Number of menu items this screen is composed of (compile-time).
+    static constexpr size_t item_count = sizeof...(T);
+
+    /// True if this screen is composed of a menu item of the given type (compile-time).
+    template <class ITEM>
+    static constexpr bool has_item = (std::is_same_v<ITEM, T> || ...);
+
     ScreenMenu(const string_view_utf8 &label, window_t *parent = nullptr)
         : ScreenMenuBase(parent, label, FOOTER) {
         menu.menu.BindContainer(container);

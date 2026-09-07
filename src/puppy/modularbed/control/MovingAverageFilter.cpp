@@ -1,6 +1,6 @@
 #include "MovingAverageFilter.hpp"
-#include <assert.h>
 #include <string.h>
+#include <bsod/bsod.h>
 
 namespace modularbed {
 
@@ -12,7 +12,7 @@ MovingAverageFilter::MovingAverageFilter(uint32_t dataPointCount)
     , m_DataMovingAverage(0) {
 
     m_pDataSet = new uint32_t[m_DataPointCount];
-    assert(m_pDataSet != nullptr);
+    debug_assert(m_pDataSet != nullptr);
     memset(m_pDataSet, 0, sizeof(uint32_t) * m_DataPointCount);
 }
 

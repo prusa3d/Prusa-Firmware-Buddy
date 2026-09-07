@@ -1,6 +1,8 @@
 /// @file
 #include <feature/wastebin_watcher/wastebin_watcher.hpp>
 
+#include <algorithm>
+
 #include <odometer.hpp>
 #include <config_store/store_instance.hpp>
 #include <gcode/gcode_info.hpp>
@@ -10,7 +12,9 @@
 #include <inc/MarlinConfig.h>
 #include <mapi/parking.hpp>
 #include <mapi/motion.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 #include <Marlin/src/module/motion.h>
+#include <Marlin/src/module/temperature.h>
 #include <module/planner.h>
 
 WastebinWatcher &WastebinWatcher::instance() {
@@ -51,13 +55,20 @@ void WastebinWatcher::pause_to_empty(bool full) {
     // Cleaner is outside the MBL mesh; save/restore Z in the machine frame (like G750), not native.
     const float resume_machine_z = to_machine_pos(current_position).z;
 
+    const int16_t resume_temp = Hotend::for_tool(PhysicalToolIndex::currently_selected()).nozzle_target_temp();
+
+    const auto filament = FilamentType::for_current_tool_heuristic();
+
     if (printing) {
+        // Drop the nozzle target so it doesn't cook/ooze during the (possibly long) wait; restored
+        // and reheated over the cleaner before returning to the print.
+        Hotend::for_tool(PhysicalToolIndex::currently_selected()).set_nozzle_target_temp(0);
         // Retract to the standard pre-park distance so the nozzle does not ooze while parked, then
         // park clear of the cleaner. retract_to() only moves the delta to the target, so it won't
         // over-retract (pull the filament out of the gears) if the print already had it retracted.
         // We block the gcode stream here (= effective pause); print_pause() + wait would deadlock
         // this gcode processor (BFW-8821).
-        mapi::retract_to(PAUSE_PARK_RETRACT_LENGTH, PAUSE_PARK_RETRACT_FEEDRATE);
+        mapi::retract_to(STANDARD_RETRACT_LENGTH, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::retract, filament));
         mapi::park(mapi::get_parking_position(mapi::ParkPosition::empty_wastebin));
     } else {
         // Idle: axes may be unhomed, so home as needed before parking. No retract (cold nozzle) and
@@ -81,14 +92,27 @@ void WastebinWatcher::pause_to_empty(bool full) {
         return; // idle: nothing to return to
     }
 
-    // Traverse XY back at the high park Z (avoiding the cleaner) so we never drag over the print,
-    // then drop to the saved machine Z and restore E.
+    // Park over in the nozzle cleaner so that reheating blob lands in the wastebin
+    mapi::park(mapi::get_parking_position(mapi::ParkPosition::purge));
+    // Move the most of the Z travel over the wastebin
+    constexpr float return_clearance = 5;
+    MachinePosXYZE over_bin = current_machine_position();
+    over_bin.z = std::max(resume_machine_z, planner.max_printed_z + return_clearance);
+    line_to_machine_pos(over_bin, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = true });
+    // Reheat over the cleaner so heat-up ooze drips into the bin, not onto the print.
+    Hotend::for_tool(PhysicalToolIndex::currently_selected()).set_nozzle_target_temp(resume_temp);
+    if (const auto tool = PhysicalToolIndex::currently_selected_opt()) {
+        thermalManager.wait_for_hotend(*tool, { .no_wait_for_cooling = false });
+    }
+    planner.synchronize();
+    // Traverse XY back (park routes around the cleaner) at that clearance height so we never drag
+    // over the print, then drop to the saved machine Z and restore E.
     mapi::park(mapi::ParkingPosition { .x = resume_pos.x, .y = resume_pos.y });
     MachinePosXYZE resume_target = current_machine_position();
     resume_target.z = resume_machine_z;
     line_to_machine_pos(resume_target, NOZZLE_PARK_Z_FEEDRATE, { .ignore_e_factor = true });
     planner.synchronize();
-    mapi::extruder_move(resume_e - current_position.e, PAUSE_PARK_RETRACT_FEEDRATE);
+    mapi::extruder_move(resume_e - current_position.e, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::deretract, filament));
 }
 
 bool WastebinWatcher::print_will_overfill() const {

@@ -11,6 +11,7 @@
 #include <option/has_puppy_modularbed.h>
 #include <option/has_xbuddy_extension.h>
 #include <option/has_indx_head.h>
+#include <option/has_xl_can.h>
 #include <option/resources.h>
 
 namespace buddy {
@@ -64,6 +65,11 @@ enum class BootstrapStage : uint8_t {
     #if HAS_INDX_HEAD()
     flashing_indx_head,
     verifying_indx_head,
+    #endif
+    #if HAS_XL_CAN()
+    looking_for_xl_can,
+    flashing_xl_can,
+    verifying_xl_can,
     #endif
 #endif
 };

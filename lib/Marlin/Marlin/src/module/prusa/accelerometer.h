@@ -27,6 +27,10 @@ static_assert(HAS_LOCAL_ACCELEROMETER() || HAS_REMOTE_ACCELEROMETER());
 /**
  * This class must not be instantiated globally, because (for MK3.5) it temporarily takes
  * ownership of the tachometer pin and turns it into accelerometer chip select pin.
+ *
+ * On boards with a dedicated CS pin the underlying poller is long-lived (set up once at
+ * boot and sampling continuously); each PrusaAccelerometer instance merely borrows it for
+ * one measurement session. Only one instance may exist at a time (enforced at construction).
  */
 class PrusaAccelerometer {
 public:
@@ -69,7 +73,7 @@ public:
     static ACCELERATION to_motor_coords(ACCELERATION &sample) {
         ACCELERATION out;
 #if PRINTER_IS_PRUSA_iX()
-        assert(X_AXIS == A_AXIS && Y_AXIS == B_AXIS);
+        debug_assert(X_AXIS == A_AXIS && Y_AXIS == B_AXIS);
         // Accelerometer is fixed to the head in a way that is parallel to the logical axes and diagonal to the physical ones. Therefore, we need to perform a 45° rotation.
         constexpr float cos45 = std::numbers::sqrt2_v<float> / 2;
         constexpr float sin45 = std::numbers::sqrt2_v<float> / 2;
@@ -77,13 +81,13 @@ public:
         out.val[B_AXIS] = static_cast<int16_t>((-sample.val[1]) * (-sin45) + sample.val[2] * cos45);
         out.val[Z_AXIS] = sample.val[0];
 #elif PRINTER_IS_PRUSA_COREONE()
-        assert(X_AXIS == A_AXIS && Y_AXIS == B_AXIS);
+        debug_assert(X_AXIS == A_AXIS && Y_AXIS == B_AXIS);
         // Due to accelerometer being rotated (approx. 45̀̃° = in the same way) as the head, no rotation is necessary, apart from switching axes.
         out.val[A_AXIS] = sample.val[1];
         out.val[B_AXIS] = sample.val[0];
         out.val[Z_AXIS] = sample.val[2];
 #elif PRINTER_IS_PRUSA_COREONEL()
-        assert(X_AXIS == A_AXIS && Y_AXIS == B_AXIS);
+        debug_assert(X_AXIS == A_AXIS && Y_AXIS == B_AXIS);
         out.val[A_AXIS] = -sample.val[1];
         out.val[B_AXIS] = -sample.val[0];
         out.val[Z_AXIS] = sample.val[2];

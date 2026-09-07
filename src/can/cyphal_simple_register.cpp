@@ -1,6 +1,7 @@
 #include "cyphal_simple_register.hpp"
 #include <cstring>
 #include <utility>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -76,9 +77,9 @@ bool RegisterVariantUtils::rv_to_buffer(const std::span<uint8_t> &buffer, const 
 }
 
 int8_t SimpleRegisterClient::serialize(const SimpleRegisterRequest *const obj, uint8_t *const buffer, size_t *const inout_buffer_size_bytes) {
-    assert(obj != nullptr);
-    assert(buffer != nullptr);
-    assert(inout_buffer_size_bytes != nullptr);
+    debug_assert(obj != nullptr);
+    debug_assert(buffer != nullptr);
+    debug_assert(inout_buffer_size_bytes != nullptr);
 
     // Name
     size_t size = std::min(*inout_buffer_size_bytes, static_cast<size_t>(uavcan_register_Name_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_));
@@ -98,18 +99,18 @@ int8_t SimpleRegisterClient::serialize(const SimpleRegisterRequest *const obj, u
 
     auto rv_buffer = std::span<uint8_t>(&buffer[size], *inout_buffer_size_bytes - size);
     [[maybe_unused]] bool ret = RegisterVariantUtils::rv_to_buffer(rv_buffer, obj->reg);
-    assert(ret);
+    debug_assert(ret);
     size += RegisterVariantUtils::rv_sizeof(obj->reg);
-    assert(*inout_buffer_size_bytes >= size);
+    debug_assert(*inout_buffer_size_bytes >= size);
     *inout_buffer_size_bytes = size;
 
     return 0;
 }
 
 int8_t SimpleRegisterClient::deserialize(SimpleRegisterResponse *const obj, const uint8_t *buffer, size_t *const inout_buffer_size_bytes) {
-    assert(obj != nullptr);
-    assert(buffer != nullptr);
-    assert(inout_buffer_size_bytes != nullptr);
+    debug_assert(obj != nullptr);
+    debug_assert(buffer != nullptr);
+    debug_assert(inout_buffer_size_bytes != nullptr);
 
     obj->reg = std::nullopt; // Clear response
 
@@ -156,7 +157,7 @@ SimpleRegisterClient::SimpleRegisterClient(CanardMicrosecond send_timeout, Canar
             response_value = data.reg; // Just store response
         },
         send_timeout, multipart_timeout, priority) {
-    assert(call_mutex != nullptr);
+    debug_assert(call_mutex != nullptr);
 }
 
 std::optional<RegisterVariant> SimpleRegisterClient::call(const char *name, const RegisterVariant &reg,

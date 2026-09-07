@@ -90,11 +90,12 @@
 #endif
 
 #include <option/has_cancel_object.h>
+#include <option/has_crash_detection.h>
 #if HAS_CANCEL_OBJECT()
   #include <feature/cancel_object/cancel_object.hpp>
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
   #include "../feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -138,7 +139,7 @@
 #include "configuration_store.h"
 #include <raii/auto_restore.hpp>
 #include <utils/variant_utils.hpp>
-#include "bsod.h"
+#include <module/prusa/corexy_transform.hpp>
 
 constexpr const int32_t MIN_MSTEPS_PER_SEGMENT = MIN_STEPS_PER_SEGMENT * PLANNER_STEPS_MULTIPLIER;
 
@@ -346,9 +347,9 @@ static float get_move_e_factor(const PlannerMoveTools &tools, const MoveHints &h
  */
 
 void Planner::init() {
-  position.reset();
-  position_float.reset();
-  previous_speed.reset();
+  position = {};
+  position_float = {};
+  previous_speed = {};
   previous_nominal_speed = 0;
   clear_block_buffer();
   delay_before_delivering = 0;
@@ -522,9 +523,7 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const float e
  */
 
 // The kernel called by recalculate() when scanning the plan from last to first entry.
-void Planner::reverse_pass_kernel(block_t * const previous, block_t * const current, const block_t * const next
-  OPTARG(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr)
-) {
+void Planner::reverse_pass_kernel(block_t * const previous, block_t * const current, const block_t * const next) {
   // If entry speed is already at the maximum entry speed, and there was no change of speed
   // in the next block, there is no need to recheck. Block is cruising and there is no need to
   // compute anything for this block,
@@ -543,7 +542,7 @@ void Planner::reverse_pass_kernel(block_t * const previous, block_t * const curr
     // the reverse and forward planners, the corresponding block junction speed will always be at the
     // the maximum junction speed and may always be ignored for any speed reduction checks.
 
-    const float next_entry_speed_sqr = next ? next->entry_speed_sqr : _MAX(TERN0(HINTS_SAFE_EXIT_SPEED, safe_exit_speed_sqr), sq(float(MINIMUM_PLANNER_SPEED))),
+    const float next_entry_speed_sqr = next ? next->entry_speed_sqr : sq(float(MINIMUM_PLANNER_SPEED)),
                 new_entry_speed_sqr = current->flag.nominal_length
                   ? max_entry_speed_sqr
                   : _MIN(max_entry_speed_sqr, max_allowable_speed_sqr(-current->acceleration, next_entry_speed_sqr, current->millimeters));
@@ -570,7 +569,7 @@ void Planner::reverse_pass_kernel(block_t * const previous, block_t * const curr
  * recalculate() needs to go over the current plan twice.
  * Once in reverse and once forward. This implements the reverse pass.
  */
-void Planner::reverse_pass(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr)) {
+void Planner::reverse_pass() {
   // Initialize block index to the last block in the planner buffer.
   uint8_t current_index = block_buffer_head,
           prev_index = prev_block_index(block_buffer_head);
@@ -597,7 +596,7 @@ void Planner::reverse_pass(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_sp
       // entry speed can't be altered (since that would also require
       // updating the exit speed of the previous block).
       if (previous && !is_block_busy(previous) && current)
-        reverse_pass_kernel(previous, current, next OPTARG(HINTS_SAFE_EXIT_SPEED, safe_exit_speed_sqr));;
+        reverse_pass_kernel(previous, current, next);
       next = current;
       current = previous;
       current_index = prev_index;
@@ -727,7 +726,7 @@ void Planner::forward_pass() {
  * according to the entry_factor for each junction. Must be called by
  * recalculate() after updating the blocks.
  */
-void Planner::recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr)) {
+void Planner::recalculate_trapezoids() {
   // The tail may be changed by the ISR so get a local copy.
   uint8_t block_index = block_buffer_nonbusy,
           head_block_index = block_buffer_head,
@@ -807,7 +806,7 @@ void Planner::recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const float sa
   // Last/newest block in buffer. Always recalculated.
   if (block && !block->flag.raw_block) {
     // Exit speed is set with MINIMUM_PLANNER_SPEED unless some code higher up knows better.
-    next_entry_speed = _MAX(TERN0(HINTS_SAFE_EXIT_SPEED, SQRT(safe_exit_speed_sqr)), float(MINIMUM_PLANNER_SPEED));
+    next_entry_speed = float(MINIMUM_PLANNER_SPEED);
 
     // Mark the next(last) block as RECALCULATE, to prevent the Stepper ISR running it.
     // As the last block is always recalculated here, there is a chance the block isn't
@@ -828,7 +827,7 @@ void Planner::recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const float sa
   }
 }
 
-void Planner::recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_speed_sqr)) {
+void Planner::recalculate() {
   // We need an operation that contains read for acquire to work properly
   // (and the acquire-release pair works kind of like a lock, so other operations stay within)
   recalculating.exchange(true, std::memory_order_acquire);
@@ -836,10 +835,10 @@ void Planner::recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_spe
   const uint8_t block_index = prev_block_index(block_buffer_head);
   // If there is just one block, no planning can be done. Avoid it!
   if (block_index != block_buffer_planned) {
-    reverse_pass(TERN_(HINTS_SAFE_EXIT_SPEED, safe_exit_speed_sqr));
+    reverse_pass();
     forward_pass();
   }
-  recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, safe_exit_speed_sqr));
+  recalculate_trapezoids();
   recalculating.store(false, std::memory_order_release);
 
   // Inform the move ISR that there is a new block added to the queue. If it
@@ -853,10 +852,10 @@ void Planner::recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, const float safe_exit_spe
  * Caller must ensure that there is something to discard.
  */
 void Planner::discard_current_unprocessed_block() {
-  assert(has_unprocessed_blocks_queued());
+  debug_assert(has_unprocessed_blocks_queued());
 
   block_t * block = &block_buffer[block_buffer_nonbusy];
-  assert(!block->busy);
+  debug_assert(!block->busy);
   block->busy = true;
 
   if (block_buffer_nonbusy != block_buffer_planned)
@@ -881,9 +880,7 @@ void Planner::check_axes_activity() {
   // In the current implementation of PreciseStepping, a sync position block can spend some time at the top of the block queue in contrast with the original Marlin.
   // So we have to ignore sync position blocks because they always have zero fan speeds.
   if (const block_t *block = get_first_move_block(); block != nullptr) {
-    #if FAN_COUNT > 0
-      thermalManager.apply_fan_speeds(block->fan_speed);
-    #endif
+      thermalManager.apply_print_fan_speed(block->print_fan_speed);
 
     #if ANY(DISABLE_X, DISABLE_Y, DISABLE_Z, DISABLE_E)
       // #error dead code found by automatic analyses (see BFW-5461)
@@ -894,10 +891,7 @@ void Planner::check_axes_activity() {
     #endif
   }
   else {
-
-    #if FAN_COUNT > 0
-      thermalManager.apply_fan_speeds();
-    #endif
+      thermalManager.apply_print_fan_speed();
   }
 
   //
@@ -1004,7 +998,7 @@ void Planner::resume_queuing() {
 
 // Called from ISR
 void Planner::endstop_triggered(const AxisEnum axis) {
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     if (crash_s.is_active() && crash_s.is_enabled() && (axis == X_AXIS || axis == Y_AXIS)) {
       // endstop triggered: save the current planner state
       crash_s.axis_hit_isr(axis);
@@ -1087,19 +1081,18 @@ static void get_multi_axis_position_mm(float* pos, const uint8_t cnt) {
   int32_t axis_steps[LOGICAL_AXES];
   sample_stepper_positions(axis_steps, cnt);
 
+  for(uint8_t i = 0; i != cnt; ++i)
+    pos[i] = axis_steps[i] * Planner::mm_per_step[i];
+
   #if IS_CORE
     #if CORE_IS_XY
-      int32_t a = axis_steps[A_AXIS];
-      int32_t b = axis_steps[B_AXIS];
-      axis_steps[X_AXIS] = (a + b) / 2;
-      axis_steps[Y_AXIS] = CORESIGN(a - b) / 2;
+      const auto xy = corexy_ab_to_xy(ab_steps_t{.a = axis_steps[0], .b = axis_steps[1]});
+      pos[X_AXIS] = xy.x;
+      pos[Y_AXIS] = xy.y;
     #else
       #error "unsupported core type"
     #endif
   #endif
-
-  for(uint8_t i = 0; i != cnt; ++i)
-    pos[i] = axis_steps[i] * Planner::mm_per_step[i];
 }
 
 void Planner::get_axis_position_mm(MachinePosXY& pos) {
@@ -1170,7 +1163,7 @@ void Planner::synchronize() {
 bool Planner::_buffer_msteps(const xyze_msteps_t &target, const MachinePosXYZE &target_float
   , feedRate_t fr_mm_s, const PlannerMoveTools &tools, const PlannerHints &hints
 ) {
-  assert(fr_mm_s > 0);
+  debug_assert(fr_mm_s > 0);
 
   // Wait for the next available block
   uint8_t next_buffer_head;
@@ -1194,7 +1187,7 @@ bool Planner::_buffer_msteps(const xyze_msteps_t &target, const MachinePosXYZE &
   block_buffer_head = next_buffer_head;
 
   // Recalculate and optimize trapezoidal speed profiles
-  recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, hints.safe_exit_speed_sqr));
+  recalculate();
 
   // Movement successfully queued!
   return true;
@@ -1249,7 +1242,7 @@ bool Planner::_populate_block(block_t * const block,
   const xyze_msteps_t &target, const MachinePosXYZE &target_float
   , feedRate_t fr_mm_s, const PlannerMoveTools &tools, const PlannerHints &hints
 ) {
-  assert(fr_mm_s > 0);
+  debug_assert(fr_mm_s > 0);
   
   const int32_t da = target.a - position.a,
                 db = target.b - position.b,
@@ -1333,9 +1326,7 @@ bool Planner::_populate_block(block_t * const block,
     return false;
   }
 
-  #if FAN_COUNT > 0
-    FANS_LOOP(i) block->fan_speed[i] = thermalManager.fan_speed[i];
-  #endif
+  block->print_fan_speed = thermalManager.print_fan_speed;
   
   #if ENABLED(AUTO_POWER_CONTROL)
     if (block->msteps.x || block->msteps.y || block->msteps.z)
@@ -1467,7 +1458,7 @@ bool Planner::_populate_block(block_t * const block,
       // #error dead code found by automatic analyses (see BFW-5461)
       block->nominal_rate = CEIL(block->mstep_event_count * inverse_secs); // (mini-step/sec) Always > 0
     #endif
-    assert(block->nominal_speed > 0); // This assert just saved you 4 hours of digging through input shaper internals. You're welcome.
+    debug_assert(block->nominal_speed > 0); // This assert just saved you 4 hours of digging through input shaper internals. You're welcome.
 
     // Calculate and limit speed in mm/sec for each axis
     xyze_float_t current_speed;
@@ -1845,7 +1836,7 @@ bool Planner::_populate_block(block_t * const block,
     previous_nominal_speed = block->nominal_speed;
   }
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
   {
     const uint8_t crash_index = block - block_buffer;
     Crash_s::crash_block_t &crash_block = crash_s.crash_block[crash_index];
@@ -1925,9 +1916,7 @@ bool Planner::populate_raw_block(block_t *const block, const xyze_msteps_t &targ
         block->millimeters = SQRT(sq(delta_mm.x) + sq(delta_mm.y) + sq(delta_mm.z));
     }
 
-    #if FAN_COUNT > 0
-        FANS_LOOP(i) block->fan_speed[i] = Temperature::fan_speed[i];
-    #endif
+    block->print_fan_speed = Temperature::print_fan_speed;
 
     #if ENABLED(AUTO_POWER_CONTROL)
         if (block->msteps.x || block->msteps.y || block->msteps.z) {
@@ -2025,7 +2014,7 @@ bool Planner::populate_raw_block(block_t *const block, const xyze_msteps_t &targ
     previous_speed = current_speed;
     previous_nominal_speed = block->nominal_speed;
 
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
     {
         const uint8_t crash_index = block - block_buffer;
         Crash_s::crash_block_t &crash_block = crash_s.crash_block[crash_index];
@@ -2081,7 +2070,7 @@ bool Planner::buffer_raw_block(const xyze_msteps_t &target, const MachinePosXYZE
     block_buffer_head = next_buffer_head;
 
     // Recalculate and optimize trapezoidal speed profiles
-    recalculate(TERN_(HINTS_SAFE_EXIT_SPEED, hints.safe_exit_speed_sqr));
+    recalculate();
 
     // Movement successfully queued!
     return true;
@@ -2118,7 +2107,7 @@ void Planner::buffer_sync_block() {
  * @description Add a new linear movement to the buffer in axis units.
  *              Leveling and kinematics should be applied before calling this.
  *
- * @param x,y,z,e       Target positions in mm and/or degrees
+ * @param xyze          Target positions in mm and/or degrees
  * @param fr_mm_s       (target) speed of the move
  * @param tool          physical tool for the move
  * @param hints         optional parameters to aid planner calculations
@@ -2128,7 +2117,7 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
   #error Z_CEILING_CLEARANCE must be defined only if HAS_CEILING_CLEARANCE()
 #endif
 
-  assert(fr_mm_s > 0);
+  debug_assert(fr_mm_s > 0);
 
   PlannerMoveTools tools(tool);
 
@@ -2213,10 +2202,7 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
   }
 #endif
 
-  #if ENABLED(CRASH_RECOVERY)
-  // Hints for the current segments might be reset during recovery
-  const PlannerHints* segment_hints = &hints;
-
+  #if HAS_CRASH_DETECTION()
   {
     auto &move_start = crash_s.move_start;
     auto &gcode_state = crash_s.gcode_state;
@@ -2241,11 +2227,7 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
 
       // first real segment after recovering, manipulate the current state in order
       // to resume the segment from the crashing position
-      set_machine_position_mm(crash_s.crash_position);
-
-      // reset the hints
-      static const PlannerHints default_hints; // INDX_TODO: Investigate crash
-      segment_hints = &default_hints;
+      set_machine_position_mm(crash_s.crash_machine_position);
 
       // continue normally
       crash_s.set_state(Crash_s::PRINTING);
@@ -2319,12 +2301,7 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
   // Queue the movement. Return 'false' if the move was not queued.
   if (!_buffer_msteps(target, xyze
       , fr_mm_s, tools
-#if ENABLED(CRASH_RECOVERY)
-      , *segment_hints
-#else
-  // #error dead code found by automatic analyses (see BFW-5461)
       , hints
-#endif
   )) return false;
 
   return true;
@@ -2338,7 +2315,7 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
         return false;
     }
 
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
     {
         auto &move_start = crash_s.move_start;
         auto &gcode_state = crash_s.gcode_state;
@@ -2363,7 +2340,7 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
 
             // first real segment after recovering, manipulate the current state in order
             // to resume the segment from the crashing position
-            set_machine_position_mm(crash_s.crash_position);
+            set_machine_position_mm(crash_s.crash_machine_position);
 
             // continue normally
             crash_s.set_state(Crash_s::PRINTING);
@@ -2397,7 +2374,7 @@ bool Planner::buffer_raw_segment(const MachinePosXYZE &xyze, const float acceler
  * Add a new linear movement to the buffer.
  * The target is cartesian.
  *
- *  rx,ry,rz,e      - target position in mm or degrees
+ *  cart            - target position in mm or degrees
  *  fr_mm_s         - (target) speed of the move (mm/s)
  *  tool            - physical tool for the move
  *  hints           - optional parameters to aid planner calculations
@@ -2415,7 +2392,7 @@ bool Planner::buffer_raw_line(const MachinePosXYZE &cart, const float accelerati
  * by converting mm into mini-steps.
  */
 
-void Planner::set_machine_position_mm(const MachinePosXYZE &xyze) {
+void Planner::set_machine_position_mm_planner_only(const MachinePosXYZE &xyze) {
   #if ENABLED(DISTINCT_E_FACTORS)
     // #error dead code found by automatic analyses (see BFW-5461)
     last_extruder = active_extruder;
@@ -2427,6 +2404,10 @@ void Planner::set_machine_position_mm(const MachinePosXYZE &xyze) {
     LROUND(xyze.z * settings.axis_msteps_per_mm[Z_AXIS]),
     LROUND(xyze.e * settings.axis_msteps_per_mm[E_AXIS_N(active_extruder)]),
   };
+}
+
+void Planner::set_machine_position_mm(const MachinePosXYZE &xyze) {
+  set_machine_position_mm_planner_only(xyze);
 
   if (processing()) {
     //previous_nominal_speed = 0.0f; // Reset planner junction speeds. Assume start from rest.
@@ -2444,9 +2425,7 @@ void Planner::set_machine_position_mm(const MachinePosXYZE &xyze) {
 }
 
 void Planner::set_position_mm(const xyze_pos_t &xyze) {
-  xyze_pos_t machine = xyze;
-  TERN_(HAS_LEVELING, apply_leveling(machine));
-  set_machine_position_mm(machine);
+  set_machine_position_mm(to_machine_pos(xyze));
 }
 
 /**
@@ -2456,10 +2435,10 @@ void Planner::set_position_mm(const xyze_pos_t &xyze) {
  */
 void Planner::set_e_position_mm(const float e, std::optional<uint8_t> e_axis_index) {
   if(!e_axis_index.has_value()) {
-      const auto current_tool = stdext::get_optional<VirtualToolIndex>(VirtualToolIndex::currently_selected());
+      const auto current_tool = PhysicalToolIndex::currently_selected_opt();
       if (!current_tool.has_value()) {
         // You should not be trying to set e_position without an active tool
-        assert(false);
+        debug_assert(false);
         return;
       }
       e_axis_index = E_AXIS_N(*current_tool);
@@ -2479,34 +2458,13 @@ void Planner::set_e_position_mm(const float e, std::optional<uint8_t> e_axis_ind
 }
 
 void Planner::reset_position() {
-#if ANY(IS_CORE, MARKFORGED_XY, MARKFORGED_YX)
-  #if ENABLED(CORE_IS_XY)
-    // XY position
-    int32_t a = stepper.position(A_AXIS);
-    int32_t b = stepper.position(B_AXIS);
-    float x = static_cast<float>(a + b) / 2.f;
-    float y = static_cast<float>(CORESIGN(a - b)) / 2.f;
-    position[0] = LROUND(x * PLANNER_STEPS_MULTIPLIER);
-    position[1] = LROUND(y * PLANNER_STEPS_MULTIPLIER);
-    position_float[0] = x / settings.axis_steps_per_mm[0];
-    position_float[1] = y / settings.axis_steps_per_mm[1];
+  MachinePosXYZE pos;
+  
+  // Sample position from steppers
+  get_axis_position_mm(pos);
 
-    // remaining axes
-    LOOP_S_L_N(i, C_AXIS, XYZE_N) {
-      const int32_t stepper_position_i = stepper.position((AxisEnum)i);
-      position[i] = stepper_position_i * PLANNER_STEPS_MULTIPLIER;
-      position_float[i] = stepper_position_i / settings.axis_steps_per_mm[i];
-    }
-  #else
-    #error "reset_position() not implemented for this kinematic"
-  #endif
-#else
-  // cartesian
-  LOOP_XYZE(i) {
-    position[i] = stepper.position((AxisEnum)i) * PLANNER_STEPS_MULTIPLIER;
-    position_float[i] = position[i] / settings.axis_msteps_per_mm[i];
-  }
-#endif
+  // Shove the sampled position to the planner
+  set_machine_position_mm_planner_only(pos);
 }
 
 // Recalculate the mini-steps/s^2 acceleration rates, based on the mm/s^2
@@ -2531,7 +2489,7 @@ void Planner::refresh_acceleration_rates() {
 
 // Recalculate position, mm_per_step, mm_per_half_step and mm_per_mstep if settings.axis_steps_per_mm or settings.axis_msteps_per_mm changes!
 void Planner::refresh_positioning() {
-  assert(!planner.processing());
+  debug_assert(!planner.processing());
   LOOP_XYZE_N(i) {
     mm_per_step[i] = 1.f / settings.axis_steps_per_mm[i];
     mm_per_half_step[i] = mm_per_step[i] / 2.f;

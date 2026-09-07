@@ -1,34 +1,40 @@
 #pragma once
 
 #include <inplace_function.hpp>
-#include <option/has_indx.h>
 
-#if HAS_INDX()
+#include <option/has_toolchanger.h>
 
 namespace mapi {
 
-/// Motion step about to be performed; lets each wizard report its own FSM phase.
-enum class CalibrationPreambleStep {
-    moving_away, ///< lowering the bed to the physical bottom
-    picking_tool, ///< picking a tool (ensure_picked policy only, fired only when no tool is currently picked)
-    parking_tool, ///< parking the picked tool (ensure_parked policy only, fired only when a tool is currently picked)
-    homing, ///< homing XY
-};
+struct CalibrationPreamble {
+    /// Motion step about to be performed; lets each wizard report its own FSM phase.
+    enum class Step : uint8_t {
+        moving_away, ///< lowering the bed to the physical bottom
+        homing, ///< homing XY
+#if HAS_TOOLCHANGER()
+        picking_tool, ///< picking a tool (ensure_picked policy only, fired only when no tool is currently picked)
+        parking_tool, ///< parking the picked tool (ensure_parked policy only, fired only when a tool is currently picked)
+#endif
+    };
 
-enum class CalibrationPreambleToolPolicy {
-    keep_as_is, ///< only home XY
-    ensure_picked, ///< pick any tool when none is picked
-    ensure_parked, ///< park the picked tool (e.g. dock calibration works with an empty head)
-};
+#if HAS_TOOLCHANGER()
+    enum class ToolPolicy : uint8_t {
+        keep_as_is, ///< only home XY
+        ensure_picked, ///< pick any tool when none is picked
+        ensure_parked, ///< park the picked tool (e.g. dock calibration works with an empty head); a tool with an uncalibrated dock parks to the default dock position
+    };
+    ToolPolicy tool_policy;
+#endif
 
-/// Makes subsequent XY moves safe regardless of a possibly unhomed/stale Z:
-/// lowers the bed to the physical bottom (endstop-protected homing move),
-/// then homes XY (picking/parking a tool homes XY too, so no separate homing is needed).
-/// The on_step callback fires before each motion step so wizards can report their FSM phase.
-/// @return false when the tool pick/park fails (callers treat it as abort)
-bool calibration_preamble(CalibrationPreambleToolPolicy tool_policy,
-    const stdext::inplace_function<void(CalibrationPreambleStep)> &on_step);
+    const stdext::inplace_function<void(Step)> on_step;
+
+    /// Makes subsequent XY moves safe regardless of a possibly unhomed/stale Z:
+    /// - lowers the bed
+    /// - homes XY (precisely when a toolchange is about to follow)
+    /// - picks/parks a tool per tool_policy.
+    /// The on_step callback fires before each motion step so wizards can report their FSM phase.
+    /// @return false when something fails (caller treats as abort)
+    bool run() const;
+};
 
 } // namespace mapi
-
-#endif // HAS_INDX()

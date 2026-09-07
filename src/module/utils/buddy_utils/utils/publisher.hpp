@@ -5,6 +5,7 @@
 #include <inplace_function.hpp>
 
 #include <utils/uncopyable.hpp>
+#include <bsod/bsod.h>
 
 template <typename... Args>
 class Subscriber;
@@ -41,7 +42,7 @@ private:
     void remove(Subscriber *item) {
         Subscriber **current = &first_;
         while (*current != item) {
-            assert(*current);
+            debug_assert(*current);
             current = &((*current)->next_);
         }
         *current = (*current)->next_;
@@ -91,7 +92,7 @@ public:
     void bind(Publisher &publisher) {
         unbind();
 
-        assert(callback_);
+        debug_assert(callback_);
         publisher.insert(this);
         publisher_ = &publisher;
     }

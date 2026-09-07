@@ -3,6 +3,7 @@
 #include "nanocbor_ext.hpp"
 
 #include <algorithm>
+#include <utils/byte_utils.hpp>
 
 using namespace openprinttag;
 
@@ -487,7 +488,7 @@ OPTReader::IOResult<std::string_view> OPTReader::read_field_string(const TagFiel
     return result;
 }
 
-OPTReader::IOResult<std::basic_string_view<std::byte>> OPTReader::read_field_bytes(const TagField &field, const std::span<std::byte> &buffer) {
+OPTReader::IOResult<std::basic_string_view<std::byte>> OPTReader::read_field_bytes(const TagField &field, const WritableBytes &buffer) {
     std::basic_string_view<std::byte> result;
     const auto r = read_field_impl(field, [&result, &buffer](CBORValue v) -> ReadFieldCallbackResult {
         const uint8_t *data;
@@ -595,7 +596,7 @@ OPTReader::IOResult<OPTReader::WriteReport> OPTReader::write_field_uint16_array(
     });
 }
 
-OPTReader::IOResult<std::span<std::byte>> OPTReader::read_span(const TagPayloadSpan &span) {
+OPTReader::IOResult<WritableBytes> OPTReader::read_span(const TagPayloadSpan &span) {
     // The region is already in the read buffer -> we don't need to issue another read
     if (read_buffer_cache_.tag == span.tag && read_buffer_cache_.span.contains(span.span)) {
         return std::span(read_buffer_.begin() + span.span.offset - read_buffer_cache_.span.offset, span.span.size);

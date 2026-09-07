@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cassert>
 #include <cstdint>
+#include <bsod/bsod.h>
 
 // Sliding ring buffer frequency tracker.
 // Records every skip-th sample timestamp, computes frequency from the span.
@@ -16,7 +16,7 @@ struct SamplingRateTracker {
 
     explicit SamplingRateTracker(uint16_t skip = 32)
         : skip(skip) {
-        assert(skip > 0);
+        debug_assert(skip > 0);
     }
 
     // Call for every sample with current timestamp in microseconds.

@@ -2,12 +2,13 @@
 
 #include <span>
 #include <array>
-#include <cassert>
 #include <limits>
 #include <cmath>
+#include <optional>
 
 #include <utils/uncopyable.hpp>
 #include <utils/progress.hpp>
+#include <bsod/bsod.h>
 
 template <class State>
 struct ProgressMapperWorkflowStep {
@@ -47,8 +48,12 @@ public:
         return steps_;
     }
 
-    constexpr inline float scale_sum() const {
-        return steps_[steps_.size() - 1].cumulative_scale;
+    constexpr inline StepScale scale_sum() const {
+        return steps_.back().cumulative_scale;
+    }
+
+    constexpr inline StepScale avg_step_scale() const {
+        return std::max<StepScale>(scale_sum() / steps_.size(), 1);
     }
 
     constexpr static inline bool is_workflow_valid(StepIndex step_count) {
@@ -61,8 +66,8 @@ protected:
     }
 
     constexpr void setup(Runtime, const std::span<StepData> &steps, const std::span<const Step> &params) {
-        assert(is_workflow_valid(params.size()));
-        assert(params.size() == steps.size());
+        debug_assert(is_workflow_valid(params.size()));
+        debug_assert(params.size() == steps.size());
 
         steps_ = steps;
         StepScale scale_accum = 0;
@@ -78,7 +83,7 @@ protected:
             step++;
         }
 
-        assert(scale_accum > 0);
+        debug_assert(scale_accum > 0);
     }
 
 private:
@@ -132,7 +137,8 @@ protected:
     ProgressSpan current_step_span_;
 
     /// Index of the current step of the mapper
-    StepIndex current_step_index_ = invalid_step;
+    /// Does not get updated on states that are outside of the workflow
+    StepIndex last_valid_step_index_ = invalid_step;
 };
 
 template <class State>
@@ -141,6 +147,7 @@ class ProgressMapper : public BaseProgressMapper {
 public:
     using Workflow = ProgressMapperWorkflow<State>;
     using StepIndex = Workflow::StepIndex;
+    using StepScale = Workflow::StepScale;
 
 public:
     ProgressMapper() = default;
@@ -153,7 +160,8 @@ public:
         workflow_ = &workflow;
         current_progress_ = 0;
         current_step_span_ = ProgressSpan { 0, 0 };
-        current_step_index_ = invalid_step;
+        last_valid_step_index_ = invalid_step;
+        current_state_ = std::nullopt;
     }
 
     /// Informs the progress mapper that the process in currently in \p state.
@@ -171,55 +179,45 @@ public:
             return ProgressSpan { 0, 0 };
         }
 
-        const auto first_step = workflow_->steps().begin();
-        const auto step = std::ranges::find_if(workflow_->steps(), [state](const auto &step) { return step.state == state; });
-
-        if (step == workflow_->steps().end()) {
-            // The state is not in the workflow -> just return the current progress
-            return ProgressSpan { current_progress_, current_progress_ };
+        if (state == current_state_) {
+            // Same state, same span
+            return current_step_span_;
         }
 
-        const auto step_index = step - first_step;
-        const auto step_base_cumulative_scale = (step == first_step) ? 0 : std::prev(step)->cumulative_scale;
+        // Default step scale for items out of workflow
+        StepScale step_scale = workflow_->avg_step_scale();
 
-        if (step_index > current_step_index_ || current_step_index_ == invalid_step) {
-            // If we've progressed in the workflow, consider the step progress end as the starting point
-            // and scale the remaining steps between current progress and 100%
-            // As a result, skipped steps in the workflow will not cause big jumps in the progress,
-            // but the remaining progress will get redistributed
+        const auto step_it = std::ranges::find_if(workflow_->steps(), [state](const auto &step) { return step.state == state; });
+        if (step_it != workflow_->steps().end()) {
+            const auto step_index = step_it - workflow_->steps().begin();
+            const auto previous_step_cumulative_scale = ((step_index == 0) ? 0 : std::prev(step_it)->cumulative_scale);
 
-            // This will also be triggered for first update_progress call,
-            // at which point the current_step_span_.max should be 0
-            // - so we're starting the progress from the 0, whatever step we begin on.
+            if (step_index < last_valid_step_index_ && last_valid_step_index_ != invalid_step) {
+                // If we've regressed in the workflow, "reset" the smart scaling and assume default workflow scales
+                // This updates current_step_span_.min below
+                current_step_span_.max = static_cast<ProgressPercent>(std::roundf(float(previous_step_cumulative_scale) / workflow_->scale_sum() * 100.0f));
+            }
 
-            current_step_span_.min = current_step_span_.max;
-
-            // step_span_.max will be recomputed below
-
-        } else if (step_index < current_step_index_) {
-            // If we've regressed in the workflow, "reset" the smart scaling and assume default workflow scales
-
-            current_step_span_.min = static_cast<ProgressPercent>(std::roundf(float(step_base_cumulative_scale) / workflow_->scale_sum() * 100.0f));
-
-            // step_span_.max will be recomputed below
+            last_valid_step_index_ = step_index;
+            step_scale = step_it->cumulative_scale - previous_step_cumulative_scale;
         }
 
-        current_step_index_ = step_index;
+        // This step starts where the previous step ended
+        current_step_span_.min = current_step_span_.max;
 
-        const auto step_scale = step->cumulative_scale - step_base_cumulative_scale;
-
-        /// Scale of all remaining steps (including this one)
-        const auto remaining_scale = workflow_->scale_sum() - step_base_cumulative_scale;
+        const StepScale remaining_scale = //
+            workflow_->scale_sum() - ((last_valid_step_index_ == invalid_step) ? 0 : workflow_->steps()[last_valid_step_index_].cumulative_scale)
+            + step_scale;
 
         if (remaining_scale > 0) {
-            current_step_span_.max = current_step_span_.min + static_cast<int>(std::roundf(float(step_scale) / remaining_scale * (100 - current_step_span_.min)));
-        } else {
-            current_step_span_.max = current_step_span_.min;
+            current_step_span_.max += static_cast<int>(std::roundf(float(step_scale) / remaining_scale * (100 - current_step_span_.min)));
         }
 
+        current_state_ = state;
         return current_step_span_;
     }
 
 private:
     const Workflow *workflow_ = nullptr;
+    std::optional<State> current_state_ = std::nullopt;
 };

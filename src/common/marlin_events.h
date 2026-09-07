@@ -63,4 +63,10 @@ enum class PreviewSkipIfAble : uint8_t {
     all = _last, ///< Skip all
 };
 
+/// Used in print_start - denotes whether tool mapping should be kept from the previous print or not
+enum class ResetToolMapping : bool {
+    no = false,
+    yes = true,
+};
+
 } // namespace marlin_server

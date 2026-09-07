@@ -11,13 +11,13 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <assert.h>
 #include <expected>
 #include <array>
-#include <span>
+#include <cstddef>
 #include <cstring>
 #include <optional>
 #include <inplace_function.hpp>
+#include <utils/byte_utils.hpp>
 namespace cobs {
 /**
  * @brief Calculate the maximal theoretical size needed to encode message of frame_size size + the delimiter
@@ -31,7 +31,7 @@ enum class CobsError {
     invalid_input,
     overflow,
 };
-using OptionalBuffer = std::optional<std::span<uint8_t>>;
+using OptionalBuffer = std::optional<WritableBytes>;
 
 // Standard delimiter per the COBS specification.
 // COBS uses 0x00 as the packet delimiter by default.
@@ -46,7 +46,7 @@ using OptionalBuffer = std::optional<std::span<uint8_t>>;
 // between actual data and the delimiter when parsing.
 //
 // If a non-standard delimiter is required, the encoder and decoder will need a small rework.
-constexpr uint8_t DELIMITER = 0x00;
+constexpr std::byte DELIMITER { 0x00 };
 
 /**
  * @brief Encodes a complete message using COBS and appends frame delimiter.
@@ -61,7 +61,7 @@ constexpr uint8_t DELIMITER = 0x00;
  * @return On success, the number of bytes written (including the 0x00 delimiter).
  * @return On failure, a CobsError::overflow if the output buffer is too small.
  */
-std::expected<size_t, CobsError> encode(std::span<const uint8_t> input, std::span<uint8_t> output);
+std::expected<size_t, CobsError> encode(Bytes input, WritableBytes output);
 
 /**
  * @brief Provides a stateful, streaming COBS encoder.
@@ -90,7 +90,7 @@ public:
      * message will be written by finalize(). Its size
      * must be large enough to hold the encoded output.
      */
-    CobsStreamEncoder(std::span<uint8_t> input_buffer, std::span<uint8_t> encoded_buffer);
+    CobsStreamEncoder(WritableBytes input_buffer, WritableBytes encoded_buffer);
 
     /**
      * @brief Appends a chunk of raw data to the message being built.
@@ -101,9 +101,9 @@ public:
      * @return CobsError::overflow if adding this data would exceed the
      * input buffer's capacity.
      */
-    std::expected<void, CobsError> add_bytes(std::span<const uint8_t> data);
+    std::expected<void, CobsError> add_bytes(Bytes data);
 
-    using EncodeResult = std::expected<std::span<const uint8_t>, CobsError>;
+    using EncodeResult = std::expected<Bytes, CobsError>;
     /**
      * @brief Encodes all data added via add_bytes() into the encoded buffer.
      *
@@ -132,14 +132,14 @@ public:
      */
     void reset(OptionalBuffer new_input_buffer = std::nullopt, OptionalBuffer new_encoded_buffer = std::nullopt);
 
-    [[nodiscard]] const std::span<const uint8_t> get_used_input_buffer() { return input_buffer.first(state.write_position); }
+    [[nodiscard]] Bytes get_used_input_buffer() { return input_buffer.first(state.write_position); }
 
 protected:
     CobsStreamEncoder() = default;
 
 private:
-    std::span<uint8_t> input_buffer;
-    std::span<uint8_t> encoded_buffer;
+    WritableBytes input_buffer;
+    WritableBytes encoded_buffer;
 
     struct CobsEncoderState {
         size_t write_position = 0;
@@ -162,8 +162,8 @@ public:
     }
 
 private:
-    std::array<uint8_t, MAX_MESSAGE_SIZE> input_buffer_;
-    std::array<uint8_t, max_encoded_frame_size(MAX_MESSAGE_SIZE)> encoded_buffer_;
+    std::array<std::byte, MAX_MESSAGE_SIZE> input_buffer_;
+    std::array<std::byte, max_encoded_frame_size(MAX_MESSAGE_SIZE)> encoded_buffer_;
 };
 
 /**
@@ -236,12 +236,12 @@ public:
      * message data will be written. Its size determines the
      * maximum decoded message size that can be processed.
      */
-    CobsStreamDecoder(std::span<uint8_t> decoded_buffer, Mode initial_mode = Mode::decoding)
+    CobsStreamDecoder(WritableBytes decoded_buffer, Mode initial_mode = Mode::decoding)
         : decoded_buffer(decoded_buffer) {
         reset(initial_mode, decoded_buffer);
     }
 
-    using FinishCallback = const stdext::inplace_function<void(std::span<const uint8_t>)> &;
+    using FinishCallback = const stdext::inplace_function<void(Bytes)> &;
     using ErrorCallback = const stdext::inplace_function<void(CobsError)> &;
     /**
      * @brief Feeds multiple bytes to the COBS decoder state machine.
@@ -260,7 +260,7 @@ public:
      *                 Should call decoder.reset(Mode::recovering) to enable automatic
      *                 resynchronization, or decoder.reset(Mode::error) to stop processing.
      */
-    void add_bytes(std::span<const uint8_t> data, FinishCallback finish_cb, ErrorCallback error_cb);
+    void add_bytes(Bytes data, FinishCallback finish_cb, ErrorCallback error_cb);
 
     /**
      * @brief Feeds a single byte to the COBS decoder state machine.
@@ -271,7 +271,7 @@ public:
      * @param finish_cb Callback invoked when a complete message is decoded
      * @param error_cb Callback invoked when a decoding error occurs
      */
-    void add_byte(uint8_t byte, FinishCallback finish_cb, ErrorCallback error_cb);
+    void add_byte(std::byte byte, FinishCallback finish_cb, ErrorCallback error_cb);
 
     /**
      * @brief Resets the decoder state and changes mode and optionally used buffer - std::nullopt will keep using the current buffer
@@ -298,7 +298,7 @@ protected:
     } state;
 
 private:
-    std::span<uint8_t> decoded_buffer;
+    WritableBytes decoded_buffer;
 
     void inline error_handler(CobsError error, ErrorCallback error_cb) {
         state.mode = Mode::error;
@@ -324,6 +324,6 @@ public:
     }
 
 private:
-    std::array<uint8_t, MAX_MESSAGE_SIZE> buffer;
+    std::array<std::byte, MAX_MESSAGE_SIZE> buffer;
 };
 } // namespace cobs

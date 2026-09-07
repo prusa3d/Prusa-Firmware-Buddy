@@ -10,6 +10,7 @@
 #include "print_progress.hpp"
 #include "print_time_module.hpp"
 #include <guiconfig/guiconfig.h>
+#include <buddy/filename_defs.hpp>
 #include <option/developer_mode.h>
 #include <array>
 #include <window_progress.hpp>
@@ -87,7 +88,7 @@ class screen_printing_data_t : public ScreenPrintingModel {
 #endif
 
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
-    std::array<char, FILE_NAME_BUFFER_LEN> text_filename;
+    std::array<char, filename_defs::filename_buffer_size> text_filename;
 
     uint32_t message_timer;
     bool stop_pressed;

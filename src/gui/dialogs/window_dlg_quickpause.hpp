@@ -4,7 +4,7 @@
 #include "window_text.hpp"
 #include "window_roll_text.hpp"
 #include "window_icon.hpp"
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 #include "radio_button_fsm.hpp"
 
 class DialogQuickPause : public IDialogMarlin {

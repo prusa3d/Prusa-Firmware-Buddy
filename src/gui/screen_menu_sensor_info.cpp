@@ -1,9 +1,9 @@
 /// @file
 #include "screen_menu_sensor_info.hpp"
 
+#include <img_resources.hpp>
 #include <common/sensor_data.hpp>
 #include <option/has_indx.h>
-#include <screen_move_z.hpp>
 
 #if HAS_DWARF() || HAS_INDX()
 
@@ -46,20 +46,20 @@ MI_INFO_NOZZLE_POWER::MI_INFO_NOZZLE_POWER()
         [](auto) { return sensor_data().nozzle_power_W(); },
     } {}
 
+MI_INFO_RINGDOWN_DECAY::MI_INFO_RINGDOWN_DECAY()
+    : MenuItemAutoUpdatingLabel {
+        _("Ringdown Decay"),
+        "%d",
+        [](auto) { return SensorData::ringdown_decay(); },
+    } {}
+
 #endif
 
 ScreenMenuSensorInfo::ScreenMenuSensorInfo()
-    : ScreenMenuSensorInfo_(_("SENSOR INFO")) //
-{
+    : ScreenMenuSensorInfo_ {
+        _("SENSOR INFO"),
+        &img::info_16x16,
+    } {
     EnableLongHoldScreenAction();
     ClrMenuTimeoutClose();
-}
-
-void ScreenMenuSensorInfo::windowEvent(window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::HELD_RELEASED) {
-        open_move_z_screen();
-        return;
-    }
-
-    ScreenMenu::windowEvent(sender, event, param);
 }

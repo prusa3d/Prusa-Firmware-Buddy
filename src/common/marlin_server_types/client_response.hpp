@@ -1,11 +1,4 @@
-/**
- * @file client_response.hpp
- * @brief every phase in dialog can have some buttons
- * buttons are generalized on this level as responses
- * because non GUI/WUI client can also use them
- * bound to ClientFSM in src/common/client_fsm_types.h
- */
-
+/// @file
 #pragma once
 
 #include <cstdint>
@@ -14,7 +7,7 @@
 #include <span>
 #include <utility>
 
-#include "client_fsm_types.h"
+#include "client_fsm_types.hpp"
 #include "general_response.hpp"
 #include "printers.h"
 #include <utils/enum_array.hpp>
@@ -22,15 +15,20 @@
 #include <option/filament_sensor.h>
 #include <option/has_attachable_accelerometer.h>
 #include <option/has_coldpull.h>
+#include <option/has_crash_detection.h>
 #include <option/has_emergency_stop.h>
 #include <option/has_esp.h>
-#include <option/has_gearbox_alignment.h>
+#include <option/has_ht_hotend.h>
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_loadcell.h>
 #include <option/has_mmu2.h>
 #include <option/has_nfc.h>
 #include <option/has_phase_stepping_calibration.h>
+#include <option/has_print_sheet_detection.h>
 #include <option/has_selftest.h>
+#include <option/has_heaters_selftest_gcode.h>
+#include <option/has_heaters_selftest_bed_sheet_retry.h>
+#include <option/has_heaters_selftest_revise.h>
 #include <option/has_toolchanger.h>
 #include <option/has_tool_mapping.h>
 #include <option/xl_enclosure_support.h>
@@ -49,6 +47,7 @@
 #include <option/has_tool_offset_sensor.h>
 #include <option/has_human_interactions.h>
 #include <option/has_tool_crash_recovery.h>
+#include <option/has_dwarf.h>
 
 #include <option/has_hotend_type_support.h>
 #if HAS_HOTEND_TYPE_SUPPORT()
@@ -57,6 +56,10 @@
 
 #include <device/board.h>
 #include <option/has_e2ee_support.h>
+#include <option/has_indx.h>
+#include <option/has_serial_print.h>
+#include <feature/tool_offset_wizard/has_tool_offset_nozzle_cleaning_wizard.hpp>
+#include <bsod/bsod.h>
 
 /// Maximum number of responses available during a FSM phase
 #if HAS_MMU2()
@@ -83,7 +86,7 @@ constexpr uint8_t GetPhaseIndex(T phase) {
 
 template <class T>
 constexpr T GetEnumFromPhaseIndex(size_t index) {
-    assert(index < CountPhases<T>());
+    debug_assert(index < CountPhases<T>());
     return static_cast<T>(index);
 }
 
@@ -233,6 +236,37 @@ enum class PhasesFansSelftest : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesFansSelftest) { return ClientFSM::FansSelftest; }
 #endif
 
+#if HAS_HEATERS_SELFTEST_GCODE()
+enum class PhasesHeatersSelftest : PhaseUnderlyingType {
+    #if HAS_INDX()
+    picking_tool, ///< INDX: pick a tool before testing its nozzle heater
+    #endif
+    heating, ///< cooldown -> preheat -> timed heat measurement (live data via HeatersSelftestData)
+    hotend_fan_failed_dialog, ///< skip the nozzle heater test because the hotend (heatbreak) fan failed
+    #if HAS_INDX()
+    nozzle_failed_dialog, ///< nozzle heater failed: show why (HeatersSelftestFailReason in phase data)
+    #endif
+    #if HAS_HEATERS_SELFTEST_BED_SHEET_RETRY()
+    ask_bed_sheet_after_fail, ///< bed heater failed: ask to refit the steel sheet and retry
+    #endif
+    #if HAS_HEATERS_SELFTEST_REVISE()
+    revise_ask_revise, ///< nozzle heater failed: ask whether to revise the printer setup
+    revise_revise, ///< printer setup screen shown while the user revises the setup
+    revise_ask_retry, ///< after the revision, ask whether to retry the test
+    #endif
+    #if HAS_HEATERS_SELFTEST_REVISE()
+    _last = revise_ask_retry,
+    #elif HAS_HEATERS_SELFTEST_BED_SHEET_RETRY()
+    _last = ask_bed_sheet_after_fail,
+    #elif HAS_INDX()
+    _last = nozzle_failed_dialog,
+    #else
+    _last = hotend_fan_failed_dialog,
+    #endif
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhasesHeatersSelftest) { return ClientFSM::HeatersSelftest; }
+#endif
+
 #if HAS_ESP()
 enum class PhaseNetworkSetup : PhaseUnderlyingType {
     init,
@@ -263,7 +297,7 @@ enum class PhaseNetworkSetup : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhaseNetworkSetup) { return ClientFSM::NetworkSetup; }
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 enum class PhasesCrashRecovery : PhaseUnderlyingType {
     check_X,
     check_Y,
@@ -274,7 +308,7 @@ enum class PhasesCrashRecovery : PhaseUnderlyingType {
     axis_long,
     repeated_crash,
     home_fail, //< Homing failed, ask to retry
-    #if HAS_TOOL_CRASH_RECOVERY()
+    #if HAS_TOOL_CRASH_RECOVERY() && HAS_DWARF()
     tool_recovery, //< Toolchanger recovery, tool fell off
     _last = tool_recovery
     #else
@@ -293,6 +327,10 @@ constexpr inline ClientFSM client_fsm_from_phase(PhasesQuickPause) { return Clie
 enum class PhasesWarning : PhaseUnderlyingType {
 #if HAS_EMERGENCY_STOP()
     DoorOpen,
+#endif
+#if HAS_HT_HOTEND()
+    // Like DoorOpen: no buttons, firmware-driven dismissal.
+    HotendBurnRisk,
 #endif
     // Generic warning with a Continue button, just for dismissing it.
     Warning,
@@ -314,7 +352,7 @@ enum class PhasesWarning : PhaseUnderlyingType {
     FilamentSensorStuckHelpMMU,
 #endif
 
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
     /// Shown on failed print sheet detection. Custom handling.
     SteelSheetNotDetected,
 #endif
@@ -454,21 +492,6 @@ enum class PhasesSerialPrinting : PhaseUnderlyingType {
 constexpr inline ClientFSM client_fsm_from_phase(PhasesSerialPrinting) { return ClientFSM::Serial_printing; }
 #endif
 
-#if HAS_GEARBOX_ALIGNMENT()
-enum class PhaseGearboxAlignment : PhaseUnderlyingType {
-    intro,
-    filament_loaded_ask_unload,
-    filament_unknown_ask_unload,
-    loosen_screws,
-    alignment,
-    tighten_screws,
-    done,
-    finish,
-    _last = finish,
-};
-constexpr inline ClientFSM client_fsm_from_phase(PhaseGearboxAlignment) { return ClientFSM::GearboxAlignment; }
-#endif
-
 #if HAS_DOOR_SENSOR_CALIBRATION()
 enum class PhaseDoorSensorCalibration : PhaseUnderlyingType {
     confirm_abort,
@@ -520,6 +543,7 @@ enum class PhaseNozzleCleanerCalibration : PhaseUnderlyingType {
     lock_position_x,
     measuring_x,
     evaluating_x,
+    clean_nozzle,
     ask_position_y,
     lock_position_y,
     measuring_y,
@@ -528,13 +552,19 @@ enum class PhaseNozzleCleanerCalibration : PhaseUnderlyingType {
     _last = calibration_success,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhaseNozzleCleanerCalibration) { return ClientFSM::NozzleCleanerCalibration; }
-
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
 enum class PhaseToolOffsetsCalibration : PhaseUnderlyingType {
     intro,
+    #if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+    clean_nozzles_cold,
+    clean_nozzles_hot,
+    #else
     ensure_nozzles_clean,
+    #endif
     moving_away,
-    picking_tool,
     homing,
+    picking_tool,
     calibrating,
     calibration_success,
     calibration_failed,
@@ -625,6 +655,27 @@ inline constexpr PhaseResponses FanSelftestResponses[] = {
 static_assert(std::size(ClientResponses::FanSelftestResponses) == CountPhases<PhasesFansSelftest>());
 #endif
 
+#if HAS_HEATERS_SELFTEST_GCODE()
+inline constexpr EnumArray<PhasesHeatersSelftest, PhaseResponses, CountPhases<PhasesHeatersSelftest>()> heaters_selftest_responses {
+    #if HAS_INDX()
+    { PhasesHeatersSelftest::picking_tool, {} },
+    #endif
+        { PhasesHeatersSelftest::heating, {} },
+        { PhasesHeatersSelftest::hotend_fan_failed_dialog, { Response::Ok } },
+    #if HAS_INDX()
+        { PhasesHeatersSelftest::nozzle_failed_dialog, { Response::Ok } },
+    #endif
+    #if HAS_HEATERS_SELFTEST_BED_SHEET_RETRY()
+        { PhasesHeatersSelftest::ask_bed_sheet_after_fail, { Response::Ok, Response::Retry } },
+    #endif
+    #if HAS_HEATERS_SELFTEST_REVISE()
+        { PhasesHeatersSelftest::revise_ask_revise, { Response::Adjust, Response::Skip } },
+        { PhasesHeatersSelftest::revise_revise, { Response::Done } },
+        { PhasesHeatersSelftest::revise_ask_retry, { Response::Yes, Response::No } },
+    #endif
+};
+#endif
+
 #if HAS_ESP()
 inline constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, CountPhases<PhaseNetworkSetup>()> network_setup_responses {
     { PhaseNetworkSetup::init, {} },
@@ -653,7 +704,7 @@ inline constexpr EnumArray<PhaseNetworkSetup, PhaseResponses, CountPhases<PhaseN
 };
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
 inline constexpr PhaseResponses CrashRecoveryResponses[] = {
     {}, // check X
     {}, // check Y
@@ -664,7 +715,7 @@ inline constexpr PhaseResponses CrashRecoveryResponses[] = {
     {}, // axis long
     { Response::Resume, Response::Pause }, // repeated crash
     { Response::Retry }, // home_fail
-    #if HAS_TOOL_CRASH_RECOVERY()
+    #if HAS_TOOL_CRASH_RECOVERY() && HAS_DWARF()
     { Response::Continue }, // toolchanger recovery
     #endif
 };
@@ -680,6 +731,9 @@ inline constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarn
 #if HAS_EMERGENCY_STOP()
     { PhasesWarning::DoorOpen, {} },
 #endif
+#if HAS_HT_HOTEND()
+        { PhasesWarning::HotendBurnRisk, {} },
+#endif
         { PhasesWarning::Warning, { Response::Ok } },
 #if XL_ENCLOSURE_SUPPORT() || HAS_CHAMBER_FILTRATION_API()
         { PhasesWarning::EnclosureFilterExpiration, { Response::Ignore, Response::Postpone5Days, Response::Done } },
@@ -692,7 +746,7 @@ inline constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarn
 #if HAS_MMU2()
         { PhasesWarning::FilamentSensorStuckHelpMMU, { Response::Ok } },
 #endif
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
         { PhasesWarning::SteelSheetNotDetected, { Response::Retry, Response::Ignore, Response::Abort } },
 #endif
 #if HAS_CHAMBER_API()
@@ -798,19 +852,6 @@ inline constexpr EnumArray<PhasesInputShaperCalibration, PhaseResponses, CountPh
 };
 #endif
 
-#if HAS_GEARBOX_ALIGNMENT()
-inline constexpr EnumArray<PhaseGearboxAlignment, PhaseResponses, CountPhases<PhaseGearboxAlignment>()> gearbox_alignment_responses {
-    { PhaseGearboxAlignment::intro, { Response::Continue, Response::Skip } },
-    { PhaseGearboxAlignment::filament_loaded_ask_unload, { Response::Unload, Response::Abort } },
-    { PhaseGearboxAlignment::filament_unknown_ask_unload, { Response::Continue, Response::Unload, Response::Abort } },
-    { PhaseGearboxAlignment::loosen_screws, { Response::Continue, Response::Skip } },
-    { PhaseGearboxAlignment::alignment, {} },
-    { PhaseGearboxAlignment::tighten_screws, { Response::Continue } },
-    { PhaseGearboxAlignment::done, { Response::Continue } },
-    { PhaseGearboxAlignment::finish, {} },
-};
-#endif
-
 #if HAS_DOOR_SENSOR_CALIBRATION()
 inline constexpr EnumArray<PhaseDoorSensorCalibration, PhaseResponses, CountPhases<PhaseDoorSensorCalibration>()> door_sensor_calibration_responses {
     { PhaseDoorSensorCalibration::confirm_abort, { Response::Back, Response::Skip } },
@@ -834,7 +875,7 @@ inline constexpr EnumArray<PhaseDockCalibration, PhaseResponses, CountPhases<Pha
     { PhaseDockCalibration::intro, { Response::Continue, Response::Abort } },
     { PhaseDockCalibration::remove_tool, { Response::Abort } },
     { PhaseDockCalibration::select_dock_count, { Response::Docks4, Response::Docks8, Response::Other } },
-    { PhaseDockCalibration::select_docks, {} }, // selected docks passed through FSMResponseVariant as uint8_t bitmask
+    { PhaseDockCalibration::select_docks, {} }, // per-dock actions passed through FSMResponseVariant as a DockSelection
     { PhaseDockCalibration::homing, {} },
     { PhaseDockCalibration::moving_away, {} },
     { PhaseDockCalibration::parking_tool, {} },
@@ -857,23 +898,30 @@ inline constexpr EnumArray<PhaseNozzleCleanerCalibration, PhaseResponses, CountP
     { PhaseNozzleCleanerCalibration::ask_position_x, { Response::Continue, Response::Abort } },
     { PhaseNozzleCleanerCalibration::lock_position_x, { Response::Continue, Response::Back, Response::Abort } },
     { PhaseNozzleCleanerCalibration::measuring_x, {} },
-    { PhaseNozzleCleanerCalibration::evaluating_x, { Response::Retry, Response::Abort } },
+    { PhaseNozzleCleanerCalibration::evaluating_x, { Response::Yes, Response::Retry, Response::Abort } },
+    { PhaseNozzleCleanerCalibration::clean_nozzle, { Response::Retry, Response::Abort } },
     { PhaseNozzleCleanerCalibration::ask_position_y, { Response::Continue, Response::Abort } },
     { PhaseNozzleCleanerCalibration::lock_position_y, { Response::Continue, Response::Back, Response::Abort } },
     { PhaseNozzleCleanerCalibration::measuring_y, {} },
-    { PhaseNozzleCleanerCalibration::evaluating_y, { Response::Retry, Response::Abort } },
+    { PhaseNozzleCleanerCalibration::evaluating_y, { Response::Yes, Response::Retry, Response::Abort } },
     { PhaseNozzleCleanerCalibration::calibration_success, { Response::Continue } },
 };
-
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
 inline constexpr EnumArray<PhaseToolOffsetsCalibration, PhaseResponses, CountPhases<PhaseToolOffsetsCalibration>()> tool_offsets_calibration_responses {
     { PhaseToolOffsetsCalibration::intro, { Response::Continue, Response::Abort } },
-    { PhaseToolOffsetsCalibration::ensure_nozzles_clean, { Response::Continue, Response::Abort } },
-    { PhaseToolOffsetsCalibration::moving_away, {} },
-    { PhaseToolOffsetsCalibration::picking_tool, {} },
-    { PhaseToolOffsetsCalibration::homing, {} },
-    { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
-    { PhaseToolOffsetsCalibration::calibration_success, { Response::Continue } },
-    { PhaseToolOffsetsCalibration::calibration_failed, { Response::Continue } },
+    #if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
+        { PhaseToolOffsetsCalibration::clean_nozzles_cold, { Response::Heatup, Response::Continue, Response::Abort } },
+        { PhaseToolOffsetsCalibration::clean_nozzles_hot, { Response::Cooldown, Response::Continue, Response::Abort } },
+    #else
+        { PhaseToolOffsetsCalibration::ensure_nozzles_clean, { Response::Continue, Response::Abort } },
+    #endif
+        { PhaseToolOffsetsCalibration::moving_away, {} },
+        { PhaseToolOffsetsCalibration::homing, {} },
+        { PhaseToolOffsetsCalibration::picking_tool, {} },
+        { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
+        { PhaseToolOffsetsCalibration::calibration_success, { Response::Continue } },
+        { PhaseToolOffsetsCalibration::calibration_failed, { Response::Continue } },
 };
 #endif
 

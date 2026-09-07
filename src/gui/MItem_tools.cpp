@@ -12,6 +12,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "bsod.h"
+#include <buddy/filename_defs.hpp>
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include "liveadjust_z.hpp"
 #include <feature/filament_sensor/filament_sensor.hpp>
@@ -23,7 +24,6 @@
 #include "time_tools.hpp"
 #include "footer_eeprom.hpp"
 #include <version/version.hpp>
-#include <common/sys.hpp>
 #include <bootloader/bootloader.hpp>
 #include "config_features.h"
 #include <config_store/store_instance.hpp>
@@ -33,6 +33,7 @@
 #include <option/bootloader.h>
 #include <option/filament_sensor.h>
 #include <option/has_indx.h>
+#include <option/has_power_panic.h>
 #include <option/has_side_leds.h>
 #include <option/has_coldpull.h>
 #include <option/has_auto_retract.h>
@@ -53,6 +54,7 @@
 #include <logging/log_dest_file.hpp>
 #include <numeric_input_config_common.hpp>
 #include <option/has_mmu2.h>
+#include <gui/menu_item/menu_item_utils.hpp>
 
 #include <type_traits>
 
@@ -78,29 +80,13 @@
     #include <connect/marlin_printer.hpp>
 #endif
 
-#include <option/has_xbuddy_extension.h>
-#if HAS_XBUDDY_EXTENSION()
-    #include <puppies/xbuddy_extension.hpp>
-#endif
-
-#ifdef HAS_TMC_WAVETABLE
-    #include <feature/tmc_util.h>
-#endif
-
 #include <option/has_e2ee_support.h>
 #if HAS_E2EE_SUPPORT()
     #include <e2ee/e2ee.hpp>
 #endif // HAS_E2EE_SUPPORT()
 
 namespace {
-void MsgBoxNonBlockInfo(const string_view_utf8 &txt) {
-    constexpr static const char *title = N_("Information");
-    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
-    gui::TickLoop();
-    gui_loop();
-}
 
-constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
 constexpr const char *printer_busy_text = N_("Printer is busy. Please try repeating the action later.");
 
 } // namespace
@@ -241,9 +227,15 @@ void MI_NOZZLE_CLEANER_EMPTY_WASTEBIN::click(IWindowMenu & /*window_menu*/) {
 }
 
 void MI_NOZZLE_CLEANER_EMPTY_WASTEBIN::Loop() {
-    // Disabled only during the start gcodes (homing / MBL / tool-offset), where parking would
-    // interfere - i.e. while printing before the first layer. Allowed when idle and once printing.
-    set_enabled(!marlin_client::is_printing() || marlin_vars().max_printed_z > 0);
+    loop_gcode_inject_menu_item(*this,
+        {
+            .update_enabled = true,
+            .update_icon = true,
+
+            // Disabled only during the start gcodes (homing / MBL / tool-offset), where parking would
+            // interfere - i.e. while printing before the first layer. Allowed when idle and once printing.
+            .enabled = !marlin_client::is_printing() || marlin_vars().max_printed_z > 0,
+        });
 }
 
 MI_NOZZLE_CLEANER_AUTOPAUSE::MI_NOZZLE_CLEANER_AUTOPAUSE()
@@ -258,8 +250,8 @@ static constexpr const char *nozzle_cleaner_capacity_items[] = {
     N_("Extended"),
 };
 
-// The nozzle cleaner Y calibration auto-detects the installed bin variant and sets the capacity; this
-// switch is the manual override.
+// The nozzle cleaner Y manual-calibration fallback auto-detects the bin variant and sets the capacity;
+// this switch is the manual override.
 MI_NOZZLE_CLEANER_CAPACITY::MI_NOZZLE_CLEANER_CAPACITY()
     : MenuItemSwitch(_(label), nozzle_cleaner_capacity_items, static_cast<size_t>(config_store().nozzle_cleaner_extended_capacity.get())) {}
 
@@ -277,6 +269,31 @@ MI_NOZZLE_CLEANER_FILL::MI_NOZZLE_CLEANER_FILL()
         },
         [](auto) { return WastebinWatcher::instance().fill_level(); }) {}
 
+#endif
+
+#if HAS_INDX()
+// Range matches the calibration tolerance (offset_tolerance_mm)
+static constexpr NumericInputConfig nozzle_cleaner_offset_spin_config = {
+    .min_value = -3,
+    .max_value = 3,
+    .step = 0.05f,
+    .max_decimal_places = 2,
+    .unit = Unit::millimeter,
+};
+
+MI_NOZZLE_CLEANER_X_OFFSET::MI_NOZZLE_CLEANER_X_OFFSET()
+    : WiSpin(config_store().nozzle_cleaner_x_origin_offset.get(), nozzle_cleaner_offset_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_NOZZLE_CLEANER_X_OFFSET::OnClick() {
+    config_store().nozzle_cleaner_x_origin_offset.set(value());
+}
+
+MI_NOZZLE_CLEANER_Y_OFFSET::MI_NOZZLE_CLEANER_Y_OFFSET()
+    : WiSpin(config_store().nozzle_cleaner_y_origin_offset.get(), nozzle_cleaner_offset_spin_config, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_NOZZLE_CLEANER_Y_OFFSET::OnClick() {
+    config_store().nozzle_cleaner_y_origin_offset.set(value());
+}
 #endif
 
 /*****************************************************************************/
@@ -297,12 +314,13 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-// MI_DISABLE_STEP
-MI_DISABLE_STEP::MI_DISABLE_STEP()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+// MI_DISABLE_MOTORS
+MI_DISABLE_MOTORS::MI_DISABLE_MOTORS()
+    : IWindowMenuItem {
+        _("Disable Motors"),
+    } {}
 
-void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
+void MI_DISABLE_MOTORS::click(IWindowMenu & /*window_menu*/) {
 #if (PRINTER_IS_PRUSA_MK4() || PRINTER_IS_PRUSA_XL() || PRINTER_IS_PRUSA_MK3_5())
     marlin_client::gcode("M18 X Y E");
 #else
@@ -311,62 +329,27 @@ void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-// MI_ENTER_DFU
-#ifdef BUDDY_ENABLE_DFU_ENTRY
-// #error dead code found by automatic analyses (see BFW-5461)
-MI_ENTER_DFU::MI_ENTER_DFU()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_ENTER_DFU::click(IWindowMenu &) {
-    sys_dfu_request_and_reset();
-}
-#endif
-
-/*****************************************************************************/
 // MI_SAVE_DUMP
 MI_SAVE_DUMP::MI_SAVE_DUMP()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
-    MsgBoxNonBlockInfo(_("A crash dump is being saved."));
     if (!crash_dump::dump_is_valid()) {
         MsgBoxInfo(_("No crash dump to save."), Responses_Ok);
-    } else if (crash_dump::save_dump_to_usb("/usb/dump.bin")) {
+        return;
+    }
+
+    bool save_result = false;
+    window_dlg_wait_t::wait_until(_("A crash dump is being saved."), [&] {
+        save_result = crash_dump::save_dump_to_usb("/usb/dump.bin");
+        return true;
+    });
+
+    if (save_result) {
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     } else {
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
-    }
-}
-
-/*****************************************************************************/
-// MI_XFLASH_RESET
-MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
-    crash_dump::dump_reset();
-}
-
-/*****************************************************************************/
-// MI_DRYRUN
-MI_DRYRUN::MI_DRYRUN()
-    : WI_ICON_SWITCH_OFF_ON_t((marlin_debug_flags & MARLIN_DEBUG_DRYRUN) ? 1 : 0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_DRYRUN::OnChange(size_t) {
-    // marlin_debug_flags should be accessed only from the marlin thread.
-    // Ideally the M111 should be expanded for setting/resetting individual bits, but:
-    // * this menu item is dev-only
-    // * there's not much this can screw up
-    // * this is actually safer, because the read and write is close together (when issuing M111 with all flags override, there's more change of a race condition)
-
-    if (value()) {
-        marlin_debug_flags |= MARLIN_DEBUG_DRYRUN;
-    } else {
-        marlin_debug_flags &= ~MARLIN_DEBUG_DRYRUN;
     }
 }
 
@@ -514,18 +497,6 @@ void MI_FAN_CHECK::OnChange(size_t old_index) {
     config_store().fan_check_enabled.set(static_cast<bool>(marlin_vars().fan_check_enabled));
 }
 
-MI_INFO_FW::MI_INFO_FW()
-    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-MI_INFO_BOOTLOADER::MI_INFO_BOOTLOADER()
-    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-MI_INFO_MMU::MI_INFO_MMU()
-    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes) {
-}
-
 /*****************************************************************************/
 // MI_FS_AUTOLOAD
 static is_hidden_t get_autoload_hide_state() {
@@ -609,6 +580,7 @@ MI_INFO_FILAMENT_SENSOR::Value MI_INFO_FILAMENT_SENSOR::get_value(IFSensor *fsen
     };
 }
 
+#if HAS_EXTRUDER_FSENSOR()
 /*****************************************************************************/
 // MI_INFO_EXTRUDER_FILAMENT_SENSOR
 MI_INFO_EXTRUDER_FILAMENT_SENSOR::MI_INFO_EXTRUDER_FILAMENT_SENSOR(std::variant<PhysicalToolIndex, CurrentlySelectedTool> tool)
@@ -620,11 +592,11 @@ MI_INFO_EXTRUDER_FILAMENT_SENSOR::MI_INFO_EXTRUDER_FILAMENT_SENSOR(std::variant<
         tool_,
         [&](PhysicalToolIndex t) { return t.display_name(label_params_); },
         [](CurrentlySelectedTool) {
-#if PRINTER_IS_PRUSA_XL()
-            return _("Tool Filament sensor");
-#else
+    #if PRINTER_IS_PRUSA_XL()
+            return _("Tool Filament Sensor");
+    #else
             return _("Filament Sensor");
-#endif
+    #endif
         }));
 }
 
@@ -635,6 +607,7 @@ std::optional<FilamentSensorStateAndValue> MI_INFO_EXTRUDER_FILAMENT_SENSOR::val
     }
     return get_value(GetExtruderFSensor(*tool));
 }
+#endif // HAS_EXTRUDER_FSENSOR()
 
 /*****************************************************************************/
 // MI_INFO_SIDE_FILAMENT_SENSOR
@@ -646,7 +619,7 @@ MI_INFO_SIDE_FILAMENT_SENSOR::MI_INFO_SIDE_FILAMENT_SENSOR(std::variant<Physical
     SetLabel(match(
         tool_,
         [&](PhysicalToolIndex t) { return t.display_name(label_params_); },
-        [](CurrentlySelectedTool) { return _("Side Filament sensor"); }));
+        [](CurrentlySelectedTool) { return _("Side Filament Sensor"); }));
 }
 
 std::optional<FilamentSensorStateAndValue> MI_INFO_SIDE_FILAMENT_SENSOR::value() const {
@@ -745,18 +718,6 @@ MI_INFO_INDX_PARK_FAIL::MI_INFO_INDX_PARK_FAIL()
     : MenuItemAutoUpdatingLabel(
         _("Park Fails"), "%u",
         [](auto) { return prusa_toolchanger.get_park_fail_count(); }) {}
-MI_INFO_INDX_FIFO_ERR::MI_INFO_INDX_FIFO_ERR()
-    : MenuItemAutoUpdatingLabel(
-        _("INDX FIFO Err"), "%u",
-        [](auto) { return buddy::puppies::indx.fifo_error_count.load(); }) {}
-MI_INFO_INDX_REFRESH_ERR::MI_INFO_INDX_REFRESH_ERR()
-    : MenuItemAutoUpdatingLabel(
-        _("INDX Refresh Err"), "%u",
-        [](auto) { return buddy::puppies::indx.refresh_error_count.load(); }) {}
-MI_INFO_XEXT_REFRESH_ERR::MI_INFO_XEXT_REFRESH_ERR()
-    : MenuItemAutoUpdatingLabel(
-        _("XBE Refresh Err"), "%u",
-        [](auto) { return buddy::puppies::xbuddy_extension.refresh_error_count.load(); }) {}
 #endif
 
 MI_FOOTER_RESET::MI_FOOTER_RESET()
@@ -826,16 +787,6 @@ MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
 void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
     config_store().devhash_in_qr.set(!old_index);
 }
-
-#ifdef HAS_TMC_WAVETABLE
-MI_WAVETABLE_XYZ::MI_WAVETABLE_XYZ()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().tmc_wavetable_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
-void MI_WAVETABLE_XYZ::OnChange(size_t old_index) {
-    /// enable
-    old_index ? tmc_disable_wavetable(true, true, true) : tmc_enable_wavetable(true, true, true);
-    config_store().tmc_wavetable_enabled.set(!old_index);
-}
-#endif
 
 /**********************************************************************************************/
 // MI_LOAD_SETTINGS
@@ -946,19 +897,14 @@ void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
     for (auto tool : PhysicalToolIndex::all()) {
         prusa_toolchanger.getTool(tool).set_cheese_led(!old_index ? 0xff : 0x00, 0x00);
     }
-    #elif HAS_INDX()
-    if (!old_index) {
-        buddy::puppies::indx.set_leds_color(COLOR_ORANGE, indx_head::leds::Mode::solid);
-    } else {
-        buddy::puppies::indx.set_leds_color(COLOR_BLACK, indx_head::leds::Mode::off);
-    }
     #endif
+    // On INDX the head LEDs follow this via indx_head_leds::update() on its next tick.
     config_store().tool_leds_enabled.set(!old_index);
 }
 #endif
 
 /*****************************************************************************/
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
 MI_TRIGGER_POWER_PANIC::MI_TRIGGER_POWER_PANIC()
     : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::no) {
 }
@@ -1024,11 +970,11 @@ void MI_LOG_TO_TXT::OnChange(size_t) {
     static constexpr const char *location = "/usb/";
     static constexpr const char *filename = "log.txt";
 
-    ArrayStringBuilder<FILE_PATH_BUFFER_LEN> filepath;
+    ArrayStringBuilder<filename_defs::path_buffer_size> filepath;
     filepath.append_string(location);
     filepath.append_string(filename);
 
-    StringViewUtf8Parameters<FILE_NAME_BUFFER_LEN> fmt_buf;
+    StringViewUtf8Parameters<filename_defs::filename_buffer_size> fmt_buf;
 
     if (!logging::file_log_enable(filepath.str())) {
         MsgBoxError(_("Failed to open file '%s' for writing.").formatted(fmt_buf, filename), Responses_Ok);

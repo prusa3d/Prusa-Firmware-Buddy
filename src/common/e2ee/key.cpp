@@ -13,7 +13,7 @@
 #include <mbedtls/ctr_drbg.h>
 #include <memory>
 #include <cstring>
-#include <cassert>
+#include <bsod/bsod.h>
 
 using std::unique_ptr;
 
@@ -60,7 +60,7 @@ bool save_identity_key_impl(const e2ee::IdentityInfo &info, const char *folder) 
 
     // check if it already exists
     if (file_exists(file_path)) {
-        assert(false);
+        debug_assert(false);
         return false;
     }
 
@@ -209,7 +209,7 @@ bool export_key() {
 }
 
 void get_key_hash_string(char *out, [[maybe_unused]] size_t size, e2ee::Pk *pk) {
-    assert(size >= e2ee::KEY_HASH_STR_BUFFER_LEN);
+    debug_assert(size >= e2ee::KEY_HASH_STR_BUFFER_LEN);
     uint8_t key_hash[e2ee::HASH_SIZE];
     std::array<uint8_t, e2ee::PUBLIC_KEY_BUFFER_SIZE> buffer;
     int ret = mbedtls_pk_write_pubkey_der(&pk->pk, buffer.data(), e2ee::PUBLIC_KEY_BUFFER_SIZE);
@@ -232,7 +232,7 @@ void remove_trusted_identity(const IdentityInfo &info) {
     char file_path[IDENTITY_PATH_LEN];
     strlcpy(file_path, identities_folder, IDENTITY_PATH_LEN);
     strlcat(file_path, info.key_hash_str.data(), IDENTITY_PATH_LEN);
-    assert(file_exists(file_path));
+    debug_assert(file_exists(file_path));
     remove(file_path);
 }
 

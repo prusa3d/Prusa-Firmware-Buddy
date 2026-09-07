@@ -16,9 +16,9 @@
 #include "marlin_client.hpp"
 
 #include <lfn.h>
+#include <buddy/filename_defs.hpp>
 #include <state/printer_state.hpp>
 
-#include <cassert>
 #include <ctime>
 #include <cstring>
 #include <cstdio>
@@ -26,6 +26,7 @@
 
 #include <lwip/netif.h>
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 #define USB_MOUNT_POINT        "/usb/"
 #define USB_MOUNT_POINT_LENGTH 5
@@ -142,9 +143,9 @@ uint32_t load_ini_file_wifi(netif_config_t *config, ap_entry_t *ap) {
 
 void save_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap, uint32_t netdev_id) {
 #if HAS_ESP()
-    assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
+    debug_assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
 #else
-    assert(netdev_id == NETDEV_ETH_ID);
+    debug_assert(netdev_id == NETDEV_ETH_ID);
 #endif
 
     auto &store = config_store();
@@ -180,7 +181,7 @@ void save_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap,
 
 #if HAS_ESP()
     if (ap != NULL) {
-        assert(netdev_id == NETDEV_ESP_ID);
+        debug_assert(netdev_id == NETDEV_ESP_ID);
         static_assert(SSID_MAX_LEN == config_store_ns::wifi_max_ssid_len);
         static_assert(WIFI_PSK_MAX == config_store_ns::wifi_max_passwd_len);
 
@@ -196,9 +197,9 @@ void save_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap,
 
 void load_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap, uint32_t netdev_id) {
 #if HAS_ESP()
-    assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
+    debug_assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
 #else
-    assert(netdev_id == NETDEV_ETH_ID);
+    debug_assert(netdev_id == NETDEV_ETH_ID);
 #endif
 
     auto &store = config_store();
@@ -224,7 +225,7 @@ void load_net_params(netif_config_t *ethconfig, [[maybe_unused]] ap_entry_t *ap,
 
 #if HAS_ESP()
     if (ap != NULL) {
-        assert(netdev_id == NETDEV_ESP_ID);
+        debug_assert(netdev_id == NETDEV_ESP_ID);
 
         strlcpy(ap->ssid, store.wifi_ap_ssid.get_c_str(), SSID_MAX_LEN + 1);
         strlcpy(ap->pass, store.wifi_ap_password.get_c_str(), WIFI_PSK_MAX + 1);
@@ -287,7 +288,7 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
 
     if (autostart_if_able) {
         if (printer_can_print) {
-            print_begin(filename, marlin_server::PreviewSkipIfAble::all);
+            marlin_client::print_start(filename, marlin_server::PreviewSkipIfAble::all);
             return marlin_client::is_print_started() ? StartPrintResult::PrintStarted : StartPrintResult::Failed;
         } else {
             return StartPrintResult::Failed;
@@ -297,7 +298,7 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
         // marlin. If it couldn't print/initialte the preview, it would just do
         // nothing anyway.
         if (printer_can_print) {
-            print_begin(filename);
+            marlin_client::print_start(filename);
         }
         // We were not asked to print. Showing the preview is "best effort",
         // but not reported to the user.
@@ -317,7 +318,7 @@ bool wui_is_file_being_printed(const char *filename) {
         return false;
     }
 
-    char sfn[FILE_PATH_BUFFER_LEN];
+    char sfn[filename_defs::path_buffer_size];
     strlcpy(sfn, filename, sizeof(sfn));
     get_SFN_path(sfn);
     return marlin_vars().media_SFN_path.equals(sfn);

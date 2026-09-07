@@ -19,6 +19,7 @@
 
 #include "constants.hpp"
 
+#include <option/has_crash_detection.h>
 #include <option/has_hotend_type_support.h>
 #if HAS_HOTEND_TYPE_SUPPORT()
     #include <hotend_type.hpp>
@@ -106,31 +107,31 @@ namespace defaults {
     };
 
     inline constexpr int16_t crash_sens[2] =
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
         CRASH_STALL_GUARD;
 #else
         { 0, 0 };
-#endif // ENABLED(CRASH_RECOVERY)
+#endif
 
     inline constexpr int16_t crash_sens_x { crash_sens[0] };
     inline constexpr int16_t crash_sens_y { crash_sens[1] };
 
     static constexpr uint16_t crash_max_period[2] =
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
         CRASH_MAX_PERIOD;
 #else
         { 0, 0 };
-#endif // ENABLED(CRASH_RECOVERY)
+#endif
 
     inline constexpr uint16_t crash_max_period_x { crash_max_period[0] };
     inline constexpr uint16_t crash_max_period_y { crash_max_period[1] };
 
     inline constexpr bool crash_filter {
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
         CRASH_FILTER
 #else
         false
-#endif // ENABLED(CRASH_RECOVERY)
+#endif
     };
 
     inline constexpr time_tools::TimeFormat time_format { time_tools::TimeFormat::_24h };
@@ -173,6 +174,7 @@ namespace defaults {
 
 #if HAS_TOOL_OFFSET_SENSOR()
     inline constexpr xy_pos_t tool_offset_sensor_position = tool_offset::default_sensor_position;
+    inline constexpr xy_pos_t tool_offset_sensor_displacement = { { { 0.f, 0.f } } };
 #endif
 
     inline constexpr float nozzle_diameter {
@@ -221,15 +223,8 @@ namespace defaults {
     inline constexpr Sheet sheet_6 { "Custom3", z_offset_uncalibrated };
     inline constexpr Sheet sheet_7 { "Custom4", z_offset_uncalibrated };
 
-    inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
-    inline constexpr float axis_steps_per_unit_x { default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f) };
-    inline constexpr float axis_steps_per_unit_y { default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f) };
-    inline constexpr float axis_steps_per_unit_z { default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f) };
-    inline constexpr float axis_steps_per_unit_e0 { default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f) };
-    inline constexpr uint16_t axis_microsteps_Z_ { Z_MICROSTEPS };
-    inline constexpr uint16_t axis_microsteps_E0_ { E0_MICROSTEPS };
-    inline constexpr uint16_t axis_rms_current_ma_Z_ { Z_CURRENT };
-    inline constexpr uint16_t axis_rms_current_ma_E0_ { E0_CURRENT };
+    inline constexpr float axis_steps_per_unit_z { DEFAULT_AXIS_STEPS_PER_UNIT_Z * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f) };
+    inline constexpr float axis_steps_per_unit_e0 { DEFAULT_AXIS_STEPS_PER_UNIT_E0 * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f) };
     inline constexpr float axis_z_max_pos_mm {
 #ifdef DEFAULT_Z_MAX_POS
         DEFAULT_Z_MAX_POS
@@ -240,8 +235,8 @@ namespace defaults {
 
     inline constexpr int16_t homing_sens_x { stallguard_sensitivity_unset };
     inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
-
 #if HAS_HOTEND_TYPE_SUPPORT()
+
     inline constexpr HotendType hotend_type {
     #if PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
         HotendType::stock_with_sock
@@ -275,7 +270,7 @@ namespace defaults {
                 .nozzle_temperature = 215,
                 .nozzle_preheat_temperature = 170,
                 .heatbed_temperature = 0,
-#if HAS_CHAMBER_API()
+#if HAS_CHAMBER_FILTRATION_API()
                 .requires_filtration = false,
 #endif
             };

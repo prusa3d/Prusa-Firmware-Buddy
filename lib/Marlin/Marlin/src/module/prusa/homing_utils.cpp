@@ -16,14 +16,14 @@ static workspace_xyz_t disable_workspace(bool do_x, bool do_y, bool do_z) {
 
     LOOP_XYZ(axis) {
         if (!((do_x && axis == X_AXIS) || (do_y && axis == Y_AXIS) || (do_z && axis == Z_AXIS))) {
-            res.position_shift.pos[axis] = NAN;
-            res.home_offset.pos[axis] = NAN;
+            res.position_shift[axis] = NAN;
+            res.home_offset[axis] = NAN;
             continue;
         }
 
-        res.position_shift.pos[axis] = position_shift.pos[axis];
-        position_shift.pos[axis] = 0;
-        res.home_offset.pos[axis] = home_offset.pos[axis];
+        res.position_shift[axis] = position_shift[axis];
+        position_shift[axis] = 0;
+        res.home_offset[axis] = home_offset[axis];
         set_home_offset(AxisEnum(axis), 0); //< updates workspace
         changed = true;
     }
@@ -111,9 +111,9 @@ el_current_xyz_t reset_current_if(bool condition) {
         return curr;
     }
 
-    stepperX.rms_current(get_default_rms_current_ma_x());
-    stepperY.rms_current(get_default_rms_current_ma_y());
-    stepperZ.rms_current(get_default_rms_current_ma_z());
+    stepperX.rms_current(get_rms_current_ma_x());
+    stepperY.rms_current(get_rms_current_ma_y());
+    stepperZ.rms_current(get_rms_current_ma_z());
     return curr;
 }
 

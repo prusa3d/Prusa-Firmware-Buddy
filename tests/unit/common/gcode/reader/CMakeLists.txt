@@ -20,7 +20,6 @@ add_library(
   ${CMAKE_SOURCE_DIR}/src/common/crash_dump/secret.cpp
   ${CMAKE_SOURCE_DIR}/lib/heatshrink/heatshrink_decoder.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/async_job/async_job.cpp
-  ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   missing_functions.c
   )
 target_include_directories(

@@ -12,6 +12,7 @@
 #include <buddy/priorities_config.h>
 #include "metric_handlers.h"
 #include <printers.h>
+#include <bsod/bsod.h>
 
 static_assert(sizeof(metric_t) == 12);
 
@@ -71,7 +72,7 @@ metric_t *metric_get_iterator_end() {
 static void metric_system_task_run(const void *) {
     for (;;) {
         osEvent event = osMailGet(metric_system_queue, osWaitForever);
-        assert(event.status == osEventMail);
+        debug_assert(event.status == osEventMail);
         metric_point_t *point = (metric_point_t *)event.value.p;
         if (are_metrics_enabled()) {
             metric_handler(point);

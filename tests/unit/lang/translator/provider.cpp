@@ -2,8 +2,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "provider.h"
 #include "translation_provider_FILE.hpp"
-#include "fnt-indices.hpp"
 #include <iostream>
+#include <font_data/font_data.hpp>
 #include <fstream>
 #include <stdio.h>
 
@@ -15,7 +15,9 @@ bool CompareStringViews(string_view_utf8 s, string_view_utf8 s2, const char *lan
     while ((c = r.getUtf8Char()) != 0) {
         i++;
         if (c > 128) {
-            if (!NonASCIICharKnown(c)) {
+            // any "full" font works here
+            const auto &probe = font_data::regular_9x16_full;
+            if (!probe.contains(c)) {
                 // this string wants a new non-ascii character - force fail the whole test immediately
                 // When this happens, one must either add the character into unaccent.cpp, if the character is meaningfull
                 // Or kick the translator person to stop copying BS formatting characters from MS Word into Phraseapp

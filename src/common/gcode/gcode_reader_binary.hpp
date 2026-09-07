@@ -7,6 +7,7 @@
 #include "gcode_reader_interface.hpp"
 #include "meatpack.h"
 #include <optional>
+#include <utils/byte_utils.hpp>
 extern "C" {
 #include "heatshrink_decoder.h"
 }
@@ -196,7 +197,7 @@ private:
         FILE *file = nullptr;
         size_t size = 0;
 
-        std::span<std::byte> read(std::span<std::byte>) final;
+        WritableBytes read(WritableBytes) final;
     };
     ThumbnailReader thumbnail_reader;
 

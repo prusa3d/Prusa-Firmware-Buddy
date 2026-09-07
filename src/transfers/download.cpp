@@ -21,6 +21,7 @@
 #include <lwip/altcp_tcp.h>
 #include <lwip/dns.h>
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 using automata::ExecutionControl;
 using http::ContentEncryptionMode;
@@ -187,9 +188,9 @@ public:
         if (timed_out()) {
             return ERR_ABRT;
         }
-        assert(holds_alternative<Request>(phase_payload));
+        debug_assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
-        assert(conn != nullptr);
+        debug_assert(conn != nullptr);
 
         char range[6 /* bytes = */ + 2 * 10 /* 2^32 in text */ + 1 /* - */ + 1 /* \0 */];
         if (request.end_range.has_value()) {
@@ -227,8 +228,8 @@ public:
     }
 
     err_t received_resp(unique_ptr<pbuf, PbufDeleter> data, size_t position) {
-        assert(phase == Phase::Headers);
-        assert(holds_alternative<ResponseParser>(phase_payload));
+        debug_assert(phase == Phase::Headers);
+        debug_assert(holds_alternative<ResponseParser>(phase_payload));
         auto &resp = get<ResponseParser>(phase_payload);
 
         auto status = static_cast<Status>(resp.status_code);
@@ -259,7 +260,7 @@ public:
         phase_payload.emplace<Splice>(this, len);
         phase = Phase::Body;
 #ifdef UNITTESTS
-        assert(0); // Unimplemented here, see the note about dependency hell
+        debug_assert(0); // Unimplemented here, see the note about dependency hell
 #else
         tcp_pcb *c = conn;
         conn = nullptr;
@@ -285,7 +286,7 @@ public:
             return ERR_ABRT;
         }
 
-        assert(holds_alternative<ResponseParser>(phase_payload));
+        debug_assert(holds_alternative<ResponseParser>(phase_payload));
         auto &parser = get<ResponseParser>(phase_payload);
 
         size_t position = 0;
@@ -337,7 +338,7 @@ public:
 
     void create_connection() {
         phase = Phase::Connecting;
-        assert(holds_alternative<Request>(phase_payload));
+        debug_assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
 #ifndef UNITTESTS
         // Hack to make it compile during tests. Not actually executed.
@@ -368,7 +369,7 @@ public:
             return;
         }
         if (ip != nullptr) {
-            assert(holds_alternative<Request>(phase_payload));
+            debug_assert(holds_alternative<Request>(phase_payload));
             get<Request>(phase_payload).ip = *ip;
             create_connection();
         } else {
@@ -383,7 +384,7 @@ public:
     // Start it inside the tcpip thread.
     void start() {
         request_started = ticks_ms();
-        assert(holds_alternative<Request>(phase_payload));
+        debug_assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
         phase = Phase::Dns;
         const auto proxy_host = config_store().connect_proxy_host.get();
@@ -427,7 +428,7 @@ private:
         case Phase::AbortRequested:
             // Already requested abort once.
             // (We can't really request abort more than once)
-            assert(0);
+            debug_assert(0);
             break;
         case Phase::Done:
             // Something already gave up previously. We are allowed to just delete and be done with it.
@@ -464,10 +465,10 @@ void Download::Request::set_transfer_id(TransferId id) {
 
 Download::Download(const Request &request, PartialFile::Ptr destination, uint32_t start_range, optional<uint32_t> end_range) {
     if (const auto *encrypted = get_if<Request::Encrypted>(&request.data); encrypted) {
-        assert(encrypted->encryption);
+        debug_assert(encrypted->encryption);
         size_t file_size = encrypted->encryption->orig_size;
         auto decryptor = make_unique<Decryptor>(encrypted->encryption->key, encrypted->encryption->nonce, start_range, file_size - start_range);
-        assert(destination);
+        debug_assert(destination);
 
         destination->seek(start_range);
         AsyncPtr async(new Async(encrypted->host, encrypted->port, encrypted->url_path, move(destination), move(decryptor), start_range, end_range));

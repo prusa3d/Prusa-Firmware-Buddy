@@ -112,6 +112,13 @@ TEST_CASE("printer_model::compatibilities") {
     CHECK(!compatibility(PrinterModel::coreone_oak, PrinterModel::mk3_5).is_compatible);
     CHECK(!compatibility(PrinterModel::mk4, PrinterModel::coreone_oak).is_compatible);
 
+    // XLS compatibility tests
+    CHECK(compatibility(PrinterModel::xls, PrinterModel::xls) == fully_compatible);
+    CHECK(compatibility(PrinterModel::xls, PrinterModel::xl) == Compatibility { .is_compatible = true, .xl_compatibility_mode = true });
+    CHECK(!compatibility(PrinterModel::xl, PrinterModel::xls).is_compatible);
+    CHECK(!compatibility(PrinterModel::xls, PrinterModel::mk4).is_compatible);
+    CHECK(!compatibility(PrinterModel::xls, PrinterModel::ix).is_compatible);
+
     // When increasing this number also add proper tests above
-    static_assert(std::to_underlying(PrinterModel::_cnt) == 17);
+    static_assert(std::to_underlying(PrinterModel::_cnt) == 18);
 }

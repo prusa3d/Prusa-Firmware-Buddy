@@ -1,14 +1,14 @@
 /// @file
 #include "hal_mmu.hpp"
 
-#include "hal_gpio_expander.hpp"
 #include <freertos/binary_semaphore.hpp>
 #include <freertos/stream_buffer.hpp>
 #include <stm32h5xx_hal.h>
+#include <utils/byte_utils.hpp>
 
 static UART_HandleTypeDef huart;
 static std::byte rx_byte;
-static std::span<const std::byte> rx_byte_span { &rx_byte, 1 };
+static Bytes rx_byte_span { &rx_byte, 1 };
 static freertos::StreamBuffer<32> rx_buffer;
 static freertos::BinarySemaphore tx_semaphore;
 
@@ -43,21 +43,8 @@ static void uart_init() {
     HAL_UARTEx_ReceiveToIdle_IT(&huart, (uint8_t *)&rx_byte, 1);
 }
 
-static void nreset_pin_init() {
-    GPIO_InitTypeDef GPIO_InitStruct;
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    GPIO_InitStruct.Pin = GPIO_PIN_13;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = 0;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-}
-
 void hal::mmu::init() {
     uart_init();
-    nreset_pin_init();
-    hal::mmu::nreset_pin_set(false);
 }
 
 void hal::mmu::msp_init(void *handle) {
@@ -106,12 +93,12 @@ void hal::mmu::tx_callback(void *handle) {
     }
 }
 
-void hal::mmu::transmit(std::span<const std::byte> payload) {
+void hal::mmu::transmit(Bytes payload) {
     HAL_UART_Transmit_IT(&huart, (const uint8_t *)payload.data(), payload.size());
     tx_semaphore.acquire();
 }
 
-std::span<std::byte> hal::mmu::receive(std::span<std::byte> buffer) {
+WritableBytes hal::mmu::receive(WritableBytes buffer) {
     return rx_buffer.receive(buffer);
 }
 
@@ -119,20 +106,4 @@ void hal::mmu::flush() {
     std::byte buf[8];
     while (!receive(buf).empty()) {
     }
-}
-
-void hal::mmu::power_pin_set(bool b) {
-    hal::gpio_expander::write(hal::gpio_expander::Pin::mmu_power, b);
-}
-
-void hal::mmu::nreset_pin_set(bool b) {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, b ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
-bool hal::mmu::power_pin_get() {
-    return hal::gpio_expander::read(hal::gpio_expander::Pin::mmu_power);
-}
-
-bool hal::mmu::nreset_pin_get() {
-    return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET;
 }

@@ -15,7 +15,6 @@
 class StubGcodeProviderBase;
 
 static constexpr size_t MAX_CMD_SIZE = 96;
-static constexpr size_t FILE_PATH_BUFFER_LEN = 64;
 
 struct GCodeReaderStreamRestoreInfo {
 public:

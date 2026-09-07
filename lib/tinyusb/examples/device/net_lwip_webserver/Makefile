@@ -1,16 +1,13 @@
-DEPS_SUBMODULES += lib/lwip
-
-include ../../make.mk
+include ../../../hw/bsp/family_support.mk
 
 # suppress warning caused by lwip
-CFLAGS_GCC += \
+CFLAGS += \
   -Wno-error=null-dereference \
   -Wno-error=unused-parameter \
   -Wno-error=unused-variable
 
 INC += \
   src \
-  $(TOP)/hw \
   $(TOP)/lib/lwip/src/include \
   $(TOP)/lib/lwip/src/include/ipv4 \
   $(TOP)/lib/lwip/src/include/lwip/apps \
@@ -18,7 +15,7 @@ INC += \
 
 # Example source
 EXAMPLE_SOURCE += $(wildcard src/*.c)
-SRC_C += $(addprefix $(CURRENT_PATH)/, $(EXAMPLE_SOURCE))
+SRC_C += $(addprefix $(EXAMPLE_PATH)/, $(EXAMPLE_SOURCE))
 
 # lwip sources
 SRC_C += \
@@ -63,8 +60,9 @@ SRC_C += \
   lib/lwip/src/netif/slipif.c \
   lib/lwip/src/apps/http/httpd.c \
   lib/lwip/src/apps/http/fs.c \
+  lib/lwip/src/apps/lwiperf/lwiperf.c \
   lib/networking/dhserver.c \
   lib/networking/dnserver.c \
   lib/networking/rndis_reports.c
 
-include ../../rules.mk
+include ../../../hw/bsp/family_rules.mk

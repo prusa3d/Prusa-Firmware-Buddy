@@ -3,6 +3,7 @@
 #include <selftest_result_evaluation.hpp>
 #include <config_store/store_instance.hpp>
 #include <option/has_precise_homing_corexy.h>
+#include <bsod/bsod.h>
 
 #if HAS_PRECISE_HOMING_COREXY()
     #include <module/prusa/homing_corexy.hpp>
@@ -45,6 +46,8 @@ TestResult get_test_result(Action action, [[maybe_unused]] ToolMask tool) {
         });
     case Action::PhaseSteppingCalibration:
         return test_result::evaluate_results(config_store().selftest_result_phase_stepping.get());
+    case Action::BeltTuning:
+        return config_store().manual_belt_tuning_completed.get() ? TestResult::passed : TestResult::unknown;
     case Action::_count:
         break;
     }
@@ -60,7 +63,7 @@ uint64_t get_test_mask(Action action) {
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:
-        return stmHeaters;
+        bsod("This should be gcode");
 
     case Action::Loadcell:
         return stmLoadcell;
@@ -69,6 +72,7 @@ uint64_t get_test_mask(Action action) {
 
     case Action::Fans:
     case Action::PhaseSteppingCalibration:
+    case Action::BeltTuning:
 #if HAS_PRECISE_HOMING_COREXY()
     case Action::PreciseHoming:
 #endif
@@ -77,7 +81,7 @@ uint64_t get_test_mask(Action action) {
         // Implemented as a gcode/invalid
         bsod_unreachable();
     }
-    assert(false);
+    debug_assert(false);
     return stmNone;
 }
 

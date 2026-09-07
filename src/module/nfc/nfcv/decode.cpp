@@ -4,10 +4,11 @@
 
 #include <utility>
 #include <cstdint>
-#include <cassert>
 #include <algorithm>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
-nfcv::Result<std::span<std::byte>> nfcv::decode(const std::span<const std::byte> &input, const std::span<std::byte> &output) {
+nfcv::Result<WritableBytes> nfcv::decode(const Bytes &input, const WritableBytes &output) {
     static constexpr std::byte NFCV_RESPONSE_SOF_MASK { 0x1f };
     static constexpr std::byte NFCV_RESPONSE_SOF_PATTERN { 0x17 };
     static constexpr std::byte NFCV_RESPONSE_EOF { 0x1d };
@@ -37,7 +38,7 @@ nfcv::Result<std::span<std::byte>> nfcv::decode(const std::span<const std::byte>
 
         const auto out_byte_pos = bit_pos / BITS_IN_BYTE;
         if (resp_byte == NFCV_RESPONSE_EOF) {
-            assert(bit_pos % BITS_IN_BYTE == 0);
+            debug_assert(bit_pos % BITS_IN_BYTE == 0);
             return std::span { output.data(), out_byte_pos };
         }
 
@@ -69,7 +70,7 @@ nfcv::Result<std::span<std::byte>> nfcv::decode(const std::span<const std::byte>
 
 namespace nfcv {
 namespace {
-    bool validate_response_crc(const std::span<const std::byte> &buffer) {
+    bool validate_response_crc(const Bytes &buffer) {
         static constexpr size_t CRC_SIZE = sizeof(iso13239::CRC::ResultType);
         iso13239::CRC crc {};
         crc.add_bytes(std::span { reinterpret_cast<const uint8_t *>(buffer.data()), buffer.size() - CRC_SIZE });
@@ -89,7 +90,7 @@ namespace {
     }
 
     template <typename Command>
-    Result<void> parse_response(const std::span<const std::byte> &data, [[maybe_unused]] const Command &command)
+    Result<void> parse_response(const Bytes &data, [[maybe_unused]] const Command &command)
         requires(std::is_empty_v<typename Command::Response>)
     {
         if (data.size() != 3) {
@@ -100,7 +101,7 @@ namespace {
     }
 
     static constexpr std::byte NFCV_ERROR_FLAG { 0x01 };
-    Result<void> parse_response(const std::span<const std::byte> &data, const nfcv::command::Inventory &command) {
+    Result<void> parse_response(const Bytes &data, const nfcv::command::Inventory &command) {
         if (data.size() != command.response.size() + 4 /*1B flags + 1B mask length (is 0) + 0B mask + 2B CRC*/) {
             return std::unexpected(Error::unknown);
         }
@@ -112,7 +113,7 @@ namespace {
         return {};
     }
 
-    Result<void> parse_response(const std::span<const std::byte> &data, const nfcv::command::SystemInfo &command) {
+    Result<void> parse_response(const Bytes &data, const nfcv::command::SystemInfo &command) {
         // Size validation
         const auto info_flags = data[1];
         static constexpr std::byte INFO_DSFID_SUPPORTED { 0x01 };
@@ -176,7 +177,7 @@ namespace {
         return {};
     }
 
-    Result<void> parse_response(const std::span<const std::byte> &data, const nfcv::command::ReadSingleBlock &command) {
+    Result<void> parse_response(const Bytes &data, const nfcv::command::ReadSingleBlock &command) {
         if (data.size() != (3 + command.response.size())) {
             return std::unexpected(Error::response_invalid_size);
         }
@@ -186,12 +187,12 @@ namespace {
         return {};
     }
 
-    Result<void> parse_response([[maybe_unused]] const std::span<const std::byte> &data, [[maybe_unused]] const nfcv::command::StayQuiet &command) {
+    Result<void> parse_response([[maybe_unused]] const Bytes &data, [[maybe_unused]] const nfcv::command::StayQuiet &command) {
         // according to spec the StayQuiet command has no reponse (or it is not mentioned), so we should never call this method
         std::abort();
     }
 
-    Result<void> parse_response(const std::span<const std::byte> &data, const nfcv::command::GetRandomNumber &command) {
+    Result<void> parse_response(const Bytes &data, const nfcv::command::GetRandomNumber &command) {
         if (data.size() != 3 + sizeof(uint16_t)) {
             return std::unexpected(Error::response_invalid_size);
         }
@@ -203,7 +204,7 @@ namespace {
 } // namespace
 } // namespace nfcv
 
-nfcv::Result<void> nfcv::parse_response(const std::span<const std::byte> &data, const Command &command) {
+nfcv::Result<void> nfcv::parse_response(const Bytes &data, const Command &command) {
     if (data.size() <= 2) {
         return std::unexpected(Error::response_invalid_size);
     }

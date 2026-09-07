@@ -31,6 +31,7 @@
 #include <mapi/parking.hpp>
 
 #include <option/has_auto_retract.h>
+#include <bsod/bsod.h>
 #if HAS_AUTO_RETRACT()
     #include <feature/auto_retract/auto_retract.hpp>
 #endif
@@ -291,13 +292,17 @@ void GcodeSuite::G29() {
 
     #if HAS_BED_PROBE
         if (ubl.g29_probing_failed) {
-            plan_park_move_to_xyz({ { XYZ_NOZZLE_PARK_POINT } }, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, Segmented::yes);
+            mapi::park(mapi::get_parking_position(mapi::ParkPosition::park));
 
             if (marlin_server::prompt_warning(WarningType::ProbingFailed) != Response::Yes) {
                 marlin_server::print_abort();
                 return;
             }
 
+        #if HAS_NOZZLE_CLEANER()
+            // The park position is inside the nozzle cleaner area, leave it safely before re-probing
+            mapi::move_out_of_nozzle_cleaner_area();
+        #endif
             continue;
         }
     #endif
@@ -319,7 +324,8 @@ void GcodeSuite::G29() {
 
                 // Clean the nozzle
                 if(nozzle_cleaner::load_and_execute(nozzle_cleaner::Sequence::clean)) {
-                    // Nozzle cleaner cleaning succeeded, proceed to retry nozzle cleaning
+                    // Nozzle cleaner cleaning succeeded, leave the cleaner area safely and retry nozzle cleaning
+                    mapi::move_out_of_nozzle_cleaner_area();
                     continue;
                 } else {
                     // Something went wrong, we cannot continue
@@ -331,15 +337,17 @@ void GcodeSuite::G29() {
                 //and fallthrough to the wizard
             }
         #endif
-            // Using the M600 position for this. While we are not changing
-            // filament, we want the nozzle to park at an accessible place to
-            // have it cleaned and the M600 position happens to be just what we
-            // need.
-            plan_park_move_to_xyz({ { XYZ_NOZZLE_CLEANINIG_FAILED_POINT } }, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, Segmented::yes);
+            mapi::park(mapi::get_parking_position(mapi::ParkPosition::nozzle_cleaning_failed));
 
             using namespace nozzle_cleaning_failed_wizard;
             Result result = run_wizard();
             if(planner.draining()) return;
+
+        #if HAS_NOZZLE_CLEANER()
+            // The wizard position is inside the nozzle cleaner area, leave it safely before moving elsewhere
+            mapi::move_out_of_nozzle_cleaner_area();
+        #endif
+
             switch (result) {
             case Result::abort:
                 return;
@@ -371,7 +379,7 @@ void GcodeSuite::G29() {
                 // calib_Z does not have its own holder - we have to handle that
                 marlin_server::FSM_Holder _fsm(PhasesSelftest::CalibZ);
                 selftest::calib_Z(true);
-                assert(!axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise));
+                debug_assert(!axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise));
                 continue;
             }
         #endif

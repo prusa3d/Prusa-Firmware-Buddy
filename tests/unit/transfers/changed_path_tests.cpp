@@ -1,7 +1,7 @@
 #include <transfers/changed_path.hpp>
 
 // The path length constants live in gui :-(
-#include <gui/file_list_defs.h>
+#include <buddy/filename_defs.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cstring>
 #include <string_view>
@@ -18,7 +18,7 @@ void check_path_consume(ChangedPath &changed_path, string_view exp_path, Type ex
     {
         auto status { changed_path.status() };
         REQUIRE(status.has_value());
-        char path[FILE_PATH_BUFFER_LEN];
+        char path[filename_defs::path_buffer_size];
         status->consume(path, sizeof(path));
         REQUIRE(exp_path == path);
         bool exp_is_file = exp_type == Type::File;

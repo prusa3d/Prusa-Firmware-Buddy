@@ -1,6 +1,7 @@
 #include "sound.hpp"
 #include "hwio.h"
 #include <config_store/store_instance.hpp>
+#include <bsod/bsod.h>
 
 struct SoundPattern {
     int8_t repeat; /// signals repeats - how many times will sound signals repeat (-1 is infinite)
@@ -132,7 +133,7 @@ static constexpr AllSoundSettings all_sound_settings = {
     .start = {
         .once = { 1, 1, 100 },
         .loud = { 1, 1, 100 },
-        .silent = { 1, 1, 100 },
+        .silent = SILENCE,
         .assist = { 1, 1, 100 },
         .frequency = 999.F,
         .volume = Sound::volumeInit,

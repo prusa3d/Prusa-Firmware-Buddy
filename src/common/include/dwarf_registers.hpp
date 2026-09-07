@@ -83,6 +83,7 @@ enum class SystemHoldingRegister : uint16_t {
     status_color_end = 0xE006, // 8 MSb status_led_mode, 8 LSb Blue [0 - 0xff]
     pid_start = 0xE007, // P, I and D float values
     pid_end = 0xE00C,
+    fan_mode = 0xE00D, // 0 = XL/legacy, 1 = XLS native (lower min_pwm so kickstart can spin up the LDO blower)
 
     tmc_read_request = 0xE020,
     tmc_write_request_address = 0xE021,

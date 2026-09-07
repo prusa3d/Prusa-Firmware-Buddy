@@ -23,10 +23,6 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "bsp/board_api.h"
 #include "tusb.h"
 
@@ -39,31 +35,29 @@
  * - 1000 ms : device mounted
  * - 2500 ms : device is suspended
  */
-enum  {
+enum {
   BLINK_NOT_MOUNTED = 250,
-  BLINK_MOUNTED = 1000,
-  BLINK_SUSPENDED = 2500,
+  BLINK_MOUNTED     = 1000,
+  BLINK_SUSPENDED   = 2500,
 };
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
+static bool     blink_enable      = true;
 
 void led_blinking_task(void);
 void cdc_task(void);
 
 /*------------- MAIN -------------*/
-int main(void)
-{
+int main(void) {
   board_init();
 
   // init device stack on configured roothub port
-  tud_init(BOARD_TUD_RHPORT);
+  tusb_rhport_init_t dev_init = {.role = TUSB_ROLE_DEVICE, .speed = TUSB_SPEED_AUTO};
+  tusb_init(BOARD_TUD_RHPORT, &dev_init);
 
-  if (board_init_after_tusb) {
-    board_init_after_tusb();
-  }
+  board_init_after_tusb();
 
-  while (1)
-  {
+  while (1) {
     tud_task(); // tinyusb device task
     led_blinking_task();
 
@@ -76,29 +70,25 @@ int main(void)
 //--------------------------------------------------------------------+
 
 // Invoked when device is mounted
-void tud_mount_cb(void)
-{
+void tud_mount_cb(void) {
   blink_interval_ms = BLINK_MOUNTED;
 }
 
 // Invoked when device is unmounted
-void tud_umount_cb(void)
-{
+void tud_umount_cb(void) {
   blink_interval_ms = BLINK_NOT_MOUNTED;
 }
 
 // Invoked when usb bus is suspended
 // remote_wakeup_en : if host allow us  to perform remote wakeup
 // Within 7ms, device must draw an average of current less than 2.5 mA from bus
-void tud_suspend_cb(bool remote_wakeup_en)
-{
-  (void) remote_wakeup_en;
+void tud_suspend_cb(bool remote_wakeup_en) {
+  (void)remote_wakeup_en;
   blink_interval_ms = BLINK_SUSPENDED;
 }
 
 // Invoked when usb bus is resumed
-void tud_resume_cb(void)
-{
+void tud_resume_cb(void) {
   blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
 }
 
@@ -106,19 +96,17 @@ void tud_resume_cb(void)
 //--------------------------------------------------------------------+
 // USB CDC
 //--------------------------------------------------------------------+
-void cdc_task(void)
-{
+void cdc_task(void) {
   // connected() check for DTR bit
   // Most but not all terminal client set this when making connection
   // if ( tud_cdc_connected() )
   {
     // connected and there are data available
-    if ( tud_cdc_available() )
-    {
+    if (tud_cdc_available()) {
       // read data
-      char buf[64];
+      char     buf[64];
       uint32_t count = tud_cdc_read(buf, sizeof(buf));
-      (void) count;
+      (void)count;
 
       // Echo back
       // Note: Skip echo by commenting out write() and write_flush()
@@ -127,43 +115,57 @@ void cdc_task(void)
       tud_cdc_write(buf, count);
       tud_cdc_write_flush();
     }
+
+    // Press on-board button to send Uart status notification
+    static cdc_notify_uart_state_t uart_state = {.value = 0};
+
+    static uint32_t btn_prev = 0;
+    const uint32_t  btn      = board_button_read();
+
+    if ((btn_prev == 0u) && (btn != 0u)) {
+      uart_state.dsr ^= 1;
+      uart_state.dcd ^= 1;
+      tud_cdc_notify_uart_state(&uart_state);
+    }
+    btn_prev = btn;
   }
 }
 
 // Invoked when cdc when line state changed e.g connected/disconnected
-void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
-{
-  (void) itf;
-  (void) rts;
+void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
+  (void)itf;
+  (void)rts;
 
-  // TODO set some indicator
-  if ( dtr )
-  {
+  if (dtr) {
     // Terminal connected
-  }else
-  {
+    blink_enable = false;
+    board_led_write(true);
+  } else {
     // Terminal disconnected
+    blink_enable = true;
   }
 }
 
 // Invoked when CDC interface received data from host
-void tud_cdc_rx_cb(uint8_t itf)
-{
-  (void) itf;
+void tud_cdc_rx_cb(uint8_t itf) {
+  (void)itf;
 }
 
 //--------------------------------------------------------------------+
 // BLINKING TASK
 //--------------------------------------------------------------------+
-void led_blinking_task(void)
-{
-  static uint32_t start_ms = 0;
-  static bool led_state = false;
+void led_blinking_task(void) {
+  static uint32_t start_ms  = 0;
+  static bool     led_state = false;
 
-  // Blink every interval ms
-  if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
-  start_ms += blink_interval_ms;
+  if (blink_enable) {
+    // Blink every interval ms
+    if (tusb_time_millis_api() - start_ms < blink_interval_ms) {
+      return; // not enough time
+    }
+    start_ms += blink_interval_ms;
 
-  board_led_write(led_state);
-  led_state = 1 - led_state; // toggle
+    board_led_write(led_state);
+    led_state = !led_state;
+  }
 }

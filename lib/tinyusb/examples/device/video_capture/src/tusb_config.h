@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef _TUSB_CONFIG_H_
-#define _TUSB_CONFIG_H_
+#ifndef TUSB_CONFIG_H_
+#define TUSB_CONFIG_H_
 
 #ifdef __cplusplus
  extern "C" {
@@ -55,6 +55,11 @@
 
 #ifndef CFG_TUSB_OS
 #define CFG_TUSB_OS           OPT_OS_NONE
+#endif
+
+// Espressif IDF requires "freertos/" prefix in include path
+#ifdef ESP_PLATFORM
+#define CFG_TUSB_OS_INC_PATH  freertos/
 #endif
 
 #ifndef CFG_TUSB_DEBUG
@@ -97,14 +102,18 @@
 // The number of video streaming interfaces
 #define CFG_TUD_VIDEO_STREAMING  1
 
-// video streaming endpoint size
+// video streaming endpoint buffer size
 #define CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE  256
 
 // use bulk endpoint for streaming interface
-#define CFG_TUD_VIDEO_STREAMING_BULK 0
+ #define CFG_TUD_VIDEO_STREAMING_BULK 0
+
+//#define CFG_EXAMPLE_VIDEO_READONLY
+//#define CFG_EXAMPLE_VIDEO_DISABLE_MJPEG
+//#define CFG_EXAMPLE_VIDEO_BUFFERLESS
 
 #ifdef __cplusplus
  }
 #endif
 
-#endif /* _TUSB_CONFIG_H_ */
+#endif /* TUSB_CONFIG_H_ */

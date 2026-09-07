@@ -1,0 +1,18 @@
+include ../../../hw/bsp/family_support.mk
+
+ifeq ($(DISABLE_MJPEG),1)
+CFLAGS += -DCFG_EXAMPLE_VIDEO_DISABLE_MJPEG
+endif
+ifeq ($(FORCE_READONLY),1)
+CFLAGS += -DCFG_EXAMPLE_VIDEO_READONLY
+endif
+
+INC += \
+	src \
+
+
+# Example source
+EXAMPLE_SOURCE += $(wildcard src/*.c)
+SRC_C += $(addprefix $(EXAMPLE_PATH)/, $(EXAMPLE_SOURCE))
+
+include ../../../hw/bsp/family_rules.mk

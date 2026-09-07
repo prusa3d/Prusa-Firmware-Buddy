@@ -1,5 +1,6 @@
 #include "print_status_message_formatter_buddy.hpp"
 
+#include <option/has_print_sheet_detection.h>
 #include <option/has_spool_join.h>
 
 #include <option/has_toolchanger.h>
@@ -33,7 +34,7 @@ static constexpr EnumArray<Message::Type, const char *, Message::Type::_cnt> mes
 #if ENABLED(PROBE_CLEANUP_SUPPORT)
         { Message::Type::nozzle_cleaning, N_("Nozzle cleaning") },
 #endif
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
         { Message::Type::detecting_steel_sheet, N_("Detecting steel sheet") },
 #endif
 #if HAS_SPOOL_JOIN()
@@ -55,6 +56,9 @@ static constexpr EnumArray<Message::Type, const char *, Message::Type::_cnt> mes
 #endif
 #if HAS_NOZZLE_CLEANER()
         { Message::Type::nozzle_cleaner, N_("Nozzle cleaning") },
+#endif
+#if HAS_NOZZLE_CLEANER_LITE()
+        { Message::Type::nozzle_cleaner_lite, N_("Nozzle cleaning") },
 #endif
 };
 
@@ -78,7 +82,7 @@ void PrintStatusMessageFormatterBuddy::format(StringBuilder &target, const Messa
 #if ENABLED(PROBE_CLEANUP_SUPPORT)
     case Message::Type::nozzle_cleaning:
 #endif
-#if ENABLED(DETECT_PRINT_SHEET)
+#if HAS_PRINT_SHEET_DETECTION()
     case Message::Type::detecting_steel_sheet:
 #endif
 #if HAS_CHAMBER_VENTS()
@@ -88,6 +92,10 @@ void PrintStatusMessageFormatterBuddy::format(StringBuilder &target, const Messa
 #if HAS_NOZZLE_CLEANER()
     case Message::Type::nozzle_cleaner:
 #endif
+#if HAS_NOZZLE_CLEANER_LITE()
+    case Message::Type::nozzle_cleaner_lite:
+#endif
+
         // No extra data to show
         break;
 

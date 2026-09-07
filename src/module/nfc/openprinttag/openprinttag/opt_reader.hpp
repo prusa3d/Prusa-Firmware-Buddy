@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <string_view>
 
 #include <inplace_vector.hpp>
@@ -165,7 +166,7 @@ public:
     [[nodiscard]] IOResult<int64_t> read_field_int64(const TagField &field);
     [[nodiscard]] IOResult<float> read_field_float(const TagField &field);
     [[nodiscard]] IOResult<std::string_view> read_field_string(const TagField &field, const std::span<char> &buffer);
-    [[nodiscard]] IOResult<std::basic_string_view<std::byte>> read_field_bytes(const TagField &field, const std::span<std::byte> &buffer);
+    [[nodiscard]] IOResult<std::basic_string_view<std::byte>> read_field_bytes(const TagField &field, const WritableBytes &buffer);
     [[nodiscard]] IOResult<std::span<const uint16_t>> read_field_uint16_array(const TagField &field, const std::span<uint16_t> &buffer);
 
     [[nodiscard]] IOResult<WriteReport> write_field_bool(const TagField &field, bool value);
@@ -179,7 +180,7 @@ public:
 private: // Reading internal functions
     /// Read the specified span from the NFC tag and stores it into the read buffer
     /// \returns the read data (might not be aligned with the read buffer)
-    [[nodiscard]] IOResult<std::span<std::byte>> read_span(const TagPayloadSpan &span);
+    [[nodiscard]] IOResult<WritableBytes> read_span(const TagPayloadSpan &span);
 
     /// Defined in the .cpp
     template <typename T, auto f>

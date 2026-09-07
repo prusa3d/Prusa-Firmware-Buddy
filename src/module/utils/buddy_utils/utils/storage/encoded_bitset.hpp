@@ -1,11 +1,11 @@
 /// @file
 #pragma once
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <concepts>
 #include <type_traits>
+#include <bsod/bsod.h>
 
 /// A bitset backed by a plain uint32_t with guaranteed binary representation.
 ///
@@ -42,7 +42,7 @@ struct EncodedBitset {
     }
 
     [[nodiscard]] constexpr bool test(size_t pos) const {
-        assert(pos < N);
+        debug_assert(pos < N);
         return (data_ >> pos) & 1;
     }
 
@@ -51,7 +51,7 @@ struct EncodedBitset {
     }
 
     constexpr EncodedBitset &set(size_t pos, bool val = true) {
-        assert(pos < N);
+        debug_assert(pos < N);
         if (val) {
             data_ |= (uint32_t(1) << pos);
         } else {

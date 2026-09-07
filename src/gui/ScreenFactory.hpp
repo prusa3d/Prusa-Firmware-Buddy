@@ -59,7 +59,7 @@ public:
     }
 
     template <class T, typename Arg>
-    static inline Creator ScreenWithArg(Arg arg) {
+    constexpr static inline Creator ScreenWithArg(Arg arg) {
         static_assert(sizeof(T) <= storage.size(), "Screen memory space is too small");
         static constexpr auto ctor = +[](const Creator::Arg &arg_variant) -> UniquePtr {
             return make_static_unique_ptr<T>(storage, arg_variant.value<Arg>());

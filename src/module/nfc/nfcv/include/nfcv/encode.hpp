@@ -8,6 +8,7 @@
 
 #include <expected>
 #include <type_traits>
+#include <utils/byte_utils.hpp>
 
 namespace nfcv {
 using MsgBuilder = stdext::inplace_vector<std::byte, 512>;
@@ -26,7 +27,7 @@ public:
     ~Encoder1Of4();
 
     void append_byte(std::byte byte);
-    void append_bytes(const std::span<const std::byte> &bytes);
+    void append_bytes(const Bytes &bytes);
 
     template <typename T>
     void append_raw(const T &val) {
@@ -37,7 +38,7 @@ public:
 
 private:
     void append_byte_impl(std::byte byte, bool calculate_crc = true);
-    void append_bytes_impl(const std::span<const std::byte> &bytes, bool calculate_crc = true);
+    void append_bytes_impl(const Bytes &bytes, bool calculate_crc = true);
 
     template <typename T>
     void append_raw_impl(const T &val, bool calculate_crc = true) {

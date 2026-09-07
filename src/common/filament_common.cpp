@@ -36,9 +36,9 @@ std::expected<void, const char *> FilamentType::can_be_renamed_to(const std::str
 
     // Check for valid symbols
     if (!std::ranges::all_of(new_name, [](char ch) {
-            return (isalnum(ch) && toupper(ch) == ch) || strchr("_-", ch);
+            return (isalnum(ch)) || strchr("_-", ch);
         })) {
-        return std::unexpected(N_("Name must contain only 'A-Z0-9_-' characters"));
+        return std::unexpected(N_("Name must contain only 'a-zA-Z0-9_-' characters"));
     }
 
     // Check for name collisions

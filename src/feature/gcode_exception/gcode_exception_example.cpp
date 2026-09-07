@@ -2,6 +2,7 @@
 #include <feature/quick_stop/quick_stop.hpp>
 #include <marlin_server.hpp>
 #include <gcode/gcode.h>
+#include <bsod/bsod.h>
 
 void gcode_exception_example() {
 
@@ -23,7 +24,7 @@ void gcode_exception_example() {
                 [&] {
                     // Handler that gets called if an exception is thrown at this handler
                     // In this example, this does NOT get called
-                    assert(false);
+                    debug_assert(false);
                 },
             };
 
@@ -38,7 +39,7 @@ void gcode_exception_example() {
 
             // We don't have actual exceptions, so we have to continue executing the code,
             // but the exception mechanism is now in the "unwinding" mode.
-            assert(gcode_exceptions().is_unwinding());
+            debug_assert(gcode_exceptions().is_unwinding());
 
             // All moves will be discarded while we're unwinding, so this will not do anything
             planner.buffer_segment({ 30, 0, 0, 0 });

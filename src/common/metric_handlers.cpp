@@ -12,6 +12,7 @@
 #include <atomic>
 #include <algorithm>
 #include <inttypes.h>
+#include <bsod/bsod.h>
 
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
@@ -44,7 +45,7 @@ append_format(char *buffer, int buffer_len, const char *format, ...) {
     va_list args;
     va_start(args, format);
     int length = vsnprintf(buffer, std::max(buffer_len, 0), format, args);
-    assert(length >= 0 && "unexpected snprintf encoding error");
+    debug_assert(length >= 0 && "unexpected snprintf encoding error");
     va_end(args);
     return length;
 }
@@ -170,7 +171,7 @@ extern "C" void metric_handler(metric_point_t *point) {
     if (!point_fit) {
         init_header();
         if (!append_point()) {
-            assert(false && "point should always fit in a new buffer");
+            debug_assert(false && "point should always fit in a new buffer");
         }
     }
 }

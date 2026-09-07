@@ -1,6 +1,7 @@
 #include "ScreenHandler.hpp"
 #include "bsod.h"
 
+#include <gui_time.hpp>
 #include <gui.hpp>
 #include <raii/auto_restore.hpp>
 #include <gui_invalidate.hpp>

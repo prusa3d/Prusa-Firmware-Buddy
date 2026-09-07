@@ -8,6 +8,7 @@
 #include <mutex>
 #include <prusa3d/common/CustomExecuteCommand_1_0.h>
 #include <prusa3d/common/SharedFault_1_0.h>
+#include <bsod/bsod.h>
 
 namespace tool_offset_sensor::cyphal {
 
@@ -31,7 +32,7 @@ void ToolOffsetSensorNode::app_init() {
         prusa3d_tool_offset_sensor_Data_1_0_Traits::full_name_and_version,
         data_ch1_sender.get_port_id());
 
-    assert(registers.get_max_registers() == registers.get_register_count());
+    debug_assert(registers.get_max_registers() == registers.get_register_count());
 }
 
 void ToolOffsetSensorNode::app_tick(int64_t now_us) {

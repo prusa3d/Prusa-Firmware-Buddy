@@ -1,6 +1,14 @@
 /// @file
 #include "screen_menu_fan_info.hpp"
 
+#include <common/printer_model.hpp>
+#include <fanctl.hpp>
+#include <img_resources.hpp>
+
+#if HAS_XL_CAN()
+    #include <puppies/xl_can.hpp>
+#endif
+
 MI_INFO_PRINT_FAN::MI_INFO_PRINT_FAN()
     : WI_FAN_LABEL_t(_("Print Fan"),
         [](auto) { return FanPWMAndRPM {
@@ -56,8 +64,41 @@ MI_INFO_PSU_FAN::MI_INFO_PSU_FAN()
     } {}
 #endif
 
+#if HAS_CPU_FAN()
+MI_INFO_CPU_FAN::MI_INFO_CPU_FAN()
+    // translation: menu item showing info about the XLS main-board CPU cooling fan
+    : WI_FAN_LABEL_t(_("CPU Fan"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = Fans::cpu().get_pwm(),
+                       .rpm = Fans::cpu().get_actual_rpm(),
+                   }; } //
+    ) {
+    // The CPU fan is physically present only on XLS; hide on plain XL.
+    if (PrinterModelInfo::current().model != PrinterModel::xls) {
+        set_is_hidden();
+    }
+}
+#endif
+
+#if HAS_XL_CAN()
+MI_INFO_BED_MCU_FAN::MI_INFO_BED_MCU_FAN()
+    // translation: menu item showing info about the XLS Modular Bed cooling fan
+    : WI_FAN_LABEL_t(_("Bed MCU Fan"),
+        [](auto) { return FanPWMAndRPM {
+                       .pwm = buddy::puppies::xl_can.get_fan_pwm(),
+                       .rpm = buddy::puppies::xl_can.get_fan_rpm(),
+                   }; } //
+    ) {
+    // Present only on XLS; hide on plain XL (shared image).
+    if (PrinterModelInfo::current().model != PrinterModel::xls) {
+        set_is_hidden();
+    }
+}
+#endif
+
 ScreenMenuFanInfo::ScreenMenuFanInfo()
     : ScreenMenuFanInfo_ {
         // translation: Header text of the screen showing information about fans.
         _("FAN INFO"),
+        &img::info_16x16,
     } {}

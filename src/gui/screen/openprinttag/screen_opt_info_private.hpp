@@ -12,33 +12,32 @@
 
 #include <feature/openprinttag/detail/defines.hpp>
 #include <feature/openprinttag/tool_tag.hpp>
+#include <feature/openprinttag/utils.hpp>
 
 namespace buddy::openprinttag {
 
 namespace {
 
+    class ScreenOPTInfo;
+
     enum class Item {
         return_,
         data_section,
-        filament_tracking,
+        opt_tag_status,
         print_parameters,
     };
 
     static constexpr auto index_mapping_items = std::to_array<DynamicIndexMappingRecord<Item>>({
         Item::return_,
         { Item::data_section, DynamicIndexMappingType::dynamic_section, 0 },
-        Item::filament_tracking,
+        Item::opt_tag_status,
         Item::print_parameters,
     });
 
-    class MenuItemFilamentTracking final : public IWindowMenuItem {
-        static constexpr auto font = GuiDefaults::FontMenuSpecial;
-        static constexpr auto w_for_icon = 16;
-
-        static constinit const std::array<const char *, 2> values;
+    class MI_OPT_TAG_STATUS final : public IWindowMenuItem {
 
     public:
-        MenuItemFilamentTracking(VirtualToolIndex tool);
+        MI_OPT_TAG_STATUS(ScreenOPTInfo &screen);
 
     protected:
         void Loop() final;
@@ -46,11 +45,9 @@ namespace {
         void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const final;
 
     private:
-        const VirtualToolIndex tool_;
-        bool is_tracking_ = false;
+        ScreenOPTInfo &screen_;
+        ToolTagStatus tag_status_ = ToolTagStatus::_cnt;
     };
-
-    class ScreenOPTInfo;
 
     /// A bit longer than standard WI_Info_t - it was awkward that "PLA Prusa Galaxy Blac" was cropped
     using MenuItemInfo = WiInfo<32>;
@@ -79,11 +76,22 @@ namespace {
     /// Screen that scans an OpenPrintTag and displays information present on the tag
     class ScreenOPTInfo final : public ScreenMenuBase<WindowMenuOPTInfo> {
         friend class WindowMenuOPTInfo;
+        friend class MI_OPT_TAG_STATUS;
         using ItemVariant = WindowMenuOPTInfo::ItemVariant;
 
     public:
+        enum class Mode : uint8_t {
+            ephemeral,
+            loaded,
+        };
+
+        struct CtorArgs {
+            VirtualToolIndex tool;
+            Mode mode;
+        };
+
         /// @param tool what antenna/reader to use for scanning
-        ScreenOPTInfo(VirtualToolIndex tool);
+        ScreenOPTInfo(CtorArgs args);
 
         /// Pops up a wait dialog and scans the tag for data.
         /// Then updates the data on the screen.
@@ -91,6 +99,11 @@ namespace {
         /// Closes the screen on failure.
         /// @returns whether the scan was successful or not
         bool scan();
+
+        virtual void InitState(screen_init_variant) override {
+            // Do not restore state. The number of items dynamically changes from 0 after the first scan()
+            // So trying to select menu items right after construction would only trigger asserts
+        }
 
     protected:
         void screenEvent(window_t *sender, GUI_event_t event, void *param) override;
@@ -106,6 +119,8 @@ namespace {
     private:
         /// If true, scan() will be called on the next loop event
         bool scan_pending_ = false;
+
+        const Mode mode_;
 
         VirtualToolIndex tool_;
         std::optional<buddy::openprinttag::ToolTag> tag_;

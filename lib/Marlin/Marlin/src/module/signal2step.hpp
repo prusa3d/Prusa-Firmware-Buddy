@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <bsod/bsod.h>
 
 namespace signal2step {
 
@@ -24,7 +25,7 @@ namespace detail {
 inline AxisEnum idx_to_axis(std::size_t idx) {
     static_assert(X_AXIS == 0 && Y_AXIS == 1 && Z_AXIS == 2 && E_AXIS == 3,
         "AxisEnum values must match array indices");
-    assert(idx <= E_AXIS);
+    debug_assert(idx <= E_AXIS);
     return static_cast<AxisEnum>(idx);
 }
 
@@ -47,9 +48,9 @@ struct AxisSteps {
         uint32_t current_time_us,
         float dt_us) {
 
-        assert(dt_us > 0.f);
-        assert(mm_step > 0.f);
-        assert(inv_mm_step > 0.f);
+        debug_assert(dt_us > 0.f);
+        debug_assert(mm_step > 0.f);
+        debug_assert(inv_mm_step > 0.f);
 
         const int start_step = static_cast<int>(std::round(start_pos * inv_mm_step));
         const int end_step = static_cast<int>(std::round(end_pos * inv_mm_step));
@@ -109,13 +110,13 @@ abce_pos_t convert(
     abce_pos_t mm_per_step,
     F yield_step, Wait wait_for_samples = {}) {
 
-    assert(signal.sampling_freq() > 0.f);
+    debug_assert(signal.sampling_freq() > 0.f);
 
     constexpr int STEPPER_AXES = 4;
     std::array<float, STEPPER_AXES> mm_per_step_arr;
     std::array<float, STEPPER_AXES> inv_mm_step_arr;
     for (int i = 0; i < STEPPER_AXES; i++) {
-        assert(mm_per_step.pos[i] > 0.f);
+        debug_assert(mm_per_step.pos[i] > 0.f);
         mm_per_step_arr[i] = mm_per_step.pos[i];
         inv_mm_step_arr[i] = 1.0f / mm_per_step.pos[i];
     }
@@ -139,7 +140,7 @@ abce_pos_t convert(
         abce_pos_t s = signal.next();
         std::array<float, STEPPER_AXES> sample;
         for (int i = 0; i < STEPPER_AXES; i++) {
-            sample[i] = s.pos[i];
+            sample[i] = s[i];
         }
 
         // The first sample is the starting position; no steps are generated.
@@ -193,13 +194,13 @@ abce_pos_t convert(
 
         // Update state for next iteration
         prev_sample = sample;
-        assert(current_time_us <= std::numeric_limits<uint32_t>::max() - time_per_sample_us);
+        debug_assert(current_time_us <= std::numeric_limits<uint32_t>::max() - time_per_sample_us);
         current_time_us = next_sample_timestamp_us;
     }
 
     abce_pos_t result;
     for (int i = 0; i < STEPPER_AXES; i++) {
-        result.pos[i] = step_position[i] * mm_per_step.pos[i];
+        result[i] = step_position[i] * mm_per_step[i];
     }
     return result;
 }
@@ -232,21 +233,6 @@ inline auto cartesian_to_printer_kinematics() {
     #endif
 }
 
-#ifndef UNITTESTS
-// Helper pipeline to apply Z mesh bed levelling to a cartesian XYZE signal
-inline auto apply_z_mesh_bed_levelling(float origin_x, float origin_y) {
-    return sp::pipe::transform([origin_x, origin_y](auto v) {
-        float z_offset = ubl.get_z_correction(xy_pos_t{v.x + origin_x, v.y + origin_y});
-        return decltype(v){
-            .x = v.x,
-            .y = v.y,
-            .z = v.z + z_offset,
-            .e = v.e
-        };
-    });
-}
-#endif
-
 namespace detail {
 
 // Fuse four scalar generators into a single XYZE-like vector generator. All
@@ -254,7 +240,7 @@ namespace detail {
 // last value is held. Output length equals the longest input.
 template <typename OutType, typename Gen0, typename Gen1, typename Gen2, typename Gen3>
 inline auto fuse(Gen0&& g0, Gen1&& g1, Gen2&& g2, Gen3&& g3) {
-    assert(
+    debug_assert(
         (g0.sampling_freq() == g1.sampling_freq()) &&
         (g0.sampling_freq() == g2.sampling_freq()) &&
         (g0.sampling_freq() == g3.sampling_freq())
@@ -266,10 +252,10 @@ inline auto fuse(Gen0&& g0, Gen1&& g1, Gen2&& g2, Gen3&& g3) {
         std::forward<Gen3>(g3)
     ) | sp::pipe::transform([](const auto &t) {
         OutType r;
-        r.pos[0] = std::get<0>(t);
-        r.pos[1] = std::get<1>(t);
-        r.pos[2] = std::get<2>(t);
-        r.pos[3] = std::get<3>(t);
+        r[0] = std::get<0>(t);
+        r[1] = std::get<1>(t);
+        r[2] = std::get<2>(t);
+        r[3] = std::get<3>(t);
         return r;
     });
 }

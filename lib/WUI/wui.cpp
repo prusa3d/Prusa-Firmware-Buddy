@@ -24,7 +24,6 @@
 #include <atomic>
 #include <array>
 #include <cstring>
-#include <cassert>
 #include <lwip/ip.h>
 #include <lwip/dns.h>
 #include <lwip/tcp.h>
@@ -44,6 +43,7 @@
 #include <config_store/store_instance.hpp>
 #include <nhttp/server.h>
 #include <random/random.h>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_DEF(WUI, logging::Severity::debug);
 LOG_COMPONENT_DEF(Network, logging::Severity::info);
@@ -182,7 +182,7 @@ private:
             return Mode::DHCP;
         }
 
-        assert(IS_LAN_STATIC(flag));
+        debug_assert(IS_LAN_STATIC(flag));
 
         return Mode::Static;
     }
@@ -210,7 +210,7 @@ private:
         }
 #endif
         else {
-            assert(0);
+            debug_assert(0);
         }
         xTaskNotify(network_task, action, eSetBits);
     }
@@ -229,7 +229,7 @@ private:
         }
 #endif
         else {
-            assert(0); /* Unknown interface. */
+            debug_assert(0); /* Unknown interface. */
         }
     }
     static void status_callback_raw(struct netif *iface) {
@@ -586,14 +586,14 @@ private:
         }
 #endif
 
-        assert(0);
+        debug_assert(0);
         return false;
     }
 
 public:
     NetworkState() {
         network_task = osThreadGetId();
-        assert(instance == nullptr);
+        debug_assert(instance == nullptr);
         instance = this;
 #if HAS_ESP()
         last_esp_ok = sys_now();
@@ -731,7 +731,7 @@ void notify_reconfigure() {
 }
 
 void netdev_set_active_id(uint32_t netdev_id) {
-    assert(netdev_id <= NETDEV_COUNT);
+    debug_assert(netdev_id <= NETDEV_COUNT);
 
     const auto target = static_cast<uint8_t>(netdev_id & 0xFF);
     if (config_store().active_netdev.get() != target) {
@@ -745,9 +745,9 @@ namespace {
 template <class F>
 void modify_flag(uint32_t netdev_id, F &&f) {
 #if HAS_ESP()
-    assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
+    debug_assert(netdev_id == NETDEV_ETH_ID || netdev_id == NETDEV_ESP_ID);
 #else
-    assert(netdev_id == NETDEV_ETH_ID);
+    debug_assert(netdev_id == NETDEV_ETH_ID);
 #endif
 
     // Read it from the EEPROM, not from the state. For two reasons:

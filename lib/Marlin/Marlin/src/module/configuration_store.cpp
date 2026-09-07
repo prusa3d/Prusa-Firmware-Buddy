@@ -71,11 +71,6 @@
   #include "../lcd/extensible_ui/ui_api.h"
 #endif
 
-#if HAS_SERVOS
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "servo.h"
-#endif
-
 #include "../feature/pause.h"
 
 #if ENABLED(BACKLASH_COMPENSATION)
@@ -86,11 +81,6 @@
 #if EXTRUDERS > 1
   #include "tool_change.h"
   void M217_report();
-#endif
-
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "../feature/bltouch.h"
 #endif
 
 #if HAS_TRINAMIC
@@ -109,6 +99,8 @@
 // Defaults for reset / fill in on load
 static const uint32_t   _DMA[] PROGMEM = DEFAULT_MAX_ACCELERATION;
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+// Only called by reset_motion() (compiled only when HAS_PLANNER, i.e. master boards - all have the config store)
+// Storeless boards (puppies) are planner-less, so the caller is compiled out there.
 static float get_steps_per_unit(size_t index) {
     switch (index) {
     case 0:
@@ -120,11 +112,6 @@ static float get_steps_per_unit(size_t index) {
     }
     //if index is bigger than max index, use max index - default marlin behavior
     return get_steps_per_unit_e();
-}
-#else
-static constexpr float get_steps_per_unit(size_t index) {
-  constexpr float _DASU[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-  return pgm_read_float(&_DASU[ALIM(index, _DASU)]);
 }
 #endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 static const feedRate_t _DMF[] PROGMEM = DEFAULT_MAX_FEEDRATE;
@@ -242,7 +229,7 @@ void MarlinSettings::reset() {
   #endif
 
   #if HAS_HOME_OFFSET
-    home_offset.reset();
+    home_offset = {};
   #endif
 
   #if HAS_HOTEND_OFFSET
@@ -289,22 +276,6 @@ void MarlinSettings::reset() {
     static_assert(COUNT(dpo) == 3, "NOZZLE_TO_PROBE_OFFSET must contain offsets for X, Y, and Z.");
     LOOP_XYZ(a) probe_offset[a] = dpo[a];
   #endif
-
-  //
-  // Servo Angles
-  //
-
-  #if ENABLED(EDITABLE_SERVO_ANGLES)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    COPY(servo_angles, base_servo_angles);
-  #endif
-
-  //
-  // BLTOUCH
-  //
-  //#if ENABLED(BLTOUCH)
-  //  bltouch.last_written_mode;
-  //#endif
 
   //
   // Endstop Adjustments
@@ -623,24 +594,6 @@ void MarlinSettings::reset() {
       #endif
 
     #endif // HAS_LEVELING
-
-    #if ENABLED(EDITABLE_SERVO_ANGLES)
-      // #error dead code found by automatic analyses (see BFW-5461)
-
-      CONFIG_ECHO_HEADING("Servo Angles:");
-      for (uint8_t i = 0; i < NUM_SERVOS; i++) {
-        switch (i) {
-          #if (ENABLED(BLTOUCH) && defined(BLTOUCH_ANGLES)) || (defined(Z_SERVO_ANGLES) && defined(Z_PROBE_SERVO_NR))
-            // #error dead code found by automatic analyses (see BFW-5461)
-            case Z_PROBE_SERVO_NR:
-          #endif
-            CONFIG_ECHO_START();
-            SERIAL_ECHOLNPAIR("  M281 P", int(i), " L", servo_angles[i][0], " U", servo_angles[i][1]);
-          default: break;
-        }
-      }
-
-    #endif // EDITABLE_SERVO_ANGLES
 
     #if ENABLED(Z_TRIPLE_ENDSTOPS)
       // #error dead code found by automatic analyses (see BFW-5461)

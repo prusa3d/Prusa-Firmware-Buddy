@@ -10,6 +10,7 @@
 #include <option/has_xbuddy_extension.h>
 #include <option/has_puppies.h>
 #include <option/has_indx_head.h>
+#include <option/has_xl_can.h>
 
 namespace buddy::puppies {
 
@@ -26,6 +27,7 @@ enum PuppyType : size_t {
 
 /// Dock is a location where a Puppy can live
 enum class Dock : uint8_t {
+    /// Behind the XL_CAN on some pritners
     MODULAR_BED,
     DWARF_1,
     DWARF_2,
@@ -33,13 +35,28 @@ enum class Dock : uint8_t {
     DWARF_4,
     DWARF_5,
     DWARF_6,
+
+    /// Custom bootstrap procedure
+    /// Between the printer and INDX_HEAD/MMU on some printers
+    /// Needs to be set up before bootstrapping these
     XBUDDY_EXTENSION,
+
+    /// Behind the XBE
     INDX_HEAD,
+
+    /// Custom bootstrap procedure, gutted-out variant of XBE
+    /// Is between the printer and MODULAR_BED on some printers
+    /// Needs to be set up before bootstrapping these
+    /// Unlike the XBE, the presence is optional
+    XL_CAN,
 };
 
-static_assert(std::to_underlying(Dock::XBUDDY_EXTENSION) == 7, "Must stay 8th puppy, because we are unable to do dynamic address assignemnt on startup on xBuddy");
-static_assert(std::to_underlying(Dock::INDX_HEAD) == 8, "Must stay 9th puppy, because we are unable to do dynamic address assignemnt on startup on xBuddy");
+static_assert(std::to_underlying(Dock::XBUDDY_EXTENSION) == 7, "Must stay 8th puppy, because we are unable to do dynamic address assignment on startup on xBuddy");
+static_assert(std::to_underlying(Dock::INDX_HEAD) == 8, "Must stay 9th puppy, because we are unable to do dynamic address assignment on startup on xBuddy");
+static_assert(std::to_underlying(Dock::XL_CAN) == 9, "Reserved as 10th dock for the XLS XL-CAN, same as XBUDDY_EXTENSION");
 
+// DOCKS is the set of puppies driven by the standard PuppyBootstrap loop.
+// Some puppies (XL-CAN, XBE) have a custom bootstrap process and are not handled here.
 #if HAS_PUPPY_MODULARBED() || HAS_DWARF() || HAS_INDX_HEAD()
 constexpr auto DOCKS = std::to_array({
     #if HAS_PUPPY_MODULARBED()

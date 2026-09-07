@@ -1,7 +1,7 @@
 #include "buffered_conn.hpp"
 
-#include <cassert>
 #include <cstring>
+#include <bsod/bsod.h>
 
 using std::min;
 using std::optional;
@@ -14,7 +14,7 @@ BufferedConnection::BufferedConnection(Connection *connection, const uint8_t *bu
     , inner(connection) {
     if (len > 0) {
         read_buffer.reset(new ReadBuffer);
-        assert(len <= ReadBuffer::MAX_BUFF);
+        debug_assert(len <= ReadBuffer::MAX_BUFF);
         read_buffer->size = len;
         memcpy(read_buffer->data, buff, len);
     }

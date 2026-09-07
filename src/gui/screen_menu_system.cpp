@@ -1,21 +1,12 @@
-/**
- * @file screen_menu_system.cpp
- */
-#include "screen_menu_system.hpp"
-#include "screen_move_z.hpp"
+/// @file
+#include <screen_menu_system.hpp>
 
-#include <option/has_e2ee_support.h>
-
-void ScreenMenuSystem::windowEvent(window_t *sender, GUI_event_t event, void *param) {
-    if (event == GUI_event_t::HELD_RELEASED) {
-        open_move_z_screen();
-        return;
-    }
-
-    ScreenMenu::windowEvent(sender, event, param);
-}
+#include <img_resources.hpp>
 
 ScreenMenuSystem::ScreenMenuSystem()
-    : ScreenMenuSystem__(_(label)) {
+    : ScreenMenuSystemBase {
+        _("SYSTEM"),
+        &img::settings_16x16,
+    } {
     EnableLongHoldScreenAction();
 }

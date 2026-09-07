@@ -49,11 +49,7 @@
 #endif
 
 #include "../feature/print_area.h"
-
-#if ENABLED(BLTOUCH)
-  // #error dead code found by automatic analyses (see BFW-5461)
-  #include "../feature/bltouch.h"
-#endif
+#include <option/has_crash_detection.h>
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   #include "loadcell.hpp"
@@ -66,9 +62,9 @@
 #if ENABLED(SENSORLESS_HOMING)
   #include "../feature/motordriver_util.h"
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     #include "../feature/prusa/crash_recovery.hpp"
-  #endif // ENABLED(CRASH_RECOVERY)
+  #endif
 #endif
 
 #if HAS_PRECISE_HOMING()
@@ -144,12 +140,12 @@ xyze_pos_t destination; // {0}
   StrongIndexArray<xyz_pos_t, HOTENDS, PhysicalToolIndex, PhysicalToolIndex::to_raw_static, strong_index_array::AllowWeakIndexing::yes> hotend_offset;  // Initialized by settings.load()
   xyz_pos_t hotend_currently_applied_offset;
   void reset_hotend_offset(PhysicalToolIndex tool_index) {
-    hotend_offset[tool_index].reset();
+    hotend_offset[tool_index] = {};
   }
 
   void reset_hotend_offsets() {
     for (auto &offset : hotend_offset) {
-      offset.reset();
+      offset = {};
     }
   }
 #endif
@@ -558,7 +554,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
         default: break;
         #if X_SENSORLESS
           case X_AXIS:
-            #if ENABLED(CRASH_RECOVERY)
+            #if HAS_CRASH_DETECTION()
               crash_s.start_sensorless_homing_per_axis(axis);
             #endif
 
@@ -573,7 +569,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
         #endif
         #if Y_SENSORLESS
           case Y_AXIS:
-            #if ENABLED(CRASH_RECOVERY)
+            #if HAS_CRASH_DETECTION()
               crash_s.start_sensorless_homing_per_axis(axis);
             #endif
 
@@ -639,7 +635,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
         default: break;
         #if X_SENSORLESS
           case X_AXIS:
-            #if ENABLED(CRASH_RECOVERY)
+            #if HAS_CRASH_DETECTION()
               crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.x);
             #else
               // #error dead code found by automatic analyses (see BFW-5461)
@@ -651,12 +647,12 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
                 // #error dead code found by automatic analyses (see BFW-5461)
                 disable_crash_detection(Z_AXIS, enable_stealth.z);
               #endif
-            #endif // ENABLED(CRASH_RECOVERY)
+            #endif
           break;
         #endif
         #if Y_SENSORLESS
           case Y_AXIS:
-            #if ENABLED(CRASH_RECOVERY)
+            #if HAS_CRASH_DETECTION()
               crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.y);
             #else
               // #error dead code found by automatic analyses (see BFW-5461)
@@ -668,7 +664,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
                 // #error dead code found by automatic analyses (see BFW-5461)
                 disable_crash_detection(Z_AXIS, enable_stealth.z);
               #endif
-            #endif // ENABLED(CRASH_RECOVERY)
+            #endif
           break;
         #endif
         #if Z_SENSORLESS
@@ -715,7 +711,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
   #endif // SENSORLESS_HOMING
 
 uint8_t do_homing_move_axis_rel(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s) {
-  assert(fr_mm_s != 0.f);
+  debug_assert(fr_mm_s != 0.f);
 
   // If you're seeing either of these BSODs,
   // you're probably calling do_homing_move_axis_rel instead of do_homing_move
@@ -901,7 +897,8 @@ void prepare_move_to(xyze_pos_t target, feedRate_t fr_mm_s, PrepareMoveHints hin
       if (!DEBUGGING(DRYRUN)) {
         if (target.e != current_position.e) {
           #if ENABLED(PREVENT_COLD_EXTRUSION)
-            if (thermalManager.tooColdToExtrude(active_extruder)) {
+            const auto tool = PhysicalToolIndex::currently_selected_opt();
+            if (!tool.has_value() || thermalManager.tooColdToExtrude(tool.value())) {
               current_position.e = target.e; // Behave as if the move really took place, but ignore E part
               SERIAL_ECHO_MSG(MSG_ERR_COLD_EXTRUDE_STOP);
             }
@@ -982,7 +979,7 @@ void prepare_move_to(xyze_pos_t target, feedRate_t fr_mm_s, PrepareMoveHints hin
  */
 void set_axis_is_at_home(const AxisEnum axis, AxisHomeLevel level, [[maybe_unused]] bool homing_z_with_probe) {
   // ensure we're not within an aborted move: caller needs to check!
-  assert(!planner.draining());
+  debug_assert(!planner.draining());
 
   axes_home_level[axis] = level; 
 
@@ -1032,7 +1029,7 @@ METRIC_DEF(metric_home_diff, "home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED
  * @param recover_z true if failed during Z homing and should rehome Z
  */
 void homing_failed(stdext::inplace_function<void()> fallback_error, [[maybe_unused]] bool crash_was_active, bool recover_z) {
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     const bool is_active = crash_s.is_active();
     if ((is_active || crash_was_active) // Allow if crash recovery was temporarily disabled
       && (crash_s.get_state() == Crash_s::PRINTING)) {
@@ -1058,7 +1055,7 @@ void homing_failed(stdext::inplace_function<void()> fallback_error, [[maybe_unus
       || (crash_s.get_state() == Crash_s::REPEAT_WAIT)) {
       return; // Ignore
     }
-  #endif /*ENABLED(CRASH_RECOVERY)*/
+  #endif
 
   fallback_error();
 }
@@ -1090,14 +1087,14 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
   // clear the axis state while running
   axes_home_level[axis] = AxisHomeLevel::not_homed;
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     crash_s.not_for_replay();
     Crash_Temporary_Deactivate ctd;
     const bool orig_crash [[maybe_unused]] = ctd.get_orig_state();
-  #else /*ENABLED(CRASH_RECOVERY)*/
+  #else
     // #error dead code found by automatic analyses (see BFW-5461)
     constexpr bool orig_crash [[maybe_unused]] = false;
-  #endif /*ENABLED(CRASH_RECOVERY)*/
+  #endif
 
   #define _CAN_HOME(A) \
     (axis == _AXIS(A) && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
@@ -1238,13 +1235,6 @@ float homeaxis_single_run(const HomeAxisSingleRunArgs &args) {
 
   // Fast move towards endstop until triggered
 
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    if (axis == Z_AXIS && homing_z_with_probe && bltouch.deploy()) {
-      return NAN; // The initial DEPLOY
-    }
-  #endif
-
   const feedRate_t real_fr_mm_s = args.fr_mm_s ?: homing_feedrate(axis);
 
   #if ENABLED(MOVE_BACK_BEFORE_HOMING)
@@ -1257,16 +1247,7 @@ float homeaxis_single_run(const HomeAxisSingleRunArgs &args) {
     }
   #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
 
-  do_homing_move(axis, 1.5f * max_length(
-      axis
-      ) * axis_home_dir, real_fr_mm_s, false, homing_z_with_probe);
-
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-    // #error dead code found by automatic analyses (see BFW-5461)
-    if (axis == Z_AXIS && homing_z_with_probe) {
-      bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
-    }
-  #endif
+  do_homing_move(axis, 1.5f * max_length(axis) * axis_home_dir, real_fr_mm_s, false, homing_z_with_probe);
 
   // When homing Z with probe respect probe clearance
   float bump = axis_home_dir * (
@@ -1296,13 +1277,6 @@ float homeaxis_single_run(const HomeAxisSingleRunArgs &args) {
     if (planner.draining() || gcode_exceptions().throw_count() != initial_throw_count)
       return NAN;
 
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      if (axis == Z_AXIS && homing_z_with_probe && bltouch.deploy()) {
-        return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
-      }
-    #endif
-
     feedRate_t bump_feedrate;
 
     #if HOMING_Z_WITH_PROBE
@@ -1331,13 +1305,6 @@ float homeaxis_single_run(const HomeAxisSingleRunArgs &args) {
     do_homing_move(axis, 2 * bump, bump_feedrate, false, homing_z_with_probe);
 
     steps_after_bump[i] = stepper.position_from_startup(axis);
-
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      // #error dead code found by automatic analyses (see BFW-5461)
-      if (axis == Z_AXIS && homing_z_with_probe) {
-        bltouch.stow(); // The final STOW
-      }
-    #endif
   }
 
   #if ENABLED(Z_TRIPLE_ENDSTOPS)

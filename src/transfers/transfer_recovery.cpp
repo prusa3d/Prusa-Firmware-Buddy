@@ -261,7 +261,7 @@ Transfer::RestoredTransfer::RestoredTransfer(FILE *file, PartialFile::State stat
 }
 
 const void *Transfer::RestoredTransfer::get_data_ptr(size_t offset, size_t size) {
-    assert(data_buffer != nullptr);
+    debug_assert(data_buffer != nullptr);
     if (data_buffer == nullptr) {
         log_error(transfers, "No data buffer available");
         return nullptr;
@@ -269,7 +269,7 @@ const void *Transfer::RestoredTransfer::get_data_ptr(size_t offset, size_t size)
 
     const auto data_start = sizeof(SerializedTransfer);
     const auto data_end = data_start + data_buffer_size;
-    assert(offset >= data_start && offset + size <= data_end);
+    debug_assert(offset >= data_start && offset + size <= data_end);
     if (offset < data_start || offset + size > data_end) {
         log_error(transfers, "Data offset/size out of range");
         return nullptr;

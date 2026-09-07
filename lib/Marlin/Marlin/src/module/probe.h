@@ -44,17 +44,30 @@
     PROBE_PT_BIG_RAISE  // Raise to big clearance after run_z_probe
   };
 
+  /// Whether probe_at_point() folds the tool-specific terms - the active tool's hotend offset and
+  /// its nozzle length - into its result. Say no when those terms are what you are measuring.
+  enum class ApplyToolCorrections : bool { no = false,
+      yes = true };
+
+  bool probe_should_check_angle_after();
+
   struct RunZProbeParams {
     float expected_trigger_z;
     bool single_only = false;
     bool *endstop_triggered = nullptr;
-    bool is_nozzle_clean = false;
     uint8_t required_successes = 1;
+    std::optional<bool> check_angle_after = std::nullopt;
   };
 
   float run_z_probe(const RunZProbeParams& params);
-  float probe_here(float z_down_limit);
-  float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true, const uint8_t required_successes=1);
+  /// Probe straight down from the current position, retrying at the SAME XY on
+  /// failure (lifting between tries). Unlike run_z_probe's spiral search, this
+  /// does not move XY between attempts.
+  /// @param expected_trigger_z  Expected Z of the surface (down limit / hint).
+  /// @param max_attempts        Max probe attempts before giving up.
+  /// @returns probed Z (with offsets applied), or NAN if all attempts failed.
+  float probe_here(float expected_trigger_z, uint8_t max_attempts);
+  float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true, const uint8_t required_successes=1, const ApplyToolCorrections apply_tool_corrections=ApplyToolCorrections::yes);
   #if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
     bool cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max);
   #endif
@@ -86,11 +99,6 @@
   inline float probe_max_x() { return 0; };
   inline float probe_min_y() { return 0; };
   inline float probe_max_y() { return 0; };
-#endif
-
-#if HAS_Z_SERVO_PROBE
-  // #error dead code found by automatic analyses (see BFW-5461)
-  void servo_probe_init();
 #endif
 
 #if QUIET_PROBING

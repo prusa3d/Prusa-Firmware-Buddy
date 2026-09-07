@@ -758,7 +758,7 @@ void reset_trinamic_drivers() {
     // #error dead code found by automatic analyses (see BFW-5461)
     _TMC_INIT(X, STEALTH_AXIS_XY);
     #else
-    tmc_init(stepperX, get_default_rms_current_ma_x(), get_microsteps_x(), X_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_XY]);
+    tmc_init(stepperX, get_rms_current_ma_x(), get_microsteps_x(), X_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_XY]);
     #endif
 #endif
 #if AXIS_IS_TMC(Y)
@@ -766,7 +766,7 @@ void reset_trinamic_drivers() {
     // #error dead code found by automatic analyses (see BFW-5461)
     _TMC_INIT(Y, STEALTH_AXIS_XY);
     #else
-    tmc_init(stepperY, get_default_rms_current_ma_y(), get_microsteps_y(), Y_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_XY]);
+    tmc_init(stepperY, get_rms_current_ma_y(), get_microsteps_y(), Y_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_XY]);
     #endif
 #endif
 #if AXIS_IS_TMC(Z)
@@ -774,7 +774,7 @@ void reset_trinamic_drivers() {
     // #error dead code found by automatic analyses (see BFW-5461)
     _TMC_INIT(Z, STEALTH_AXIS_Z);
     #else
-    tmc_init(stepperZ, get_default_rms_current_ma_z(), get_microsteps_z(), Z_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_Z]);
+    tmc_init(stepperZ, get_rms_current_ma_z(), get_microsteps_z(), Z_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_Z]);
     #endif
 #endif
 #if AXIS_IS_TMC(Z2)
@@ -789,7 +789,7 @@ void reset_trinamic_drivers() {
     #if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
     _TMC_INIT(E0, STEALTH_AXIS_E);
     #else
-    tmc_init(stepperE0, get_default_rms_current_ma_e(), get_microsteps_e(), E0_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_E]);
+    tmc_init(stepperE0, get_rms_current_ma_e(), get_microsteps_e(), E0_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_E]);
     #endif
 #endif
 #if AXIS_IS_TMC(E1)

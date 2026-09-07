@@ -2,6 +2,7 @@
 #include <puppies/tool_offset_sensor.hpp>
 
 #include <modbus/server_address.hpp>
+#include <option/has_indx.h>
 
 using Lock = std::unique_lock<freertos::Mutex>;
 using xbuddy_extension::NodeState;
@@ -9,6 +10,14 @@ using xbuddy_extension::NodeState;
 static constexpr uint8_t unit = std::to_underlying(modbus::ServerAddress::tool_offset_sensor);
 
 namespace buddy::puppies {
+
+bool ToolOffsetSensor::is_enabled() const {
+    return is_enabled_.load();
+}
+
+void ToolOffsetSensor::set_enabled(bool set) {
+    is_enabled_.store(set);
+}
 
 NodeState ToolOffsetSensor::get_node_state() const {
     Lock lock(mutex);
@@ -76,15 +85,10 @@ CommunicationStatus ToolOffsetSensor::refresh(PuppyModbus &bus) {
         return CommunicationStatus::ERROR;
     }
 
-    const auto holding = refresh_holding(bus);
-    if (holding == CommunicationStatus::ERROR) {
-        return CommunicationStatus::ERROR;
-    }
-
-    if (input == CommunicationStatus::SKIPPED && holding == CommunicationStatus::SKIPPED) {
-        return CommunicationStatus::SKIPPED;
-    }
-    return CommunicationStatus::OK;
+    return aggregate_communication_status({
+        input,
+        refresh_holding(bus),
+    });
 }
 
 ToolOffsetSensor tool_offset_sensor;

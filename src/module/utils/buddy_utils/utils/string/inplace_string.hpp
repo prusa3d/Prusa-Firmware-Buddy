@@ -3,8 +3,8 @@
 
 #include <array>
 #include <cstddef>
-#include <cassert>
 #include <string_view>
+#include <bsod/bsod.h>
 
 /// Alternative to std::string with inplace buffer
 /// Has the same sizeof() as a std::array.
@@ -17,7 +17,7 @@ public:
     constexpr InplaceString(const InplaceString &) = default;
 
     constexpr InplaceString(std::string_view str) {
-        assert(str.size() < capacity_);
+        debug_assert(str.size() < capacity_);
         str.copy(data_.data(), capacity_);
         data_[str.size()] = '\0';
     }

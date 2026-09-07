@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <array>
 #include <assert.h>
+#include <bit>
 
 using PrimitiveAnyAlignment = void *;
 
@@ -96,7 +97,15 @@ public:
     constexpr void set(const T &value) {
         static_assert(sizeof(T) <= max_size);
         type = PrimitiveAnyRTTI::get_for_type<T>();
-        new (data.data()) T(value);
+        if consteval {
+            // Note: new () doesn't compile in consteval, we need to be more elaborate
+            const auto arr = std::bit_cast<std::array<uint8_t, sizeof(T)>>(value);
+            for (size_t i = 0; i < arr.size(); i++) {
+                data[i] = arr[i];
+            }
+        } else {
+            new (data.data()) T(value);
+        }
     }
 
     /// \returns if the variant holds alternative of the given type
@@ -133,7 +142,7 @@ public:
 
 private:
     /// Contents of the variant
-    alignas(PrimitiveAnyAlignment) std::array<uint8_t, max_size> data = { 0 };
+    alignas(PrimitiveAnyAlignment) std::array<uint8_t, max_size> data {};
 
     /// Pointer representing the type
     const PrimitiveAnyRTTI *type = nullptr;

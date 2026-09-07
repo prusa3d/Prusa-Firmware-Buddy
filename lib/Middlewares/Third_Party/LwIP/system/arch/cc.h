@@ -39,7 +39,7 @@
 typedef int sys_prot_t;
 
 //#define LWIP_PROVIDE_ERRNO
-#define LWIP_ERRNO_INCLUDE <sys/errno.h>
+#define LWIP_ERRNO_STDINCLUDE
 
 #if defined (__GNUC__) & !defined (__CC_ARM)
 

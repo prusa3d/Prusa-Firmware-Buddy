@@ -8,6 +8,7 @@
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include <bsod/bsod.h>
 
 static constexpr uint32_t timeout_ms = 1000;
 
@@ -51,25 +52,13 @@ void SpiFlashBus::release_dma_from_isr(HAL_StatusTypeDef status) {
 }
 
 HAL_StatusTypeDef SpiFlashBus::receive_dma(uint8_t *buffer, uint32_t len) {
-    assert(can_be_used_by_dma(buffer));
-    const HAL_StatusTypeDef status = HAL_SPI_Receive_DMA(spi_handle, buffer, len);
-    if (status == HAL_OK) {
-        dma_semaphore.acquire();
-        return dma_status;
-    } else {
-        return status;
-    }
+    debug_assert(can_be_used_by_dma(buffer));
+    return wait_for_dma(HAL_SPI_Receive_DMA(spi_handle, buffer, len));
 }
 
 HAL_StatusTypeDef SpiFlashBus::send_dma(const uint8_t *buffer, uint32_t len) {
-    assert(can_be_used_by_dma(buffer));
-    const HAL_StatusTypeDef status = HAL_SPI_Transmit_DMA(spi_handle, (uint8_t *)buffer, len);
-    if (status == HAL_OK) {
-        dma_semaphore.acquire();
-        return dma_status;
-    } else {
-        return status;
-    }
+    debug_assert(can_be_used_by_dma(buffer));
+    return wait_for_dma(HAL_SPI_Transmit_DMA(spi_handle, (uint8_t *)buffer, len));
 }
 
 LOG_COMPONENT_DEF(FlashBus, logging::Severity::info);
@@ -192,4 +181,31 @@ void SpiFlashBus::on_rx_complete() {
 
 void SpiFlashBus::on_error() {
     release_dma_from_isr(HAL_ERROR);
+}
+
+HAL_StatusTypeDef SpiFlashBus::wait_for_dma(const HAL_StatusTypeDef status) {
+    // DMA transfer failed to start
+    if (status != HAL_OK) [[unlikely]] {
+        return status;
+    }
+
+    // DMA transfer finished before timeout
+    if (dma_semaphore.try_acquire_for(timeout_ms)) [[likely]] {
+        return dma_status;
+    }
+
+    // DMA transfer timed-out
+    const HAL_StatusTypeDef abort_status = HAL_SPI_Abort(spi_handle);
+
+    // DMA transfer finished before abort
+    if (dma_semaphore.try_acquire_for(0)) [[unlikely]] {
+        return dma_status;
+    }
+
+    // Abort failed
+    if (abort_status != HAL_OK) [[unlikely]] {
+        return abort_status;
+    }
+
+    return HAL_TIMEOUT;
 }

@@ -1,4 +1,5 @@
 #include "screen_menu_selftest_snake.hpp"
+#include <config_store/store_instance.hpp>
 #include <img_resources.hpp>
 #include <marlin_client.hpp>
 #include <ScreenHandler.hpp>
@@ -7,10 +8,11 @@
 #include <option/has_side_fsensor_remap.h>
 #include <option/has_gearbox_alignment.h>
 #include <option/has_door_sensor_calibration.h>
+#include <option/has_manual_belt_tuning.h>
 #include <option/has_selftest_dependencies.h>
 #include <printers.h>
+#include <option/has_heaters_selftest_gcode.h>
 #include <bsod/bsod.h>
-#include <window_msgbox_happy_printing.hpp>
 #include "selftest/i_selftest.hpp"
 #include <selftest/selftest_invocation.hpp>
 #include <gui/wizard/screen_selftest_submenu.hpp>
@@ -21,6 +23,11 @@
 #include <option/has_side_fsensor_remap.h>
 #if HAS_SIDE_FSENSOR_REMAP()
     #include <feature/filament_sensor/filament_sensors_handler_remap.hpp>
+#endif
+
+#include <option/has_tool_offset_sensor.h>
+#if HAS_TOOL_OFFSET_SENSOR()
+    #include <feature/tool_offset_calibration/tool_offset_calibration.hpp>
 #endif
 
 using namespace SelftestSnake;
@@ -43,7 +50,7 @@ PhysicalToolIndex get_last_enabled_tool() {
 }
 
 PhysicalToolIndex get_next_tool(PhysicalToolIndex tool) {
-    assert(tool != get_last_enabled_tool() && "Unhandled edge case");
+    debug_assert(tool != get_last_enabled_tool() && "Unhandled edge case");
     do {
         tool = PhysicalToolIndex::from_raw(tool.to_raw() + 1);
     } while (!tool.is_enabled());
@@ -62,7 +69,7 @@ const img::Resource *get_icon(Action action, ToolMask mask) {
         return &img::nok_color_16x16;
     }
 
-    assert(false);
+    debug_assert(false);
     return &img::error_16x16;
 }
 
@@ -122,6 +129,11 @@ void do_snake(Action action, PhysicalToolIndex tool) {
         case Action::Fans:
             marlin_client::gcode("M1978");
             break;
+#if HAS_HEATERS_SELFTEST_GCODE()
+        case Action::Heaters:
+            marlin_client::gcode("M1987");
+            break;
+#endif
 
         case Action::FilamentSensorCalibration:
 #if HAS_SIDE_FSENSOR_REMAP()
@@ -148,6 +160,11 @@ void do_snake(Action action, PhysicalToolIndex tool) {
             marlin_client::gcode("G28 XY C");
             break;
 #endif
+#if HAS_MANUAL_BELT_TUNING()
+        case Action::BeltTuning:
+            marlin_client::gcode("M961");
+            break;
+#endif
 #if HAS_INDX()
         case Action::DockCalibration:
             marlin_client::gcode("M1982");
@@ -155,14 +172,17 @@ void do_snake(Action action, PhysicalToolIndex tool) {
         case Action::NozzleCleanerCalibration:
             marlin_client::gcode("M1983");
             break;
-        case Action::ToolOffsetsCalibration:
-            marlin_client::gcode("M1985");
-            break;
-        case Action::BeltTuning:
-            marlin_client::gcode("M961");
-            break;
         case Action::InputShaper:
             marlin_client::gcode("M1959");
+            break;
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+        case Action::ToolOffsetsCalibration:
+            if (tool_offset_calibration::is_hardware_available()) { // XLS: CAN bridge + sensor present
+                marlin_client::gcode("M1985");
+                break; // handled as a gcode test
+            }
+            has_test_special_handling = false; // plain XL: fall through to pin-based selftest mask
             break;
 #endif
         default:
@@ -321,15 +341,7 @@ string_view_utf8 I_MI_STS::get_filled_menu_item_label(Action action) {
 
 I_MI_STS::I_MI_STS(Action action)
     : IWindowMenuItem(get_filled_menu_item_label(action), nullptr, is_enabled_t::yes, get_mainitem_hidden_state(action), get_expands(action))
-    , action(action) {
-#if HAS_SELFTEST_DEPENDENCIES()
-    if (!are_dependencies_met(action)) {
-#else
-    if (!are_previous_completed(action)) {
-#endif
-        set_color_scheme(&not_yet_ready_scheme);
-    }
-}
+    , action(action) {}
 
 static bool check_prerequisites_or_warn(Action action) {
     if (bypass_dependencies) {
@@ -367,6 +379,14 @@ void I_MI_STS::click(IWindowMenu &) {
 void I_MI_STS::Loop() {
     SetIconId(get_icon(action, AllTools {}));
     set_icon_position(IconPosition::before_extension);
+
+    // NOTE: setting color scheme in ctor is not reliable because some selftests dont rebuild the menu, so the ctor would not re-run
+#if HAS_SELFTEST_DEPENDENCIES()
+    const bool ready = are_dependencies_met(action);
+#else
+    const bool ready = are_previous_completed(action);
+#endif
+    set_color_scheme(ready ? nullptr : &not_yet_ready_scheme);
 }
 
 I_MI_STS_SUBMENU::I_MI_STS_SUBMENU(const char *label_template, Action action, PhysicalToolIndex tool)
@@ -434,6 +454,16 @@ void ScreenMenuSTSCalibrations::windowEvent(window_t *sender, GUI_event_t event,
     do_menu_event(this, sender, event, param, get_first_action(), false);
 }
 
+bool ScreenMenuSTSWizard::should_show() {
+#if PRINTER_IS_PRUSA_iX()
+    return false;
+#else
+    // A crude heuristic to make the wizard show only "on the first run".
+    // Yes, we are ignoring other selftest results outside of this struct, but this is good enough for the purpose.
+    return config_store().selftest_result.get() == config_store_ns::defaults::selftest_result;
+#endif
+}
+
 ScreenMenuSTSWizard::ScreenMenuSTSWizard()
     : SelftestSnake::detail::ScreenMenuSTSWizard(_(label)) {
     header.SetIcon(&img::wizard_16x16);
@@ -483,7 +513,6 @@ void ScreenMenuSTSWizard::windowEvent(window_t *sender, GUI_event_t event, void 
 #else
     if (is_completed(get_test_result(get_last_action(), AllTools {})) && are_previous_completed(get_last_action())) {
 #endif
-        MsgBoxHappyPrinting();
         Screens::Access()->Close();
     }
 }

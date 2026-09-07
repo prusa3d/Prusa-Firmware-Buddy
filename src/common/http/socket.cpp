@@ -26,9 +26,9 @@
     #define lwip_shutdown     shutdown
     #define lwip_socket       socket
 #else
-    #include "sockets.h"
-    #include "lwip/inet.h"
-    #include "lwip/netdb.h"
+    #include <lwip/sockets.h>
+    #include <lwip/inet.h>
+    #include <lwip/netdb.h>
 #endif
 #include <logging/log.hpp>
 

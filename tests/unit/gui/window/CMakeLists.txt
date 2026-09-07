@@ -3,7 +3,7 @@ add_executable(
   window_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/tests_window.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/empty_mocks.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/mock_display.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/mock_display.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mock_windows.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/i_window_text_stub.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/window_text_stub.cpp
@@ -24,7 +24,7 @@ add_executable(
   layout_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/tests_layout.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/empty_mocks.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/mock_display.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/mock_display.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mock_windows.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/window.cpp
   ${CMAKE_SOURCE_DIR}/src/guiapi/src/knob_event.cpp
@@ -46,6 +46,7 @@ add_executable(
 target_include_directories(
   window_tests
   PUBLIC .
+         ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock
          ${CMAKE_SOURCE_DIR}/src
          ${CMAKE_SOURCE_DIR}/src/guiapi/include
          ${CMAKE_SOURCE_DIR}/src/guiconfig
@@ -63,6 +64,7 @@ target_include_directories(
 target_include_directories(
   layout_tests
   PUBLIC .
+         ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock
          ${CMAKE_SOURCE_DIR}/src
          ${CMAKE_SOURCE_DIR}/src/guiapi/include
          ${CMAKE_SOURCE_DIR}/src/guiconfig
@@ -77,9 +79,19 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/lang
   )
 
-target_link_libraries(window_tests SG14 freertos-mock logging-mock random random_sw)
+target_link_libraries(
+  window_tests
+  SG14
+  freertos-mock
+  logging-mock
+  random
+  random_sw
+  font_data
+  )
 
+# No font_data: the tests lay their fonts out themselves, see tests_layout.cpp
 target_link_libraries(layout_tests SG14 freertos-mock logging-mock random random_sw)
+target_include_directories(layout_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/module/gui/font_data/include)
 
 # tell build system about the test case
 add_catch_test(window_tests)

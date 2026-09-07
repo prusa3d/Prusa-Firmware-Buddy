@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <span>
+#include <utils/byte_utils.hpp>
 
 namespace cyphal {
 
@@ -76,9 +76,6 @@ enum class Severity : uint8_t {
     alert = 7,
 };
 
-/// Represents raw node name, as presented by standard cyphal protocols.
-using Bytes = std::span<const std::byte>;
-
 /// Strong type representing node ID on cyphal network.
 class NodeId {
 private:
@@ -96,6 +93,26 @@ public:
 
     constexpr bool operator==(const NodeId &) const = default;
     constexpr bool operator!=(const NodeId &) const = default;
+};
+
+/// Strong type representing transfer ID (5 bit unsigned integer) on cyphal network.
+class TransferId {
+private:
+    uint8_t value;
+
+public:
+    static constexpr uint8_t mask = 0b0001'1111;
+
+    constexpr TransferId()
+        : value { 0 } {}
+
+    constexpr explicit TransferId(uint8_t value)
+        : value { static_cast<uint8_t>(value & mask) } {}
+
+    constexpr explicit operator uint8_t() const { return value; }
+
+    constexpr bool operator==(const TransferId &) const = default;
+    constexpr bool operator!=(const TransferId &) const = default;
 };
 
 /// Strong type representing command to be executed on the node.

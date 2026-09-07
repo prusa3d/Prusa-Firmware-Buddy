@@ -31,7 +31,7 @@
 #ifdef __ICCARM__
   #define sys_write   __write
   #define sys_read    __read
-#elif defined(__MSP430__) || defined(__RX__)
+#elif defined(__MSP430__) || defined(__RX__) || TU_CHECK_MCU(OPT_MCU_NUC120, OPT_MCU_NUC121, OPT_MCU_NUC126, OPT_MCU_NUC505)
   #define sys_write   write
   #define sys_read    read
 #else
@@ -39,45 +39,55 @@
   #define sys_read    _read
 #endif
 
+int sys_write(int fhdl, const char *buf, size_t count) TU_ATTR_USED;
+int sys_read(int fhdl, char *buf, size_t count) TU_ATTR_USED;
+
 #if defined(LOGGER_RTT)
 // Logging with RTT
 
 // If using SES IDE, use the Syscalls/SEGGER_RTT_Syscalls_SES.c instead
 #if !(defined __SES_ARM) && !(defined __SES_RISCV) && !(defined __CROSSWORKS_ARM)
-
 #include "SEGGER_RTT.h"
 
-TU_ATTR_USED int sys_write(int fhdl, const void *buf, size_t count) {
+int sys_write(int fhdl, const char *buf, size_t count) {
   (void) fhdl;
-  SEGGER_RTT_Write(0, (const char *) buf, (int) count);
-  return count;
+  return (int) SEGGER_RTT_Write(0, buf, (unsigned) count);
 }
 
-TU_ATTR_USED int sys_read(int fhdl, char *buf, size_t count) {
+int sys_read(int fhdl, char *buf, size_t count) {
   (void) fhdl;
-  int rd = (int) SEGGER_RTT_Read(0, buf, count);
+  int rd = (int) SEGGER_RTT_Read(0, buf, (unsigned) count);
   return (rd > 0) ? rd : -1;
 }
-
 #endif
 
 #elif defined(LOGGER_SWO)
-// Logging with SWO for ARM Cortex
 
-#include "board_mcu.h"
+#define ITM_BASE 0xE0000000
+#define ITM_STIM0 (*((volatile uint8_t*)(ITM_BASE + 0)))
+#define ITM_TER *((volatile uint32_t*)(ITM_BASE + 0xE00))
+#define ITM_TCR *((volatile uint32_t*)(ITM_BASE + 0xE80))
 
-TU_ATTR_USED int sys_write (int fhdl, const void *buf, size_t count) {
+#define ITM_TCR_ITMENA (1 << 0)
+
+// Logging with SWO for ARM Cortex-M
+int sys_write (int fhdl, const char *buf, size_t count) {
   (void) fhdl;
   uint8_t const* buf8 = (uint8_t const*) buf;
 
-  for(size_t i=0; i<count; i++) {
-    ITM_SendChar(buf8[i]);
+  if ((ITM_TCR & ITM_TCR_ITMENA) && (ITM_TER & 1ul)) {
+    for(size_t i=0; i < count; i++) {
+      while (!(ITM_STIM0 & 1ul)) {
+        asm("nop");
+      }
+      ITM_STIM0 = buf8[i];
+    }
   }
 
   return (int) count;
 }
 
-TU_ATTR_USED int sys_read (int fhdl, char *buf, size_t count) {
+int sys_read (int fhdl, char *buf, size_t count) {
   (void) fhdl;
   (void) buf;
   (void) count;
@@ -87,12 +97,25 @@ TU_ATTR_USED int sys_read (int fhdl, char *buf, size_t count) {
 #else
 
 // Default logging with on-board UART
-TU_ATTR_USED int sys_write (int fhdl, const void *buf, size_t count) {
+// board_uart_write() is non-blocking, retry until all bytes sent.
+// Returns negative if UART is not available (stub), break immediately.
+int sys_write (int fhdl, const char *buf, size_t count) {
   (void) fhdl;
-  return board_uart_write(buf, (int) count);
+  size_t written = 0;
+  while (written < count) {
+    int wr = board_uart_write(buf + written, (int)(count - written));
+    if (wr < 0) {
+      break; // UART not available
+    }
+    if (wr == 0) {
+      continue; // TX busy, keep trying
+    }
+    written += (size_t) wr;
+  }
+  return (int) written;
 }
 
-TU_ATTR_USED int sys_read (int fhdl, char *buf, size_t count) {
+int sys_read (int fhdl, char *buf, size_t count) {
   (void) fhdl;
   int rd = board_uart_read((uint8_t*) buf, (int) count);
   return (rd > 0) ? rd : -1;
@@ -100,7 +123,197 @@ TU_ATTR_USED int sys_read (int fhdl, char *buf, size_t count) {
 
 #endif
 
+// Clang use picolibc
+#if defined(__clang__)
+static int cl_putc(char c, FILE *f) {
+  (void) f;
+  return sys_write(0, &c, 1);
+}
+
+static int cl_getc(FILE* f) {
+  (void) f;
+  char c;
+  return sys_read(0, &c, 1) > 0 ? c : -1;
+}
+
+static FILE __stdio = FDEV_SETUP_STREAM(cl_putc, cl_getc, NULL, _FDEV_SETUP_RW);
+FILE *const stdin = &__stdio;
+__strong_reference(stdin, stdout);
+__strong_reference(stdin, stderr);
+#endif
+
+//--------------------------------------------------------------------+
+// Weak board API (to be optionally implemented by board)
+//--------------------------------------------------------------------+
+TU_ATTR_WEAK size_t board_get_unique_id(uint8_t id[], size_t max_len) {
+  (void) max_len;
+  // fixed serial string is 01234567889ABCDEF
+  uint32_t* uid32 = (uint32_t*) (uintptr_t)id;
+  uid32[0] = 0x67452301u;
+  uid32[1] = 0xEFCDAB89u;
+  return 8;
+}
+
+TU_ATTR_WEAK void board_init_after_tusb(void) {
+  // nothing to do
+}
+
+TU_ATTR_WEAK void board_reset_to_bootloader(void) {
+  // not implemented
+}
+
+//--------------------------------------------------------------------+
+// Board API
+//--------------------------------------------------------------------+
 int board_getchar(void) {
   char c;
   return (sys_read(0, &c, 1) > 0) ? (int) c : (-1);
 }
+
+int board_putchar(int c) {
+  if (board_uart_write((const char *)&c, 1) > 0) {
+    return c;
+  } else {
+    return -1;
+  }
+}
+//--------------------------------------------------------------------
+// FreeRTOS hooks
+//--------------------------------------------------------------------
+#if CFG_TUSB_OS == OPT_OS_FREERTOS && !defined(ESP_PLATFORM)
+
+#include "FreeRTOS.h"
+#include "task.h"
+
+void vApplicationMallocFailedHook(void); // missing prototype
+void vApplicationMallocFailedHook(void) {
+  taskDISABLE_INTERRUPTS();
+  TU_ASSERT(false, );
+}
+
+void vApplicationStackOverflowHook(xTaskHandle pxTask, char *pcTaskName) {
+  (void) pxTask;
+  (void) pcTaskName;
+
+  taskDISABLE_INTERRUPTS();
+  TU_ASSERT(false, );
+}
+
+/* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
+ * implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
+ * used by the Idle task. */
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize) {
+  /* If the buffers to be provided to the Idle task are declared inside this
+   * function then they must be declared static - otherwise they will be allocated on
+   * the stack and so not exists after this function exits. */
+  static StaticTask_t xIdleTaskTCB;
+  static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+  /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
+    state will be stored. */
+  *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+  /* Pass out the array that will be used as the Idle task's stack. */
+  *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+  /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+  *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
+/* configSUPPORT_STATIC_ALLOCATION and configUSE_TIMERS are both set to 1, so the
+ * application must provide an implementation of vApplicationGetTimerTaskMemory()
+ * to provide the memory that is used by the Timer service task. */
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize ) {
+  /* If the buffers to be provided to the Timer task are declared inside this
+   * function then they must be declared static - otherwise they will be allocated on
+   * the stack and so not exists after this function exits. */
+  static StaticTask_t xTimerTaskTCB;
+  static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
+
+  /* Pass out a pointer to the StaticTask_t structure in which the Timer
+    task's state will be stored. */
+  *ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+
+  /* Pass out the array that will be used as the Timer task's stack. */
+  *ppxTimerTaskStackBuffer = uxTimerTaskStack;
+
+  /* Pass out the size of the array pointed to by *ppxTimerTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
+  *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+}
+
+#if CFG_TUSB_MCU == OPT_MCU_RX63X || CFG_TUSB_MCU == OPT_MCU_RX65X
+void vApplicationSetupTimerInterrupt(void);
+
+#include "iodefine.h"
+void vApplicationSetupTimerInterrupt(void) {
+  /* Enable CMT0 */
+  unsigned short oldPRCR = SYSTEM.PRCR.WORD;
+  SYSTEM.PRCR.WORD = (0xA5u<<8) | TU_BIT(1);
+  MSTP(CMT0)       = 0;
+  SYSTEM.PRCR.WORD = (0xA5u<<8) | oldPRCR;
+
+  CMT0.CMCNT      = 0;
+  CMT0.CMCOR      = (unsigned short)(((configPERIPHERAL_CLOCK_HZ/configTICK_RATE_HZ)-1)/128);
+  CMT0.CMCR.WORD  = TU_BIT(6) | 2;
+  IR(CMT0, CMI0)  = 0;
+  IPR(CMT0, CMI0) = configKERNEL_INTERRUPT_PRIORITY;
+  IEN(CMT0, CMI0) = 1;
+  CMT.CMSTR0.BIT.STR0 = 1;
+}
+#endif
+
+#endif
+
+//--------------------------------------------------------------------
+// ThreadX hooks for ARM Cortex-M
+//--------------------------------------------------------------------
+#if CFG_TUSB_OS == OPT_OS_THREADX && defined(__ARM_ARCH)
+
+#include "tx_api.h"
+#include "tx_initialize.h"
+
+// Newlib linker symbol: end of statically allocated RAM (start of heap)
+extern ULONG _end;
+
+// CMSIS standard variable for system clock frequency
+extern uint32_t SystemCoreClock;
+
+// Cortex-M SysTick registers (fixed addresses on all Cortex-M)
+#define _TX_SYST_CSR    (*((volatile uint32_t *)0xE000E010U))
+#define _TX_SYST_RVR    (*((volatile uint32_t *)0xE000E014U))
+#define _TX_SYST_CVR    (*((volatile uint32_t *)0xE000E018U))
+// SCB->SHP[10] = PendSV priority, [11] = SysTick priority (byte access at SCB base + 0xD22)
+#define _TX_SCB_SHPR3   (*((volatile uint32_t *)0xE000ED20U))
+
+VOID _tx_initialize_low_level(VOID) {
+  // Set the first available memory address for tx_application_define
+  _tx_initialize_unused_memory = (VOID *)(&_end);
+
+  // Configure SysTick for ThreadX tick rate: enable with processor clock + interrupt
+  _TX_SYST_RVR = (SystemCoreClock / TX_TIMER_TICKS_PER_SECOND) - 1u;
+  _TX_SYST_CVR = 0u;
+  _TX_SYST_CSR = 0x07u; // CLKSOURCE=1, TICKINT=1, ENABLE=1
+
+  // SHPR3 bits[31:24] = SysTick priority, bits[23:16] = PendSV priority
+  // PendSV must be lowest priority (0xFF). SysTick must be higher than PendSV (0x40)
+  // so SysTick can preempt the PendSV scheduler idle loop (__tx_ts_wait) to tick the timer.
+  _TX_SCB_SHPR3 = (_TX_SCB_SHPR3 & 0x0000FFFFU) | 0x40FF0000U;
+}
+
+// Weak callback for board-specific SysTick work (e.g. HAL_IncTick on STM32)
+void osal_threadx_tick_cb(void);
+TU_ATTR_WEAK void osal_threadx_tick_cb(void) { }
+
+// SysTick drives the ThreadX timer tick
+extern void _tx_timer_interrupt(void);
+void SysTick_Handler(void);
+void SysTick_Handler(void) {
+  osal_threadx_tick_cb();
+  _tx_timer_interrupt();
+}
+
+#endif

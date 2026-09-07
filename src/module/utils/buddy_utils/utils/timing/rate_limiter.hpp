@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <type_traits>
-#include <cassert>
+#include <bsod/bsod.h>
 
 /// Utility class for making sure that something is not run too often
 template <typename T_>
@@ -17,7 +17,7 @@ public:
     explicit RateLimiter(std::convertible_to<T> auto min_delay)
         // min_delay should never be < 0, so casting to unsigned is safe
         : min_delay_(static_cast<UT>(min_delay)) {
-        assert(min_delay >= 0);
+        debug_assert(min_delay >= 0);
     }
 
     void set_min_delay(UT set) {

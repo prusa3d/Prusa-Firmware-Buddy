@@ -21,7 +21,13 @@
     #include <feature/chamber/chamber.hpp>
 #endif
 
+#include <option/has_ht_hotend.h>
+#if HAS_HT_HOTEND()
+    #include <marlin_server.hpp>
+#endif
+
 #include <option/has_anfc.h>
+#include <bsod/bsod.h>
 #if HAS_ANFC()
     #include <feature/openprinttag/tool_tag.hpp>
     #include <feature/openprinttag/data_utils.hpp>
@@ -57,8 +63,38 @@ static bool can_use_openprinttag(PreheatMode preheat_mode) {
 }
 #endif
 
-static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data) {
-    const auto serialized_data = preheat_data.serialize();
+PreheatData filament_gcodes::FilamentSelectionArgs::fsm_data() const {
+    return PreheatData {
+        .tool = tool,
+        .mode = mode,
+        .has_return_option = bool(std::to_underlying(ret_cool) & std::to_underlying(RetAndCool_t::Return)),
+        .has_cooldown_option = bool(std::to_underlying(ret_cool) & std::to_underlying(RetAndCool_t::Cooldown)),
+    };
+}
+
+static FSMResponseVariant determine_filament_for_operation(const filament_gcodes::FilamentSelectionArgs &preheat_data) {
+    const auto serialized_data = preheat_data.fsm_data().serialize();
+
+    const auto deduced_filament_type = [&] {
+        if (preheat_data.disregard_loaded_filament) {
+            return FilamentType::none;
+        }
+
+        if ((preheat_data.mode != PreheatMode::unload) && (preheat_data.mode != PreheatMode::purge)) {
+            // We cannot know the temperature, and thus must ask the user
+            return FilamentType::none;
+        }
+
+        return match(
+            preheat_data.tool, //
+            [](VirtualToolIndex i) { return config_store().get_filament_type(i); }, //
+            [](AllTools) { return FilamentType::none; });
+    }();
+
+    if (deduced_filament_type != FilamentType::none) {
+        // We know the filament parameters, no need to ask the user
+        return FSMResponseVariant::make(deduced_filament_type);
+    }
 
     marlin_server::FSM_Holder fsm { ClientFSM::Preheat };
 
@@ -87,6 +123,10 @@ static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data) {
         namespace opt = buddy::openprinttag;
 
         Tristate load_tag = config_store().opt_auto_read_on_load.get();
+
+        if (preheat_data.openprinttag_uid_hash == tag->uid_hash()) {
+            load_tag = Tristate::yes;
+        }
 
         if (load_tag == Tristate::other) {
             // Ask the user if they want to load the data
@@ -142,7 +182,7 @@ static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data) {
 
             opt::FilamentParametersInfo params { req };
 
-            if (params.missing_parameters.none()) {
+            if (params.data_safe_to_use) {
                 // Everything derived perfectly from the tag -> apply the parameters and be happy
                 const FilamentType ft = PendingAdHocFilamentType {};
                 ft.set_parameters(params.parameters);
@@ -198,31 +238,8 @@ static FSMResponseVariant preheatTempUnKnown(PreheatData preheat_data) {
     }
 }
 
-static FSMResponseVariant evaluate_preheat_conditions(PreheatData preheat_data) {
-    const auto filament_type = [&] {
-        if ((preheat_data.mode != PreheatMode::unload) && (preheat_data.mode != PreheatMode::purge)) {
-            // We cannot know the temperature, and thus must ask the user
-            return FilamentType::none;
-        }
-
-        return match(
-            preheat_data.tool, //
-            [](VirtualToolIndex i) { return config_store().get_filament_type(i); }, //
-            [](AllTools) { return FilamentType::none; });
-    }();
-
-    if (filament_type != FilamentType::none) {
-        // We know the filament parameters, no need to ask the user
-        return FSMResponseVariant::make(filament_type);
-
-    } else {
-        // we need to ask the user for temperature
-        return preheatTempUnKnown(preheat_data);
-    }
-}
-
-std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::preheat(PreheatData preheat_data, PreheatBehavior preheat_arg) {
-    const FSMResponseVariant response = evaluate_preheat_conditions(preheat_data);
+std::pair<std::optional<PreheatStatus::Result>, FilamentType> filament_gcodes::preheat(const FilamentSelectionArgs &preheat_data, PreheatBehavior preheat_arg) {
+    const FSMResponseVariant response = determine_filament_for_operation(preheat_data);
 
     const auto physical_tool = to_physical_tool_index<AllTools>(preheat_data.tool);
 
@@ -324,8 +341,12 @@ void filament_gcodes::preheat_to(FilamentType filament, std::variant<PhysicalToo
 
 void filament_gcodes::M1700_preheat(const M1700Args &args) {
     InProgress progress;
-    const FSMResponseVariant response_variant = preheatTempUnKnown(PreheatData::make(args.mode, args.tool, args.preheat));
-
+    const FSMResponseVariant response_variant = determine_filament_for_operation(FilamentSelectionArgs {
+        .mode = args.mode,
+        .tool = args.tool,
+        .ret_cool = args.preheat,
+        .disregard_loaded_filament = true,
+    });
     // autoload ocurred
     if (!response_variant) {
         return;
@@ -372,7 +393,7 @@ void filament_gcodes::M1700_preheat(const M1700Args &args) {
 
     // cooldown pressed
     if (filament == FilamentType::none) {
-        thermalManager.set_fan_speed(0, 0);
+        thermalManager.set_print_fan_speed(0);
 
     } else if (!axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise)) {
         unhomed_z_lift(10);

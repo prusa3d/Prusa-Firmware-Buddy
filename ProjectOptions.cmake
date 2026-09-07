@@ -69,10 +69,6 @@ set(MCU
       STRING
       "Select the MCU for which you want to compile the project (valid values are ${MCU_VALID_OPTS})."
     )
-set(GENERATE_DFU
-    "NO"
-    CACHE BOOL "Whether a .dfu file should be generated."
-    )
 set(SIGNING_KEY
     ""
     CACHE FILEPATH "Path to a PEM EC private key to be used to sign the firmware."
@@ -287,7 +283,7 @@ function(set_feature_for_printers_master_board FEATURE_NAME)
   define_boolean_option(${FEATURE_NAME} ${FEATURE_VALUE})
 endfunction()
 
-set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5" "COREONE_INDX" "COREONEL_INDX")
+set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
 set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX" "XL_DEV_KIT" "COREONE" "COREONEL")
 
 set_feature_for_printers(
@@ -329,8 +325,8 @@ set_feature_for_printers_master_board(
   "COREONEL"
   "COREONEL_INDX"
   )
-# Detection of fallen tools (possibly even inactive ones)
-set_feature_for_printers_master_board(HAS_TOOL_CRASH_RECOVERY "XL")
+# Detection of fallen tools
+set_feature_for_printers_master_board(HAS_TOOL_CRASH_RECOVERY "XL" "COREONE_INDX" "COREONEL_INDX")
 # POWER_PANIC requires SELFTEST and CRASH_DETECTION to work
 set_feature_for_printers_master_board(
   HAS_POWER_PANIC
@@ -344,8 +340,20 @@ set_feature_for_printers_master_board(
   "COREONEL_INDX"
   )
 define_enum_option(NAME POWER_PANIC_STORAGE VALUE FLASH ALL_VALUES "FLASH;BKPSRAM")
+# Probing for the print sheet during Z_SAFE_HOMING
+set_feature_for_printers_master_board(
+  HAS_PRINT_SHEET_DETECTION
+  "MK4"
+  "iX"
+  "COREONE"
+  "COREONE_INDX"
+  "COREONEL"
+  "COREONEL_INDX"
+  )
 set_feature_for_printers(HAS_PRECISE_HOMING "MK4" "MK3.5")
-set_feature_for_printers(HAS_SELFTEST_DEPENDENCIES "COREONE_INDX" "COREONEL_INDX")
+set_feature_for_printers(
+  HAS_SELFTEST_DEPENDENCIES "COREONE" "COREONEL" "COREONE_INDX" "COREONEL_INDX" "XL"
+  )
 set_feature_for_printers(
   HAS_PRECISE_HOMING_COREXY
   "iX"
@@ -354,6 +362,10 @@ set_feature_for_printers(
   "COREONE"
   "COREONE_INDX"
   "COREONEL"
+  "COREONEL_INDX"
+  )
+set_feature_for_printers(
+  HAS_SWITCHABLE_HOMING_CALIBRATION "iX" "XL" "XL_DEV_KIT" "COREONE" "COREONEL"
   )
 set_feature_for_printers_master_board(
   HAS_PHASE_STEPPING
@@ -410,6 +422,24 @@ set_feature_for_printers(
   "COREONEL"
   "COREONEL_INDX"
   )
+# Heater selftest done as a gcode-based FSM wizard (M1987) instead of the legacy mask-based
+# CSelftest state machine. All selftest printers except XL (which keeps the legacy path).
+set_feature_for_printers(
+  HAS_HEATERS_SELFTEST_GCODE
+  "MK4"
+  "MK3.5"
+  "iX"
+  "MINI"
+  "COREONE"
+  "COREONE_INDX"
+  "COREONEL"
+  "COREONEL_INDX"
+  )
+# Bed heater fail -> "refit the steel sheet and retry" prompt (legacy: MK4 / MK3.5 / MINI).
+set_feature_for_printers(HAS_HEATERS_SELFTEST_BED_SHEET_RETRY "MK4" "MK3.5" "MINI")
+# Nozzle heater fail -> "revise printer setup" (ScreenPrinterSetup) prompt. Legacy had this only on
+# MK4 / MK3.5; MINI offered just the bed-sheet retry above.
+set_feature_for_printers(HAS_HEATERS_SELFTEST_REVISE "MK4" "MK3.5")
 set_feature_for_printers(
   HAS_HUMAN_INTERACTIONS
   "MINI"
@@ -441,6 +471,8 @@ set_feature_for_printers_master_board(
   "COREONE"
   "COREONEL"
   )
+# Compensation of the nozzle thermal expansion between bed leveling and printing
+set_feature_for_printers_master_board(HAS_NOZZLE_THERMAL_COMPENSATION "XL")
 set_feature_for_printers_master_board(HAS_SHEET_PROFILES "MK3.5" "MINI")
 set_feature_for_printers_master_board(
   HAS_HEATBREAK_TEMP
@@ -452,7 +484,9 @@ set_feature_for_printers_master_board(
   "COREONEL"
   )
 set_feature_for_printers_master_board(HAS_FILAMENT_HEATBREAK_PARAM "iX")
-set_feature_for_printers_master_board(HAS_FILAMENT_BASE_PRESET_PARAM "COREONE_INDX" "COREONEL_INDX")
+set_feature_for_printers_master_board(
+  HAS_FILAMENT_BASE_PRESET_PARAM "COREONE_INDX" "COREONEL_INDX" "iX"
+  )
 set(PRINTERS_WITH_RESOURCES
     "MINI"
     "MK4"
@@ -465,15 +499,6 @@ set(PRINTERS_WITH_RESOURCES
     "COREONEL_INDX"
     )
 set_feature_for_printers(HAS_BOWDEN "MINI")
-set(PRINTERS_WITH_PUPPIES_BOOTLOADER
-    "XL"
-    "iX"
-    "XL_DEV_KIT"
-    "COREONE"
-    "COREONE_INDX"
-    "COREONEL"
-    "COREONEL_INDX"
-    )
 set(PRINTERS_WITH_DWARF "XL" "XL_DEV_KIT")
 
 # MODULAR_BED is a bed consisting of several bedlets
@@ -514,7 +539,6 @@ set_feature_for_printers(
   "COREONE_INDX"
   "COREONEL_INDX"
   )
-set_feature_for_printers_master_board(HAS_EXTRUDER_FSENSOR "MK4" "XL" "COREONE" "COREONEL" "iX")
 set_feature_for_printers(HAS_ADC_SIDE_FSENSOR "XL")
 set_feature_for_printers(HAS_SIDE_FSENSOR_INVERTIBLE "COREONE_INDX" "COREONEL_INDX")
 set_feature_for_printers(HAS_FSENSOR_INVERTIBLE)
@@ -582,6 +606,14 @@ set_feature_for_printers_master_board(
   "XL"
   )
 set_feature_for_printers(HAS_EMERGENCY_STOP "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX")
+set_feature_for_printers(HAS_15GT_BELTS "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX" "XL")
+# The NTC and PT1000 ADC ranges overlap, so boot detection cannot tell them apart on a warm restart
+if(DEVELOPMENT_ITEMS_ENABLED)
+  set_feature_for_printers(HAS_HT_HOTEND "COREONE" "COREONEL")
+else()
+  set_feature_for_printers(HAS_HT_HOTEND)
+endif()
+set_feature_for_printers(HAS_EXPANSION_JOINTS_GEN_2 "COREONE" "COREONE_INDX")
 set_feature_for_printers(HAS_CEILING_CLEARANCE "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX")
 set_feature_for_printers(
   HAS_CANCEL_OBJECT
@@ -605,6 +637,7 @@ set_feature_for_printers(
   "iX"
   "XL"
   )
+set_feature_for_printers(HAS_SWITCHABLE_AUTO_RETRACT "COREONE" "COREONEL" "MK4" "iX" "XL")
 set_feature_for_printers(
   HAS_FILAMENT_TRACKER
   "COREONE"
@@ -628,14 +661,15 @@ set_feature_for_printers_master_board(
   "UNITTESTS"
   )
 
-# Printers that support any form of backwards gcode compatibility modes
-set_feature_for_printers(HAS_GCODE_COMPATIBILITY "MK3.5" "MK4" "COREONE" "COREONEL")
+# Printers that support any form of backwards gcode compatibility modes XL: needed for XL-on-XLS
+# compat mode (xl_compatibility_mode in M106 fan scaling)
+set_feature_for_printers(HAS_GCODE_COMPATIBILITY "MK3.5" "MK4" "COREONE" "COREONEL" "XL")
 
 # Checks for bed evenness during G29 and if it's too uneven, offers Z alignment calibration.
 # Requires SELFTEST to work
 set_feature_for_printers(HAS_UNEVEN_BED_PROMPT "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX")
 
-set_feature_for_printers(HAS_TOOL_OFFSET_PIN_CALIBRATION "XL" "XL_DEV_KIT")
+set_feature_for_printers_master_board(HAS_TOOL_OFFSET_PIN_CALIBRATION "XL" "XL_DEV_KIT")
 
 set_feature_for_printers(
   HAS_DOOR_SENSOR_CALIBRATION "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX"
@@ -713,6 +747,7 @@ set_feature_for_printers(
   )
 
 set_feature_for_printers(HAS_NOZZLE_CLEANER "iX" "COREONE_INDX" "COREONEL_INDX")
+set_feature_for_printers(HAS_NOZZLE_CLEANER_LITE "XL" "COREONE" "COREONEL")
 set_feature_for_printers(
   HAS_MANUAL_BELT_TUNING "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX" "iX"
   )
@@ -727,6 +762,9 @@ set_feature_for_printers_master_board(
   )
 set_feature_for_printers(HAS_WASTEBIN "iX" "COREONE_INDX" "COREONEL_INDX")
 set_feature_for_printers_master_board(HAS_PRINT_FAN_TYPE "XL")
+# CPU cooling fan on the XLBuddy sandwich board. Compiled in for all XL-family builds; actually
+# started at runtime only on the XLS variant.
+set_feature_for_printers_master_board(HAS_CPU_FAN "XL")
 # GEARBOX_ALIGNMENT requires SELFTEST
 set_feature_for_printers_master_board(HAS_GEARBOX_ALIGNMENT "MK4" "COREONE" "COREONEL" "XL")
 set_feature_for_printers_master_board(
@@ -736,10 +774,34 @@ set_feature_for_printers_master_board(HAS_BED_FAN "COREONEL" "COREONEL_INDX")
 set_feature_for_printers_master_board(HAS_PSU_FAN "COREONEL" "COREONEL_INDX")
 set_feature_for_printers(HAS_AC_CONTROLLER "COREONEL" "COREONEL_INDX")
 
-set_feature_for_printers(HAS_TOOL_OFFSET_SENSOR "COREONE_INDX" "COREONEL_INDX")
+set_feature_for_printers(HAS_TOOL_OFFSET_SENSOR "COREONE_INDX" "COREONEL_INDX" "XL")
 
-set_feature_for_printers(HAS_ANFC "COREONE" "COREONEL") # TODO: Add INDX once HAS_FILAMENT_TRACKER
-                                                        # is sorted out
+# Coil layout of the contactless tool-offset sensor: single-coil sweeps both axes over one coil,
+# dual-coil (XLS) sweeps each axis over its own coil. An image only ever uses one of them, so only
+# the matching measurement flow is compiled in.
+if(NOT HAS_TOOL_OFFSET_SENSOR)
+  set(TOOL_OFFSET_SENSOR_GEOMETRY "NONE")
+elseif(PRINTER STREQUAL "XL")
+  set(TOOL_OFFSET_SENSOR_GEOMETRY "DUAL_COIL")
+else()
+  set(TOOL_OFFSET_SENSOR_GEOMETRY "SINGLE_COIL")
+endif()
+define_enum_option(
+  NAME TOOL_OFFSET_SENSOR_GEOMETRY VALUE "${TOOL_OFFSET_SENSOR_GEOMETRY}" ALL_VALUES
+  "NONE;SINGLE_COIL;DUAL_COIL"
+  )
+
+# XL-CAN puppy. Compiled in for the XL family (shared xlBuddy master image); discovered at bootstrap
+# and gated at runtime via XlCan::is_enabled(). Plain XL leaves it disabled (no bridge on the bus);
+# XLS enables it when bootstrap finds the bridge on dock 9. Per the XLS HW spec every XLS has the
+# bridge, so missing-bridge on XLS is a hardware fault rather than a normal config.
+set_feature_for_printers_master_board(HAS_XL_CAN "XL")
+
+if(DEVELOPMENT_ITEMS_ENABLED)
+  set_feature_for_printers(HAS_ANFC "COREONE" "COREONEL")
+else()
+  set_feature_for_printers(HAS_ANFC)
+endif()
 set_feature_for_printers(HAS_HEATBED_SCREWS_DURING_TRANSPORT "COREONEL" "COREONEL_INDX")
 
 # Use websocket to talk to Connect instead of many http requests.
@@ -863,6 +925,13 @@ else()
 endif()
 define_enum_option(NAME FILAMENT_SENSOR VALUE "${FILAMENT_SENSOR}" ALL_VALUES "BINARY;ADC;NO")
 
+if(FILAMENT_SENSOR STREQUAL "NO")
+  set(HAS_EXTRUDER_FSENSOR NO)
+else()
+  set(HAS_EXTRUDER_FSENSOR YES)
+endif()
+define_boolean_option(HAS_EXTRUDER_FSENSOR ${HAS_EXTRUDER_FSENSOR})
+
 if(${RESOURCES} STREQUAL "<auto>")
   if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES AND BOARD_IS_MASTER_BOARD)
     set(RESOURCES "YES")
@@ -871,13 +940,6 @@ if(${RESOURCES} STREQUAL "<auto>")
   endif()
 endif()
 define_boolean_option(RESOURCES ${RESOURCES})
-
-# A DFU file with bootloader always requires a BBF
-if(RESOURCES OR (GENERATE_DFU AND BOOTLOADER))
-  set(GENERATE_BBF "YES")
-else()
-  set(GENERATE_BBF "NO")
-endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI AND BOARD_IS_MASTER_BOARD)
   set(GUI YES)
@@ -963,6 +1025,7 @@ if(HAS_DWARF
    OR HAS_ANFC
    OR HAS_TOOL_OFFSET_SENSOR
    OR HAS_INDX_HEAD
+   OR HAS_XL_CAN
    )
   set(HAS_PUPPIES YES)
 else()
@@ -1048,6 +1111,12 @@ if(ENABLE_PUPPY_BOOTLOAD)
         PATH
         "Where to get the tool offset sensor's binary from. If set, the project won't try to build anything."
       )
+  set(XL_CAN_BINARY_PATH
+      ""
+      CACHE
+        PATH
+        "Where to get the XLS XL-CAN's binary from. If set, the project won't try to build anything."
+      )
 endif()
 
 if(BOARD STREQUAL "XL_DEV_KIT_XLB")
@@ -1062,7 +1131,7 @@ else()
       )
 endif()
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_PUPPIES_BOOTLOADER
+if(HAS_PUPPIES
    AND BOARD_IS_MASTER_BOARD
    AND (RESOURCES OR PUPPY_SKIP_FLASH_FW)
    AND ENABLE_PUPPY_BOOTLOAD
@@ -1096,11 +1165,11 @@ if(HAS_LEDS
    OR HAS_SIDE_LEDS
    OR HAS_TOOLCHANGER
    )
-  set(HAS_LEDS_MENU YES)
+  set(HAS_LIGHTS_MENU YES)
 else()
-  set(HAS_LEDS_MENU NO)
+  set(HAS_LIGHTS_MENU NO)
 endif()
-define_boolean_option(HAS_LEDS_MENU ${HAS_LEDS_MENU})
+define_boolean_option(HAS_LIGHTS_MENU ${HAS_LIGHTS_MENU})
 
 # define enabled features
 
@@ -1139,14 +1208,14 @@ if(BOARD IN_LIST BUDDY_BOARDS)
       ${DEBUG}
       CACHE BOOL "Enable metrics over rtt"
       )
-  define_boolean_option(RTT_METRICS_ENABLED ${RTT_METRICS_ENABLED})
 else()
+  # Puppies have no rtt_metrics implementation
   set(RTT_METRICS_ENABLED
-      "OFF"
-      CACHE BOOL "Enable metrics over rtt"
+      OFF
+      CACHE BOOL "Enable metrics over rtt" FORCE
       )
-  define_boolean_option(RTT_METRICS_ENABLED ${RTT_METRICS_ENABLED})
 endif()
+define_boolean_option(RTT_METRICS_ENABLED ${RTT_METRICS_ENABLED})
 
 set(DEVELOPER_MODE
     "OFF"
@@ -1194,3 +1263,10 @@ set(MDNS
     CACHE BOOL "Enable MDNS responder"
     )
 define_boolean_option(MDNS ${MDNS})
+
+if(DEBUG)
+  set(HAS_EXTRA_EXPERIMENTAL_SETTINGS YES)
+else()
+  set(HAS_EXTRA_EXPERIMENTAL_SETTINGS NO)
+endif()
+define_boolean_option(HAS_EXTRA_EXPERIMENTAL_SETTINGS ${HAS_EXTRA_EXPERIMENTAL_SETTINGS})

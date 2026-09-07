@@ -17,9 +17,6 @@ public:
     template <typename... Args>
     explicit inline WriteFieldRequest(ToolTag tag, Args &&...args)
         : BaseWriteFieldRequest(tag.field(field), std::forward<Args>(args)...) {
-
-        // TODO remove stub
-        this->set_finished(std::monostate {});
     }
 };
 

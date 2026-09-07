@@ -7,13 +7,14 @@
 #include <option/has_remote_bed.h>
 #include <option/has_chamber_api.h>
 #include <option/has_per_tool_temperatures.h>
+#include <option/has_extruder_fsensor.h>
 #include <option/has_side_fsensor.h>
 
 #include <Configuration_adv.h>
 #include <fs_autoload_autolock.hpp>
 #include <gui/menu_item/menu_item_virtual_submenu.hpp>
 
-#include <screen_menu.hpp>
+#include <basic_screen_menu.hpp>
 #include <MItem_tools.hpp>
 
 #include <MItem_menus.hpp>
@@ -70,11 +71,14 @@ public:
     MI_INFO_NOZZLE_POWER();
 };
 
+class MI_INFO_RINGDOWN_DECAY : public MenuItemAutoUpdatingLabel<int16_t> {
+public:
+    MI_INFO_RINGDOWN_DECAY();
+};
+
 #endif
 
-using ScreenMenuSensorInfo_ = ScreenMenu<GuiDefaults::MenuFooter,
-    MI_RETURN,
-
+using ScreenMenuSensorInfo_ = BasicScreenMenu<
 #if PRINTER_IS_PRUSA_MINI()
     // Take very minimalist approach for the Mini, we're low on FLASH right now :(
     // TODO: Remove this
@@ -110,6 +114,7 @@ using ScreenMenuSensorInfo_ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_INFO_HEAD_AMBIENT_TEMPERATURE,
     MI_INFO_NOZZLE_TEMP_UNCOMPENSATED,
     MI_INFO_NOZZLE_POWER,
+    MI_INFO_RINGDOWN_DECAY,
     #endif
     #if HAS_REMOTE_BED()
     MI_INFO_REMOTE_BED_MCU_TEMPERATURE,
@@ -121,16 +126,18 @@ using ScreenMenuSensorInfo_ = ScreenMenu<GuiDefaults::MenuFooter,
     #if HAS_DOOR_SENSOR()
     MI_INFO_DOOR_SENSOR,
     #endif
+    #if HAS_EXTRUDER_FSENSOR()
     MI_INFO_EXTRUDER_FILAMENT_SENSOR,
-    #if HOTENDS > 1
+        #if HOTENDS > 1
     MenuItemVirtualSubmenu<N_("Extruder Filament Sensors"), MI_INFO_EXTRUDER_FILAMENT_SENSOR, PhysicalToolIndex::count, PhysicalToolIndex::from_raw>,
-    #endif
+        #endif
+    #endif // HAS_EXTRUDER_FSENSOR()
     #if HAS_SIDE_FSENSOR()
     MI_INFO_SIDE_FILAMENT_SENSOR,
         #if HOTENDS > 1
     MenuItemVirtualSubmenu<N_("Side Filament Sensors"), MI_INFO_SIDE_FILAMENT_SENSOR, PhysicalToolIndex::count, PhysicalToolIndex::from_raw>,
         #endif
-    #endif
+    #endif // HAS_SIDE_FSENSOR()
     #if PRINTER_IS_PRUSA_MK3_5()
     MI_PINDA,
     #endif
@@ -162,11 +169,8 @@ using ScreenMenuSensorInfo_ = ScreenMenu<GuiDefaults::MenuFooter,
 #endif
     >;
 
-class ScreenMenuSensorInfo : public ScreenMenuSensorInfo_ {
+class ScreenMenuSensorInfo final : public ScreenMenuSensorInfo_ {
     FS_AutoloadAutolock lock;
-
-protected:
-    virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 
 public:
     ScreenMenuSensorInfo();

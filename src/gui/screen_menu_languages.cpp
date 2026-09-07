@@ -43,3 +43,10 @@ ScreenMenuLanguages::ScreenMenuLanguages(Context context)
         break;
     }
 }
+
+bool ScreenInitialLanguageSelection::should_show() {
+    return !LangEEPROM::getInstance().IsValid();
+}
+
+ScreenInitialLanguageSelection::ScreenInitialLanguageSelection()
+    : ScreenMenuLanguages(Context::initial_language_selection) {}

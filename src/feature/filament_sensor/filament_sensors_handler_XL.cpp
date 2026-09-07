@@ -12,6 +12,7 @@
 #include <mutex>
 #include <puppies/Dwarf.hpp>
 #include "src/module/prusa/toolchanger.h"
+#include <bsod/bsod.h>
 
 // Meyer's singleton
 FSensorADC *getExtruderFSensor(uint8_t index) {
@@ -60,7 +61,7 @@ IFSensor *GetSideFSensor(uint8_t index) {
 // IRQ - called from interruption
 void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     FSensorADC *sensor = getExtruderFSensor(tool_index);
-    assert(sensor);
+    debug_assert(sensor);
 
     // does not need to be filtered (data from tool are already filtered)
     sensor->set_filtered_value_from_IRQ(fs_raw_value);
@@ -70,7 +71,7 @@ void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     static MedianFilter filters[HOTENDS];
 
     FSensorADC *sensor = getSideFSensor(tool_index);
-    assert(sensor);
+    debug_assert(sensor);
 
     auto &filter = filters[tool_index];
 

@@ -1,5 +1,6 @@
 #include "emergency_stop.hpp"
 #include <buddy/door_sensor.hpp>
+#include <common/mapi/parking.hpp>
 #include <config_store/store_c_api.h>
 #include <common/power_panic.hpp>
 #include <module/motion.h>
@@ -12,6 +13,8 @@
 #include <logging/log.hpp>
 #include <raii/auto_restore.hpp>
 #include <raii/scope_guard.hpp>
+#include <bsod/bsod.h>
+#include <option/has_power_panic.h>
 
 LOG_COMPONENT_DEF(EmergencyStop, logging::Severity::debug);
 
@@ -29,9 +32,16 @@ namespace {
     // a bit more.
     constexpr float allowed_mm = 2.0f;
 
+    // ISR power-panic-escalation threshold: the loop-driven stop clearly didn't
+    // act in time. Kept below extra_emergency_mm with room for the power panic's
+    // own Z-lift (POWER_PANIC_Z_LIFT_CYCLES, ~0.64 mm) to settle first.
+    constexpr float escalate_mm = 3.0f;
+
     // If we travel even more before any of the above measures had a chance to
     // stop it, we do a BSOD as a last resort.
     constexpr float extra_emergency_mm = 4.0f;
+
+    static_assert(allowed_mm < escalate_mm && escalate_mm < extra_emergency_mm);
 
     // Don't park below this position.
     constexpr float min_park_z = 0.6f;
@@ -65,7 +75,7 @@ void EmergencyStop::invoke_emergency() {
         // Except we don't trigger the endstop, so the probing will be reported as failed
         PreciseStepping::quick_stop();
     }
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     else if (!power_panic::ac_fault_triggered) {
         log_info(EmergencyStop, "PP");
         // Do a "synthetic" power panic. Should stop _right now_ and reboot, then we'll deal with the consequences.
@@ -166,21 +176,16 @@ void EmergencyStop::maybe_block() {
     const auto old_pos_motion = current_position;
     const auto old_destination = destination;
     if (do_move) {
-        // Make sure to not park too low. As the do_blocking_move_to doesn't
-        // consider MBL (and we may not have that part mapped anyway), we could
-        // scratch the bed.
-        const auto park_z = std::max(old_pos_motion.z, min_park_z);
         AutoRestore _ar(allow_planning_movements, true);
-        // All the do-move things expect the current position to be up to date.
-        // It is _not_ (because we might have interrupted another move in the
-        // middle). This is the best estimation we have for it (might be wrong
-        // by MBL :-( ). Should we un-apply it somehow?
-        current_position = old_pos_motion;
-        do_blocking_move_to(X_NOZZLE_PARK_POINT, Y_NOZZLE_PARK_POINT, park_z, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
+        auto park_position = mapi::get_parking_position(mapi::ParkPosition::park);
+        // Stay at the current Z instead of the standard lift above the print,
+        // just don't park too low so we don't scratch the bed.
+        park_position.z = mapi::ParkingPosition::AtLeast { .absolute = min_park_z };
+        mapi::park(park_position);
     }
     auto unpark = [this, old_pos_motion, old_destination] {
         AutoRestore _ar(allow_planning_movements, true);
-        do_blocking_move_to(old_pos_motion, feedRate_t(NOZZLE_PARK_XY_FEEDRATE));
+        mapi::park(mapi::ParkingPosition { old_pos_motion.x, old_pos_motion.y, old_pos_motion.z });
         current_position = old_pos_motion;
         destination = old_destination;
     };
@@ -199,13 +204,21 @@ void EmergencyStop::maybe_block() {
 
 void EmergencyStop::check_z_limits() {
     const int32_t emergency_start_z = start_z.load();
-    if (emergency_start_z != no_emergency) {
-        const int32_t difference = std::abs(emergency_start_z - current_z());
+    if (emergency_start_z == no_emergency) {
+        return;
+    }
+    const int32_t difference = std::abs(emergency_start_z - current_z());
+
+#if HAS_POWER_PANIC()
+    // Loop-driven stop didn't act in time (stalled loop). Escalate from the ISR
+    // - unlike the BSOD this can still recover the print.
+    if (difference > escalate_steps && !power_panic::ac_fault_triggered) {
+        power_panic::should_beep = false; // BFW-6472
+        buddy::hw::acFault.triggerIT();
+    } else
+#endif
         if (difference > extra_emergency_steps) {
-            // Didn't work the first time around? What??
-            // (see check_z_limits_soft)
-            bsod("Emergency stop failed, last-resort stop");
-        }
+        bsod("Emergency stop failed, last-resort stop");
     }
 }
 
@@ -228,6 +241,7 @@ void EmergencyStop::step() {
         log_info(EmergencyStop, "Emergency start");
         const auto steps = get_steps_per_unit_z();
         allowed_steps = static_cast<int32_t>(allowed_mm * steps);
+        escalate_steps = static_cast<int32_t>(escalate_mm * steps);
         extra_emergency_steps = static_cast<int32_t>(extra_emergency_mm * steps);
         start_z = current_z();
     } else if (!want_emergency && in_emergency()) {

@@ -1,0 +1,44 @@
+cmake_minimum_required(VERSION 3.20)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../hw/bsp/family_support.cmake)
+
+project(host_info_to_device_cdc C CXX ASM)
+
+# Checks this example is valid for the family and initializes the project
+family_initialize_project(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR})
+
+# Espressif has its own cmake build system
+if(FAMILY STREQUAL "espressif")
+  return()
+endif()
+
+add_executable(${PROJECT_NAME})
+
+# Example source
+target_sources(${PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/usb_descriptors.c
+  )
+
+# Example include
+target_include_directories(${PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+# Configure compilation flags and libraries for the example without RTOS.
+# See the corresponding function in hw/bsp/FAMILY/family.cmake for details.
+family_configure_dual_usb_example(${PROJECT_NAME} ${RTOS})
+
+# due to warnings from Pico-PIO-USB
+if (FAMILY STREQUAL rp2040)
+  target_compile_options(${PROJECT_NAME} PUBLIC
+    -Wno-error=shadow
+    -Wno-error=cast-align
+    -Wno-error=cast-qual
+    -Wno-error=redundant-decls
+    -Wno-error=sign-conversion
+    -Wno-error=conversion
+    -Wno-error=sign-compare
+    -Wno-error=unused-function
+    )
+endif ()

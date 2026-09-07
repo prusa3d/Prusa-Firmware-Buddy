@@ -4,15 +4,21 @@
 #include "defines.hpp"
 #include <anfc/modbus.hpp>
 #include <anfc/types.hpp>
-#include <cassert>
 #include <compact_pointer.hpp>
 #include <feature/openprinttag/tool_tag.hpp>
 #include <openprinttag/opt_reader.hpp>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <tool_index.hpp>
 #include <utils/uncopyable.hpp>
+#include <utils/compact_optional.hpp>
+#include <utils/badge.hpp>
+#include <bsod/bsod.h>
 
 namespace buddy::openprinttag {
+
+using ManagerNoLockBadge = Badge<class Manager, struct NoLockTag>;
+
+using OptionalRegion = CompactOptional<Region, Region::_cnt>;
 
 /// Represents a type-safe request ID.
 class RequestID {
@@ -48,14 +54,21 @@ public:
     /// If the request is already issued, the issuement is cancelled and it gets reissued again
     void issue();
 
+    /// Mark the request as failed (Error::other)
+    /// Alternative to calling issue
+    void fail();
+
+    /// Returns either the device the request is supposed to be send to, or nullopt if the serialization failed for some reason
+    using SerializeResult = std::optional<anfc::Device>;
+
     /// Serializes the request into the modbus request buffer
-    virtual void serialize(RequestID, TagID, anfc::modbus::Request &) = 0;
+    /// On failure, can set the request state to finished, the caller should consider that
+    /// This function is called while the Manager is locked under mutex - you'll need ManagerNoLockBadge to access the nolock variants
+    /// @returns nullopt if the serialization failed for some reason.
+    virtual SerializeResult serialize(ManagerNoLockBadge, RequestID, anfc::modbus::Request &) = 0;
 
     /// Called when the request completes with event data
-    virtual void complete(std::span<const std::byte> event_data) = 0;
-
-    /// @returns the ToolTag associated with this request (for tag_id lookup)
-    const ToolTag &tool_tag() const { return tool_tag_; };
+    virtual void complete(Bytes event_data) = 0;
 
     /// @returns whether the request is still running or not
     bool finished() const {
@@ -65,27 +78,26 @@ public:
     /// @returns whether the request has @p finished with an error
     /// The error can be obtained by @p error()
     bool has_error() const {
-        assert(finished());
+        debug_assert(finished());
         return error_ != Error::_cnt;
     }
 
     /// @returns error if @p has_error (otherwise UB)
     Error error() const {
-        assert(finished() && has_error());
+        debug_assert(finished() && has_error());
         return error_;
     }
 
     /// @returns Region associated with the request, if there is any
     /// This is to help diagnose/recover from the region_corrupt error.
-    inline std::optional<Region> region() const {
-        return (region_ != Region::_cnt) ? std::make_optional(region_) : std::nullopt;
+    inline OptionalRegion region() const {
+        return region_ != Region::_cnt ? OptionalRegion { region_ } : std::nullopt;
     }
 
 protected:
     /// This is an kinda-interface base class, cannot be constructed on its own
-    Request(std::optional<Region> region, const ToolTag &tool_tag)
-        : region_(region.value_or(Region::_cnt))
-        , tool_tag_(tool_tag) {}
+    Request(OptionalRegion region)
+        : region_(region.value_or(Region::_cnt)) {}
 
     ~Request();
 
@@ -108,7 +120,29 @@ private:
     static_assert(std::to_underlying(Region::_cnt) < (1 << 2));
 
     bool finished_ : 1 = false;
+};
 
+/// A Request specialization that is tied to a specific tag
+/// Covers basically all the requests apart for those device-specific
+class TagRequest : public Request {
+
+public:
+    /// @returns the ToolTag associated with this request (for tag_id lookup)
+    const ToolTag &tool_tag() const { return tool_tag_; };
+
+    /// Final override, subclasses should implement the serialize overload with TagID parameter
+    SerializeResult serialize(ManagerNoLockBadge, RequestID, anfc::modbus::Request &) final;
+
+    /// Serializes the request into the modbus request buffer
+    virtual void serialize(RequestID, TagID, anfc::modbus::Request &) = 0;
+
+protected:
+    /// This is an kinda-interface base class, cannot be constructed on its own
+    TagRequest(OptionalRegion region, const ToolTag &tool_tag)
+        : Request { region }
+        , tool_tag_(tool_tag) {}
+
+private:
     ToolTag tool_tag_;
 };
 

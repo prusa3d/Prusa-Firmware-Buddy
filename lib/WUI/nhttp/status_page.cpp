@@ -6,10 +6,10 @@
 #include <json_encode.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cstring>
 #include <cstdio>
 #include <cinttypes>
+#include <bsod/bsod.h>
 
 extern "C" {
 
@@ -45,7 +45,7 @@ void StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t outpu
      * won't do out-of-range access if not, but the response would be
      * truncated.
      */
-    assert(output && output_size > 0);
+    debug_assert(output && output_size > 0);
 
     const StatusText &text = StatusText::find(status);
 

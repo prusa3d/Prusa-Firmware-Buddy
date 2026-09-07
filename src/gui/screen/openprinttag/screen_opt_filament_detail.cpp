@@ -14,9 +14,11 @@ ScreenFactory::Creator screen_openprinttag_filament_detail_creator(ToolTag tag) 
     return ScreenFactory::ScreenWithArg<ScreenOPTFilamentDetail>(open_args);
 }
 
-ScreenFactory::Creator screen_openprinttag_preheat_mode_creator(ToolTag tag) {
+ScreenFactory::Creator screen_openprinttag_preheat_mode_creator(ToolTag tag, PreheatMode mode) {
     const ScreenOPTFilamentDetail::PreheatModeParams open_args {
-        .tag = tag,
+        .uid_hash = tag.uid_hash(),
+        .tool = tag.tool(),
+        .mode = mode,
     };
     return ScreenFactory::ScreenWithArg<ScreenOPTFilamentDetail>(open_args);
 }
@@ -27,13 +29,19 @@ ScreenOPTFilamentDetail::ScreenOPTFilamentDetail(InfoParams params)
 
     // First scan needs to be delayed (cannot be in the constructor)
     scan_pending_ = true;
+
+    // Hide the "openprinttag linked" item, it would always be true and disabled, pointless/confusing
+    Item<screen_filament_detail::MI_FILAMENT_ASSIGNED_OPENPRINTTAG>().set_is_hidden(true);
 }
 
 ScreenOPTFilamentDetail::ScreenOPTFilamentDetail(PreheatModeParams params)
     : ScreenFilamentDetail(N_("SCAN OPENPRINTTAG"))
-    , tag_(params.tag) {
+    , tag_(ToolTag(params.tool, params.uid_hash)) {
 
-    setup_preheat_mode_confirm(params.tag.tool());
+    setup_preheat_mode_confirm({
+        .tool = tag_.tool(),
+        .mode = params.mode,
+    });
 
     // First scan needs to be delayed (cannot be in the constructor)
     scan_pending_ = true;
@@ -70,12 +78,11 @@ bool ScreenOPTFilamentDetail::scan() {
         if constexpr (is_utility_button || std::is_same_v<T, screen_filament_detail::MI_FILAMENT_VISIBLE>) {
             // pass
         } else {
-            const bool is_parameter_missing = params.missing_parameters.test(filament_type_parameter_index<T::parameter_ptr>);
-            item.set_color_scheme(is_parameter_missing ? &missing_item_color_scheme : nullptr);
+            item.set_color_scheme(params.is_missing<T::parameter_ptr>() ? &missing_item_color_scheme : nullptr);
         }
     });
 
-    if (params.missing_parameters.any()) {
+    if (!params.data_safe_to_use) {
         MsgBoxWarning(_("Some of the parameters on the OpenPrintTag were missing or invalid. Please revise the highlighted fields."), Responses_Ok);
 
     } else if (preheat_mode_) {

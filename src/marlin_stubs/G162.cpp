@@ -9,6 +9,7 @@
 #include "calibration_z.hpp"
 #include "client_response.hpp"
 #include "printers.h"
+#include <mapi/parking.hpp>
 #include <marlin_server.hpp>
 #include <raii/auto_restore.hpp>
 #include <utils/progress.hpp>
@@ -23,10 +24,46 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
-static constexpr feedRate_t Z_CALIB_ALIGN_AXIS_FEEDRATE = 15.f; // mm/s
-static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f; // mm
+namespace {
+
+static constexpr feedRate_t align_axis_feedrate = 15.f; // mm/s
+static constexpr float extra_height = 5.f; // mm
 
 #if PRINTER_IS_PRUSA_XL()
+
+/// Feedrate of the final push into the top hard stop, on which the motors skip to align themselves
+static constexpr feedRate_t align_axis_slow_feedrate = 4.f; // mm/s
+
+/// Nozzle clearance left behind, dock calibration crosses the bed right after this
+static constexpr float safe_clearance = 10.f; // mm
+
+#endif
+
+}; // namespace
+
+#if PRINTER_IS_PRUSA_XL()
+
+static void ensure_tool_is_in_dock_area() {
+    const auto tool = PhysicalToolIndex::currently_selected_opt();
+    if (!tool.has_value()) {
+        return;
+    }
+    if (prusa_toolchanger.is_toolchanger_enabled()) {
+        if (!prusa_toolchanger.tool_change(NoTool {}, tool_return_t::no_return, {}, tool_change_lift_t::full_lift, false)) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOLCHANGER);
+        }
+    } else {
+        // single-tool have no docks, just move to the dock area
+        // WARN: the bed may be at the top position, we need to ensure safe moves in X, Y
+        const auto dock_pos = mapi::ParkingPosition {
+            .x = 20.f, // arbitrary position not colliding with steppers
+            .y = static_cast<float>(Y_MAX_POS - 1),
+            .z = mapi::ParkingPosition::AtLeast { .absolute = extra_height }
+        };
+        GcodeSuite::G28_no_parser(true, true, false, { .only_if_needed = true, .z_raise = extra_height, .precise = false });
+        mapi::park(dock_pos);
+    }
+}
 
 void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     marlin_server::fsm_change(PhasesSelftest::CalibZ);
@@ -34,53 +71,33 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     // backup original acceleration/feedrates and reset defaults for calibration
     Temporary_Reset_Motion_Parameters mp;
 
-    // Home XY first
-    if (!GcodeSuite::G28_no_parser(true, true, false, { .only_if_needed = true, .z_raise = 0, .precise = false })) {
-        return; // This can happen only during print, homing recovery should follow
-    }
-
     // mark test as failed (so it will be failed after reset - disconnected cables can cause rsod)
     auto result = config_store().selftest_result.get();
     result.set_zalign(TestResult::failed);
     config_store().selftest_result.set(result);
 
-    // Move the nozzle up and away from the bed
-    do_homing_move(Z_AXIS, Z_CALIB_EXTRA_HIGHT, HOMING_FEEDRATE_INVERTED_Z, false, false);
-    current_position.z = 0;
-    sync_plan_position();
-    current_position.x = X_MIN_POS + 2;
-    current_position.y = Y_MIN_POS + 2;
-    line_to_current_position();
-    planner.synchronize();
+    // prevent collision with tool
+    ensure_tool_is_in_dock_area();
 
-    // Use loadcell probe as well as stall if there is a tool picked
-    const bool z_probe = std::holds_alternative<PhysicalToolIndex>(PhysicalToolIndex::currently_selected());
-
-    // Home the axis
-    endstops.enable(true); // Stall endstops need to be enabled manually as in G28
-    if (!homeaxis(Z_AXIS, HOMING_FEEDRATE_INVERTED_Z, false, nullptr, true, z_probe)) {
+    // move bed up to the end of Z axis
+    const auto z_axis_length = Z_MAX_POS - Z_MIN_POS;
+    if (!do_homing_move(Z_AXIS, -(z_axis_length + extra_height), HOMING_FEEDRATE_INVERTED_Z, false, false)
+        && !planner.draining()) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
     }
-    endstops.not_homing();
+    current_position.z = Z_MIN_POS;
+    sync_plan_position();
 
-    // Check loadcell before ramming
-    if (z_probe) {
-        endstops.enable_z_probe(); // Enable z probe to get GetMinZEndstop()
-        if (loadcell.GetMinZEndstop()) { // Sitting on the nozzle, cannot ram the Z axis
-            fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); // There was something wrong with the Z homing
-        }
-        endstops.enable_z_probe(false);
-    }
-
-    // Now ram the Z motors into the top position
-    static constexpr float target_Z = Z_MIN_POS - Z_CALIB_EXTRA_HIGHT;
-    do_blocking_move_to_z(target_Z, Z_CALIB_ALIGN_AXIS_FEEDRATE);
-
-    // Clear some height for the nozzle again
-    do_blocking_move_to_z(Z_MIN_POS, Z_CALIB_ALIGN_AXIS_FEEDRATE);
-
-    // Finally mark the axis as unknown
+    // The position above is fabricated and the push below deliberately targets past the
+    // software limit. Drop the homed flag first, otherwise apply_motion_limits crops it.
     set_axis_is_not_at_home(Z_AXIS);
+
+    // Lower the bed and repeat the push slowly to align the motors
+    do_blocking_move_to_z(Z_MIN_POS + extra_height, align_axis_feedrate);
+    do_blocking_move_to_z(Z_MIN_POS - extra_height, align_axis_slow_feedrate);
+
+    // Back off the hard stop, the axis is left unhomed and Z_MIN_POS is past nozzle contact
+    do_blocking_move_to_z(Z_MIN_POS + safe_clearance, align_axis_feedrate);
 
     // Store Z aligned
     result.set_zalign(TestResult::passed);
@@ -133,15 +150,15 @@ void selftest::calib_Z(bool move_down_after) {
     endstops.not_homing();
 
     // push both Z axis few mm over HW limit to align motors
-    const float target_Z = Z_MAX_POS + Z_CALIB_EXTRA_HIGHT;
+    const float target_Z = Z_MAX_POS + extra_height;
     current_position.z = Z_MAX_POS;
     sync_plan_position();
-    do_blocking_move_to_z(target_Z, Z_CALIB_ALIGN_AXIS_FEEDRATE);
+    do_blocking_move_to_z(target_Z, align_axis_feedrate);
     current_position.z = Z_MAX_POS;
     sync_plan_position();
 
     // move a little bit back to stabilize the motors
-    do_blocking_move_to_z(Z_MAX_POS - 1, Z_CALIB_ALIGN_AXIS_FEEDRATE);
+    do_blocking_move_to_z(Z_MAX_POS - 1, align_axis_feedrate);
 
     if (move_down_after) {
         safe_move_down();

@@ -24,12 +24,29 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: LPCXpresso54114
+   url: https://www.nxp.com/design/design-center/software/development-software/mcuxpresso-software-and-tools-/lpcxpresso-boards/lpcxpresso54114-board:OM13089
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
 #ifdef __cplusplus
  extern "C" {
 #endif
+
+// IOCON pin mux
+#define IOCON_PIO_DIGITAL_EN     0x80u   // Enables digital function
+#define IOCON_PIO_FUNC0          0x00u
+#define IOCON_PIO_FUNC1          0x01u   // Selects pin function 1
+#define IOCON_PIO_FUNC7          0x07u   // Selects pin function 7
+#define IOCON_PIO_INPFILT_OFF    0x0100u // Input filter disabled
+#define IOCON_PIO_INV_DI         0x00u   // Input function is not inverted
+#define IOCON_PIO_MODE_INACT     0x00u   // No addition pin function
+#define IOCON_PIO_MODE_PULLUP    0x10u
+#define IOCON_PIO_OPENDRAIN_DI   0x00u   // Open drain is disabled
+#define IOCON_PIO_SLEW_STANDARD  0x00u   // Standard mode, output slew rate control is enabled
 
 // LED
 #define LED_PORT              0

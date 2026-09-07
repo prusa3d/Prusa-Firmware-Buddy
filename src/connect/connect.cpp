@@ -13,13 +13,13 @@
 #include <str_utils.hpp>
 
 #include <atomic>
-#include <cassert>
 #include <cstring>
 #include <debug.h>
 #include <cstring>
 #include <optional>
 #include <variant>
 #include <charconv>
+#include <bsod/bsod.h>
 
 using namespace http;
 using json::ChunkRenderer;
@@ -104,17 +104,17 @@ namespace {
         const char *target_url;
         static const char *url(const Sleep &) {
             // Sleep already handled at upper level.
-            assert(0);
+            debug_assert(0);
             return "";
         }
         static const char *url(const ReadCommand &) {
             // Not used in non-websocket mode
-            assert(0);
+            debug_assert(0);
             return "";
         }
         static const char *url(const transfers::Download::InlineRequest &) {
             // Not used in non-websocket mode and websocket doesn't call url.
-            assert(0);
+            debug_assert(0);
             return "";
         }
         static const char *url(const SendTelemetry &) {
@@ -807,7 +807,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
     printer.drop_paths(); // In case they were left in there in some early-return case.
     auto borrow = buffer.borrow();
     if (planner().wants_job_paths()) {
-        assert(borrow.has_value());
+        debug_assert(borrow.has_value());
     } else {
         borrow.reset();
     }
@@ -861,7 +861,7 @@ CommResult Connect::communicate(CachedFactory &conn_factory) {
 #if WEBSOCKET()
         return receive_command(conn_factory);
 #else
-        assert(0); // Doesn't happen in non-websocket mode, commands come in responses
+        debug_assert(0); // Doesn't happen in non-websocket mode, commands come in responses
         return err_to_status(Error::InternalError);
 #endif
     } else {
@@ -902,7 +902,7 @@ void Connect::run() {
 }
 
 Planner &Connect::planner() {
-    assert(holds_alternative<Planner>(guts));
+    debug_assert(holds_alternative<Planner>(guts));
     return get<Planner>(guts);
 }
 
@@ -931,14 +931,14 @@ void request_registration() {
     bool old = registration.exchange(true);
     // Avoid warnings
     (void)old;
-    assert(!old);
+    debug_assert(!old);
 }
 
 void leave_registration() {
     bool old = registration.exchange(false);
     // Avoid warnings
     (void)old;
-    assert(old);
+    debug_assert(old);
 }
 
 const char *registration_code() {

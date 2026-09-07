@@ -1,10 +1,13 @@
-#include "radio_button.hpp"
-#include "ScreenHandler.hpp"
+#include "i_radio_button.hpp"
+
 #include "sound.hpp"
 #include "fonts.hpp"
 #include "gui.hpp"
 #include "display.hpp"
 #include <gui/event/knob_event.hpp>
+#include <client_response_texts.hpp>
+#include <marlin_client.hpp>
+#include <gui/gui_utils.hpp>
 
 #include <algorithm> //find
 
@@ -16,35 +19,38 @@ static constexpr uint8_t icon_button_font_height = 16;
 static constexpr uint8_t icon_label_delim = 5;
 
 /*****************************************************************************/
-// static variables and methods
-static const IRadioButton::Responses_t no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; // used in constructor
-
-size_t IRadioButton::cnt_labels(const PhaseTexts *labels) {
-    if (!labels) {
-        return 0;
-    }
-    return (std::find_if(labels->begin(), labels->end(), [](const char *s) { return s[0] == '\0'; })) - labels->begin();
-}
-
-size_t IRadioButton::cnt_responses(Responses_t resp) {
-    return cnt_filled_responses(resp);
-}
-
-size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
-    size_t lbls = std::min(cnt_labels(labels), max_buttons);
-    size_t cmds = std::min(cnt_responses(resp), max_buttons);
-    return std::max(lbls, cmds);
-}
-
-/*****************************************************************************/
 // nonstatic variables and methods
 
-IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
+IRadioButton::IRadioButton(window_t *parent, Rect16 rect)
     : window_t(parent, rect) {
     SetBackColor(COLOR_BRAND);
-    SetBtnCount(count);
+    SetBtnCount(0);
     SetBtnIndex(0);
     Enable();
+
+    click_callback_ = [this](Response r) {
+        if (GetParent()) {
+            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, event_conversion_union { .response = r }.pvoid);
+        }
+    };
+}
+
+// TODO: REMOVEME completely BFW-6028
+#if MAX_RESPONSES != 4
+IRadioButton::IRadioButton(window_t *parent, Rect16 rect, const PhaseResponses &resp)
+    : IRadioButton(parent, rect) {
+    Change(resp);
+}
+#endif
+
+IRadioButton::IRadioButton(window_t *parent, Rect16 rect, Responses_t resp)
+    : IRadioButton(parent, rect) {
+    Change(resp);
+}
+
+IRadioButton::IRadioButton(window_t *parent, Rect16 rect, FSMAndPhase fsm_phase)
+    : RadioButton(parent, rect) {
+    set_fsm_and_phase(fsm_phase);
 }
 
 void IRadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param) {
@@ -54,15 +60,9 @@ void IRadioButton::windowEvent(window_t *sender, GUI_event_t event, void *param)
 
     switch (event) {
 
-    case GUI_event_t::CLICK: {
-        // send response to parent via GUI_event_t::CHILD_CLICK
-        Response response = Click();
-        event_conversion_union un;
-        un.response = response;
-        if (GetParent()) {
-            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-        }
-    } break;
+    case GUI_event_t::CLICK:
+        click_callback_(Click());
+        break;
 
     case GUI_event_t::KNOB: {
         auto &ctx = *static_cast<GuiEventContext *>(param);
@@ -212,7 +212,7 @@ static void button_draw(Rect16 rc_btn, Color back_color, Color parent_color, con
 
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
-    const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : get_response_text(responseFromIndex(0));
+    const char *txt_to_print = get_response_text(responseFromIndex(0));
     button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print),
         IsEnabled(0) && !disabled_drawing_selected);
 }
@@ -223,7 +223,7 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
     Layout layout = getNormalBtnRects(btn_count);
 
     for (size_t i = 0; i < btn_count; ++i) {
-        string_view_utf8 drawn = _(layout.txts_to_print[i]);
+        string_view_utf8 drawn = _(get_response_text(responseFromIndex(i)));
         char buffer[MAX_TEXT_BUFFER] = { 0 };
         if (layout.text_widths[i] > layout.splits[i].Width()) {
             uint32_t max_btn_label_text = layout.splits[i].Width() / width(ButtonFont);
@@ -245,18 +245,10 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
 
 IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
     Layout ret;
-    if (getAlternativeTexts()) {
-        ret.txts_to_print = *getAlternativeTexts();
-    } else {
-        for (size_t i = 0; i < max_buttons; ++i) {
-            ret.txts_to_print[i] = get_response_text(responseFromIndex(i));
-        }
-    }
-
     static_assert(sizeof(btn_count) <= GuiDefaults::MAX_DIALOG_BUTTON_COUNT, "Too many IRadioButtons to draw.");
 
     for (size_t index = 0; index < btn_count; index++) {
-        string_view_utf8 txt = _(ret.txts_to_print[index]);
+        string_view_utf8 txt = _(get_response_text(responseFromIndex(index)));
         ret.text_widths[index] = width(ButtonFont) * static_cast<uint8_t>(txt.computeNumUtf8Chars());
     }
     GetRect().HorizontalSplit(
@@ -292,7 +284,18 @@ static void button_draw(Rect16 rc_btn, Color back_color, Color parent_color, con
         rc_btn += Rect16::Left_t(GuiDefaults::RadioButtonCornerRadius);
         rc_btn -= Rect16::Width_t(2 * GuiDefaults::RadioButtonCornerRadius);
     }
-    render_text_align(rc_btn, text, ButtonFont, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
+
+    const Font font = auto_select_font(
+        {
+            .text = text,
+            .rect = rc_btn,
+            .largest = ButtonFont,
+            .smallest = Font::small,
+            .multiline = false,
+        })
+                          .value_or(Font::small);
+
+    render_text_align(rc_btn, text, font, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
 bool IRadioButton::IsEnabled(size_t index) const {
@@ -386,3 +389,54 @@ IRadioButton::Responses_t IRadioButton::generateResponses(const PhaseResponses &
     }
     return newResponses;
 };
+
+std::optional<size_t> IRadioButton::IndexFromResponse(Response btn) const {
+    for (size_t i = 0; i < maxSize(); ++i) {
+        if (btn == responses[i]) {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+Response IRadioButton::responseFromIndex(size_t index) const {
+    if (index >= maxSize()) {
+        return Response::_none;
+    }
+    return responses[index];
+}
+
+void IRadioButton::Change(Responses_t resp) {
+    if (responses == resp) {
+        return;
+    }
+    responses = resp;
+    SetBtnCount(fixed_width_buttons_count > 0 ? fixed_width_buttons_count : cnt_filled_responses(responses));
+
+    // in iconned layout index will stay
+    if (fixed_width_buttons_count == 0) {
+        SetBtnIndex(0);
+    }
+
+    validateBtnIndex();
+
+    invalidateWhatIsNeeded();
+}
+
+// TODO: REMOVEME completely BFW-6028
+#if MAX_RESPONSES != 4
+void IRadioButton::Change(const PhaseResponses &resp) {
+    Change(generateResponses(resp));
+}
+#endif
+
+void IRadioButton::set_fsm_and_phase(FSMAndPhase target) {
+    set_fsm_and_phase(target, ClientResponses::get_fsm_responses(target.fsm, target.phase));
+}
+
+void IRadioButton::set_fsm_and_phase(FSMAndPhase target, PhaseResponses responses) {
+    IRadioButton::Change(responses);
+    click_callback_ = [target](Response r) {
+        marlin_client::FSM_response(target, r);
+    };
+}

@@ -5,13 +5,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstring>
 #include <modbus/traits.hpp>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <vector>
 
 using cyphal::NfcNode;
 using cyphal::NodeId;
 using cyphal::Presentation;
 using cyphal::Severity;
+using cyphal::TransferId;
 
 class MockPresentation final : public Presentation {
 public:
@@ -24,13 +25,13 @@ public:
     void transmit_pnp_allocation(const cyphal::UniqueId &, NodeId) override {}
     void transmit_diagnostic_record(Severity, const char *) override {}
     void transmit_node_get_info_request(NodeId) override {}
-    void transmit_node_execute_command_request(NodeId, cyphal::Command, std::span<std::byte>) override {}
-    void transmit_file_read_response(NodeId, uint8_t, std::span<std::byte>) override {}
+    void transmit_node_execute_command_request(NodeId, cyphal::Command, Bytes) override {}
+    void transmit_file_read_response(NodeId, TransferId, WritableBytes) override {}
     void transmit_ac_controller_config_request(NodeId, const ac_controller::Config &) override {}
     void transmit_ac_controller_leds_config_request([[maybe_unused]] NodeId, [[maybe_unused]] const ac_controller::LedConfig &) override {}
     void transmit_tool_offset_sensor_config_request(NodeId, const tool_offset_sensor::Config &) override {}
 
-    bool transmit_nfc_command_request(NodeId, std::span<const std::byte> data) override {
+    bool transmit_nfc_command_request(NodeId, Bytes data) override {
         if (fail) {
             return false;
         } else {
@@ -39,7 +40,7 @@ public:
         }
     }
 
-    bool transmit_nfc_command_accept_event(NodeId, std::span<const std::byte> data) override {
+    bool transmit_nfc_command_accept_event(NodeId, Bytes data) override {
         if (fail) {
             return false;
         } else {
@@ -49,14 +50,14 @@ public:
     }
 };
 
-anfc::modbus::Request make_request(std::span<const std::byte> bytes) {
+anfc::modbus::Request make_request(Bytes bytes) {
     anfc::modbus::Request request = {};
     request.size = static_cast<uint16_t>(bytes.size());
     std::memcpy(request.data.data(), bytes.data(), bytes.size());
     return request;
 }
 
-anfc::modbus::AcceptEvent make_accept_event(std::span<const std::byte> bytes) {
+anfc::modbus::AcceptEvent make_accept_event(Bytes bytes) {
     anfc::modbus::AcceptEvent accept_event = {};
     accept_event.size = static_cast<uint16_t>(bytes.size());
     std::memcpy(accept_event.data.data(), bytes.data(), bytes.size());

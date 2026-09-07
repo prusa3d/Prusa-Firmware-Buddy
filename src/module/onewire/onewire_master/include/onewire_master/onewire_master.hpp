@@ -2,7 +2,7 @@
 #pragma once
 
 #include <cstdint>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <atomic>
 #include <optional>
 
@@ -61,7 +61,7 @@ public:
     /// Starts executing a transfer transaction
     /// That is, first writes @param tx bytes on the bus, then reads @param rx buffers back
     /// !!! is_active must be false
-    void start_transfer(std::span<const std::byte> tx_buffer, std::span<std::byte> rx_buffer);
+    void start_transfer(Bytes tx_buffer, WritableBytes rx_buffer);
 
     struct SearchData {
         DeviceAddress device_address;
@@ -154,8 +154,8 @@ private:
     };
 
     struct State {
-        std::span<const std::byte> tx_buffer = {};
-        std::span<std::byte> rx_buffer = {};
+        Bytes tx_buffer = {};
+        WritableBytes rx_buffer = {};
 
         /// Accumulator for the device search algorithm
         DeviceAddress search_device_address_accumulator = 0;

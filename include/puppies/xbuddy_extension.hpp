@@ -6,8 +6,8 @@
 #include <cstddef>
 #include <atomic>
 #include <freertos/mutex.hpp>
-#include <inplace_function.hpp>
 #include <otp/types.hpp>
+#include <puppies/cyphal_flash_host.hpp>
 #include <span>
 #include <xbuddy_extension/modbus.hpp>
 #include <xbuddy_extension/shared_enums.hpp>
@@ -60,14 +60,6 @@ public:
     uint8_t get_flash_progress_percent() const;
 
     bool get_usb_power() const;
-
-    // Buddy-side communication error counter (since boot)
-    std::atomic<uint16_t> refresh_error_count = 0;
-
-    // Cyphal bridge stream callback -- called from puppy task for each
-    // message drained from the XBE CyphalBridgeQueue.
-    using StreamCallback = void (*)(uint16_t port_id, std::span<const std::byte> payload, void *ctx);
-    void set_stream_callback(StreamCallback cb, void *ctx);
 
     // These are called from the puppy task.
     CommunicationStatus refresh(PuppyModbus &);
@@ -137,10 +129,6 @@ private:
     std::atomic<bool> config_dirty { false };
 
     // Plain mutex-protected members populated from status block in refresh_input().
-    // Read in write_chunk() — the puppy task uses this to know what chunk the XBE is asking for.
-    xbuddy_extension::modbus::ChunkRequest current_chunk_request {};
-    // Read in write_digest() — same purpose for the digest stream.
-    xbuddy_extension::modbus::DigestRequest current_digest_request {};
     // Read in refresh_log_message() — sequence number used to detect new logs.
     uint16_t current_log_message_sequence { 0 };
 
@@ -153,40 +141,13 @@ private:
     // To not send activity updates too often.
     uint32_t last_activity_update = 0;
 
-    // Just don't resend another request unless a new request comes.
-    xbuddy_extension::modbus::ChunkRequest last_chunk_request = {};
-    // Dedup is safe across XBE resets because each request carries a fresh
-    // random salt, so a re-issued request won't match the stale entry.
-    xbuddy_extension::modbus::DigestRequest last_digest_request = {};
-
-    // The file we are reading from during flashing (-1 when not flashing).
-    int flash_fd = -1;
-
-    // The size of the flash file (cached when opening, 0 when not flashing).
-    size_t flash_file_size = 0;
-
-    void close_flash_file();
-
-    using DigestComputeFn = stdext::inplace_function<
-        void(
-            xbuddy_extension::modbus::DigestRequest request,
-            xbuddy_extension::FileId file_id,
-            xbuddy_extension::modbus::Digest &out)>;
+    /// Firmware-flashing host for the pubbies behind the extension board,
+    /// driven from refresh(). Guarded by `mutex`.
+    CyphalBridgeFlashHost flash;
 
     CommunicationStatus refresh_holding(PuppyModbus &);
     CommunicationStatus refresh_input(PuppyModbus &, uint32_t max_age);
-    CommunicationStatus write_chunk(PuppyModbus &);
-    CommunicationStatus write_digest(PuppyModbus &, DigestComputeFn compute);
     CommunicationStatus refresh_log_message(PuppyModbus &);
-
-    // Cyphal bridge
-    using CyphalBridge = xbuddy_extension::modbus::CyphalBridge;
-    ModbusInputRegisterBlock<CyphalBridge::address, CyphalBridge> cyphal_bridge;
-    StreamCallback stream_callback_ = nullptr;
-    void *stream_callback_ctx_ = nullptr;
-    bool bridge_has_stale_data_ = false;
-    CommunicationStatus pull_cyphal_bridge(PuppyModbus &);
-    void dispatch_bridge_messages();
 };
 
 extern XBuddyExtension xbuddy_extension;

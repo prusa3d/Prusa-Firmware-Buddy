@@ -8,9 +8,8 @@
 #include <window_roll_text.hpp>
 #include <img_resources.hpp>
 #include <gcode/gcode_info.hpp>
-#include <cassert>
 #include <fsm/print_preview_mapper.hpp>
-#include <gui/screen/print/frame_gcode_incompatible.hpp>
+#include <gui/screen/print/frame_compat_checks.hpp>
 #include <sound.hpp>
 #include <meta_utils.hpp>
 
@@ -31,6 +30,7 @@
 #endif
 
 #include <static_alocation_ptr.hpp>
+#include <bsod/bsod.h>
 #if HAS_TOOL_MAPPING()
     #include <gui/screen/print/frame_tool_mapping.hpp>
 #endif
@@ -45,6 +45,10 @@ namespace {
 const auto text_loading = N_("Loading...");
 const auto text_downloading = N_("Downloading...");
 const auto text_header_print = N_("PRINT");
+#if HAS_WASTEBIN_FILL_TRACKING()
+const auto text_parking = N_("Parking");
+const auto text_raising_bed = N_("Raising the bed");
+#endif
 
 #if HAS_LARGE_DISPLAY()
 static constexpr Rect16 title_rect {
@@ -79,7 +83,7 @@ public:
         , radio(parent, buttons_rect)
         , gcode_description(parent) {
 
-        assert(GCodeInfo::getInstance().is_loaded() && "GCodeInfo must be initialized before ScreenPrintPreview is created");
+        debug_assert(GCodeInfo::getInstance().is_loaded() && "GCodeInfo must be initialized before ScreenPrintPreview is created");
         radio.SetBtnCount(2);
         line.SetBackColor(COLOR_DARK_GRAY);
         parent->CaptureNormalWindow(radio);
@@ -138,8 +142,10 @@ using Frames = FrameDefinitionList<ScreenPrintPreview::FrameStorage,
     FrameDefinition<Phase::main_dialog, frames::FrameThumbnailPreview>,
     FrameDefinition<Phase::unfinished_selftest, FramePrompt, Phase::unfinished_selftest, map_print_preview_phase_to_error_code>,
     FrameDefinition<Phase::new_firmware_available, FramePrompt, Phase::new_firmware_available, map_print_preview_phase_to_error_code>,
-    FrameDefinition<Phase::gcode_incompatible_warning, screen_print_preview::FrameGCodeIncompatible, Phase::gcode_incompatible_warning>,
-    FrameDefinition<Phase::gcode_incompatible_fatal, screen_print_preview::FrameGCodeIncompatible, Phase::gcode_incompatible_fatal>,
+    FrameDefinition<Phase::gcode_incompatible_warning, screen_print_preview::FrameCompatibilityChecks, Phase::gcode_incompatible_warning>,
+    FrameDefinition<Phase::gcode_incompatible_fatal, screen_print_preview::FrameCompatibilityChecks, Phase::gcode_incompatible_fatal>,
+    FrameDefinition<Phase::filament_incompatible_warning, screen_print_preview::FrameCompatibilityChecks, Phase::filament_incompatible_warning>,
+    FrameDefinition<Phase::filament_incompatible_fatal, screen_print_preview::FrameCompatibilityChecks, Phase::filament_incompatible_fatal>,
     FrameDefinition<Phase::filament_not_inserted, FramePrompt, Phase::filament_not_inserted, map_print_preview_phase_to_error_code>,
 #if HAS_MMU2()
     FrameDefinition<Phase::mmu_filament_inserted, FramePrompt, Phase::mmu_filament_inserted, map_print_preview_phase_to_error_code>,
@@ -153,6 +159,8 @@ using Frames = FrameDefinitionList<ScreenPrintPreview::FrameStorage,
 #endif
 #if HAS_WASTEBIN_FILL_TRACKING()
     FrameDefinition<Phase::wastebin_overfill_warning, frames::FrameWastebinOverfill>,
+    FrameDefinition<Phase::wastebin_emptying, FrameWait, text_parking>,
+    FrameDefinition<Phase::wastebin_emptied_returning, FrameWait, text_raising_bed>,
 #endif
     FrameDefinition<Phase::file_error, FramePrompt, Phase::file_error, map_print_preview_phase_to_error_code>>;
 

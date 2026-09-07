@@ -5,6 +5,7 @@
 #include "cyphal_proto_suber.hpp"
 #include "cyphal_suber_call.hpp"
 #include "cyphal_task.hpp"
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -87,7 +88,7 @@ protected:
      * @note This can fail by timeout or when in anonymous mode or if buffer cannot be taken (trying to send 2 things from cyphal callback).
      */
     [[nodiscard]] bool send_response_void(const void *data, TickType_t timeout) {
-        assert(awaiting_response == true); // We need to be responding to something
+        debug_assert(awaiting_response == true); // We need to be responding to something
 
         bool ret = response.send_data_void(data, std::nullopt, timeout);
         awaiting_response = false;
@@ -202,7 +203,7 @@ public:
      */
     void send_response(const T_RESPONSE &data) {
         [[maybe_unused]] bool ret = send_response(data, portMAX_DELAY);
-        assert(ret);
+        debug_assert(ret);
     }
 };
 

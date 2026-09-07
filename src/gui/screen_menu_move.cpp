@@ -12,6 +12,7 @@
 #include <gui/menu_vars.h>
 #include <img_resources.hpp>
 #include <utils/string_builder.hpp>
+#include <bsod/bsod.h>
 
 using namespace screen_menu_move;
 

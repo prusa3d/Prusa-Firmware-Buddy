@@ -9,13 +9,14 @@
 #include "master_activity.hpp"
 #include "yet_another_circular_buffer.hpp"
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <optional>
 #include <string_view>
 #include <string.h>
 #include <utils/overloaded_visitor.hpp>
 #include <variant>
+#include <bsod/bsod.h>
+#include <utils/byte_utils.hpp>
 
 namespace {
 
@@ -39,7 +40,7 @@ uint32_t get_random_salt() {
 //       Each node will request just a single file while in bootloader.
 //       We just invent some short string here and call it a day.
 static const std::string_view dummy_parameter_sv = "/path/to/fw";
-static const std::span<std::byte> dummy_parameter { (std::byte *)dummy_parameter_sv.data(), dummy_parameter_sv.size() };
+static const Bytes dummy_parameter = std::as_bytes(std::span { dummy_parameter_sv });
 
 } // namespace
 
@@ -217,7 +218,7 @@ private:
             /// Received a hash
             ///
             /// Assumes the caller adjusts the received_form_* beforehand.
-            void received(const std::span<const std::byte> &new_digest) {
+            void received(const Bytes &new_digest) {
                 if (digest.size() != new_digest.size()) {
                     // TODO BFW-7918
                     // Or assert?
@@ -239,7 +240,7 @@ private:
             // Node wants some data, this is the ID specified by the node.
             //
             // nullopt in case we are waiting for the node's request to arrive.
-            std::optional<uint8_t> transfer_id;
+            std::optional<TransferId> transfer_id;
             // Offset into the "file" the node wants.
             //
             // Used to:
@@ -319,6 +320,10 @@ private:
                     case NodeName::cz_prusa3d_honeybee_nfc:
                         return application->allocate_nfc_device();
                     case NodeName::cz_prusa3d_honeybee_tool_offset_sensor:
+                        // Activation is also executed when TOS board was reset
+                        // This will ensure the actual configuration is re-applied after reset, if needed
+                        application->tool_offset_sensor.active = tool_offset_sensor::Config {};
+
                         return ToolOffsetSensorAlive {
                             .tool_offset_sensor = &application->tool_offset_sensor,
                         };
@@ -334,7 +339,7 @@ private:
             return verify;
         }
 
-        bool execute_command(Presentation &presentation, TimePoint now, NodeId node_id, Command command, std::span<std::byte> parameter) {
+        bool execute_command(Presentation &presentation, TimePoint now, NodeId node_id, Command command, Bytes parameter) {
             if (last_command_valid && now < last_command.timepoint + execute_command_timeout) {
                 // Waiting for response. Let other nodes make progress.
                 return false;
@@ -373,6 +378,7 @@ private:
                     .info_request_sent = false,
                 };
                 last_command_valid = false;
+                start_app_sent = false;
                 presentation.transmit_diagnostic_record(Severity::warning, "lost heartbeat");
                 return true;
             }
@@ -464,7 +470,7 @@ private:
                         filesystem.hash_salt = salt;
                         presentation.transmit_diagnostic_record(Severity::notice, "hash requested");
                         // And also request it from the device at the same time.
-                        const bool sent = execute_command(presentation, now, node_id, Command::get_app_salted_hash, { (std::byte *)&salt, 4 });
+                        const bool sent = execute_command(presentation, now, node_id, Command::get_app_salted_hash, trivial_as_bytes(salt));
                         if (sent) {
                             verify.request_sent = true;
                         }
@@ -562,6 +568,15 @@ private:
         }
 
         bool step(Presentation &presentation, const TimePoint, ApplicationImpl *, NodeId node_id, ToolOffsetSensorAlive &alive) {
+            if (heartbeat_data.mode == Mode::software_update) {
+                // The node has been reset back into its bootloader - go to Verify state
+                heartbeat_valid = false;
+                state = Verify {};
+                last_command_valid = false;
+                start_app_sent = false;
+                presentation.transmit_diagnostic_record(Severity::warning, "TOS reset, restarting app");
+                return true;
+            }
             if (alive.tool_offset_sensor->active != alive.tool_offset_sensor->desired) {
                 alive.tool_offset_sensor->active = alive.tool_offset_sensor->desired;
                 presentation.transmit_tool_offset_sensor_config_request(node_id, alive.tool_offset_sensor->active);
@@ -646,8 +661,8 @@ private:
     bool filesystem_step(Presentation &presentation, const TimePoint now) {
         // No transfer currently running, but there's a request waiting on some node (possibly).
         if (!filesystem.current_node && filesystem.request_in_node) {
-            assert(filesystem.file == FirmwareFile::none);
-            assert(filesystem.buffer.size() == 0);
+            debug_assert(filesystem.file == FirmwareFile::none);
+            debug_assert(filesystem.buffer.size() == 0);
             bool found = false;
             for (size_t i = 0; i < nodes.size(); i++) {
                 Node &node = nodes[i];
@@ -847,7 +862,7 @@ public:
         }
     }
 
-    void receive_file_read_request(NodeId remote_node_id, TimePoint now, uint8_t transfer_id, uint32_t offset) final {
+    void receive_file_read_request(NodeId remote_node_id, TimePoint now, TransferId transfer_id, uint32_t offset) final {
         if (Node *node = get_node(remote_node_id)) {
             // Should we _check_ we are in the right state first?
             node->state = Node::Flash {
@@ -994,7 +1009,7 @@ public:
         };
     }
 
-    void receive_nfc_event(cyphal::NodeId node_id, std::span<const std::byte> data) final {
+    void receive_nfc_event(cyphal::NodeId node_id, Bytes data) final {
         if (Node *node = get_node(node_id)) {
             if (auto *alive = std::get_if<Node::NfcAlive>(&node->state)) {
                 get_nfc(alive->device).receive_event(data);

@@ -1,8 +1,10 @@
 /// @file
 #include "base_hotend.hpp"
 
+#include <bsod.h>
 #include <module/temperature.h>
 #include <filament.hpp>
+#include <feature/compatibility_checks/filament_compatibility.hpp>
 
 #include <option/board_is_master_board.h>
 #if BOARD_IS_MASTER_BOARD()
@@ -15,12 +17,11 @@ static constexpr HeaterWatch::Config heater_watch_config {
     .temp_increase = WATCH_TEMP_INCREASE,
     .period_s = WATCH_TEMP_PERIOD,
     .min_temp_diff = WATCH_TEMP_INCREASE + TEMP_HYSTERESIS + 1,
-    .error_code = ErrCode::ERR_TEMPERATURE_HOTEND_PREHEAT_ERROR,
 };
 #endif
 
 BaseHotend::BaseHotend(PhysicalToolIndex tool, const Config *config)
-    : base_config_(*config)
+    : Hotend(*config)
     , tool_(tool)
 #if WATCH_HOTENDS
     , heater_watch_(heater_watch_config)
@@ -28,8 +29,10 @@ BaseHotend::BaseHotend(PhysicalToolIndex tool, const Config *config)
 {
 }
 
-bool BaseHotend::supports_filament(const FilamentTypeParameters &filament) const {
-    return base_config_.max_nozzle_temp >= filament.nozzle_temperature;
+void BaseHotend::filament_compatibility_report(FilamentCompatibilityReport &report, const FilamentCompatibilityReportGenerateArgs &args) const {
+    if (base_config_.max_nozzle_temp < args.filament.nozzle_temperature) {
+        report.failed_tool_checks.set(buddy::filament_compatibility::ToolCheck::tool_max_temp);
+    }
 }
 
 void BaseHotend::set_nozzle_target_temp(TargetTemperature set) {
@@ -79,36 +82,47 @@ void BaseHotend::set_heatbreak_target_temp(TargetTemperature set) {
 }
 #endif
 
+void BaseHotend::invoke_thermal_runaway(ErrCode error_code) {
+    fatal_error(error_code);
+}
+
 void BaseHotend::manage() {
     // Note: Checks in BaseHotend means that we're checking them twice on remote hotends if the remote hotend also uses this API (once on the master board, once on the remote tool board)
     // But better safe than sorry
+    const OptionalTemperature maybe_nozzle_temp = nozzle_temp();
 
-    if (!is_thermally_managed()) {
+    if (!maybe_nozzle_temp.has_value()) {
         return;
     }
 
-    if (nozzle_temp() > base_config_.max_nozzle_temp) {
+    const float curr_nozzle_temp = maybe_nozzle_temp.value();
+
+    if (curr_nozzle_temp > base_config_.max_nozzle_temp) {
         thermalManager.max_temp_error((heater_ind_t)tool_.to_raw());
     }
 
-    if ((nozzle_target_temp() > 0) && (nozzle_temp() < base_config_.min_nozzle_temp)) {
+    if ((nozzle_target_temp() > 0) && (curr_nozzle_temp < base_config_.min_nozzle_temp)) {
         thermalManager.min_temp_error((heater_ind_t)tool_.to_raw());
     }
 
     manage_temp_residency();
 
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)
-    thermal_runaway_.step(nozzle_temp(), nozzle_target_temp(), (heater_ind_t)tool_.to_raw(), THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS);
+    if (thermal_runaway_.step(curr_nozzle_temp, nozzle_target_temp(), THERMAL_PROTECTION_PERIOD, THERMAL_PROTECTION_HYSTERESIS)) {
+        invoke_thermal_runaway(ErrCode::ERR_TEMPERATURE_HOTEND_THERMAL_RUNAWAY);
+    }
 #endif
 
 #if WATCH_HOTENDS
-    heater_watch_.update(nozzle_temp());
+    if (heater_watch_.update(curr_nozzle_temp)) {
+        invoke_thermal_runaway(ErrCode::ERR_TEMPERATURE_HOTEND_PREHEAT_ERROR);
+    }
 #endif
 }
 
 void BaseHotend::manage_temp_residency() {
     const auto now = millis();
-    const auto temp_diff = std::abs(nozzle_target_temp() - nozzle_temp());
+    const auto temp_diff = std::abs(nozzle_target_temp() - nozzle_temp().value());
 
     if (!nozzle_temp_residency_start_ms_ && temp_diff < TEMP_WINDOW) {
         nozzle_temp_residency_start_ms_ = now;

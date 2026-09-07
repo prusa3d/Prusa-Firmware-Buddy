@@ -10,7 +10,7 @@ struct M141Args {
     bool wait_for_cooling = false;
 };
 
-/// Sets a chamber temperature to \param target and optionally waits for reaching it
+/// Sets a chamber temperature to args.target_temp and optionally waits for reaching it
 void M141_no_parser(const M141Args &args);
 
 } // namespace PrusaGcodeSuite

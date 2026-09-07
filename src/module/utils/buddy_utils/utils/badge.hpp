@@ -4,7 +4,7 @@
 /// class U, without befriending them.
 ///
 /// See https://awesomekling.github.io/Serenity-C++-patterns-The-Badge/
-template <class T>
+template <class T, typename Tag = void>
 class Badge {
     friend T;
 

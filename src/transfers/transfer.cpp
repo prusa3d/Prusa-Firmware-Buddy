@@ -15,6 +15,7 @@
 #include <raii/scope_guard.hpp>
 #include <state/printer_state.hpp>
 #include <option/has_human_interactions.h>
+#include <marlin_client.hpp>
 
 #include <logging/log.hpp>
 #include <type_traits>
@@ -212,7 +213,7 @@ bool Transfer::restart_download() {
             //
             // Note: end_range is _inclusive_ in the http (eg. range 0-4 will
             // return 5 bytes).
-            assert(tail->start % PartialFile::SECTOR_SIZE == 0);
+            debug_assert(tail->start % PartialFile::SECTOR_SIZE == 0);
             end_range = tail->start - 1;
         }
     }
@@ -328,7 +329,7 @@ Transfer::Transfer(Monitor::Slot &&slot, PartialFile::Ptr partial_file)
     , state(State::Retrying)
     , partial_file(partial_file)
     , is_printable(filename_is_printable(slot.destination())) {
-    assert(partial_file.get() != nullptr);
+    debug_assert(partial_file.get() != nullptr);
 }
 
 Transfer::State Transfer::step(bool is_printing) {
@@ -394,7 +395,7 @@ Transfer::State Transfer::step(bool is_printing) {
                 break;
             case DownloadStep::Aborted:
                 // Unreachable - this is only after we've called the deleter
-                assert(0);
+                debug_assert(0);
                 break;
             }
         } else if (last_connection_error_ms.has_value() == false || ticks_ms() - *last_connection_error_ms > 1000) {
@@ -422,11 +423,11 @@ void Transfer::notify_created() {
     ChangedPath::instance.changed_path(slot.destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
 
     if (HAS_HUMAN_INTERACTIONS() && filename_is_printable(slot.destination()) && printer_state::remote_print_ready(/*preview_only=*/true)) {
-        // While it looks a counter-intuitive, this print_begin only shows the
+        // While it looks a counter-intuitive, this print_start only shows the
         // print preview / one click print, doesn't really start the print.
-        char sfn_path[FILE_PATH_BUFFER_LEN];
+        char sfn_path[filename_defs::path_buffer_size];
         get_SFN_path_copy(slot.destination(), sfn_path, sizeof(sfn_path));
-        print_begin(sfn_path);
+        marlin_client::print_start(sfn_path);
     }
 
     already_notified = true;
@@ -564,7 +565,7 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
     const char *temporary_filename = "/usb/prusa-temporary-file.gcode";
     remove(temporary_filename); // remove the file if there is some leftover already
 
-    char SFN[FILE_PATH_BUFFER_LEN];
+    char SFN[filename_defs::path_buffer_size];
     strlcpy(SFN, transfer_path.as_destination(), sizeof(SFN));
     get_SFN_path(SFN);
     uint32_t old_SFN_crc = crc32_calc((const uint8_t *)SFN, sizeof(SFN));

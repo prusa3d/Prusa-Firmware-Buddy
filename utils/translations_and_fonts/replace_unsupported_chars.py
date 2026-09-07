@@ -38,6 +38,7 @@ def replace_characters(file_path):
         'ì':
         'í',  # LATIN SMALL LETTER I WITH GRAVE -> acute (already in font set)
         'û': 'u',  # LATIN SMALL LETTER U WITH CIRCUMFLEX (not in font set)
+        '–': '-',  # EN DASH
     }
 
     # Read the contents of the file

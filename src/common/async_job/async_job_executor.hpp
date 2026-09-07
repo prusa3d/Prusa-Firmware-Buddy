@@ -1,7 +1,10 @@
+/// @file
 #pragma once
 
+#include <array>
+#include <cmsis_os.h>
+#include <cstdint>
 #include <freertos/mutex.hpp>
-#include <freertos/binary_semaphore.hpp>
 #include <freertos/wait_condition.hpp>
 
 class AsyncJobBase;

@@ -2,6 +2,7 @@
 #include <feature/auto_retract/auto_retract.hpp>
 #include <gcode/temperature/M104_M109.hpp>
 #include <mapi/motion.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 #include <fsm/nozzle_cleaning_failed_phases.hpp>
 
 #include <Marlin/src/Marlin.h>
@@ -10,6 +11,8 @@
 #include <raii/auto_restore.hpp>
 #include <tool/hotend/hotend.hpp>
 #include <utils/variant_utils.hpp>
+#include <bsod/bsod.h>
+#include <option/has_switchable_auto_retract.h>
 
 using namespace marlin_server;
 using namespace nozzle_cleaning_failed_wizard;
@@ -36,7 +39,7 @@ public:
             // Inform the user that the nozzle cleaning failed, ask him what to do (ignore/retry/abort)
             const auto what_to_do = ask_user_what_to_do();
 
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
             // No matter what user chose, offer him to enable auto-retract
             offer_auto_retract_enable();
 #endif
@@ -121,7 +124,7 @@ public:
         }
     }
 
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     void offer_auto_retract_enable() {
         if (config_store().auto_retract_enabled.get()) {
             // Auto-retract is enabled, no point in offering to enable
@@ -174,8 +177,7 @@ public:
             return false;
         }
 
-        const float start_temp = Hotend::for_tool(*tool).nozzle_temp();
-
+        Hotend::OptionalTemperature start_temp = std::nullopt;
         // takes care of progress reporing and also handles abort correctly
         LambdaSubscriber subscriber(marlin_server::idle_publisher, [&] {
             if (marlin_server::get_response_from_phase(Phase::wait_temp) == Response::Abort) {
@@ -184,9 +186,19 @@ public:
                     planner.quick_stop();
                 }
             }
+
+            const Hotend::OptionalTemperature current_temp = Hotend::for_tool(*tool).nozzle_temp();
+            if (!current_temp.has_value()) {
+                return; // need a reading before doing anything
+            }
+
+            if (!start_temp.has_value()) {
+                start_temp = current_temp.value(); // snapshot the first valid reading
+            }
+
             if (!warn_active) {
                 struct NozzleCleaningFailedProgressData data {
-                    .progress_0_255 = static_cast<uint8_t>(std::min(255.f, fabs(static_cast<float>(Hotend::for_tool(*tool).nozzle_temp() - start_temp) / static_cast<float>(target_temp - start_temp)) * 255))
+                    .progress_0_255 = static_cast<uint8_t>(std::min(255.f, fabs(static_cast<float>(current_temp.value() - start_temp.value()) / static_cast<float>(target_temp - start_temp.value())) * 255))
                 };
                 fsm_change(Phase::wait_temp, fsm::serialize_data(data));
             }
@@ -223,7 +235,8 @@ public:
                 fsm_change(Phase::purge, fsm::serialize_data(data));
             }
         });
-        mapi::extruder_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
+        mapi::extruder_move(
+            purge_length, buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::advanced_pause_purge));
         planner.synchronize();
         return !planner.draining();
     }

@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <freertos/binary_semaphore.hpp>
 #include <freertos/timing.hpp>
-#include <span>
+#include <utils/byte_utils.hpp>
 #include <stm32c0xx.h>
 #include <stm32c0xx_ll_spi.h>
 #include <utils/uncopyable.hpp>
@@ -127,7 +127,7 @@ namespace accel {
     namespace {
         class SPIDevice : Uncopyable {
         public:
-            [[nodiscard]] bool transmit_receive(std::span<const std::byte> tx, std::span<std::byte> rx) {
+            [[nodiscard]] bool transmit_receive(Bytes tx, WritableBytes rx) {
                 SPI_ASSERT("sizes must match\n", tx.size() == rx.size());
                 SPI_ASSERT("config must not be changed in-flight\n", !LL_SPI_IsEnabled(SPIx));
 
@@ -178,7 +178,7 @@ namespace loadcell {
     namespace {
         class SPIDevice : Uncopyable {
         public:
-            [[nodiscard]] bool transmit_receive(std::span<const std::byte> tx, std::span<std::byte> rx) {
+            [[nodiscard]] bool transmit_receive(Bytes tx, WritableBytes rx) {
                 SPI_ASSERT("sizes must match\n", tx.size() == rx.size());
                 SPI_ASSERT("config must not be changed in-flight\n", !LL_SPI_IsEnabled(SPIx));
 

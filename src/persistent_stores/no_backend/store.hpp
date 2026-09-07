@@ -51,9 +51,4 @@ public:
     Store &operator=(Store &&other) = delete;
 };
 
-template <class Config, class DeprecatedItems>
-inline Store<Config, DeprecatedItems> &store() {
-    static Store<Config, DeprecatedItems> str {};
-    return str;
-}
 } // namespace no_backend

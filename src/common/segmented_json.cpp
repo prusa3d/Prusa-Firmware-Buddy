@@ -1,11 +1,11 @@
 #include "segmented_json.h"
 #include "json_encode.h"
 
-#include <cassert>
 #include <cstdio>
 #include <cstdarg>
 #include <cinttypes>
 #include <cstring>
+#include <bsod/bsod.h>
 
 using std::make_tuple;
 
@@ -119,7 +119,7 @@ JsonResult JsonOutput::output_field_arr(size_t resume_point, const char *name) {
 
 JsonResult JsonOutput::output_chunk(size_t resume_point, ChunkRenderer &renderer) {
     const auto [result, written] = renderer.render(buffer, buffer_size);
-    assert(written <= buffer_size);
+    debug_assert(written <= buffer_size);
     buffer += written;
     buffer_size -= written;
     if (written > 0) {
@@ -139,7 +139,7 @@ std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, siz
     size_t buffer_size_rest = buffer_size;
     JsonOutput output(buffer, buffer_size_rest, resume_point);
     const auto result = content(resume_point, output);
-    assert(buffer_size_rest <= buffer_size);
+    debug_assert(buffer_size_rest <= buffer_size);
     size_t written = (result == JsonResult::Abort) ? 0 : buffer_size - buffer_size_rest;
     return make_tuple(result, written);
 }

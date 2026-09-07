@@ -4,8 +4,7 @@
 
 #include <common/mutable_path.hpp>
 #include <common/unique_file_ptr.hpp>
-// Why is the FILE_PATH_BUFFER_LEN in gui?
-#include <gui/file_list_defs.h>
+#include <buddy/filename_defs.hpp>
 
 #include "monitor.hpp"
 #include "partial_file.hpp"

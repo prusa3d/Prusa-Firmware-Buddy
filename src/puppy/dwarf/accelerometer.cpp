@@ -6,7 +6,6 @@
 #include <common/bsod.h>
 #include <common/circular_buffer.hpp>
 #include <atomic>
-#include <cassert>
 #include <lis2dh12_reg.h>
 #include <device/peripherals.hpp>
 #include <hwio_pindef.h>

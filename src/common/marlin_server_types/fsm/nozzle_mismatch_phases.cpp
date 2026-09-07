@@ -8,8 +8,6 @@ constinit const EnumArray<PhaseNozzleMismatch, PhaseResponses, PhaseNozzleMismat
     { PhaseNozzleMismatch::tool_lost, { Response::Continue } },
     { PhaseNozzleMismatch::homing, {} },
     { PhaseNozzleMismatch::pickup_failed, { Response::Retry, Response::Abort } },
-    { PhaseNozzleMismatch::pickup_failed_confirm_retry, { Response::Continue } },
     { PhaseNozzleMismatch::park_failed, { Response::Retry, Response::Abort } },
-    { PhaseNozzleMismatch::park_failed_confirm_retry, { Response::Continue } },
     { PhaseNozzleMismatch::confirm_abort, { Response::Back, Response::Continue } },
 };

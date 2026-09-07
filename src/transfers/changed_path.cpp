@@ -3,9 +3,9 @@
 #include <crc32.h>
 #include <random/random.h>
 
-#include <cassert>
 #include <cstring>
 #include <string_view>
+#include <bsod/bsod.h>
 
 extern "C" {
 
@@ -22,7 +22,7 @@ void ChangedPath::changed_path(const char *filepath, Type changed_type, Incident
     Lock lock(mutex);
 
     if (command_id.has_value()) {
-        assert(!this->command_id.has_value());
+        debug_assert(!this->command_id.has_value());
         this->command_id = command_id;
     }
 

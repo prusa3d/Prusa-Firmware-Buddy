@@ -1,6 +1,7 @@
 
 #include "cyphal_record.hpp"
 #include "logging/log_dest_shared.hpp"
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -10,10 +11,10 @@ Record::Record()
     : log_sender(CanardTransferKindMessage,
         CANARD_NODE_ID_UNSET, ProtoSender::send_timeout_default,
         CanardPrioritySlow) {
-    assert(instance == nullptr); // Allow only one instance
+    debug_assert(instance == nullptr); // Allow only one instance
     instance = this;
 
-    assert(access_mutex != nullptr); // Check if mutex was created
+    debug_assert(access_mutex != nullptr); // Check if mutex was created
 }
 
 Record::~Record() {

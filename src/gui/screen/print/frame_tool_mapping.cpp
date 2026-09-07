@@ -18,6 +18,7 @@
 #include <multi_filament_change.hpp>
 #include <screen_menu_filament_changeall.hpp>
 #include <option/has_mmu2.h>
+#include <bsod/bsod.h>
 
 namespace screen_tool_mapping {
 
@@ -36,7 +37,7 @@ namespace {
     };
 
     Response show_msg_box(const string_view_utf8 &msg, PhaseResponses responses, size_t default_button = 0) {
-        MsgBoxBase msgbox(GuiDefaults::DialogFrameRect, responses, default_button, nullptr, msg, is_multiline::yes);
+        MsgBoxBase msgbox(GuiDefaults::DialogFrameRect, responses, default_button, msg, is_multiline::yes);
         msgbox.set_text_alignment(Align_t::Center());
         Screens::Access()->gui_loop_until_dialog_closed();
         return msgbox.GetResult();
@@ -336,7 +337,7 @@ void WindowRoutingBoard::unconditionalDraw() {
             return;
         }
 
-        const auto icon = hw_check_severity_icons[failed_check->meta->evaluate_severity()];
+        const auto icon = buddy::compatibility_checks::compatibility_level_icons[failed_check->meta->evaluate_compatibility()];
         if (!icon) {
             return;
         }
@@ -767,8 +768,8 @@ void FrameToolMapping::update_status_text(ShowGuide show_guide) {
     }
 
     if (auto failed_check = compat_report_.highest_severity_failed_check(); failed_check) {
-        const auto severity = failed_check->meta->evaluate_severity();
-        if (severity > HWCheckSeverity::Ignore) {
+        const auto compatibility = failed_check->meta->evaluate_compatibility();
+        if (compatibility != buddy::compatibility_checks::CompatibilityLevel::fully_compatible) {
             StringBuilder sb(status_text_);
             match(
                 failed_check->tool, //
@@ -784,7 +785,7 @@ void FrameToolMapping::update_status_text(ShowGuide show_guide) {
             // Force update even though the reader has the same ref
             bottom_status_.SetText({});
             bottom_status_.SetText(string_view_utf8::MakeRAM(sb.str()));
-            bottom_status_.SetTextColor(severity == HWCheckSeverity::Abort ? COLOR_RED : COLOR_ORANGE);
+            bottom_status_.SetTextColor(buddy::compatibility_checks::compatibility_level_menu_item_color_schemes[compatibility]->text.unfocused);
             return;
         }
     }
@@ -818,7 +819,7 @@ void FrameToolMapping::windowEvent(window_t *sender, GUI_event_t event, void *co
         switch (response) {
 
         case Response::Print:
-            if (!compat_report_.gui_confirm_all_incompatibilities(Response::Cancel)) {
+            if (!compat_report_.gui_confirm_all_incompatibilities(Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::fully_compatible, buddy::gcode_compatibility::CompatibilityReport::AggregateTools::yes)) {
                 return;
             }
 

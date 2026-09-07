@@ -24,9 +24,8 @@ target_sources(
           hal.cpp
           hal_clock.cpp
           hal_ext_fs.cpp
-          hal_gpio_expander.cpp
           hal_memory.cpp
-          hal_mmu.cpp
+          hal_mmu_port.cpp
           hal_pub.cpp
           hal_rng.cpp
           hal_rs485.cpp
@@ -40,6 +39,7 @@ target_sources(
 target_link_libraries(
   firmware
   PRIVATE printf::printf
+          bsod
           dsdl_prusa3d
           dsdl_uavcan
           STM32H5::HAL
@@ -80,9 +80,12 @@ target_include_directories(FreeRTOS_Config INTERFACE config)
 
 set(EXTENSION_STANDARD 1)
 set(EXTENSION_IX 2)
+set(EXTENSION_XL_CAN 3)
 
 if(${PRINTER} STREQUAL "iX")
   set(EXTENSION_VARIANT ${EXTENSION_IX})
+
+  target_sources(firmware PRIVATE hal_gpio_expander.cpp)
 elseif(
   ${PRINTER} STREQUAL "COREONE"
   OR ${PRINTER} STREQUAL "COREONEL"
@@ -90,11 +93,19 @@ elseif(
   OR ${PRINTER} STREQUAL "COREONEL_INDX"
   )
   set(EXTENSION_VARIANT ${EXTENSION_STANDARD})
+
+  target_sources(firmware PRIVATE hal_gpio_expander.cpp)
+elseif(${PRINTER} STREQUAL "XL")
+  set(EXTENSION_VARIANT ${EXTENSION_XL_CAN})
 else()
   message(FATAL_ERROR "Building xBuddyExtension for an incompatible printer")
 endif()
 
+if(HAS_MMU2)
+  target_sources(firmware PRIVATE hal_mmu.cpp)
+endif()
+
 target_compile_definitions(
   firmware PRIVATE EXTENSION_STANDARD=${EXTENSION_STANDARD} EXTENSION_IX=${EXTENSION_IX}
-                   EXTENSION_VARIANT=${EXTENSION_VARIANT}
+                   EXTENSION_XL_CAN=${EXTENSION_XL_CAN} EXTENSION_VARIANT=${EXTENSION_VARIANT}
   )

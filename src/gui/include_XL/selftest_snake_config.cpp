@@ -15,16 +15,26 @@
     #include <module/prusa/toolchanger.h>
 #endif
 
+#include <option/has_tool_offset_sensor.h>
+#if HAS_TOOL_OFFSET_SENSOR()
+    #include <feature/tool_offset_calibration/tool_offset_calibration.hpp>
+#endif
+
 #include <option/has_side_fsensor_remap.h>
 #if HAS_SIDE_FSENSOR_REMAP()
     #include <feature/filament_sensor/filament_sensors_handler_remap.hpp>
 #endif
 
 #include <option/has_precise_homing_corexy.h>
+#include <bsod/bsod.h>
 
 #if HAS_PRECISE_HOMING_COREXY()
     #include <module/prusa/homing_corexy.hpp>
 #endif
+
+#include <option/has_cpu_fan.h>
+#include <option/has_xl_can.h>
+#include <selftest_fans_config.hpp>
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, ToolMask tool) {
@@ -47,6 +57,18 @@ TestResult get_test_result(Action action, ToolMask tool) {
             break;
         }
 #endif /* HAS_CHAMBER_API() */
+#if HAS_CPU_FAN() || HAS_XL_CAN()
+        // Gate exactly as M1978 does: on plain XL these fans are never tested and their
+        // slots stay unknown, which would drag the whole action to unknown.
+        if (fan_selftest::has_board_fans()) {
+    #if HAS_CPU_FAN()
+            res = test_result::evaluate_results(res, config_store().cpu_fan_selftest_result.get());
+    #endif
+    #if HAS_XL_CAN()
+            res = test_result::evaluate_results(res, config_store().bed_mcu_fan_selftest_result.get());
+    #endif
+        }
+#endif
         return res;
     }
     case Action::ZAlign:
@@ -68,6 +90,12 @@ TestResult get_test_result(Action action, ToolMask tool) {
             return sr.get_loadcell(e);
         });
     case Action::ToolOffsetsCalibration:
+        // XLS runs the M1985 wizard, which stores a single pass/fail result. Plain XL runs the
+        // pin-based selftest, which stores a per-tool result in selftest_result.
+        // Based on presenece of the tool offset sensor, pick the right source for the result.
+        if (tool_offset_calibration::is_hardware_available()) {
+            return config_store().selftest_result_tool_offsets_calibration.get();
+        }
         return merge_hotends_evaluations([&](PhysicalToolIndex e) {
             return sr.get_tool_offset(e);
         });

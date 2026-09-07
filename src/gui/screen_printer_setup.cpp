@@ -4,6 +4,7 @@
 #include <img_resources.hpp>
 #include <common/nozzle_diameter.hpp>
 #include <MItem_tools.hpp>
+#include <option/has_heaters_selftest_revise.h>
 
 using namespace screen_printer_setup_private;
 
@@ -28,6 +29,10 @@ void MI_DONE::click(IWindowMenu &) {
     // If the screen was open as a part of RevisePrinterStatus selftest part, goes to the next part
     // Otherwise, this is ignored
     marlin_client::FSM_response(PhasesSelftest::RevisePrinterStatus_revise, Response::Done);
+    #if HAS_HEATERS_SELFTEST_REVISE()
+    // Same, for the gcode-based heater selftest's revise-printer-setup phase (ignored if not active).
+    marlin_client::FSM_response(PhasesHeatersSelftest::revise_revise, Response::Done);
+    #endif
 #endif
 
     Screens::Access()->Close();
@@ -36,6 +41,10 @@ void MI_DONE::click(IWindowMenu &) {
 // ------------------------------------------------
 // ScreenPrinterSetup
 // ------------------------------------------------
+bool ScreenPrinterSetup::should_show() {
+    return !config_store().printer_hw_config_done.get();
+}
+
 ScreenPrinterSetup::ScreenPrinterSetup()
     : ScreenMenu(_("PRINTER SETUP")) //
 {

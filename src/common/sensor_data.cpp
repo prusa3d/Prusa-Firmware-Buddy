@@ -185,4 +185,7 @@ float SensorData::head_ambient_temperature() {
 float SensorData::nozzle_temp_uncompensated() {
     return buddy::puppies::indx.get_hotend_temp_uncompensated();
 }
+int16_t SensorData::ringdown_decay() {
+    return buddy::puppies::indx.get_ringdown_decay();
+}
 #endif

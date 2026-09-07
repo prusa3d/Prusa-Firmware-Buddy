@@ -5,6 +5,7 @@
 
 #include "async_job_executor.hpp"
 #include "async_job_execution_control.hpp"
+#include <bsod/bsod.h>
 
 /// Represents a job that is to be asynchornously executed in an executor in a queue-like manner.
 /// In order for the job to execute, the instance of AsyncJob should not be destructed.
@@ -108,7 +109,7 @@ public:
 
 public:
     inline const Result &result() const {
-        assert(state() == State::finished);
+        debug_assert(state() == State::finished);
         return result_;
     }
 

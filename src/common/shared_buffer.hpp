@@ -1,14 +1,14 @@
 #pragma once
 
 // The path length constants live in gui :-(
-#include <gui/file_list_defs.h>
+#include <buddy/filename_defs.hpp>
 
 #include <array>
 #include <optional>
-#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <bsod/bsod.h>
 
 template <size_t S>
 class Buffer {
@@ -33,7 +33,7 @@ public:
         }
         Borrow &operator=(Borrow &&other) {
             if (buff != nullptr) {
-                assert(buff->borrowed);
+                debug_assert(buff->borrowed);
                 buff->borrowed = false;
             }
             buff = other.buff;
@@ -42,16 +42,16 @@ public:
         }
         ~Borrow() {
             if (buff != nullptr) {
-                assert(buff->borrowed);
+                debug_assert(buff->borrowed);
                 buff->borrowed = false;
             }
         }
         uint8_t *data() {
-            assert(buff != nullptr); // Using moved object
+            debug_assert(buff != nullptr); // Using moved object
             return buff->data.data();
         }
         const uint8_t *data() const {
-            assert(buff != nullptr); // Using moved object
+            debug_assert(buff != nullptr); // Using moved object
             return buff->data.data();
         }
         constexpr static size_t SIZE = S;
@@ -77,7 +77,7 @@ public:
 // How large buffer do we need?
 // 512: For the gcode commands.
 // File names: for marlin vars and for commands that manipulate files.
-constexpr size_t BORROW_BUF_SIZE = std::max(512, FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN);
+constexpr size_t BORROW_BUF_SIZE = std::max<size_t>(512, filename_defs::path_buffer_size + filename_defs::filename_buffer_size);
 
 using SharedBuffer = Buffer<BORROW_BUF_SIZE>;
 using SharedBorrow = std::shared_ptr<SharedBuffer::Borrow>;
@@ -103,14 +103,14 @@ public:
         char *path = this->path();
         size_t plen = strlen(path);
         // Enough space for the name too.
-        assert(plen < FILE_PATH_BUFFER_LEN);
+        debug_assert(plen < filename_defs::path_buffer_size);
         return path + plen + 1;
     }
     const char *name() const {
         const char *path = this->path();
         size_t plen = strlen(path);
         // Enough space for the name too.
-        assert(plen < FILE_PATH_BUFFER_LEN);
+        debug_assert(plen < filename_defs::path_buffer_size);
         return path + plen + 1;
     }
 };
@@ -141,14 +141,14 @@ public:
         char *path = this->path();
         size_t plen = strlen(path);
         // Enough space for the name too.
-        assert(plen < FILE_PATH_BUFFER_LEN);
+        debug_assert(plen < filename_defs::path_buffer_size);
         return path + plen + 1;
     }
     const char *name() const {
         const char *path = this->path();
         size_t plen = strlen(path);
         // Enough space for the name too.
-        assert(plen < FILE_PATH_BUFFER_LEN);
+        debug_assert(plen < filename_defs::path_buffer_size);
         return path + plen + 1;
     }
 };

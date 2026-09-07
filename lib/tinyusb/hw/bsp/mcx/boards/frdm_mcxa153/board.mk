@@ -1,0 +1,23 @@
+MCU_VARIANT = MCXA153
+MCU_FAMILY = MCXA
+MCU_CORE = MCXA153
+PORT = 0
+
+CPU_CORE = cortex-m33-nodsp-nofp
+CFLAGS += \
+	-DCPU_MCXA153VLH \
+	-DCFG_TUSB_MCU=OPT_MCU_MCXA15 \
+	-DCFG_EXAMPLE_VIDEO_READONLY
+
+SRC_C += \
+  ${BOARD_PATH}/clock_config.c \
+  ${BOARD_PATH}/pin_mux.c
+
+INC += \
+	$(TOP)/$(SDK_DIR)/$(MCU_FAMILY)/periph
+
+JLINK_DEVICE = MCXA153
+PYOCD_TARGET = MCXA153
+
+# flash using pyocd
+flash: flash-jlink

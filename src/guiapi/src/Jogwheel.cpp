@@ -3,7 +3,7 @@
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
 #include <atomic>
-#include <cassert>
+#include <bsod/bsod.h>
 
 using buddy::hw::jogWheelEN1;
 using buddy::hw::jogWheelEN2;
@@ -151,7 +151,7 @@ bool Jogwheel::IsBtnPressed() {
 }
 
 void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
-    assert(initialized);
+    debug_assert(initialized);
     btn_state = new_state;
     (void)queue.send_from_isr(btn_state);
 }

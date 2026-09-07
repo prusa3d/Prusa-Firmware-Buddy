@@ -32,4 +32,11 @@ struct InstalledRevision {
     static bool set(const Revision &revision);
 };
 
+namespace revision {
+
+    extern const Revision standard;
+    extern const Revision bootloader;
+
+} // namespace revision
+
 }; // namespace buddy::resources

@@ -1,21 +1,42 @@
-/**
- * @file screen_menu_version_info_non_mini.hpp
- */
-
+/// @file
 #pragma once
 
 #include "MItem_menus.hpp"
-#include "MItem_tools.hpp"
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
-#include <guiconfig/GuiDefaults.hpp>
+#include <basic_screen_menu.hpp>
+#include <option/bootloader.h>
+#include <option/has_mmu2.h>
+#include <WindowMenuInfo.hpp>
 
-using ScreenMenuVersionInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INFO_FW, MI_INFO_BOOTLOADER, MI_INFO_MMU, MI_BOARD_INFO>;
-
-class ScreenMenuVersionInfo : public ScreenMenuVersionInfo__ {
-    void set_serial_number(WiInfo<28> &item, const char *sn, uint8_t bom_id);
-
+class MI_INFO_FW final : public WI_INFO_t {
 public:
-    constexpr static const char *label = N_("VERSION INFO");
+    MI_INFO_FW();
+};
+
+#if BOOTLOADER()
+class MI_INFO_BOOTLOADER final : public WI_INFO_t {
+public:
+    MI_INFO_BOOTLOADER();
+};
+#endif
+
+#if HAS_MMU2()
+class MI_INFO_MMU final : public WI_INFO_t {
+public:
+    MI_INFO_MMU();
+};
+#endif
+
+using ScreenMenuVersionInfo__ = BasicScreenMenu<
+    MI_INFO_FW,
+#if BOOTLOADER()
+    MI_INFO_BOOTLOADER,
+#endif
+#if HAS_MMU2()
+    MI_INFO_MMU,
+#endif
+    MI_BOARD_INFO>;
+
+class ScreenMenuVersionInfo final : public ScreenMenuVersionInfo__ {
+public:
     ScreenMenuVersionInfo();
 };

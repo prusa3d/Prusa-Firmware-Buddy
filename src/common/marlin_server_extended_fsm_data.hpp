@@ -5,6 +5,7 @@
 #include "marlin_vars.hpp"
 #include <common/no_rtti_type_id.hpp>
 #include "marlin_server_extended_fsm_types.hpp"
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Marlin);
 
@@ -41,7 +42,7 @@ public:
     template <FSMExtendedDataSubclass T>
     static bool store(T &data) {
         // do simple check that get_identifier works as expected and provides diffent value for different types
-        assert(get_identifier<T>() != get_identifier<FSMExtendedData>());
+        debug_assert(get_identifier<T>() != get_identifier<FSMExtendedData>());
 
         // all operations are done under lock
         auto guard = MarlinVarsLockGuard();

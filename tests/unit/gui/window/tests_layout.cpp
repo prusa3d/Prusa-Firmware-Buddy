@@ -2,7 +2,7 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include "ScreenHandler.hpp"
-#include "gui_time.hpp" //gui::GetTick
+#include "gui_time.hpp"
 #include "mock_windows.hpp"
 #include "mock_display.hpp"
 #include <guiconfig/GuiDefaults.hpp>
@@ -10,30 +10,52 @@
 #include "knob_event.hpp"
 #include <memory>
 #include "display_helper.h"
+#include <font_data/font_data.hpp>
 #include <str_utils.hpp>
+
+// The font data is opaque, so the tests do not link the font library and lay a font out
+// themselves instead: two characters, ' ' first and '!' second.
+namespace font_data {
+
+struct FontData {
+    const uint8_t *bitmap;
+};
+
+const uint8_t *Font::character_bitmap(uint32_t character) const {
+    const uint32_t bytes_per_character = (w * h + 1) >> 1;
+    return data->bitmap + (character == '!' ? bytes_per_character : 0);
+}
+
+bool Font::contains(uint32_t character) const {
+    return character == ' ' || character == '!';
+}
+
+} // namespace font_data
 
 // 8 bit resolution 1px per row .. 1 byte per row
 uint8_t font_dot_data[] = {
-    0x00, // '0' 8 bit resolution
-    0xff // '1' 8 bit resolution
+    0x00, // ' ' 8 bit resolution
+    0xff // '!' 8 bit resolution
 };
 
 // 1 px font
-font_t font_dot = { 1, 1, FontCharacterSet::latin, (uint16_t *)font_dot_data };
+const font_data::FontData font_dot_font_data { font_dot_data };
+font_t font_dot = { 1, 1, &font_dot_font_data };
 
 // 4 bit resolution 2 px per row .. 1 byte per row
 uint8_t font_2dot_data[] = {
-    // '0' empty square 2x2
-    0x00, // '0' 2px 4 bit resolution line 0
-    0x00, // '0' 2px 4 bit resolution line 1
+    // ' ' empty square 2x2
+    0x00, // ' ' 2px 4 bit resolution line 0
+    0x00, // ' ' 2px 4 bit resolution line 1
 
-    // '1' full square 2x2
-    0xff, // '1' 2px 4 bit resolution line 0
-    0xff // '1' 2px 4 bit resolution line 1
+    // '!' full square 2x2
+    0xff, // '!' 2px 4 bit resolution line 0
+    0xff // '!' 2px 4 bit resolution line 1
 };
 
 // 2x2 px font
-font_t font_2dot = { 2, 2, FontCharacterSet::latin, (uint16_t *)font_2dot_data };
+const font_data::FontData font_2dot_font_data { font_2dot_data };
+font_t font_2dot = { 2, 2, &font_2dot_font_data };
 
 // to be binded - static for easier debug
 static TMockDisplay<240, 320, 16> MockDispBasic;

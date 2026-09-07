@@ -9,13 +9,25 @@
  */
 
 /**
- *### M9933: Internal Cork.
+ *### M9933: Internal Cork
  *
  * Internal GCode
  *
+ * Marks the given cork as done, signalling that all g-codes submitted before it
+ * have finished executing. Waits for the motion planner to drain first.
+ * Cookies not handed out by the cork tracker are ignored.
+ *
  *#### Usage
  *
- *    9922 Ccookie
+ *    M9933 [ C ]
+ *
+ *#### Parameters
+ *
+ * - `C` - [value] Cookie identifying the cork
+ *
+ *#### Examples
+ *
+ *    M9933 C41337 ; Mark the cork with cookie 41337 as done
  *
  */
 void PrusaGcodeSuite::M9933() {

@@ -7,7 +7,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <span>
+#include <utils/byte_utils.hpp>
 
 namespace tool_offset {
 
@@ -22,6 +22,7 @@ public:
 
     using LifecycleCallback = void (*)(void *ctx);
 
+    explicit CanRemoteSensor(uint16_t accepted_port);
     ~CanRemoteSensor() override;
 
     void start() override;
@@ -39,15 +40,20 @@ public:
     using ErrorCheckCallback = bool (*)(void *ctx);
     void set_error_check_callback(ErrorCheckCallback cb, void *ctx);
 
-    // Returns true if this port_id should be dispatched to handle_data_frame.
-    static bool accepts_port(uint16_t port_id);
+    // Returns true if this port_id is the channel this sensor streams.
+    bool accepts_port(uint16_t port_id) const { return port_id == accepted_port_; }
+
+    // The Cyphal data port this sensor consumes (selects the channel). The glue
+    // uses it to enable the matching channel on start.
+    uint16_t accepted_port() const { return accepted_port_; }
 
     // Called from the puppy task context via XBuddyExtension stream callback.
-    void handle_data_frame(std::span<const std::byte> payload);
+    void handle_data_frame(Bytes payload);
 
 private:
     AtomicCircularQueue<uint32_t, uint32_t, QUEUE_SIZE> sample_queue;
     std::atomic<float> cached_frequency { 0 };
+    const uint16_t accepted_port_;
     uint8_t expected_sequence = 0;
     bool first_frame = true;
     std::atomic<bool> running { false };

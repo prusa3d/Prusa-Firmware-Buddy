@@ -11,6 +11,8 @@
     #error This header should only be included if HAS_HOTEND_TYPE_SUPPORT()
 #endif
 
+#include <option/has_ht_hotend.h>
+
 /// Shared for all printers.
 /// !!! Never change order, never remove items - this is used in config store
 enum class HotendType : uint8_t {
@@ -24,6 +26,13 @@ enum class HotendType : uint8_t {
 #if PRINTER_IS_PRUSA_MK3_5()
     /// E3D Revo (MK3.5 only)
     e3d_revo = 2,
+#endif
+
+#if HAS_HT_HOTEND()
+    /// High-temperature hotend (PT1000). Auto-detected at boot, never user-selected — so it
+    /// is deliberately absent from hotend_type_list below. Sock-incompatible: its heat
+    /// emission is set by a nickel-plated surface that cannot take a silicone sock.
+    high_temp = 3,
 #endif
 };
 

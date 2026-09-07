@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <utils/byte_utils.hpp>
 #include <type_traits>
 
 namespace modbus {
@@ -29,7 +30,7 @@ concept RegisterFileWithPayload = RegisterFile<T> && requires(const T &reg) {
 /// Convert register file payload to a bounded byte span.
 /// The size field is clamped to the actual buffer size for safety.
 template <RegisterFileWithPayload T>
-std::span<const std::byte> payload(const T &reg) {
+Bytes payload(const T &reg) {
     const auto bytes = std::as_bytes(std::span { reg.data });
     return bytes.subspan(0, std::min<size_t>(reg.size, bytes.size()));
 }

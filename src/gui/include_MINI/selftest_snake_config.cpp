@@ -3,6 +3,7 @@
 #include <selftest_result_evaluation.hpp>
 #include <config_store/store_instance.hpp>
 #include <common/SteelSheets.hpp>
+#include <bsod/bsod.h>
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, [[maybe_unused]] ToolMask tool) {
@@ -42,7 +43,7 @@ uint64_t get_test_mask(Action action) {
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:
-        return stmHeaters;
+        bsod("This should be gcode");
     case Action::FirstLayer:
         return stmFirstLayer;
 

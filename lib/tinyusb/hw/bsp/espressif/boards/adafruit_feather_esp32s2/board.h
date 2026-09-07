@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: Adafruit Feather ESP32S2
+   url: https://www.adafruit.com/product/5000
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -37,6 +42,14 @@
 
 #define BUTTON_PIN            0
 #define BUTTON_STATE_ACTIVE   0
+
+// SPI for USB host shield
+#define MAX3421_SPI_HOST SPI2_HOST
+#define MAX3421_SCK_PIN  36
+#define MAX3421_MOSI_PIN 35
+#define MAX3421_MISO_PIN 37
+#define MAX3421_CS_PIN   10
+#define MAX3421_INTR_PIN 9
 
 #ifdef __cplusplus
  }

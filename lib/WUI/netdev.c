@@ -15,15 +15,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include <string.h>
 #include "netdev.h"
 
-#include "netifapi.h"
+#include <lwip/netifapi.h>
 #include "ethernetif.h"
 
-#include "netifapi.h"
-#include "dns.h"
+#include <lwip/dns.h>
 #include "netif_settings.h"
 #include "wui_api.h"
 

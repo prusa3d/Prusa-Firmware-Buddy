@@ -87,16 +87,6 @@ function(objcopy target format suffix)
     )
 endfunction()
 
-function(report_size target)
-  add_custom_command(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND echo "" # visually separate the output
-    COMMAND "${CMAKE_SIZE_UTIL}" -B "$<TARGET_FILE:${target}>"
-    USES_TERMINAL
-    )
-endfunction()
-
 function(pack_firmware target)
   # parse arguments
   set(one_value_args FW_VERSION BUILD_NUMBER PRINTER_TYPE PRINTER_VERSION PRINTER_SUBVERSION
@@ -114,58 +104,55 @@ function(pack_firmware target)
     set(sign_opts "--no-sign")
   endif()
 
+  set(bbf_firmware_path "${CMAKE_CURRENT_BINARY_DIR}/${target}.bbf")
+
   set(resources_opts)
+  set(objcopy_opts)
+  set(digest_deps)
+  set(bbf_deps)
 
   if(RESOURCES)
     get_target_property(resources_tar resources-tarball TAR_IMAGE_LOCATION)
     set(resources_digest "${resources_tar}.sha256")
+    sha256_file("${resources_tar}" "${resources_digest}")
     list(APPEND resources_opts "--tlv" "RESOURCES_TARBALL:${resources_tar}"
          "RESOURCES_TARBALL_DIGEST:${resources_digest}"
          )
-    add_custom_target(bbf-resources-dependencies DEPENDS "${resources_tar}" "${resources_digest}")
-    add_dependencies(${target} bbf-resources-dependencies)
+    list(APPEND objcopy_opts "--update-section" ".resources_tarball_digest=${resources_digest}")
+    list(APPEND digest_deps "${resources_digest}")
+    list(APPEND bbf_deps "${resources_tar}" "${resources_digest}")
   endif()
 
   if(BOOTLOADER_UPDATE)
     get_target_property(bootloader_tar bootloader-tarball TAR_IMAGE_LOCATION)
     set(bootloader_digest "${bootloader_tar}.sha256")
+    sha256_file("${bootloader_tar}" "${bootloader_digest}")
     list(APPEND resources_opts "--tlv" "BOOTLOADER_TARBALL:${bootloader_tar}"
          "BOOTLOADER_TARBALL_DIGEST:${bootloader_digest}"
          )
-    add_custom_target(
-      bbf-bootloader-dependencies DEPENDS "${bootloader_tar}" "${bootloader_digest}"
-      )
-    add_dependencies(${target} bbf-bootloader-dependencies)
+    list(APPEND objcopy_opts "--update-section" ".bootloader_tarball_digest=${bootloader_digest}")
+    list(APPEND digest_deps "${bootloader_digest}")
+    list(APPEND bbf_deps "${bootloader_tar}" "${bootloader_digest}")
   endif()
 
   add_custom_command(
-    TARGET ${target}
-    POST_BUILD
-    # generate .bin file
+    OUTPUT "${bin_firmware_path}"
+    COMMAND "${CMAKE_OBJCOPY}" ${objcopy_opts} "$<TARGET_FILE:${target}>" "$<TARGET_FILE:${target}>"
     COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:${target}>" "${bin_firmware_path}"
-            # visually separate the output
-    COMMAND echo ""
-            # generate .bbf file
+    DEPENDS ${target} ${digest_deps}
+    )
+
+  add_custom_command(
+    OUTPUT "${bbf_firmware_path}"
     COMMAND
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${ARG_FW_VERSION}"
       --printer-type "${ARG_PRINTER_TYPE}" --printer-version "${ARG_PRINTER_VERSION}"
       --printer-subversion "${ARG_PRINTER_SUBVERSION}" --build-number "${ARG_BUILD_NUMBER}"
       ${sign_opts} ${resources_opts} -- "${bin_firmware_path}"
+    DEPENDS "${bin_firmware_path}" ${bbf_deps}
     )
-endfunction()
 
-function(create_dfu)
-  set(options)
-  set(one_value_args OUTPUT TARGET)
-  set(multi_value_args INPUT)
-  cmake_parse_arguments(CREATE_DFU "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
-
-  add_custom_command(
-    TARGET "${CREATE_DFU_TARGET}"
-    POST_BUILD
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/dfu.py" create ${CREATE_DFU_INPUT}
-            "${CREATE_DFU_OUTPUT}"
-    )
+  add_custom_target(${target}-bbf ALL DEPENDS "${bbf_firmware_path}")
 endfunction()
 
 function(add_link_dependency target file_path)

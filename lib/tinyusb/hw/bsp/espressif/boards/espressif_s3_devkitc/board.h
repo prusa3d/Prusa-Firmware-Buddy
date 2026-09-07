@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: Espresif S3 DevKitC
+   url: https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/index.html
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -31,10 +36,18 @@
  extern "C" {
 #endif
 
-#define NEOPIXEL_PIN          48
+#define NEOPIXEL_PIN          38
 
 #define BUTTON_PIN            0
 #define BUTTON_STATE_ACTIVE   0
+
+// SPI for USB host shield
+#define MAX3421_SPI_HOST  SPI2_HOST
+#define MAX3421_SCK_PIN  39
+#define MAX3421_MOSI_PIN 42
+#define MAX3421_MISO_PIN 21
+#define MAX3421_CS_PIN   15
+#define MAX3421_INTR_PIN 14
 
 #ifdef __cplusplus
  }

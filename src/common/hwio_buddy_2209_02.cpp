@@ -399,6 +399,8 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
         case MARLIN_PIN(FAN):
+            // The print-fan PWM mapping (e.g. HT high-temperature clamp) is applied centrally in
+            // Temperature::manage_fans(), so every board's fan path gets it; here we just drive the pin.
             Fans::print(PhysicalToolIndex::from_raw(0)).set_pwm(ulValue);
 #if HAS_PUPPY_MODULARBED()
             buddy::puppies::modular_bed.set_print_fan_active(ulValue > 0);

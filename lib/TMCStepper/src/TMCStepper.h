@@ -62,6 +62,8 @@ extern "C" void tmc_register_read_hook(uint8_t slave_addr, uint8_t reg_addr, uin
 
 class TMCStepper {
 	public:
+		enum class Connection { Direct, Remote };
+		virtual Connection get_connection() const { return Connection::Direct; };
 		uint16_t cs2rms(uint8_t CS);
 		void rms_current(uint16_t mA);
 		void rms_current(uint16_t mA, float mult);
@@ -173,8 +175,8 @@ class TMCStepper {
 class TMC2130Stepper : public TMCStepper {
 	public:
 	#if HAS_DWARF() && HAS_TOOLCHANGER()
-		enum class Connection { Direct, Remote };
 		TMC2130Stepper(Connection connection, float RS = default_RS);
+		Connection get_connection() const override { return connection; };
 	#endif
 		TMC2130Stepper(uint16_t pinCS, float RS = default_RS, int8_t link_index = -1);
 		TMC2130Stepper(uint16_t pinCS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK, int8_t link_index = -1);

@@ -260,7 +260,7 @@ using AbortFun = stdext::inplace_function<bool(void)>;
 
 template <typename Func>
 auto with_retries(std::size_t n, Func &&func) {
-    assert(n >= 1);
+    debug_assert(n >= 1);
 
     using ExpectedType = std::invoke_result_t<Func>;
     static_assert(
@@ -362,7 +362,7 @@ static std::tuple<int, int> locate_signal_markers(const SamplesAnnotation &annot
 // Given a raw captured samples, locate signal markers and return a view of the
 // signal specified by the annotation
 static SignalView locate_signal(const SamplesAnnotation &annot, const SignalContainer &signal) {
-    assert(annot.sampling_freq != 0);
+    debug_assert(annot.sampling_freq != 0);
     auto [start_marker_idx, _] = locate_signal_markers(annot, signal);
 
     int signal_start = static_cast<int>((annot.signal_start - annot.start_marker) * annot.sampling_freq);
@@ -453,8 +453,8 @@ void calibration_new_move(const AxisState &axis_state) {
 }
 
 std::tuple<int, int, int> compute_calibration_tweak(float relative_position) {
-    assert(calibration_axis_request >= 0);
-    assert(calibration_axis_active >= 0);
+    debug_assert(calibration_axis_request >= 0);
+    debug_assert(calibration_axis_active >= 0);
     return compute_calibration_tweak(calibration_sweep, relative_position);
 }
 
@@ -516,7 +516,7 @@ static DftSweepResult motor_harmonic_dft_sweep(
 static std::array<DftSweepResult, 2> motor_speed_dft_sweep(SignalView signal,
     float sampling_freq, float start_speed, float top_speed, int motor_steps,
     int harmonic, float window_size, float step_size) {
-    assert(signal.size() != 0);
+    debug_assert(signal.size() != 0);
     // The operation is performed by correlating the signal with an accelerated
     // sin/cos waveform followed by windowed sweep to perform convolution.
     const float sweep_duration = signal.size() / sampling_freq;
@@ -587,7 +587,7 @@ static std::array<DftSweepResult, 2> motor_speed_dft_sweep(SignalView signal,
                 res.samples.push_back(window.get_windowed_power() / speed);
             }
         }
-        assert(!res.samples.empty());
+        debug_assert(!res.samples.empty());
     }
     return result;
 }
@@ -678,10 +678,10 @@ stdext::inplace_vector<SignalPeak, max_peaks_per_harmonic> find_peaks(It begin, 
 template <typename PosConverter>
 stdext::inplace_vector<HarmonicPeak, opts::CORRECTION_HARMONICS> find_harmonic_peaks(
     std::span<const HarmonicT<MagnitudeContainer>> sweeps, PosConverter idx_to_pos) {
-    assert(!sweeps.empty());
+    debug_assert(!sweeps.empty());
     for (const auto &sweep : sweeps) {
         (void)sweep; // Silence unused variable warning in release builds
-        assert(!sweep.value.empty());
+        debug_assert(!sweep.value.empty());
     }
 
     // Find peaks in each signal and convert indices to speed positions.
@@ -922,8 +922,8 @@ static void move_to_measurement_start(AxisEnum axis, MotionCharacteristics motio
 }
 
 static float plan_no_movement_block(AxisEnum physical_axis, int direction, float duration) {
-    assert(direction == 1 || direction == -1);
-    assert(duration >= 0);
+    debug_assert(direction == 1 || direction == -1);
+    debug_assert(duration >= 0);
 
     // We fake no movement synchronous with planner via arbitrarily small speed.
     // We accelerate to this speed and then decelerate to zero.
@@ -955,10 +955,10 @@ static float plan_no_movement_block(AxisEnum physical_axis, int direction, float
 }
 
 static float plan_constant_movement_block(AxisEnum physical_axis, int direction, float speed, float revs) {
-    assert(physical_axis == AxisEnum::X_AXIS || physical_axis == AxisEnum::Y_AXIS);
-    assert(direction == 1 || direction == -1);
-    assert(speed >= 0);
-    assert(revs > 0);
+    debug_assert(physical_axis == AxisEnum::X_AXIS || physical_axis == AxisEnum::Y_AXIS);
+    debug_assert(direction == 1 || direction == -1);
+    debug_assert(speed >= 0);
+    debug_assert(revs > 0);
 
     static const float DUMMY_ACCEL = 1;
 
@@ -986,10 +986,10 @@ static float plan_constant_movement_block(AxisEnum physical_axis, int direction,
 }
 
 static float plan_accel_block(AxisEnum physical_axis, int direction, float start_speed, float end_speed, float accel = 100) {
-    assert(physical_axis == AxisEnum::X_AXIS || physical_axis == AxisEnum::Y_AXIS);
-    assert(direction == 1 || direction == -1);
-    assert(start_speed >= 0 && end_speed >= 0);
-    assert(accel > 0);
+    debug_assert(physical_axis == AxisEnum::X_AXIS || physical_axis == AxisEnum::Y_AXIS);
+    debug_assert(direction == 1 || direction == -1);
+    debug_assert(start_speed >= 0 && end_speed >= 0);
+    debug_assert(accel > 0);
 
     if (start_speed == end_speed) {
         return 0;
@@ -1037,10 +1037,10 @@ static float plan_accel_block(AxisEnum physical_axis, int direction, float start
 
 static float plan_accel_over_dist_block(AxisEnum physical_axis, int direction,
     float start_speed, float end_speed, float revs) {
-    assert(direction == 1 || direction == -1);
-    assert(start_speed >= 0 && end_speed >= 0);
-    assert(start_speed != end_speed);
-    assert(revs > 0);
+    debug_assert(direction == 1 || direction == -1);
+    debug_assert(start_speed >= 0 && end_speed >= 0);
+    debug_assert(start_speed != end_speed);
+    debug_assert(revs > 0);
 
     // Plan a block with limited acceleration that moves from start speed to end
     // speed over revs revolutions. The assumption is that the printer already
@@ -1147,7 +1147,7 @@ static std::tuple<float, bool, Error> capture_movement_samples(AxisEnum axis, in
     }
 
     float sampling_freq = accelerometer.get_sampling_rate();
-    assert(sampling_freq != 0);
+    debug_assert(sampling_freq != 0);
     const Error error = accelerometer.get_error();
 
     if (ticks_diff(ticks_ms(), start_ts) >= timeout_ms) {
@@ -1160,7 +1160,7 @@ static std::tuple<float, bool, Error> capture_movement_samples(AxisEnum axis, in
 
 SamplesAnnotation phase_stepping::capture_param_sweep_samples(AxisEnum axis, float speed, float revs, int harmonic,
     const SweepParams &sweep_params, const YieldSample &yield_sample) {
-    assert(speed > 0);
+    debug_assert(speed > 0);
 
     Planner::synchronize();
 
@@ -1177,7 +1177,7 @@ SamplesAnnotation phase_stepping::capture_param_sweep_samples(AxisEnum axis, flo
         sweep_params.pha_start, sweep_params.pha_end, sweep_params.mag_start, sweep_params.mag_end);
 
     // ensure the previous request has been consumed before resetting
-    assert(internal::calibration_axis_request < 0);
+    debug_assert(internal::calibration_axis_request < 0);
     internal::calibration_axis_request = axis_state.axis_index;
 
     float start_marker = 0;
@@ -1221,8 +1221,8 @@ SamplesAnnotation phase_stepping::capture_speed_sweep_samples(AxisEnum axis,
     float start_speed, float end_speed, float revs,
     const YieldSample &yield_sample) {
 
-    assert(start_speed >= 0 && end_speed >= 0);
-    assert(start_speed != 0 || start_speed != end_speed);
+    debug_assert(start_speed >= 0 && end_speed >= 0);
+    debug_assert(start_speed != 0 || start_speed != end_speed);
 
     Planner::synchronize();
 
@@ -1426,7 +1426,7 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
     ABORT_CHECK();
     auto forward_signal = locate_signal(forward_annotation, forward_samples);
     debug_dump_raw_measurement("forward", forward_samples, forward_annotation, forward_signal);
-    assert(forward_signal.size() != 0);
+    debug_assert(forward_signal.size() != 0);
     ABORT_CHECK();
 
     SignalContainer backward_samples;
@@ -1445,7 +1445,7 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
     ABORT_CHECK();
     auto backward_signal = locate_signal(backward_annotation, backward_samples);
     debug_dump_raw_measurement("backward", backward_samples, backward_annotation, backward_signal);
-    assert(backward_signal.size() != 0);
+    debug_assert(backward_signal.size() != 0);
     ABORT_CHECK();
 
     // Then construct a combined signal for each harmonic from all measurements
@@ -1466,7 +1466,7 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
             auto [up_analysis, down_analysis] = motor_speed_dft_sweep(
                 signal, annotation.sampling_freq, start_speed, end_speed,
                 get_motor_steps(axis), harmonic, window_size, time_step);
-            assert(!up_analysis.samples.empty());
+            debug_assert(!up_analysis.samples.empty());
 
             ABORT_CHECK();
 
@@ -1485,7 +1485,7 @@ measure_calibration_speeds(AxisEnum axis, const AxisCalibrationConfig &calibrati
 
         ABORT_CHECK();
 
-        assert(!combined.empty());
+        debug_assert(!combined.empty());
         harmonic_signals.emplace_back(harmonic, std::move(combined));
     }
 

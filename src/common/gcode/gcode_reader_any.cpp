@@ -2,7 +2,6 @@
 
 #include <i18n.h>
 #include "transfers/transfer.hpp"
-#include <cassert>
 #include <errno.h> // for EAGAIN
 #include <filename_type.hpp>
 #include <sys/stat.h>

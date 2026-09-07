@@ -18,7 +18,7 @@ namespace detail
 {
 
 // Returns the index of the most-signifcant set bit
-constexpr long find_highest_bit(unsigned long long value) noexcept
+constexpr unsigned int find_highest_bit(unsigned long long value) noexcept
 {
     assert(value != 0);
 #if defined(_MSC_VER)
@@ -32,7 +32,7 @@ constexpr long find_highest_bit(unsigned long long value) noexcept
         _BitScanReverse(&index, static_cast<unsigned long>(value & 0xfffffffflu));
     }
 #endif
-    return index;
+    return static_cast<unsigned int>(index);
 #elif defined(__GNUC__) || defined(__clang__)
     return sizeof(value) * 8 - 1 - __builtin_clzll(value);
 #else
@@ -367,7 +367,7 @@ constexpr fixed<B, I, F, R> log2(fixed<B, I, F, R> x) noexcept
 
     // Normalize input to the [1:2] domain
     B value = x.raw_value();
-    const long highest = detail::find_highest_bit(value);
+    const unsigned int highest = detail::find_highest_bit(value);
     if (highest >= F) {
         value >>= (highest - F);
     } else {

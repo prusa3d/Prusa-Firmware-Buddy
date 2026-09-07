@@ -111,7 +111,7 @@ void MI_CHAMBER_POST_PRINT_FILTRATION_DURATION::Loop() {
     set_enabled(config_store().chamber_post_print_filtration_enable.get());
 }
 
-// MI_CHAMBER_POST_PRINT_FILTRATION
+// MI_CHAMBER_ALWAYS_FILTER
 // ============================================
 MI_CHAMBER_ALWAYS_FILTER::MI_CHAMBER_ALWAYS_FILTER()
     : WI_ICON_SWITCH_OFF_ON_t(config_store().chamber_filtration_always_on.get(), _("Filter All Materials")) {}

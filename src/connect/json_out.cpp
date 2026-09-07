@@ -1,6 +1,7 @@
 #include "json_out.hpp"
 #include <http/types.h>
 #include <segmented_json.h>
+#include <bsod/bsod.h>
 
 using http::ContentType;
 using http::Error;
@@ -25,7 +26,7 @@ JsonPostRequest::RenderResult JsonPostRequest::write_body_chunk(char *data, size
         const auto [result, written_json] = renderer().render(reinterpret_cast<uint8_t *>(data), size);
         switch (result) {
         case JsonResult::Abort:
-            assert(0);
+            debug_assert(0);
             progress = Progress::Done;
             return Error::InternalError;
         case JsonResult::BufferTooSmall:
@@ -43,7 +44,7 @@ JsonPostRequest::RenderResult JsonPostRequest::write_body_chunk(char *data, size
         }
     }
     }
-    assert(0);
+    debug_assert(0);
     return Error::InternalError;
 }
 

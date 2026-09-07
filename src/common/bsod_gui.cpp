@@ -30,6 +30,8 @@
 #include "crash_dump/dump_parse.hpp"
 
 #include <utils/string_builder.hpp>
+#include <option/has_indx.h>
+#include <tool_index.hpp>
 
 // this is private struct definition from FreeRTOS
 /*
@@ -121,9 +123,22 @@ typedef tskTCB TCB_t;
 // current thread from FreeRTOS
 extern PRIVILEGED_DATA TCB_t *volatile pxCurrentTCB;
 
+#if HAS_INDX()
+static void save_current_tool() {
+    const uint8_t current_tool = PhysicalToolIndex::currently_selected_opt()
+                                     .transform([](PhysicalToolIndex tool) { return tool.to_raw(); })
+                                     .value_or(config_store_ns::defaults::no_tool_value);
+    config_store().indx_last_picked_tool.set(current_tool);
+    config_store().indx_last_picked_tool_valid.set(true);
+}
+#endif
+
 [[noreturn]] void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
+#if HAS_INDX()
+    save_current_tool();
+#endif
     crash_dump::save_message(crash_dump::MsgType::RSOD, std::to_underlying(error_code), error, module);
-    sys_reset();
+    crash_dump::trigger_crash_dump();
 }
 
 [[noreturn]] void fatal_error(const ErrCode error_code, ...) {

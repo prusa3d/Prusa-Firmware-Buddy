@@ -62,8 +62,8 @@
  */
 
 #include <device/cmsis.h>
-#include <assert.h>
 #include "stm32f4xx.h"
+#include <bsod/bsod.h>
 
 #if !defined(HSE_VALUE)
     // #error dead code found by automatic analyses (see BFW-5461)
@@ -288,7 +288,7 @@ void SystemCoreClockUpdate(void) {
     /* HCLK frequency */
     SystemCoreClock >>= tmp;
 
-    assert(SystemCoreClock == SYSTEM_CORE_CLOCK);
+    debug_assert(SystemCoreClock == SYSTEM_CORE_CLOCK);
 }
 
 #if defined(DATA_IN_ExtSRAM) && defined(DATA_IN_ExtSDRAM)

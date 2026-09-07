@@ -16,6 +16,13 @@ int osGetCPUUsage();
  */
 void osSetIdleTaskWatchdog(void (*function)());
 
+namespace cpu_utils {
+
+    void mark_cpu_idle();
+    void compute_cpu_load();
+
+} // namespace cpu_utils
+
 #ifdef __cplusplus
 }
 #endif

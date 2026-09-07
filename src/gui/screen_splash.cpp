@@ -1,56 +1,21 @@
 #include "screen_splash.hpp"
-#include "ScreenHandler.hpp"
-
-#include <buddy/bootstrap_state.hpp>
-#include "config.h"
-#include "config_features.h"
-#include <version/version.hpp>
-#include "img_resources.hpp"
-#include "marlin_client.hpp"
-#include <config_store/store_instance.hpp>
-
-#include "i18n.h"
-#include "../lang/translator.hpp"
-#include "language_eeprom.hpp"
-#include "screen_menu_languages.hpp"
-#include <pseudo_screen_callback.hpp>
-#include <bsod.h>
-#include <guiconfig/guiconfig.h>
-#include <feature/factory_reset/factory_reset.hpp>
-#include <window_msgbox_happy_printing.hpp>
-
-#include <option/bootloader.h>
-#include <option/developer_mode.h>
-#include <option/has_translations.h>
-#include <option/has_e2ee_support.h>
-#include <gui/screen_printer_setup.hpp>
-#include <option/has_emergency_stop.h>
-#include <option/has_heatbed_screws_during_transport.h>
-#include <option/has_indx_head.h>
-#include <option/has_indx.h>
-
-#include <option/has_selftest.h>
-#if HAS_SELFTEST()
-    #include "printer_selftest.hpp"
-    #include "screen_menu_selftest_snake.hpp"
-#endif // HAS_SELFTEST
-
-#include <option/has_touch.h>
-#if HAS_TOUCH()
-    #include <hw/touchscreen/touchscreen.hpp>
-#endif // HAS_TOUCH
-
-#if ENABLED(POWER_PANIC)
-    #include "power_panic.hpp"
-#endif
-
-#include <option/has_toolchanger.h>
-#if HAS_TOOLCHANGER()
-    #include <module/prusa/toolchanger.h>
-#endif
 
 #include "display.hpp"
-#include <option/has_switched_fan_test.h>
+#include <bsod.h>
+#include <buddy/bootstrap_state.hpp>
+#include <guiconfig/guiconfig.h>
+#include <option/bootloader_update.h>
+#include <option/has_ac_controller.h>
+#include <option/has_dwarf.h>
+#include <option/has_esp.h>
+#include <option/has_indx_head.h>
+#include <option/has_puppies.h>
+#include <option/has_puppy_modularbed.h>
+#include <option/has_tool_offset_sensor.h>
+#include <option/has_xbuddy_extension.h>
+#include <option/has_xl_can.h>
+#include <option/resources.h>
+#include <version/version.hpp>
 
 #if HAS_MINI_DISPLAY()
     #define SPLASHSCREEN_PROGRESSBAR_X 16
@@ -82,184 +47,6 @@ ScreenSplash::ScreenSplash()
     snprintf(text_progress_buffer, sizeof(text_progress_buffer), "Firmware %s", version::project_version_full);
     text_progress.SetText(string_view_utf8::MakeRAM(text_progress_buffer));
     progress.set_progress_percent(50);
-
-#if ENABLED(POWER_PANIC)
-    // don't present any screen or wizard if there is a powerpanic pending
-    if (power_panic::state_stored()) {
-        return;
-    }
-#endif
-
-#if DEVELOPER_MODE()
-    // #error dead code found by automatic analyses (see BFW-5461)
-    // don't present any screen or wizard
-    return;
-#endif
-
-    Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, MsgBoxHappyPrinting>);
-
-#if HAS_EMERGENCY_STOP()
-    static constexpr auto needs_emergency_stop_consent = [] {
-        return !config_store().emergency_stop_enable.get()
-            && !config_store().emergency_stop_disable_consent_given.get();
-    };
-    // Check first time - avoid black screen blinking if we're sure we won't need it
-    if (needs_emergency_stop_consent()) {
-        constexpr auto callback = +[] {
-            // Check again - the user might have given the consent as part of the selftest snake
-            if (needs_emergency_stop_consent()) {
-                // Run the door sensor calibration, only ask for the consent (and run the calibration)
-                marlin_client::gcode("M1980 O");
-                static_assert(HAS_DOOR_SENSOR_CALIBRATION());
-            }
-        };
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, callback>);
-    }
-#endif
-
-#if HAS_SELFTEST() && !PRINTER_IS_PRUSA_iX()
-    // A crude heuristic to make the wizard show only "on the first run"
-    // Yes, we are ignoring other selftest results outside of this struct, but this is good enough for the purpose
-    const bool run_wizard = (config_store().selftest_result.get() == config_store_ns::defaults::selftest_result);
-#elif HAS_SELFTEST()
-    const bool run_wizard = false;
-#endif
-
-#if HAS_SELFTEST()
-    if (run_wizard) {
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<ScreenMenuSTSWizard>);
-    }
-#endif
-
-#if HAS_HEATBED_SCREWS_DURING_TRANSPORT()
-    //  C1L is shipped with the bed screwed into the bottom of the chassis. And hence the screws have to be removed.
-    const bool bed_screws_removal_approved = config_store().heatbed_screws_removal_approved.get();
-
-    if (!bed_screws_removal_approved) {
-        // Ask the user to approve the removal of the bed screws
-        static constexpr point_ui16_t icon_point = point_ui16_t(40, 20);
-        constexpr auto callback = [] {
-            MsgBoxIconned msgbox(
-                Rect16(0, 0, GuiDefaults::ScreenWidth, GuiDefaults::ScreenHeight),
-                icon_point,
-                Responses_Ok,
-                0,
-                nullptr,
-                _("Before using the 3D printer, it is necessary to remove all 3 screws, that secure the heated bed during transport.\n\nThe screws are marked with a sticker."),
-                is_multiline::yes,
-                &img::ac_heatbed_screw_80x246,
-                is_closed_on_click_t::yes);
-            Screens::Access()->gui_loop_until_dialog_closed();
-            config_store().heatbed_screws_removal_approved.set(true);
-        };
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, callback>);
-    };
-#endif
-
-    const bool network_setup_needed = !config_store().printer_network_setup_done.get();
-    if (network_setup_needed) {
-        constexpr auto network_callback = +[] {
-            // Calls network_initial_setup_wizard
-            marlin_client::gcode("M1703 A");
-        };
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, network_callback>);
-    }
-
-    const bool hw_config_needed = !config_store().printer_hw_config_done.get();
-    if (hw_config_needed) {
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<ScreenPrinterSetup>);
-    }
-
-    if (network_setup_needed || hw_config_needed
-#if HAS_SELFTEST()
-        || run_wizard
-#endif
-    ) {
-        constexpr auto pepa_callback = +[] {
-            const char *txt =
-#if PRINTER_IS_PRUSA_XL()
-                N_("Hi, this is your\nOriginal Prusa XL printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK4()
-                // The MK4 is left out intentionally - it could be MK4, MK4S or MK3.9, we don't know yet
-                N_("Hi, this is your\nOriginal Prusa printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MK3_5()
-                N_("Hi, this is your\nOriginal Prusa MK3.5 printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_MINI()
-                N_("Hi, this is your\nOriginal Prusa MINI printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_iX()
-                N_("Hi, this is your\nOriginal Prusa iX printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-#elif PRINTER_IS_PRUSA_COREONE()
-    #if HAS_INDX()
-                N_("Hi, this is your\nPrusa CORE One INDX printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-    #else
-                N_("Hi, this is your\nPrusa CORE One printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-    #endif
-#elif PRINTER_IS_PRUSA_COREONEL()
-    #if HAS_INDX()
-                N_("Hi, this is your\nPrusa CORE One L INDX printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-    #else
-                N_("Hi, this is your\nPrusa CORE One printer.\n"
-                   "I would like to guide you\nthrough the setup process.");
-    #endif
-#else
-    #error unknown config
-#endif
-            MsgBoxPepaCentered(_(txt), Responses_Ok);
-        };
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, pepa_callback>);
-    }
-
-    // Check for FW type change
-    {
-        auto &model_var = config_store().last_boot_base_printer_model;
-        const auto model = model_var.get();
-        const auto current_base_model = PrinterModelInfo::firmware_base().model;
-        if (model == model_var.default_val) {
-            // Not initialized - assume correct printer
-            model_var.set(current_base_model);
-
-        } else if (model != current_base_model) {
-            constexpr auto callback = +[] {
-                StringViewUtf8Parameters<25> params;
-                MsgBoxError(
-                    _("Printer type changed from %s to %s.\nFactory reset will be performed.\nSome configuration (network, filament profiles, ...) will be preserved.")
-                        .formatted(params, PrinterModelInfo::get(config_store().last_boot_base_printer_model.get()).id_str, PrinterModelInfo::firmware_base().id_str),
-                    { Response::Continue });
-
-                FactoryReset::perform(false, FactoryReset::item_bitset({
-                    FactoryReset::Item::network, FactoryReset::Item::stats, FactoryReset::Item::user_interface, FactoryReset::Item::user_profiles
-#if HAS_E2EE_SUPPORT()
-                        ,
-                        FactoryReset::Item::security
-#endif
-                }));
-            };
-            Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, callback>);
-        }
-    }
-
-#if HAS_TOUCH()
-    if (touchscreen.is_enabled() && !touchscreen.is_hw_ok()) {
-        constexpr auto touch_error_callback = +[] {
-            touchscreen.set_enabled(false);
-            MsgBoxWarning(_("Touch driver failed to initialize, touch functionality disabled"), Responses_Ok);
-        };
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<PseudoScreenCallback, touch_error_callback>);
-    }
-#endif // HAS_TOUCH
-#if HAS_TRANSLATIONS()
-    if (!LangEEPROM::getInstance().IsValid()) {
-        Screens::Access()->PushBeforeCurrent(ScreenFactory::Screen<ScreenMenuLanguages, ScreenMenuLanguages::Context::initial_language_selection>);
-    }
-#endif
 
     // Set up progress mapper
     // Processes with low occurrence or short duration should have small scale number
@@ -312,6 +99,11 @@ ScreenSplash::ScreenSplash()
     #if HAS_INDX_HEAD()
                 { BootstrapStage::flashing_indx_head, 10 },
                 { BootstrapStage::verifying_indx_head, 1 },
+    #endif
+    #if HAS_XL_CAN()
+                { BootstrapStage::looking_for_xl_can, 1 },
+                { BootstrapStage::flashing_xl_can, 10 },
+                { BootstrapStage::verifying_xl_can, 1 },
     #endif
 #endif
         }) };
@@ -396,6 +188,14 @@ static const char *message(BootstrapStage stage) {
         return "Flashing INDX head"; // INDX_TODO: Verify text with product
     case BootstrapStage::verifying_indx_head:
         return "Verifying INDX head"; // INDX_TODO: Verify text with product
+    #endif
+    #if HAS_XL_CAN()
+    case BootstrapStage::looking_for_xl_can:
+        return "Looking for XL-CAN";
+    case BootstrapStage::flashing_xl_can:
+        return "Flashing XL-CAN";
+    case BootstrapStage::verifying_xl_can:
+        return "Verifying XL-CAN";
     #endif
 #endif
     }

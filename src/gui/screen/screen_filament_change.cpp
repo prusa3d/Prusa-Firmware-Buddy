@@ -17,6 +17,7 @@
 #include <option/has_mmu2.h>
 #include <option/has_nozzle_cleaner.h>
 #include <option/has_extruder_fsensor.h>
+#include <bsod/bsod.h>
 
 namespace {
 
@@ -215,7 +216,11 @@ using Phase = PhasesLoadUnload;
 class FrameBase {
 public:
     FrameBase(window_t *parent)
-        : footer(parent, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor
+        : footer(parent, 0, footer::Item::nozzle, footer::Item::bed
+#if HAS_EXTRUDER_FSENSOR()
+            ,
+            footer::Item::f_sensor
+#endif
 #if HAS_SIDE_FSENSOR()
             ,
             footer::Item::f_sensor_side
@@ -400,7 +405,7 @@ private:
         auto err = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
 
         radio_button.set_fixed_width_buttons_count(0);
-        radio_button.set_fsm_and_phase(Phase::FilamentStuck, { Response::Unload });
+        radio_button.set_fsm_and_phase(Phase::FilamentStuck);
         notice_update(std::to_underlying(err.err_code), err.err_title, err.err_text, err.type);
     }
 };

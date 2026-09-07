@@ -13,10 +13,14 @@
 #include <feature/prusa/e-stall_detector.h>
 #include <mapi/motion.hpp>
 #include <mapi/parking.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 #include <gcode/temperature/M104_M109.hpp>
 #include <module/raii/include/raii/scope_guard.hpp>
+#include <feature/safety_timer/safety_timer.hpp>
 
 #include <option/has_mmu2.h>
+#include <option/has_switchable_auto_retract.h>
+#include <bsod/bsod.h>
 #if HAS_MMU2()
     #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
 #endif
@@ -26,9 +30,9 @@ LOG_COMPONENT_REF(MarlinServer);
 using namespace buddy;
 using namespace auto_retract_detail;
 
-// If the PAUSE_PARK_RETRACT_LENGTH would get over full_retract_distance, it would start being considered rammed for cold unload
+// If the STANDARD_RETRACT_LENGTH would get over full_retract_distance, it would start being considered rammed for cold unload
 // We don't want that to happen, for cold unload, a proper ramming should be done
-static_assert(!AutoRetract::supports_cold_unload || PAUSE_PARK_RETRACT_LENGTH < AutoRetract::full_retract_distance);
+static_assert(!AutoRetract::supports_cold_unload || STANDARD_RETRACT_LENGTH < AutoRetract::full_retract_distance);
 
 AutoRetract &buddy::auto_retract() {
     static AutoRetract instance;
@@ -97,10 +101,12 @@ void AutoRetract::maybe_retract_from_nozzle(const RetractFromNozzleParams &param
         return;
     }
 
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     // Do not auto retract when disabled globally
     if (!config_store().auto_retract_enabled.get()) {
         return;
     }
+#endif
 
     const auto filament_parameters = FilamentType::for_tool_heuristic(virtual_tool).parameters();
 
@@ -112,22 +118,19 @@ void AutoRetract::maybe_retract_from_nozzle(const RetractFromNozzleParams &param
     PrintStatusMessageGuard psm_guard;
     psm_guard.update<PrintStatusMessage::Type::auto_retracting>({});
 
+    Hotend &hotend = Hotend::for_tool(physical_tool);
+
+    safety_timer().reset_restore_nonblocking();
+
     // restore actual target temperature after autorectract
-    const auto original_temp = Hotend::for_tool(physical_tool).nozzle_target_temp();
+    const auto original_temp = hotend.nozzle_target_temp();
     ScopeGuard temp_restorer([&]() {
-        Hotend::for_tool(physical_tool).set_nozzle_target_temp(original_temp);
+        hotend.set_nozzle_target_temp(original_temp);
     });
 
     // heat up the nozzle (especially important for INDX where nozzle can cool down before autoretract is finished)
-    const auto filament_temp = filament_parameters.nozzle_temperature;
-    if (original_temp < filament_temp) {
-        const M109Flags flags = {
-            .target_temp = filament_temp,
-            .wait_heat = true,
-            .wait_heat_or_cool = false,
-        };
-        M109_no_parser(physical_tool, flags);
-    }
+    hotend.set_nozzle_target_temp(std::max(original_temp, filament_parameters.nozzle_temperature));
+    thermalManager.wait_for_hotend(physical_tool, { .no_wait_for_cooling = true, .early_return_temperature = filament_parameters.nozzle_temperature });
 
 #if HAS_WASTEBIN()
     if (params.park_over_wastebin) {
@@ -168,7 +171,7 @@ void AutoRetract::maybe_retract_from_nozzle(const RetractFromNozzleParams &param
         sequence.execute();
     }
 
-    assert(!supports_cold_unload || sequence.retracted_distance() >= full_retract_distance);
+    debug_assert(!supports_cold_unload || sequence.retracted_distance() >= full_retract_distance);
     set_retracted_distance(physical_tool, sequence.retracted_distance());
 }
 
@@ -199,20 +202,28 @@ void AutoRetract::maybe_deretract_to_nozzle() {
         return;
     }
 
+    // Necessary before we sample the positions
+    planner.synchronize();
+
     const auto orig_e_position = current_position.e;
+    const auto orig_e_planner_position = planner.get_axis_position_mm(E_AXIS_N(active_extruder));
 
     {
         // No estall detection during the ramming; we may do so too fast sometimes
         // to the point where the motor skips, but we don't care, as it doesn't
         // damage the print.
         BlockEStallDetection estall_blocker;
-        mapi::extruder_move(retracted_distance(physical_tool).value_or(0.0f), FILAMENT_CHANGE_FAST_LOAD_FEEDRATE);
+        mapi::extruder_move(retracted_distance(physical_tool).value_or(0.0f), standard_feedrates::current_extruder(standard_feedrates::Extruder::deretract));
         planner.synchronize();
     }
 
     // "Fake" original extruder position - we are interrupting various movements by this function,
     // firmware gets very confused if the current position changes while it is planning a move
-    sync_e_position_to(orig_e_position);
+    current_position.e = orig_e_position;
+
+    // We need to fake the planner position separately, because some rogue functions update the current_position BEFORE issuing the raw move
+    // So precondition that current_position == planner.position_float does not hold
+    planner.set_e_position_mm(orig_e_planner_position);
 
     set_retracted_distance(physical_tool, 0.0f);
 }
@@ -226,7 +237,7 @@ void AutoRetract::ensure_retracted_no_ramming(float purge_length) {
     const auto virtual_tool = *virtual_tool_opt;
     const auto physical_tool = virtual_tool.to_physical();
 
-    assert(purge_length >= 0.0f); // no sense having negative purge length
+    debug_assert(purge_length >= 0.0f); // no sense having negative purge length
     if (this->retracted_distance(physical_tool) >= full_retract_distance) {
         return; // should not do anything when already retracted more than standard distance
     }
@@ -239,16 +250,18 @@ void AutoRetract::ensure_retracted_no_ramming(float purge_length) {
     M109_no_parser(physical_tool, flags_pre);
 
     {
+        const auto filament = FilamentType::for_current_tool_heuristic();
+
         BlockEStallDetection estall_blocker;
         // Purge a little
         if (purge_length > 0.f) {
-            mapi::extruder_move(purge_length, ADVANCED_PAUSE_PURGE_FEEDRATE);
+            mapi::extruder_move(purge_length, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::advanced_pause_purge, filament));
             planner.synchronize();
         }
         // Retract
         const float retracted_distance = this->retracted_distance(physical_tool).value_or(0.f);
         const float retract_amount = full_retract_distance - retracted_distance;
-        mapi::extruder_move(-retract_amount, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE);
+        mapi::extruder_move(-retract_amount, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::retract, filament));
         planner.synchronize();
         set_retracted_distance(physical_tool, full_retract_distance);
     }

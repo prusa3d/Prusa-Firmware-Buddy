@@ -2,6 +2,7 @@
 #pragma once
 
 #include "PuppyModbus.hpp"
+#include <atomic>
 #include <tool_offset_sensor/modbus.hpp>
 #include <freertos/mutex.hpp>
 #include <option/has_tool_offset_sensor.h>
@@ -21,6 +22,10 @@ public:
 
     void set_config(bool ch0_enabled, bool ch1_enabled);
 
+    bool is_enabled() const;
+
+    void set_enabled(bool set);
+
     // These are called from the puppy task.
     CommunicationStatus refresh(PuppyModbus &);
     CommunicationStatus initial_scan(PuppyModbus &);
@@ -28,6 +33,7 @@ public:
 private:
     mutable freertos::Mutex mutex;
 
+    std::atomic<bool> is_enabled_ = false;
     bool valid = false;
     bool all_valid() const;
 

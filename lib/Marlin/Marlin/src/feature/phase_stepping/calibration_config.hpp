@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <array>
+#include <bsod/bsod.h>
 
 namespace phase_stepping {
 
@@ -46,9 +47,15 @@ static inline constexpr const AxisCalibrationConfig xy_axis_calibration_config {
     .min_magnitude = 0.016f,
     .magnitude_quotient = 1.4f,
 };
-#elif PRINTER_IS_PRUSA_iX() || PRINTER_IS_PRUSA_COREONEL()
+#elif PRINTER_IS_PRUSA_iX()
 static inline constexpr const AxisCalibrationConfig xy_axis_calibration_config {
     .speed_range = { 0.1f, 3.f },
+    .enabled_harmonics = 0b1010,
+    .magnitude_quotient = 1.4f
+};
+#elif PRINTER_IS_PRUSA_COREONEL()
+static inline constexpr const AxisCalibrationConfig xy_axis_calibration_config {
+    .speed_range = { 0.2f, 3.f },
     .enabled_harmonics = 0b1010,
     .magnitude_quotient = 1.4f
 };

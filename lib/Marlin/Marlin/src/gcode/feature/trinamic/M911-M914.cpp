@@ -21,6 +21,7 @@
  */
 
 #include "../../../inc/MarlinConfig.h"
+#include <option/has_crash_detection.h>
 
 #if HAS_TRINAMIC
 
@@ -34,7 +35,7 @@
 
 #include "config_store/store_instance.hpp"
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
   #include "../../feature/prusa/crash_recovery.hpp"
 #endif
 
@@ -400,7 +401,7 @@
               value = X_STALL_SENSITIVITY;
             }
             #if AXIS_HAS_STALLGUARD(X)
-              #if ENABLED(CRASH_RECOVERY)
+              #if HAS_CRASH_DETECTION()
                 if (index < 2) crash_s.home_sensitivity[0] = value;
               #else
                 // #error dead code found by automatic analyses (see BFW-5461)
@@ -415,7 +416,7 @@
               value = Y_STALL_SENSITIVITY;
             }
             #if AXIS_HAS_STALLGUARD(Y)
-              #if ENABLED(CRASH_RECOVERY)
+              #if HAS_CRASH_DETECTION()
                 if (index < 2) crash_s.home_sensitivity[1] = value;
               #else
                 // #error dead code found by automatic analyses (see BFW-5461)
@@ -430,7 +431,7 @@
               value = Z_STALL_SENSITIVITY;
             }
             #if AXIS_HAS_STALLGUARD(Z)
-              #if ENABLED(CRASH_RECOVERY)
+              #if HAS_CRASH_DETECTION()
                 if (index < 2) crash_s.home_sensitivity[2] = value;
               #else
                 // #error dead code found by automatic analyses (see BFW-5461)
@@ -439,7 +440,7 @@
             #endif
             #if AXIS_HAS_STALLGUARD(Z2)
               // #error dead code found by automatic analyses (see BFW-5461)
-              #if ENABLED(CRASH_RECOVERY)
+              #if HAS_CRASH_DETECTION()
                 #error "Not implemented."
               #else
                 // #error dead code found by automatic analyses (see BFW-5461)
@@ -448,7 +449,7 @@
             #endif
             #if AXIS_HAS_STALLGUARD(Z3)
               // #error dead code found by automatic analyses (see BFW-5461)
-              #if ENABLED(CRASH_RECOVERY)
+              #if HAS_CRASH_DETECTION()
                 #error "Not implemented."
               #else
                 // #error dead code found by automatic analyses (see BFW-5461)
@@ -461,7 +462,7 @@
     }
 
     if (report) {
-      #if ENABLED(CRASH_RECOVERY)
+      #if HAS_CRASH_DETECTION()
         SERIAL_ECHOPGM("X homing sensitivity: ");
         SERIAL_PRINTLN(crash_s.home_sensitivity[0], DEC);
         SERIAL_ECHOPGM("Y homing sensitivity: ");

@@ -186,7 +186,7 @@ public:
     inline bool FindaDetectsFilament() const { return logic.FindaPressed(); }
 
     /// @returns current selector slot as reported by the MMU
-    inline bool SelectorSlot() const { return logic.SelectorSlot(); }
+    inline uint8_t SelectorSlot() const { return logic.SelectorSlot(); }
 
     inline uint16_t TotalFailStatistics() const { return logic.FailStatistics(); }
 

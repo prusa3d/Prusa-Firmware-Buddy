@@ -8,6 +8,7 @@
 #include "cyphal_suber_call.hpp"
 
 #include <uavcan/pnp/NodeIDAllocationData_2_0.h>
+#include <bsod/bsod.h>
 
 namespace can::cyphal {
 
@@ -44,7 +45,7 @@ public:
                   id_response.remove_from_task(); // Remove response subscription
               }) {
         request_data.node_id.value = request_id;
-        assert(uid != nullptr);
+        debug_assert(uid != nullptr);
         memcpy(request_data.unique_id, uid, sizeof(request_data.unique_id));
 
         // If this ever starts failing, make sure to either use PRNG with larger state

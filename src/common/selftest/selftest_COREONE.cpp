@@ -22,14 +22,22 @@
 #include <common/marlin_server.hpp>
 #include <common/timing.h>
 #include <config_store/store_instance.hpp>
+#include <option/has_ht_hotend.h>
+#if HAS_HT_HOTEND()
+    #include <hotend_type.hpp>
+#endif
+#include <logging/log.hpp>
 #include <guiconfig/wizard_config.hpp>
 #include <option/has_indx.h>
 
 #include <cstdarg>
 #include <fcntl.h>
+#include <span>
 #include <unistd.h>
 
 using namespace selftest;
+
+LOG_COMPONENT_REF(Selftest);
 
 static constexpr auto maxFeedrates = std::to_array<feedRate_t>(DEFAULT_MAX_FEEDRATE);
 static constexpr auto XYfr_table = std::to_array<float>({ HOMING_FEEDRATE_XY / 60 });
@@ -78,65 +86,13 @@ static const AxisConfig_t Config_ZAxis = {
     .park_pos = 0,
 };
 
-static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
-    {
-        .partname = "Nozzle",
-        .type = heater_type_t::Nozzle,
-        .getTemp = []() {
-            auto tool = PhysicalToolIndex::currently_selected_opt();
-            if (!tool) {
-                bsod("Heater config getTemp called without active tool");
-            }
-            return Hotend::for_tool(*tool).nozzle_temp(); },
-        .setTargetTemp = [](int target_temp) {
-            auto tool = PhysicalToolIndex::currently_selected_opt();
-            if (!tool) {
-                bsod("Heater config setTargetTemp called without active tool");
-            }
-            Hotend::for_tool(*tool).set_nozzle_target_temp(target_temp); },
-        .get_pid = []() {
-            auto tool = PhysicalToolIndex::currently_selected_opt();
-            if (!tool) {
-                bsod("Heater config get_pid called without active tool");
-            }
-            return Hotend::for_tool(*tool).nozzle_pid_config_compat(); },
-        .set_pid = [](const PID_t &pid) {
-            auto tool = PhysicalToolIndex::currently_selected_opt();
-            if (!tool) {
-                bsod("Heater config set_pid called without active tool");
-            }
-            Hotend::for_tool(*tool).set_nozzle_pid_config_compat(pid); },
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-#if HAS_INDX()
-        .heat_time_ms = 5700,
-#else
-        .heat_time_ms = 42000,
-#endif
-        .start_temp = 80,
-        .undercool_temp = 75,
-        .target_temp = 290,
-#if HAS_INDX()
-        .heat_min_temp = 185,
-        .heat_max_temp = 255,
-#else
-        .heat_min_temp = 195,
-        .heat_max_temp = 245,
-#endif
-        .heatbreak_min_temp = 10,
-        .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 200,
-        .heater_full_load_min_W = 20,
-        .heater_full_load_max_W = 50,
-        .min_pwm_to_measure = 26,
-    }
-};
+#include "selftest_nextruder.ipp"
 
 static constexpr HeaterConfig_t Config_HeaterBed = {
     .partname = "Bed",
     .type = heater_type_t::Bed,
     .tool_nr = PhysicalToolIndex::from_raw(0),
-    .getTemp = []() { return thermalManager.temp_bed.celsius; },
+    .getTemp = []() -> Hotend::OptionalTemperature { return thermalManager.temp_bed.celsius; },
     .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
     .get_pid = []() { return Temperature::temp_bed.pid; },
     .set_pid = [](const PID_t &pid) { Temperature::temp_bed.pid = pid; },
@@ -155,6 +111,17 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heater_full_load_max_W = 220,
     .min_pwm_to_measure = 26
 };
+
+#if HAS_HEATERS_SELFTEST_GCODE()
+namespace selftest {
+HeaterConfig_t nozzle_heater_config() {
+    return Config_HeaterNozzle()[0];
+}
+HeaterConfig_t bed_heater_config() {
+    return Config_HeaterBed;
+}
+} // namespace selftest
+#endif
 
 static constexpr LoadcellConfig_t Config_Loadcell[] = { {
     .partname = "Loadcell",
@@ -295,7 +262,7 @@ void CSelftest::Loop() {
         }
         break;
     case stsHeaters_noz_ena:
-        selftest::phaseHeaters_noz_ena(pNozzles, Config_HeaterNozzle);
+        selftest::phaseHeaters_noz_ena(pNozzles, Config_HeaterNozzle());
         break;
     case stsHeaters_bed_ena:
         selftest::phaseHeaters_bed_ena(pBed, Config_HeaterBed);

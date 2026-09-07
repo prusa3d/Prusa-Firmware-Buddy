@@ -11,6 +11,7 @@
 #include <ostream>
 
 #include <test_utils/formatters.hpp>
+#include <utils/byte_utils.hpp>
 
 struct WriteEvent {
     std::vector<std::byte> data;
@@ -51,11 +52,11 @@ public:
     std::vector<std::byte> to_read {};
 
 protected:
-    void unsafe_transmit(const std::span<const std::byte> &tx) final {
+    void unsafe_transmit(const Bytes &tx) final {
         events.emplace_back(WriteEvent { .data = std::vector(tx.cbegin(), tx.cend()) });
     }
 
-    void unsafe_receive(const std::span<std::byte> &rx) final {
+    void unsafe_receive(const WritableBytes &rx) final {
         events.emplace_back(ReadEvent { .read_count = rx.size() });
         std::copy_n(to_read.begin(), std::min(rx.size(), to_read.size()), rx.begin());
     }

@@ -20,7 +20,6 @@ static_assert((THERMAL_PROTECTION_MODEL_PERIOD + self_healing_cycles) < INT_LEAS
  *
  * @param pid_output heater PWM output
  * @param feed_forward part of the heater PWM output not affected by temperature readings
- * @param e hotend index
  */
 void ThermalModelProtection::step(float pid_output, float feed_forward) {
     // Start the timer if already not started. In case millis() == 0 it will not start the timer.

@@ -54,7 +54,7 @@ class MI_ACTION_SKIP : public FSMMenuItem {
 
 public:
     MI_ACTION_SKIP()
-        : FSMMenuItem(Phase::action_select, Response::Back, _("Skip network setup"), &img::cancel_16x16) {}
+        : FSMMenuItem(Phase::action_select, Response::Back, _("Skip Network Setup"), &img::cancel_16x16) {}
 };
 
 class MI_ACTION_HELP : public FSMMenuItem {
@@ -68,7 +68,7 @@ class MI_ACTION_LOAD_INI : public FSMMenuItem {
 
 public:
     MI_ACTION_LOAD_INI()
-        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::load_from_ini), _("Load config from file")) {}
+        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::load_from_ini), _("Load Config From File")) {}
 };
 
 #if HAS_NFC()
@@ -76,7 +76,7 @@ class MI_ACTION_LOAD_NFC : public FSMMenuItem {
 
 public:
     MI_ACTION_LOAD_NFC()
-        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::scan_nfc), _("Setup via NFC")) {
+        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::scan_nfc), _("Setup Via NFC")) {
         set_is_hidden(!nfc::has_nfc_probably());
     }
 };
@@ -86,14 +86,14 @@ class MI_ACTION_SCAN : public FSMMenuItem {
 
 public:
     MI_ACTION_SCAN()
-        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::scan_wifi), _("Scan networks")) {}
+        : FSMMenuItem(Phase::action_select, FSMResponseVariant::make(NetworkSetupResponse::scan_wifi), _("Scan Networks")) {}
 };
 
 class MI_ACTION_MANUAL : public IWindowMenuItem {
 
 public:
     MI_ACTION_MANUAL()
-        : IWindowMenuItem(_("Enter credentials manually")) {}
+        : IWindowMenuItem(_("Enter Credentials Manually")) {}
 
 protected:
     virtual void click(IWindowMenu &) {

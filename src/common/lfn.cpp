@@ -1,6 +1,5 @@
 #include "lfn.h"
 
-#include <cassert>
 #include <common/directory.hpp>
 #include <cstring>
 #include <dirent.h>
@@ -66,7 +65,7 @@ void get_SFN_path(char *path) {
     search_file(path, [&](char *fname, struct dirent *ent) {
         if (ent != nullptr) {
             // fname is part of the path we passed in, so we can modify it.
-            assert(strlen(fname) >= strlen(ent->d_name));
+            debug_assert(strlen(fname) >= strlen(ent->d_name));
             strcpy(fname, ent->d_name);
         }
         // We are not interested in the other "fallback" cases like the LFN
@@ -77,7 +76,7 @@ void get_SFN_path(char *path) {
 void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size) {
     char *last = rindex(lfn, '/');
 
-    assert(last);
+    debug_assert(last);
     if (!last) {
         strlcpy(sfn_out, lfn, size);
         return;

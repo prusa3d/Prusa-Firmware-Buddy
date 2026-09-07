@@ -2,6 +2,7 @@
 #include "pause_stubbed.hpp"
 #include "mmu2_error_converter.h"
 #include "fsm_loadunload_type.hpp"
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(MMU2);
 
@@ -100,7 +101,7 @@ static constexpr PhasesLoadUnload ProgressCodeToPhasesLoadUnload(RawProgressCode
         return PhasesLoadUnload::Ramming_unstoppable;
 
     default:
-        assert(0);
+        debug_assert(0);
 
         // Cannot be ERR_WaitingForUser, because with that state we expect specific data to be passed
         // and if the data is malformed we get a bsod

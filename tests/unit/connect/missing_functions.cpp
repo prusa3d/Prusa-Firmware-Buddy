@@ -1,5 +1,6 @@
 #include "marlin_client_mock.h"
 
+#include <gcode/inject_queue_actions.hpp>
 #include <common/filepath_operation.h>
 #include <marlin_events.h>
 #include <tool_index.hpp>
@@ -8,8 +9,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-
-void print_begin(const char *, marlin_server::PreviewSkipIfAble) {}
 
 namespace marlin_client {
 
@@ -23,6 +22,21 @@ void gcode_printf(const char *format, ...) {
     va_end(args);
     last_gcode = buf;
 }
+
+void inject(InjectQueueRecord record) {
+    char buf[128];
+    std::visit([&]<typename T>(const T &val) {
+        if constexpr (std::is_same_v<T, GCodeLiteral>) {
+            snprintf(buf, sizeof(buf), val.gcode, (double)val.parameter);
+        } else {
+            throw;
+        }
+    },
+        record);
+    last_gcode = buf;
+}
+
+void print_start(const char *, marlin_server::PreviewSkipIfAble, marlin_server::ResetToolMapping) {}
 
 } // namespace marlin_client
 

@@ -156,6 +156,13 @@ public:
 using FrameAskMiniHasFsensor = WithConstructorArgs<FrameSpoolAndText, N_("Do you have a filament sensor installed?")>;
 #endif
 
+class FrameNotConnected : public FramePrompt {
+
+public:
+    FrameNotConnected(window_frame_t *parent, Phase phase, PhysicalToolIndex)
+        : FramePrompt(parent, phase, _("Filament sensor not connected"), _("Turn off the printer and check that the filament sensor cables are wired correctly.")) {}
+};
+
 using FrameOfferUnload = WithConstructorArgs<FrameSpoolAndText,
 #if HAS_SIDE_FSENSOR() && HAS_EXTRUDER_FSENSOR()
     N_("Please make sure there is no filament in the tool and side filament sensors.\n\nYou will need filament to finish this test later.")
@@ -237,7 +244,7 @@ using FrameRemoveFilamentReady = WithConstructorArgs<FrameTextAndImage,
 #endif
     >;
 
-#if HAS_SIDE_FSENSOR()
+#if HAS_SIDE_FSENSOR() && HAS_EXTRUDER_FSENSOR()
 using FrameNotReadyConfirmContinue = WithConstructorArgs<FrameSpoolAndText, N_("There is a problem with some of the sensors. You may calibrate the rest, but the selftest will fail.")>;
 #endif
 
@@ -251,6 +258,7 @@ using Frames
 #if PRINTER_IS_PRUSA_MINI()
         FrameDefinition<Phase::ask_mini_has_fsensor, FrameAskMiniHasFsensor>,
 #endif
+        FrameDefinition<Phase::not_connected, FrameNotConnected>,
         FrameDefinition<Phase::offer_unload, FrameOfferUnload>,
         FrameDefinition<Phase::ask_filament, FrameAskFilament>,
         FrameDefinition<Phase::calibrating, FrameCalibrating>,
@@ -258,7 +266,7 @@ using Frames
         FrameDefinition<Phase::insert_filament_ready, FrameInsertFilamentReady>,
         FrameDefinition<Phase::remove_filament_not_ready, FrameRemoveFilamentNotReady>,
         FrameDefinition<Phase::remove_filament_ready, FrameRemoveFilamentReady>,
-#if HAS_SIDE_FSENSOR()
+#if HAS_SIDE_FSENSOR() && HAS_EXTRUDER_FSENSOR()
         FrameDefinition<Phase::not_ready_confirm_continue, FrameNotReadyConfirmContinue>,
 #endif
         FrameDefinition<Phase::success, FrameSuccess>,

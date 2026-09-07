@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
@@ -10,6 +9,7 @@
 #include <random>
 #include <signal_processing/math.hpp>
 #include <signal_processing/pipeline.hpp>
+#include <bsod/bsod.h>
 
 namespace sp {
 
@@ -44,16 +44,16 @@ public:
         , amplitude(amplitude)
         , rate(static_cast<T>(sampling_freq))
         , sampling_freq_value(sampling_freq) {
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
         const float duration_seconds = std::chrono::duration<float>(duration).count();
-        assert(duration_seconds > 0.f);
+        debug_assert(duration_seconds > 0.f);
         total_samples = static_cast<std::size_t>(duration_seconds * static_cast<T>(sampling_freq));
-        assert(total_samples > 0);
+        debug_assert(total_samples > 0);
         duration_in_seconds = static_cast<T>(total_samples) / rate;
     }
 
     T next() {
-        assert(poll() == sp::pipe::PollResult::ready);
+        debug_assert(poll() == sp::pipe::PollResult::ready);
         const T t = static_cast<T>(current_sample) / rate;
         const T phase = PhasePolicy::calculate(t, duration_in_seconds, start_freq, end_freq);
 
@@ -89,7 +89,7 @@ public:
     // Constructor with random seed
     explicit GaussianNoise(T rms, sp::SamplingFreq sampling_freq)
         : sampling_freq_value(sampling_freq) {
-        assert(rms > T { 0 });
+        debug_assert(rms > T { 0 });
         std::random_device rd;
         state = std::make_unique<State>(T { 0 }, rms);
         state->rng.seed(rd());
@@ -98,7 +98,7 @@ public:
     // Constructor with deterministic seed (for reproducible results)
     GaussianNoise(T rms, std::uint32_t seed, sp::SamplingFreq sampling_freq)
         : sampling_freq_value(sampling_freq) {
-        assert(rms > T { 0 });
+        debug_assert(rms > T { 0 });
         state = std::make_unique<State>(T { 0 }, rms);
         state->rng.seed(seed);
     }
@@ -143,7 +143,7 @@ public:
     explicit FastGaussianNoise(T rms, sp::SamplingFreq sampling_freq)
         : rms(rms)
         , sampling_freq_value(sampling_freq) {
-        assert(rms > T { 0 });
+        debug_assert(rms > T { 0 });
         std::random_device rd;
         seed(static_cast<std::uint32_t>(rd()));
     }
@@ -151,7 +151,7 @@ public:
     FastGaussianNoise(T rms, std::uint32_t seed_value, sp::SamplingFreq sampling_freq)
         : rms(rms)
         , sampling_freq_value(sampling_freq) {
-        assert(rms > T { 0 });
+        debug_assert(rms > T { 0 });
         seed(seed_value);
     }
 
@@ -212,7 +212,7 @@ public:
     Ramp(T initial_value, T acceleration, sp::SamplingFreq sampling_freq)
         : current_position(initial_value)
         , sampling_freq_value(sampling_freq) {
-        assert(sampling_freq > sp::SamplingFreq { 0 });
+        debug_assert(sampling_freq > sp::SamplingFreq { 0 });
 
         // Precompute step per sample to avoid per-sample computation
         // position[n] = initial_value + acceleration * n * dt

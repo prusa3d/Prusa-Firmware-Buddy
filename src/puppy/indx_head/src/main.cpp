@@ -7,28 +7,35 @@
 #include "spi_task.hpp"
 
 #include <FreeRTOS.h>
+#include <freertos/timing.hpp>
 #include <task.h>
 
 #include <cstddef>
+#include <bsod/bsod.h>
 
 // This magical incantation is required for fw_descriptor integration in cmake to work.
 [[maybe_unused]] __attribute__((section(".fw_descriptor"), used)) const std::byte fw_descriptor[48] {};
 
 namespace {
 // Modbus task
-constexpr const size_t modbus_task_stack_size = 2 * 512 / sizeof(StackType_t);
+constexpr const size_t modbus_task_stack_size = 1024 / sizeof(StackType_t);
 alignas(32) StackType_t modbus_task_stack[modbus_task_stack_size];
 StaticTask_t modbus_task_control_block;
 
 // App task
-constexpr const size_t app_task_stack_size = 2 * 512 / sizeof(StackType_t);
+constexpr const size_t app_task_stack_size = 1024 / sizeof(StackType_t);
 alignas(32) StackType_t app_task_stack[app_task_stack_size];
 StaticTask_t app_task_control_block;
 
 // SPI task
-constexpr const size_t spi_task_stack_size = 2 * 512 / sizeof(StackType_t);
+constexpr const size_t spi_task_stack_size = 1024 / sizeof(StackType_t);
 alignas(32) StackType_t spi_task_stack[spi_task_stack_size];
 StaticTask_t spi_task_control_block;
+
+// Lazy task
+constexpr const size_t lazy_task_stack_size = 1024 / sizeof(StackType_t);
+alignas(32) StackType_t lazy_task_stack[lazy_task_stack_size];
+StaticTask_t lazy_task_control_block;
 } // namespace
 
 extern "C" int main() {
@@ -60,7 +67,7 @@ extern "C" int main() {
             &app_task_control_block);
     }
     {
-        [[maybe_unused]] TaskHandle_t app_task_handle = xTaskCreateStatic(
+        [[maybe_unused]] TaskHandle_t spi_task_handle = xTaskCreateStatic(
             [](void *) { spi_task::run(); },
             "spi_task",
             spi_task_stack_size,
@@ -68,6 +75,21 @@ extern "C" int main() {
             tskIDLE_PRIORITY + 2, // This tasks processes SPI IRQs - needs higher pripority then app task, but should mostly be idle
             spi_task_stack,
             &spi_task_control_block);
+    }
+    {
+        [[maybe_unused]] TaskHandle_t lazy_task_handle = xTaskCreateStatic(
+            [](void *) {
+                for (;;) {
+                    hal::i2c::trigger_delayed_request();
+                    freertos::delay(1);
+                }
+            },
+            "lazy_task",
+            lazy_task_stack_size,
+            nullptr,
+            tskIDLE_PRIORITY, // This task processes some low prio request whenever the system is free to do so
+            lazy_task_stack,
+            &lazy_task_control_block);
     }
 
     // Start FreeRTOS scheduler and we are done.

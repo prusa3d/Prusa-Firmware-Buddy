@@ -6,7 +6,6 @@
 #include <array>
 #include <cstdint>
 #include <algorithm>
-#include <assert.h>
 #include "../lang/string_view_utf8.hpp"
 #include "../guiapi/include/font_flags.hpp"
 #include <bitset>

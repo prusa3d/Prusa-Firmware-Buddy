@@ -117,10 +117,8 @@ pipeline {
                         ln -fs /work/.venv
                         . .venv/bin/activate
 
-                        export XDG_CACHE_HOME=\$PWD/.precommit
-                        git config --unset-all core.hooksPath
-                        pre-commit install
-                        pre-commit run \
+                        export XDG_CACHE_HOME=\$PWD/.cache
+                        prek run -c .pre-commit-config.yaml \
                             --source remotes/origin/${env.CHANGE_TARGET} \
                             --origin HEAD \
                             --show-diff-on-failure \
@@ -239,14 +237,6 @@ pipeline {
                                     dev_items = "yes"
                                 }
 
-                                def dfu_arg
-                                if (config.preset.contains("anfc")) {
-                                    // Do not build DFU, the code is broken and we don't need it
-                                    dfu_arg = ""
-                                } else {
-                                    dfu_arg = "--generate-dfu"
-                                }
-
                                 // remove the "boot" suffix from the config.bootloader
                                 if (config.bootloader != "boot" && config.bootloader.endsWith("boot")) {
                                     config.bootloader = config.bootloader.substring(0, config.bootloader.length() - 4)
@@ -265,7 +255,6 @@ pipeline {
                                                 --preset ${config.preset} \
                                                 --build-type ${config.build_type} \
                                                 --bootloader ${config.bootloader} \
-                                                ${dfu_arg} \
                                                 --no-store-output \
                                                 --skip-bootstrap \
                                                 --version-suffix=${version.suffix_full} \
@@ -324,6 +313,8 @@ pipeline {
                     }
                 }
 
+                /*
+                Temporarily disabled, see BFW-9038
                 stage('Marlin_server_types python module') {
                     agent {
                         dockerfile {
@@ -345,6 +336,7 @@ pipeline {
                         """
                     }
                 }
+                */
 
                 /*stage('Integration Tests') {
                     when {

@@ -41,8 +41,4 @@ void spi_tx_complete() {
     ili9488_spi_tx_complete();
 }
 
-void spi_rx_complete() {
-    ili9488_spi_rx_complete();
-}
-
 } // namespace display

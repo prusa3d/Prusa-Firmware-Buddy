@@ -24,6 +24,7 @@ enum class Response : uint8_t {
     Change,
     Continue,
     Cooldown,
+    Details,
     Disable,
     Done,
     Filament,

@@ -8,7 +8,7 @@
  */
 
 /**
- *### M9201: Clear precise homing calibrations
+ *### M9202: Clear precise homing calibrations
  *
  */
 void PrusaGcodeSuite::M9202() {

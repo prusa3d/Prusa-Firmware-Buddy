@@ -54,7 +54,7 @@ void ANFCNode::app_init() {
     setup_server(request_server, "srv.request", prusa3d_nfc_command_Request_1_0_FULL_NAME_AND_VERSION_);
     event_publisher.init(port_list, registers);
 
-    assert(registers.get_max_registers() == registers.get_register_count());
+    debug_assert(registers.get_max_registers() == registers.get_register_count());
 }
 
 void ANFCNode::app_tick(int64_t now_us) {

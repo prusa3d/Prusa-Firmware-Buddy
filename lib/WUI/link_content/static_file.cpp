@@ -2,8 +2,7 @@
 #include "../nhttp/send_file.h"
 #include "../nhttp/headers.h"
 
-// Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
-#include "../../src/gui/file_list_defs.h"
+#include <buddy/filename_defs.hpp>
 
 #include <cstring>
 
@@ -22,7 +21,7 @@ namespace {
 Selector::Accepted StaticFile::accept(const RequestParser &parser, handler::Step &out) const {
     static constexpr const char prefix[] { "/internal/res/web" };
     static constexpr size_t prefix_len { std::char_traits<char>::length(prefix) };
-    char fname_buffer[FILE_PATH_BUFFER_LEN + prefix_len];
+    char fname_buffer[filename_defs::path_buffer_size + prefix_len];
     const char *fname = fname_buffer;
     strcpy(fname_buffer, prefix);
 

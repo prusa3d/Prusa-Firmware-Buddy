@@ -1,0 +1,29 @@
+name: On Windows
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  build:
+    name: Windows MSVC Latest
+    runs-on: windows-latest
+    steps:
+      - name: Installing GTest
+        run: |
+          git clone https://github.com/google/googletest.git
+          cd googletest
+          git checkout v1.14.0
+          cmake -S . -B build -Dgtest_force_shared_crt=ON
+          cmake --build build --config Release --target install
+      - uses: actions/checkout@v3
+      - name: Configure
+        run: cmake -S . -B build -DBITSERY_BUILD_TESTS=ON -DBITSERY_BUILD_EXAMPLES=ON -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_FLAGS="/Zc:__cplusplus /permissive- /EHsc"
+        env:
+          CMAKE_PREFIX_PATH: "C:/Program Files (x86)/googletest-distribution/"
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Run tests
+        run: ctest --test-dir build

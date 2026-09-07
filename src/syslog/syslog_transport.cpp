@@ -1,8 +1,8 @@
 #include "syslog_transport.hpp"
-#include <tcpip.h>
+#include <lwip/tcpip.h>
 
 #include <lwip/udp.h>
-#include <dns.h>
+#include <lwip/dns.h>
 #include <common/tcpip_callback_nofail.hpp>
 #include <common/pbuf_deleter.hpp>
 #include <freertos/binary_semaphore.hpp>

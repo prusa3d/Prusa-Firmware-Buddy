@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/abstract_byte_reader.hpp>
+#include <utils/abstract_byte_reader.hpp>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -75,7 +75,6 @@ extern void ili9488_enable_safe_mode(void);
 extern void ili9488_draw_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
 extern void ili9488_spi_tx_complete(void);
-extern void ili9488_spi_rx_complete(void);
 extern bool ili9488_is_reset_required();
 extern void ili9488_set_complete_lcd_reinit();
 

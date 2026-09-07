@@ -1,7 +1,11 @@
-// window_text.cpp
+/// @file
+
 #include "window_text.hpp"
-#include "gui.hpp"
-#include "ScreenHandler.hpp"
+
+#include <gui/gui_utils.hpp>
+#include <display_helper.h>
+#include <window_icon.hpp>
+#include "gui_time.hpp"
 
 void window_text_t::SetText(const string_view_utf8 &txt) {
     if (text.is_same_ref(txt)) {
@@ -16,6 +20,10 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
     : IWindowText(parent, rect, close)
     , text(txt) {
     flags.multiline = bool(multiline);
+}
+
+window_text_t::window_text_t(window_t *parent, Rect16 rect, const string_view_utf8 &txt, is_multiline multiline)
+    : window_text_t(parent, rect, multiline, is_closed_on_click_t::no, txt) {
 }
 
 namespace {
@@ -71,29 +79,19 @@ void WindowButton::SetText(const string_view_utf8 &txt) {
     window_text_t::SetText(txt);
 }
 
-bool window_text_t::check_text_overflow() const {
-    const auto font = resource_font(get_font());
-    StringReaderUtf8 reader(GetText());
-    return RectTextLayout(reader, GetRect().Width() / font->w, GetRect().Height() / font->h, flags.multiline ? is_multiline::yes : is_multiline::no).has_text_overflown();
-}
-
 void window_text_t::auto_select_font(Font largest, Font smallest) {
-    static constexpr std::array font_list {
-#if HAS_LARGE_DISPLAY()
-        Font::large,
-#endif
-            Font::big,
-            Font::normal,
-            Font::small
-    };
+    auto rect = GetRect();
+    rect.CutPadding(padding);
+    set_font(::auto_select_font(
+        {
+            .text = GetText(),
+            .rect = rect,
+            .largest = largest,
+            .smallest = smallest,
+            .multiline = flags.multiline,
 
-    const Font *fnt = font_list.begin();
-    while (*fnt != largest) {
-        fnt++;
-    }
-    do {
-        set_font(*fnt);
-    } while (!check_text_overflow() && *fnt++ != smallest);
+        })
+                 .value_or(smallest));
 }
 
 void WindowButton::unconditionalDraw() {

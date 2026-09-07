@@ -206,13 +206,11 @@ CommunicationStatus AcController::refresh(PuppyModbus &bus) {
         led_config_dirty.store(true);
     }
 
-    if (input == CommunicationStatus::ERROR || holding_config == CommunicationStatus::ERROR || holding_led_config == CommunicationStatus::ERROR) {
-        return CommunicationStatus::ERROR;
-    } else if (input == CommunicationStatus::SKIPPED && holding_config == CommunicationStatus::SKIPPED && holding_led_config == CommunicationStatus::SKIPPED) {
-        return CommunicationStatus::SKIPPED;
-    } else {
-        return CommunicationStatus::OK;
-    }
+    return aggregate_communication_status({
+        input,
+        holding_config,
+        holding_led_config,
+    });
 }
 
 CommunicationStatus AcController::initial_scan(PuppyModbus &bus) {

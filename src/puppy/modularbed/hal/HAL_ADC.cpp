@@ -210,7 +210,7 @@ uint32_t TranslateADCChannel(ADCChannel channel) {
     case ADCChannel::VREF:
         return 13;
     default:
-        assert(false && "should not happen");
+        debug_assert(false && "should not happen");
         return 16;
     }
 }

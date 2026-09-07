@@ -4,6 +4,8 @@
 #include <tool_index.hpp>
 #include <module/endstops.h>
 
+#include <option/has_crash_detection.h>
+#include <option/has_power_panic.h>
 #include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 #include <raii/scope_guard.hpp>
@@ -28,19 +30,26 @@
 #include <raii/auto_restore.hpp>
 #include <mapi/parking.hpp>
 #include <feature/indx_tool_lock_hack/indx_tool_lock_hack.hpp>
+#include <bsod/bsod.h>
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include "../../feature/prusa/crash_recovery.hpp"
-#endif /*ENABLED(CRASH_RECOVERY)*/
+#endif
 
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     #include <power_panic.hpp>
     #include <tasks.hpp>
-#endif /*ENABLED(POWER_PANIC)*/
+#endif
 
 #if DISABLED(ARC_SUPPORT)
     #error "toolchanger requires ARC_SUPPORT"
 #endif
+
+#include <option/has_nozzle_thermal_compensation.h>
+// The nozzle thermal compensation re-expresses the toolchange return position under the incoming
+// tool's nozzle length. That hook exists in the XL toolchanger only, so enabling the option here
+// would compile but return the head to the previous tool's compensated height.
+static_assert(!HAS_NOZZLE_THERMAL_COMPENSATION(), "no nozzle thermal compensation hook in the INDX toolchanger");
 
 LOG_COMPONENT_REF(PrusaToolChanger);
 
@@ -104,7 +113,7 @@ bool PrusaToolChanger::tool_change(const std::variant<PhysicalToolIndex, NoTool>
     ScopeGuard restore_block_tool_check([&]() {
         block_tool_check.store(false);
         phase_.store(ToolchangePhase::none, std::memory_order_release);
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
         crash_s.set_toolchange_in_progress(false, false);
 #endif
     });
@@ -122,7 +131,7 @@ bool PrusaToolChanger::tool_change(const std::variant<PhysicalToolIndex, NoTool>
     // Publish toolchange-return data and the before_lock phase. Order matters (atomics synchronize).
     set_return_data({ new_tool, return_type, return_position.asLogical() });
     phase_.store(ToolchangePhase::before_lock, std::memory_order_release);
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     crash_s.set_toolchange_in_progress(true, planner.leveling_active);
 #endif
 
@@ -147,7 +156,7 @@ bool PrusaToolChanger::tool_change(const std::variant<PhysicalToolIndex, NoTool>
     match(
         new_tool,
         [&](PhysicalToolIndex physical_tool) { new_hotend_offset = hotend_offset[physical_tool]; },
-        [&](NoTool) { new_hotend_offset.reset(); });
+        [&](NoTool) { new_hotend_offset = {}; });
     const xyz_pos_t tool_offset_diff = hotend_currently_applied_offset - new_hotend_offset; ///< Difference between offset of new and old tools
 
     if (new_tool != old_tool) {
@@ -203,8 +212,13 @@ bool PrusaToolChanger::tool_change(const std::variant<PhysicalToolIndex, NoTool>
     return true;
 }
 
+/// Lower the bed (print-end height) so the user can pick up a failed print and reach the docks.
+static void lower_bed_for_pickup() {
+    mapi::park({ .z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = Z_NOZZLE_PARK_POINT_MIN } });
+}
+
 void PrusaToolChanger::check_nozzle_presence_vs_eeprom() {
-#if ENABLED(POWER_PANIC)
+#if HAS_POWER_PANIC()
     // Stored panic data + autostart not yet done = resume decision pending.
     // EEPROM is intentionally stale during prints, so this check would false-fire here.
     if (!TaskDeps::check(TaskDeps::Dependency::autostart_done)
@@ -249,6 +263,10 @@ void PrusaToolChanger::check_nozzle_presence_vs_eeprom() {
         block_tool_check = true;
         ScopeGuard guard = [this] { block_tool_check = false; };
         marlin_server::FSM_Holder fsm(PhaseNozzleMismatch::tool_lost);
+
+        // Lower the bed so the user can pick up the failed print while the dialog is shown.
+        lower_bed_for_pickup();
+
         marlin_server::wait_for_response(PhaseNozzleMismatch::tool_lost);
 
         marlin_server::fsm_change(PhaseNozzleMismatch::homing);
@@ -288,65 +306,32 @@ void PrusaToolChanger::check_nozzle_presence_during_print() {
     }
 
     // Tool selected but nozzle missing — likely tool fell off mid-print.
-    // FIXME: Setting this means that if PP/reset happens during this code, it will possibly return to NoTool
-    set_active_extruder(NoTool {});
     const auto tool_index = std::get<PhysicalToolIndex>(selected);
-    log_error(PrusaToolChanger, "In-print nozzle missing for tool #%u — pausing print", tool_index.to_raw());
+    log_error(PrusaToolChanger, "In-print nozzle missing for tool #%u", tool_index.to_raw());
 
-    // wait_for_response()/synchronize() run idle loops which call back into loop() → us; block re-entry.
-    block_tool_check = true;
-    ScopeGuard guard = [this] { block_tool_check = false; };
-
-    // TODO: This should be reworked to crash recovery, this is a hacky and problematic solution
-
-    const auto resume_position = current_position;
-
-    // Stop motion immediately so we don't keep printing without a nozzle while the dialog is up.
-    // Use the _and_resume variant so the planner doesn't stay in the is_unwinding state — otherwise
-    // every subsequent move (pause's park-head, pickup's homing) would be silently discarded.
-    planner.quick_stop_and_resume();
-
-    // Quick stop could have caused skipped XY
-    invalidate_xy_homing();
-
-    // The current_position has been trashed by the quick_stop, read the actual position from the steppers
-    // This is not relevant for XY bcs we will be rehoming it,
-    // but it's important for Z
-    set_current_from_steppers();
-
-    // Lift clear of the printed model (incl. sequential prints) before re-homing/pickup.
-    mapi::park({ .z = mapi::ParkingPosition::AtLeast { .above_print = 10 } });
-
-    marlin_server::FSM_Holder fsm(PhaseNozzleMismatch::tool_lost);
-    marlin_server::wait_for_response(PhaseNozzleMismatch::tool_lost);
-
-    // Not sure why we are homing here when pickup() does its own home
-    marlin_server::fsm_change(PhaseNozzleMismatch::homing);
-    (void)ensure_safe_move();
-
-    // Ask the user to verify the tool is in its dock before we attempt re-pickup.
-    marlin_server::fsm_change(PhaseNozzleMismatch::pickup_failed_confirm_retry);
-    marlin_server::wait_for_response(PhaseNozzleMismatch::pickup_failed_confirm_retry);
-
-    // Try to re-pick the expected tool. pickup() does its own homing, dock approach,
-    // nozzle verification, and on failure opens its own pickup_failed retry/abort dialog.
-    if (!pickup(tool_index)) {
-        marlin_server::quick_stop();
-        marlin_server::print_abort();
+#if HAS_TOOL_CRASH_RECOVERY()
+    if (crash_s.is_active()) {
+        if (crash_s.get_state() == Crash_s::PRINTING) {
+            log_info(PrusaToolChanger, "triggering crash recovery");
+            crash_s.set_state(Crash_s::TRIGGERED_TOOLFALL);
+        } else {
+            // crash_s is probably in some crashed or recovering state
+            // just wait until the printer finishes whatever it is doing
+            // it will be eventually triggered again in PRINTING state and handled
+        }
         return;
     }
+#endif
 
-    // Pretend we've extruded what was planned
-    sync_e_position_to(resume_position.e);
-
-    // Tool cooled while detached; bring it back to temperature before resuming the print.
-    thermalManager.wait_for_hotend(tool_index);
-
-    // Return to the original position
-    // Yes, we've possibly skipped over some moves that we trashed with the quick stop
-    // Doing proper crash recovery would address this
-    do_blocking_move_to(resume_position.xyz());
+    log_error(PrusaToolChanger, "crash recovery is off"); // not active (serial printing?) or disabled completely
+    toolchanger_error("Tool lost");
 }
+
+#if HAS_TOOL_CRASH_RECOVERY()
+void PrusaToolChanger::crash_deselect_tool() {
+    set_active_extruder(NoTool {});
+}
+#endif
 
 void PrusaToolChanger::invalidate_xy_homing() {
     axes_home_level[X_AXIS] = AxisHomeLevel::not_homed;
@@ -395,8 +380,8 @@ void PrusaToolChanger::move(const float x, const float y, const feedRate_t feedr
     line_to_current_position(feedrate);
 }
 
-const xy_float_t PrusaToolChanger::get_tool_dock_position(PhysicalToolIndex tool) {
-    const auto info = PrusaToolChangerUtils::get_tool_info(tool, true);
+const xy_float_t PrusaToolChanger::get_tool_dock_position(PhysicalToolIndex tool, bool check_calibrated) {
+    const auto info = PrusaToolChangerUtils::get_tool_info(tool, check_calibrated);
     return xy_float_t { info.dock_x, info.dock_y + DOCK_SAFE_Y_OFFSET };
 }
 
@@ -484,9 +469,8 @@ bool PrusaToolChanger::manual_tool_park(std::optional<PhysicalToolIndex> tool) {
     // Open on the buttonless homing screen so the prompt isn't shown while the head moves.
     marlin_server::FSM_Holder fsm(PhaseNozzleMismatch::homing);
 
-    // Z clearance to allow user to manually adjust the docks
-    static constexpr float UNKNOWN_TOOL_Z_LIFT_MM = 100.f;
-    mapi::park({ .z = mapi::ParkingPosition::AtLeast { .above_print = 15, .absolute = UNKNOWN_TOOL_Z_LIFT_MM } });
+    // Lower the bed so the user can pick up a failed print and reach the docks.
+    lower_bed_for_pickup();
 
     // Interactive path — drive the nozzle-mismatch FSM so the user picks a dock
     marlin_server::fsm_change(PhaseNozzleMismatch::prompt);
@@ -715,13 +699,13 @@ bool PrusaToolChanger::verify_nozzle_state(PhysicalToolIndex prev_tool, bool exp
 
 PrusaToolChanger::ToolchangeFailureAction PrusaToolChanger::handle_toolchange_failure(
     PhaseNozzleMismatch main_phase,
-    PhaseNozzleMismatch confirm_abort_phase,
-    PhaseNozzleMismatch confirm_retry_phase) {
+    PhaseNozzleMismatch confirm_abort_phase) {
 
     if (gcode_exceptions().is_unwinding()) {
         return ToolchangeFailureAction::abort;
     }
 
+    disable_xy_steppers();
     marlin_server::FSM_Holder fsm(main_phase);
 
     for (;;) {
@@ -740,14 +724,12 @@ PrusaToolChanger::ToolchangeFailureAction PrusaToolChanger::handle_toolchange_fa
             return ToolchangeFailureAction::abort;
         }
 
-        // Response::Retry — home XY, prompt user
+        // Response::Retry — home XY
         marlin_server::fsm_change(PhaseNozzleMismatch::homing);
         if (!ensure_safe_move()) {
             return ToolchangeFailureAction::abort;
         }
 
-        marlin_server::fsm_change(confirm_retry_phase);
-        marlin_server::wait_for_response(confirm_retry_phase);
         return ToolchangeFailureAction::retry;
     }
 }
@@ -755,15 +737,13 @@ PrusaToolChanger::ToolchangeFailureAction PrusaToolChanger::handle_toolchange_fa
 PrusaToolChanger::ToolchangeFailureAction PrusaToolChanger::handle_park_failure() {
     return handle_toolchange_failure(
         PhaseNozzleMismatch::park_failed,
-        PhaseNozzleMismatch::confirm_abort,
-        PhaseNozzleMismatch::park_failed_confirm_retry);
+        PhaseNozzleMismatch::confirm_abort);
 }
 
 PrusaToolChanger::ToolchangeFailureAction PrusaToolChanger::handle_pickup_failure() {
     return handle_toolchange_failure(
         PhaseNozzleMismatch::pickup_failed,
-        PhaseNozzleMismatch::confirm_abort,
-        PhaseNozzleMismatch::pickup_failed_confirm_retry);
+        PhaseNozzleMismatch::confirm_abort);
 }
 
 PrusaToolChanger::ToolchangeFailureAction PrusaToolChanger::apply_failure_action(ToolchangeFailureAction action) {
@@ -891,12 +871,10 @@ void PrusaToolChanger::final_tool_change_moves(const FinalToolChangeMoves &args)
     // Move back in XY direction
     if (args.return_type == tool_return_t::dock_backoff) {
         // After docking, back off in +Y to clear the dock area (e.g. for manual filament removal)
-        xy_pos_t backoff_pos = current_position.xy();
-        backoff_pos.y += DOCK_BACKOFF_Y_OFFSET;
-        unpark_to(backoff_pos);
+        mapi::park({ .y = current_position.y + DOCK_BACKOFF_Y_OFFSET });
     } else if (args.return_type > tool_return_t::no_return) {
-        // Move back to the original (or adjusted) position
-        unpark_to(return_position.xy()); // schedule a smooth XY transition to return_position
+        // Move back to the original (or adjusted) position.
+        mapi::park({ .x = return_position.x, .y = return_position.y });
     }
 
     // Now move down in Z
@@ -913,13 +891,7 @@ void PrusaToolChanger::final_tool_change_moves(const FinalToolChangeMoves &args)
     planner.synchronize();
 }
 
-void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
-    // move to the destination
-    const float travel_fr = limit_stealth_feedrate(TRAVEL_MOVE_MM_S);
-    move(destination.x, destination.y, travel_fr);
-}
-
-std::expected<void, PrusaToolChanger::BumpError> PrusaToolChanger::bump_to_dock(PhysicalToolIndex tool) {
+std::expected<void, PrusaToolChanger::BumpError> PrusaToolChanger::bump_to_dock(PhysicalToolIndex dock) {
     // Home if needed (mapi::park below requires XY homed)
     if (!ensure_safe_move()) {
         return std::unexpected<BumpError>(BumpError::unsafe_move);
@@ -929,7 +901,7 @@ std::expected<void, PrusaToolChanger::BumpError> PrusaToolChanger::bump_to_dock(
     mapi::park({ .z = mapi::ParkingPosition::AtLeast { .above_print = 2.0f } });
 
     // Get dock info
-    const PrusaToolInfo &info = get_tool_info(tool, /*check_calibrated=*/false);
+    const PrusaToolInfo &info = get_tool_info(dock, /*check_calibrated=*/false);
 
     // reduce maximum parking speed to improve reliability during constant toolchanging
     float target_fr = limit_stealth_feedrate(PARKING_FINAL_MAX_SPEED);
@@ -948,13 +920,37 @@ std::expected<void, PrusaToolChanger::BumpError> PrusaToolChanger::bump_to_dock(
     // We've hit endstops so back off a bit and warn user probably
     if (hit) {
         do_blocking_move_to_xy(info.dock_x, safe_y + 25.f, target_fr);
-        log_warning(PrusaToolChanger, "Bump to dock of tool #%u detected endstop hit, dock probably occupied", tool.to_raw());
+        log_warning(PrusaToolChanger, "Bump to dock #%u detected endstop hit, dock probably occupied", dock.to_raw());
         // Invalidate homing state to trigger rehome before next toolchaínge attempt, to be sure we have correct position of the dock in the future
         invalidate_xy_homing();
         return std::unexpected<BumpError>(BumpError::hit);
     }
 
     return std::expected<void, BumpError>();
+}
+
+void PrusaToolChanger::pick_tool_out_of_dock(PhysicalToolIndex dock) {
+    // picking the tool from dock may be enough
+    if (dock.is_enabled()) {
+        if (tool_change(dock, tool_return_t::no_return, {}, tool_change_lift_t::full_lift, false)) {
+            return; // dock was just emptied
+        }
+    }
+
+    // we still dont know for sure
+    if (!prusa_toolchanger.pick_any_tool(tool_return_t::no_return, {}, tool_change_lift_t::full_lift, false)) {
+        fatal_error(ErrCode::ERR_MECHANICAL_TOOLCHANGER);
+    }
+    auto bump_res = prusa_toolchanger.bump_to_dock(dock);
+    if (bump_res.has_value()) {
+        return; // dock is empty
+    }
+    switch (bump_res.error()) {
+    case PrusaToolChanger::BumpError::hit:
+        fatal_error(ErrCode::ERR_MECHANICAL_UNEXPECTED_TOOL);
+    case PrusaToolChanger::BumpError::unsafe_move:
+        fatal_error("Homing failed.", "PrusaToolChanger");
+    }
 }
 
 void PrusaToolChanger::persist_last_picked_tool(std::variant<PhysicalToolIndex, NoTool> tool, bool override_always) {

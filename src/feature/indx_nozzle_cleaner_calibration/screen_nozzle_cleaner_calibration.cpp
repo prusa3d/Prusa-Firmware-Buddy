@@ -15,16 +15,18 @@
 #include <img_resources.hpp>
 #include <string_view_utf8.hpp>
 #include <gui/auto_layout.hpp>
+#include <array>
+#include <cstdio>
 
 namespace {
 
 constexpr auto txt_title_intro = N_("Nozzle Cleaner Calibration");
-constexpr auto txt_intro = N_("The printer will guide you through calibrating the nozzle cleaner. You will need to manually position the head and adjust the height screw.");
+constexpr auto txt_intro = N_("The printer will guide you through calibrating the nozzle cleaner. You will need to adjust the height screw.");
 constexpr auto txt_wait_for_nozzle_cooldown = N_("Wait!\n\nThe nozzle is still cooling down.");
 constexpr auto txt_picking_tool = N_("Picking up tool");
 constexpr auto txt_homing = N_("Homing XY axes");
 constexpr auto txt_moving_away = N_("Lowering bed for clearance");
-// %c is the axis letter ('Y' or 'Z')
+// %c is the axis letter ('X', 'Y' or 'Z')
 constexpr auto txt_title_axis_alignment = N_("Nozzle %c-Axis Alignment");
 // Identical wording to dock_calibration's txt_lock_position; kept verbatim so both share one POT entry.
 constexpr auto txt_lock_position = N_("Motors are now locked.\n\nEnsure your hands are outside the printer enclosure.\n\nVerify the head is in the correct position, then press Continue to start measuring.");
@@ -33,9 +35,11 @@ constexpr auto txt_ask_position_x = N_("Now we will measure the X offset of the 
 constexpr auto txt_ask_position_y = N_("Move the nozzle precisely to the Y-axis calibration indent on the side of the nozzle cleaner bin.\n\nThen press Continue.");
 // %c is the axis letter ('X' or 'Y')
 constexpr auto txt_measuring = N_("Measuring %c position\n\nDo not touch the printer.");
-constexpr auto txt_success = N_("Nozzle cleaner position has been successfully calibrated and saved.");
+constexpr auto txt_success = N_("Nozzle cleaner calibrated.");
+constexpr auto txt_clean_nozzle = N_("The nozzle diameter was measured wider than expected.\n\nClean the nozzle, then press Retry.");
 
-constexpr auto txt_evaluating_failed = N_("Calibration failed.\n\nNominal: %.1f mm (+/- %hu mm)\n\nMeasured offset: %.2f mm");
+// %s is the measured offset, formatted as "<value> mm" or "N/A" when the nozzle never made contact.
+constexpr auto txt_evaluating_failed = N_("Calibration failed.\n\nNominal: %.1f mm (+/- %hu mm)\n\nMeasured offset: %s\n\nCalibrate manually?");
 constexpr uint8_t max_offset_mm = 3;
 
 /// FrameWait variant where a single %c in the text is replaced by an axis letter.
@@ -83,7 +87,17 @@ public:
 
     void update(fsm::PhaseData data) {
         const auto eval_data = fsm::deserialize_data<indx_nozzle_cleaner_calibration::EvaluatingData>(data);
-        info.SetText(_(txt_evaluating_failed).formatted(params, static_cast<double>(eval_data.nominal()), max_offset_mm, static_cast<double>(eval_data.offset())));
+
+        // The offset is absent when the nozzle never touched (probe did not trigger); show "N/A" instead
+        // of a misleading 0.00 mm. formatted() copies the parameter, so the local buffer may be temporary.
+        const auto offset = eval_data.offset();
+        std::array<char, 16> offset_str;
+        if (offset.has_value()) {
+            snprintf(offset_str.data(), offset_str.size(), "%.2f mm", static_cast<double>(*offset));
+        }
+        const char *offset_text = offset.has_value() ? offset_str.data() : "N/A";
+
+        info.SetText(_(txt_evaluating_failed).formatted(params, static_cast<double>(eval_data.nominal()), max_offset_mm, offset_text));
     }
 
 private:
@@ -110,6 +124,7 @@ using Frames = FrameDefinitionList<ScreenNozzleCleanerCalibration::FrameStorage,
     FrameDefinition<PhaseNozzleCleanerCalibration::lock_position_x, FrameTextPrompt, PhaseNozzleCleanerCalibration::lock_position_x, txt_lock_position>,
     FrameDefinition<PhaseNozzleCleanerCalibration::measuring_x, FrameWaitWithAxis, txt_measuring, 'X'>,
     FrameDefinition<PhaseNozzleCleanerCalibration::evaluating_x, FrameEvaluating, PhaseNozzleCleanerCalibration::evaluating_x, txt_evaluating_failed>,
+    FrameDefinition<PhaseNozzleCleanerCalibration::clean_nozzle, FrameTextPrompt, PhaseNozzleCleanerCalibration::clean_nozzle, txt_clean_nozzle>,
     FrameDefinition<PhaseNozzleCleanerCalibration::ask_position_y, FrameTitleTextImagePromptWithAxis, PhaseNozzleCleanerCalibration::ask_position_y, txt_title_axis_alignment, txt_ask_position_y, img_ask_position_y, 'Y'>,
     FrameDefinition<PhaseNozzleCleanerCalibration::lock_position_y, FrameTextPrompt, PhaseNozzleCleanerCalibration::lock_position_y, txt_lock_position>,
     FrameDefinition<PhaseNozzleCleanerCalibration::measuring_y, FrameWaitWithAxis, txt_measuring, 'Y'>,

@@ -12,6 +12,7 @@
 #include "pressure_advance_config.hpp"
 #include "../precise_stepping/fwdecl.hpp"
 #include "../../core/types.h"
+#include "../../core/time_ticks.hpp"
 
 // #define PRESSURE_ADVANCE_SIMPLE_WINDOW_FILTER // Use one value filter instead of the Bartlett window.
 
@@ -39,9 +40,11 @@ typedef struct pressure_advance_window_filter_t {
 struct pressure_advance_params_t {
     float pressure_advance_value;
     float sampling_rate_float;
-    double sampling_rate;
-    double filter_total_time;
-    double filter_delay;
+    /// Sampling interval as whole microseconds (for fast integer division).
+    uint32_t sampling_rate_us;
+    TimeTicks sampling_rate;
+    TimeTicks filter_total_time;
+    TimeTicks filter_delay;
 
     pressure_advance_window_filter_t filter;
 };

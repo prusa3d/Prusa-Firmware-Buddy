@@ -2,6 +2,7 @@
 
 #include "display.hpp"
 #include <algorithm>
+#include <bsod/bsod.h>
 
 WindowProgressBarBase::WindowProgressBarBase(window_t *parent, Rect16 rect, Color fg_color, Color bg_color)
     : window_t { parent, rect }
@@ -66,12 +67,12 @@ void WindowRoundedProgressBar::unconditionalDraw() {
 WindowProgressCircles::WindowProgressCircles(window_t *parent, Rect16 rect, uint8_t max_circles_)
     : window_t(parent, rect)
     , max_circles(max_circles_) {
-    assert(max_circles > 0);
-    assert(rect.Width() >= (rect.Height() - 1) * max_circles);
+    debug_assert(max_circles > 0);
+    debug_assert(rect.Width() >= (rect.Height() - 1) * max_circles);
 }
 
 void WindowProgressCircles::unconditionalDraw() {
-    assert(!flags.has_round_corners); // Not implemented
+    debug_assert(!flags.has_round_corners); // Not implemented
 
     window_t::unconditionalDraw(); // draws background
 
@@ -132,7 +133,7 @@ void WindowProgressCircles::set_one_circle_mode(bool new_mode) {
 }
 
 void WindowProgressCircles::set_max_circles(uint8_t new_max_circles) {
-    assert(new_max_circles > 0);
+    debug_assert(new_max_circles > 0);
     max_circles = new_max_circles;
     Invalidate();
 }

@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: STM32 F072 Eval
+   url: https://www.st.com/en/evaluation-tools/stm32072b-eval.html
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -45,8 +50,7 @@
 #define BUTTON_STATE_ACTIVE   1
 
 // UART
-#define UART_DEV              USART2
-#define UART_CLK_EN           __HAL_RCC_USART2_CLK_ENABLE
+#define UART_ID               2
 #define UART_GPIO_PORT        GPIOD
 #define UART_GPIO_AF          GPIO_AF0_USART2
 #define UART_TX_PIN           GPIO_PIN_5

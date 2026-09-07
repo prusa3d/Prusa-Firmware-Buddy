@@ -1,0 +1,18 @@
+MCU_VARIANT = MCXN947
+MCU_FAMILY = MCXN
+MCU_CORE = MCXN947_cm33_core0
+PORT ?= 1
+
+CPU_CORE = cortex-m33
+CFLAGS += \
+	-DCPU_MCXN947VDF_cm33_core0 \
+	-DCFG_TUSB_MCU=OPT_MCU_MCXN9 \
+
+INC += \
+	$(TOP)/$(SDK_DIR)/$(MCU_FAMILY)/periph
+
+JLINK_DEVICE = MCXN947_M33_0
+PYOCD_TARGET = MCXN947
+
+# flash using pyocd
+flash: flash-jlink

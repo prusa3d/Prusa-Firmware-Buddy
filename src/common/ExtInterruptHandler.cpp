@@ -4,12 +4,13 @@
  * @author Marek Bel
  */
 
-#include "inc/MarlinConfig.h"
+#include "hwio_pindef.h"
 #include <logging/log.hpp>
 #include <type_traits>
 
 #include "power_panic.hpp"
-#if DISABLED(POWER_PANIC)
+#include <option/has_power_panic.h>
+#if !HAS_POWER_PANIC()
 namespace power_panic {
 std::atomic_bool ac_fault_triggered = false;
 

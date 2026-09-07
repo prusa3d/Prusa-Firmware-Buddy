@@ -4,16 +4,21 @@
 #include "marlin_client.hpp"
 #include "stdlib.h"
 #include "i18n.h"
-#include <utils/variant_utils.hpp>
 #include <filament_gui.hpp>
 #include <utils/string_builder.hpp>
+#include <utils/variant_utils.hpp>
 #include <gui/screen/filament/screen_filament_detail.hpp>
 #include <ScreenHandler.hpp>
 #include <gui/standard_frame/frame_prompt.hpp>
+#include <tool/physical_tool.hpp>
+#include <bsod/bsod.h>
+#include <client_response_texts.hpp>
+#include <feature/compatibility_checks/filament_compatibility.hpp>
 
 #if HAS_ANFC()
     #include <feature/openprinttag/tool_tag.hpp>
     #include <screen/openprinttag/screen_opt_filament_detail.hpp>
+    #include <gui/standard_frame/frame_opt_prompt.hpp>
     #include <feature/openprinttag/requests_read_multi.hpp>
 #endif
 
@@ -26,23 +31,25 @@ class WindowMenuPreheat;
 // extra space at the end is intended
 class MI_FILAMENT : public WiInfo<sizeof("999/999 ")> {
 public:
-    MI_FILAMENT(FilamentType filament_type, PreheatToolIndex target_extruder);
+    MI_FILAMENT(FilamentType filament_type, PreheatToolIndex target_extruder, PreheatMode mode);
     void click(IWindowMenu &) final;
 
     const FilamentType filament_type;
     const PreheatToolIndex tool;
+    const PreheatMode mode;
     FilamentTypeParameters::Name filament_name;
 };
 
 #if HAS_ANFC()
 class MI_FROM_OPENPRINTTAG : public IWindowMenuItem {
 public:
-    MI_FROM_OPENPRINTTAG(VirtualToolIndex tool);
+    MI_FROM_OPENPRINTTAG(VirtualToolIndex tool, PreheatMode mode);
 
     void click(IWindowMenu &) final;
     void Loop() final;
 
     const VirtualToolIndex tool_;
+    const PreheatMode mode_;
 };
 
 #endif
@@ -96,18 +103,27 @@ private:
 
     /// Extruder we're doing the load/preheat for
     PreheatToolIndex tool = AllTools {};
+    PreheatMode mode = PreheatMode::preheat;
 };
 
 // * MI_FILAMENT
-MI_FILAMENT::MI_FILAMENT(FilamentType filament_type, PreheatToolIndex tool)
+MI_FILAMENT::MI_FILAMENT(FilamentType filament_type, PreheatToolIndex tool, PreheatMode mode)
     : WiInfo({}, nullptr, is_enabled_t::yes, is_hidden_t::no)
     , filament_type(filament_type)
-    , tool(tool) //
+    , tool(tool)
+    , mode(mode) //
 {
     const auto filament_params = filament_type.parameters();
     filament_name = filament_params.name;
 
-    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this);
+    buddy::filament_compatibility::CompatibilityReport compat_report;
+    const buddy::filament_compatibility::CompatibilityReportGenerateArgs compat_args {
+        .filament = filament_params,
+        .tools = stdext::to_variant(tool),
+        .assume_filament_already_inserted = preheat_mode_assume_filament_already_inserted(mode),
+    };
+    compat_report.generate_noclear(compat_args);
+    FilamentTypeGUI::setup_menu_item(filament_type, filament_name, *this, compat_report.compatibility_level());
 
     ArrayStringBuilder<GetInfoLen()> sb;
     sb.append_printf("%3u/%-3u", filament_params.nozzle_temperature, filament_params.heatbed_temperature);
@@ -115,14 +131,15 @@ MI_FILAMENT::MI_FILAMENT(FilamentType filament_type, PreheatToolIndex tool)
 }
 
 void MI_FILAMENT::click(IWindowMenu &) {
-    ScreenPreheat::handle_filament_selection(filament_type, tool);
+    ScreenPreheat::handle_filament_selection(filament_type, tool, mode);
 }
 
 #if HAS_ANFC()
 // * MI_FROM_OPENPRINTTAG
-MI_FROM_OPENPRINTTAG::MI_FROM_OPENPRINTTAG(VirtualToolIndex tool)
-    : IWindowMenuItem(_("Scan OpenPrintTag"))
-    , tool_(tool) {
+MI_FROM_OPENPRINTTAG::MI_FROM_OPENPRINTTAG(VirtualToolIndex tool, PreheatMode mode)
+    : IWindowMenuItem(_("Data From OpenPrintTag"), &img::openprinttag_white_16x16)
+    , tool_(tool)
+    , mode_(mode) {
 }
 
 void MI_FROM_OPENPRINTTAG::click(IWindowMenu &) {
@@ -132,7 +149,7 @@ void MI_FROM_OPENPRINTTAG::click(IWindowMenu &) {
         return;
     }
 
-    Screens::Access()->Open(buddy::openprinttag::screen_openprinttag_preheat_mode_creator(*tag));
+    Screens::Access()->Open(buddy::openprinttag::screen_openprinttag_preheat_mode_creator(*tag, mode_));
 }
 
 void MI_FROM_OPENPRINTTAG::Loop() {
@@ -148,6 +165,7 @@ WindowMenuPreheat::WindowMenuPreheat(window_t *parent, const Rect16 &rect)
 
 void WindowMenuPreheat::set_data(const PreheatData &data) {
     tool = data.tool;
+    mode = data.mode;
 
     index_mapping.set_item_enabled<Item::return_>(data.has_return_option);
     index_mapping.set_item_enabled<Item::cooldown>(data.has_cooldown_option);
@@ -173,11 +191,18 @@ void WindowMenuPreheat::set_show_all_filaments(bool set) {
 }
 
 void WindowMenuPreheat::update_list() {
-    const GenerateFilamentListConfig config {
+    // In default view, filter out filaments incompatible with the installed hotend.
+    // In "Show All" view, keep them but they'll be visually marked as incompatible.
+    GenerateFilamentListConfig config {
         .visible_only = !show_all_filaments_,
         .visible_first = true,
+        // compatible_with_tool defaults to NoTool (no filter) — used for the "Show All" view.
     };
+    if (!show_all_filaments_) {
+        config.compatible_with_tool = stdext::to_variant(tool);
+    }
     generate_filament_list(filament_list, config);
+
     index_mapping.set_section_size<Item::filament_section>(filament_list.size());
     index_mapping.set_item_enabled<Item::show_all>(!show_all_filaments_);
     setup_items();
@@ -206,7 +231,7 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
 
 #if HAS_ANFC()
     case Item::from_openprinttag:
-        variant.emplace<MI_FROM_OPENPRINTTAG>(std::get<VirtualToolIndex>(tool));
+        variant.emplace<MI_FROM_OPENPRINTTAG>(std::get<VirtualToolIndex>(tool), mode);
         break;
 #endif
 
@@ -227,13 +252,21 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
     }
 
     case Item::filament_section:
-        variant.emplace<MI_FILAMENT>(filament_list[mapping.pos_in_section], tool);
+        variant.emplace<MI_FILAMENT>(filament_list[mapping.pos_in_section], tool, mode);
         break;
 
     case Item::adhoc_filament: {
         const auto callback = [this] {
+#if HAS_ANFC()
+            FilamentType { PendingAdHocFilamentType {} }.modify_parameters([](FilamentTypeParameters &p) {
+                // Clear OPT link that might have been left over in the data
+                p.openprinttag_uid_hash = buddy::openprinttag::ToolTag::no_tag_hash;
+            });
+#endif
+
             const ScreenFilamentDetail::PreheatModeParams params {
                 .tool = tool,
+                .mode = mode,
             };
             Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenFilamentDetail>(params));
         };
@@ -280,12 +313,15 @@ static_assert(common_frames::is_update_callable<FrameFilamentSelection>);
 
 #if HAS_ANFC()
 // Note: we need the window_t so that we can hook to the loop event
-class FrameAskLoadOpenPrintTag : public FramePrompt {
+class FrameAskLoadOpenPrintTag : public buddy::openprinttag::FrameOPTPrompt {
 
 public:
     FrameAskLoadOpenPrintTag(window_frame_t *parent)
-        : FramePrompt(parent, PhasesPreheat::ask_load_openprinttag, _("Load from OpenPrintTag?"), string_view_utf8 {}) {
-        update_info_text();
+        : FrameOPTPrompt(parent, _("Load from OpenPrintTag?")) {
+
+        setup_radio(ClientResponses::get_available_responses(PhasesPreheat::ask_load_openprinttag), [](Response r) {
+            marlin_client::FSM_response(PhasesPreheat::ask_load_openprinttag, r);
+        });
     }
 
     void update(const fsm::PhaseData &data) {
@@ -297,49 +333,8 @@ public:
         }
 
         const auto tag = buddy::openprinttag::ToolTag::for_tool_ephemeral(*tool);
-
-        if (!tag) {
-            return;
-        }
-
-        opt_req_.emplace(*tag);
-        opt_req_->issue();
-        info_updated_ = false;
+        setup_tag(tag, [] {});
     }
-
-    void loop() {
-        if (!info_updated_ && opt_req_.has_value() && opt_req_->finished()) {
-            update_info_text();
-            info_updated_ = true;
-        }
-    }
-
-private:
-    void update_info_text() {
-        std::string_view brand = "...";
-        std::string_view material;
-
-        if (opt_req_.has_value() && opt_req_->finished()) {
-            brand = {};
-
-            if (auto r = opt_req_->result<openprinttag::MainField::brand_name>()) {
-                brand = *r;
-            }
-            if (auto r = opt_req_->result<openprinttag::MainField::material_name>()) {
-                material = *r;
-            }
-        }
-
-        info.SetText(_("Load parameters from OpenPrintTag?\n\nMaterial: %.*s %.*s").formatted(text_params_, brand, material));
-
-        // Force invalidation, because the ref is the same
-        info.Invalidate();
-    }
-
-private:
-    std::optional<buddy::openprinttag::MultiReadFieldRequest<openprinttag::MainField::material_name, openprinttag::MainField::brand_name>> opt_req_;
-    StringViewUtf8Parameters<64> text_params_;
-    bool info_updated_ = false;
 };
 static_assert(common_frames::is_update_callable<FrameAskLoadOpenPrintTag>);
 
@@ -350,7 +345,7 @@ struct FrameOPTParameters {
         const auto d = PreheatData::deserialize(data);
 
         if (const auto tag = buddy::openprinttag::ToolTag::for_tool_ephemeral(std::get<VirtualToolIndex>(d.tool))) {
-            Screens::Access()->Open(screen_openprinttag_preheat_mode_creator(*tag));
+            Screens::Access()->Open(screen_openprinttag_preheat_mode_creator(*tag, d.mode));
         }
 
         // Switch to a different phase to prevent the screen reopening again after it closes
@@ -382,14 +377,16 @@ ScreenPreheat::~ScreenPreheat() {
     destroy_frame();
 }
 
-bool ScreenPreheat::handle_filament_selection(FilamentType filament_type, PreheatData::ToolIndex tool) {
-    const auto filament = filament_type.parameters();
-
-    if (filament.is_abrasive && std::holds_alternative<VirtualToolIndex>(tool) && !config_store().get_nozzle_is_hardened(std::get<VirtualToolIndex>(tool).to_physical())) {
-        StringViewUtf8Parameters<filament_name_buffer_size + 1> params;
-        if (MsgBoxWarning(_("Filament '%s' is abrasive, but you don't have a hardened nozzle installed. Do you really want to continue?").formatted(params, filament.name.data()), Responses_YesNo) != Response::Yes) {
-            return false;
-        }
+bool ScreenPreheat::handle_filament_selection(FilamentType filament_type, PreheatData::ToolIndex tool, PreheatMode mode) {
+    const buddy::filament_compatibility::CompatibilityReportGenerateArgs compat_args {
+        .filament = filament_type.parameters(),
+        .tools = stdext::to_variant(tool),
+        .assume_filament_already_inserted = preheat_mode_assume_filament_already_inserted(mode)
+    };
+    buddy::filament_compatibility::CompatibilityReport compat;
+    compat.generate_noclear(compat_args);
+    if (!compat.gui_confirm_all_incompatibilities(Response::Cancel)) {
+        return false;
     }
 
     marlin_client::FSM_response_variant(PhasesPreheat::user_temp_selection, FSMResponseVariant::make<FilamentType>(filament_type));
@@ -397,12 +394,6 @@ bool ScreenPreheat::handle_filament_selection(FilamentType filament_type, Prehea
 }
 
 void ScreenPreheat::screenEvent(window_t *sender, GUI_event_t event, void *param) {
-#if HAS_ANFC()
-    if (event == GUI_event_t::LOOP && get_phase() == PhasesPreheat::ask_load_openprinttag) {
-        frame_storage.as<FrameAskLoadOpenPrintTag>()->loop();
-    }
-#endif
-
     ScreenFSM::screenEvent(sender, event, param);
 }
 

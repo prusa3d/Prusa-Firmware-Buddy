@@ -128,7 +128,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
 static constexpr HeaterConfig_t Config_HeaterBed = {
     .partname = "Bed",
     .type = heater_type_t::Bed,
-    .getTemp = []() { return thermalManager.temp_bed.celsius; },
+    .getTemp = []() -> Hotend::OptionalTemperature { return thermalManager.temp_bed.celsius; },
     .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
     .get_pid = []() { return Temperature::temp_bed.pid; },
     .set_pid = [](const PID_t &pid) { Temperature::temp_bed.pid = pid; },
@@ -148,6 +148,17 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heater_full_load_max_W = 220,
     .min_pwm_to_measure = 26,
 };
+
+#if HAS_HEATERS_SELFTEST_GCODE()
+namespace selftest {
+HeaterConfig_t nozzle_heater_config() {
+    return Config_HeaterNozzle[0];
+}
+HeaterConfig_t bed_heater_config() {
+    return Config_HeaterBed;
+}
+} // namespace selftest
+#endif
 
 static constexpr LoadcellConfig_t Config_Loadcell[] = { {
     .partname = "Loadcell",

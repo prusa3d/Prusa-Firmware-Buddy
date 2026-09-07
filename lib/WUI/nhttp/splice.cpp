@@ -3,6 +3,7 @@
 
 #include <transfers/files.hpp>
 #include <transfers/partial_file.hpp>
+#include <bsod/bsod.h>
 
 using std::get;
 using std::holds_alternative;
@@ -27,15 +28,15 @@ tuple<size_t, Result> Transfer::write(const uint8_t *in, size_t in_size) {
         result = Result::CantWrite;
         return make_tuple(0, Result::CantWrite);
     }
-    assert(std::holds_alternative<PartialFile::BufferAndSizes>(buff));
+    debug_assert(std::holds_alternative<PartialFile::BufferAndSizes>(buff));
     const auto buffer = get<PartialFile::BufferAndSizes>(buff);
     uint8_t *out = buffer.buffer + buffer.offset;
     const size_t out_size = buffer.size - buffer.offset;
 
     // Perform a write/transformation of the data into the out buffer
     const auto [in_used, out_used] = write(in, in_size, out, out_size);
-    assert(in_used <= in_size);
-    assert(out_used <= out_size);
+    debug_assert(in_used <= in_size);
+    debug_assert(out_used <= out_size);
 
     if (!f->advance_written(out_used)) {
         result = Result::CantWrite;
@@ -51,7 +52,7 @@ void Transfer::release() {
 }
 
 const char *Transfer::filepath() {
-    assert(monitor_slot.has_value());
+    debug_assert(monitor_slot.has_value());
     return monitor_slot->filepath();
 }
 

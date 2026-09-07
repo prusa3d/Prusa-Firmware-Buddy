@@ -79,6 +79,7 @@ Stepper stepper; // Singleton
 #include "planner.h"
 #include <feature/precise_stepping/precise_stepping.hpp>
 #include <timing_precise.hpp>
+#include <bsod/bsod.h>
 
 // public:
 
@@ -187,7 +188,7 @@ float Stepper::segment_progress() {
 }
 
 bool Stepper::is_axis_inverted(AxisEnum axis) {
-    assert(PreciseStepping::inverted_dirs_set);
+    debug_assert(PreciseStepping::inverted_dirs_set);
     return !(PreciseStepping::inverted_dirs & (STEP_EVENT_FLAG_X_DIR << axis));
 }
 
@@ -509,7 +510,7 @@ void Stepper::report_positions() {
 // No other ISR should ever interrupt this!
 void Stepper::babystep(const AxisEnum axis, const bool direction) {
     buddy::InterruptDisabler _;
-    assert(!phase_stepping::is_enabled(axis));
+    debug_assert(!phase_stepping::is_enabled(axis));
 
     switch (axis) {
 

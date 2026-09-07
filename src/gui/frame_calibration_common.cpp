@@ -1,6 +1,8 @@
 /// @file
 #include <gui/frame_calibration_common.hpp>
 
+namespace standard_frame_without_radio {
+
 FrameInstructions::FrameInstructions(window_t *parent, const string_view_utf8 &txt)
     : text(parent, rect_frame, is_multiline::yes, is_closed_on_click_t::no, txt) {
 }
@@ -54,3 +56,5 @@ FrameAttachToBed::FrameAttachToBed(window_t *parent)
     } {}
 
 #endif
+
+} // namespace standard_frame_without_radio

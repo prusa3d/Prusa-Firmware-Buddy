@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: STM32 F072 Discovery
+   url: https://www.st.com/en/evaluation-tools/32f072bdiscovery.html
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -42,8 +47,7 @@
 #define BUTTON_STATE_ACTIVE   1
 
 // UART
-#define UART_DEV              USART1
-#define UART_CLK_EN           __HAL_RCC_USART1_CLK_ENABLE
+#define UART_ID               1
 #define UART_GPIO_PORT        GPIOA
 #define UART_GPIO_AF          GPIO_AF1_USART1
 #define UART_TX_PIN           GPIO_PIN_9

@@ -43,13 +43,13 @@ std::string AppendCRC(const std::string_view src) {
     uint8_t rqValue = std::stoul(src.data() + 1, &charsRead, 16);
     crc = modules::crc::CRC8::CCITT_updateCX(crc, rqValue);
     crc = modules::crc::CRC8::CCITT_updateW(crc, 0);
-    if (!src[1 + charsRead]) {
+    if (1 + charsRead >= src.size() || !src[1 + charsRead]) {
         return AppendCRC(src, crc); // eof
     }
     // [2] is a space
     REQUIRE(src.size() > 2 + charsRead);
     crc = modules::crc::CRC8::CCITT_updateCX(crc, src[2 + charsRead]); // param code
-    if (!src[3 + charsRead]) {
+    if (3 + charsRead >= src.size() || !src[3 + charsRead]) {
         crc = modules::crc::CRC8::CCITT_updateW(crc, 0);
         return AppendCRC(src, crc); // eof
     }

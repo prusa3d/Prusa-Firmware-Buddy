@@ -27,6 +27,9 @@ constexpr std::optional<ErrCode> map_print_preview_phase_to_error_code(const FSM
     case PhasesPrintPreview::gcode_incompatible_warning:
     case PhasesPrintPreview::gcode_incompatible_fatal:
         return ErrCode::CONNECT_PRINT_PREVIEW_WRONG_PRINTER;
+    case PhasesPrintPreview::filament_incompatible_warning:
+    case PhasesPrintPreview::filament_incompatible_fatal:
+        return ErrCode::CONNECT_FILAMENT_INCOMPATIBLE;
     case PhasesPrintPreview::wrong_filament:
         return ErrCode::CONNECT_PRINT_PREVIEW_WRONG_FILAMENT;
     case PhasesPrintPreview::new_firmware_available:
@@ -39,6 +42,8 @@ constexpr std::optional<ErrCode> map_print_preview_phase_to_error_code(const FSM
     case PhasesPrintPreview::wastebin_overfill_warning:
         // Reported to Connect via its own error code (the on-printer dialog uses the GUI frame text).
         return ErrCode::CONNECT_NOZZLE_CLEANER_MAY_OVERFILL;
+    case PhasesPrintPreview::wastebin_emptying:
+    case PhasesPrintPreview::wastebin_emptied_returning:
 #endif
     case PhasesPrintPreview::loading:
     case PhasesPrintPreview::main_dialog:

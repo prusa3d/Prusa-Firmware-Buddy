@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <guiconfig/guiconfig.h>
 #include <span>
+#include <bsod/bsod.h>
 
 size_t description_line_t::title_width(const string_view_utf8 &title_str) {
     return title_str.computeNumUtf8Chars() * width(Font::small);
@@ -14,7 +15,7 @@ size_t description_line_t::value_width(const string_view_utf8 &title_str) {
 #if HAS_LARGE_DISPLAY()
     return GuiDefaults::PreviewThumbnailRect.Width() - title_width(title_str);
 #endif
-    assert(false);
+    debug_assert(false);
     return 0;
 }
 description_line_t::description_line_t(window_frame_t *frame)

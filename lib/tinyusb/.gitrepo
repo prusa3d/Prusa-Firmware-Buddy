@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:hathach/tinyusb.git
 	branch = master
-	commit = dd588222c7a83ad2597d961dd576774aec884480
-	parent = 14cd374c21ec2770ba9c840c0db4788c8e162618
+	commit = 52035e2fa3174e85f9c43afdba05097519ae6ea9
+	parent = ee4a93a1a5ad432224dc3025e4e83f75b1c1274e
 	method = merge
-	cmdver = 0.4.6
+	cmdver = 0.4.9

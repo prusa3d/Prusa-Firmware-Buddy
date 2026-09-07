@@ -13,6 +13,7 @@
 #include <mbedtls/base64.h>
 #include <mbedtls/sha1.h>
 #include <cstring>
+#include <bsod/bsod.h>
 
 using std::array;
 using std::monostate;
@@ -27,7 +28,7 @@ WebSocket::WebSocket(Connection *conn, const uint8_t *data, size_t len)
     : connection(conn, data, len) {}
 
 WebSocket WebSocket::from_response(const Response &response) {
-    assert(response.status == Status::SwitchingProtocols);
+    debug_assert(response.status == Status::SwitchingProtocols);
 
     return WebSocket(response.conn, response.body_leftover.data(), response.leftover_size);
 }
@@ -42,9 +43,9 @@ optional<Error> WebSocket::send(Opcode opcode, bool last, uint8_t *data, size_t 
     // Variable-length encoding of size.
     if (size >= 126) {
         // Note that the protocol also supports frames larger than this. We currently don't, as we don't need it.
-        assert(size <= 0xFFFF);
+        debug_assert(size <= 0xFFFF);
         // Others not allowed by the protocol to be larger
-        assert(opcode == Opcode::Text || opcode == Opcode::Binary || opcode == Opcode::Continuation);
+        debug_assert(opcode == Opcode::Text || opcode == Opcode::Binary || opcode == Opcode::Continuation);
         header[1] |= 126;
 
         uint16_t len = htons(size);
@@ -158,7 +159,7 @@ WebSocketKey::WebSocketKey() {
     memset(request, 0, sizeof request);
     int err = mbedtls_base64_encode(reinterpret_cast<uint8_t *>(request), sizeof request, &out_pos, key, sizeof key);
     (void)err;
-    assert(err == 0);
+    debug_assert(err == 0);
 
     compute_response();
 }
@@ -180,7 +181,7 @@ void WebSocketKey::compute_response() {
     size_t out_pos = 0;
     int err = mbedtls_base64_encode(reinterpret_cast<uint8_t *>(response), sizeof response, &out_pos, out, sizeof out);
     (void)err;
-    assert(err == 0);
+    debug_assert(err == 0);
 }
 
 bool WebSocketAccept::key_matched() const {

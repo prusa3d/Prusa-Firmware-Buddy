@@ -4,6 +4,7 @@
 #include <footer_def.hpp>
 #include <footer_eeprom.hpp>
 #include <config_store/defaults.hpp>
+#include <bsod/bsod.h>
 #if HAS_AUTO_RETRACT()
     #include <feature/auto_retract/auto_retract.hpp>
 #endif
@@ -133,7 +134,7 @@ namespace migrations {
             }
 
             EncodedFilamentType ft;
-            assert(header.len == sizeof(ft));
+            debug_assert(header.len == sizeof(ft));
             memcpy(&ft, buffer.data(), sizeof(ft));
             filament_types[ix] = ft;
         };

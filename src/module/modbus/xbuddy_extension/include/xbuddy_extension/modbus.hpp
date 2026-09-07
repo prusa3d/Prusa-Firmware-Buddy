@@ -2,6 +2,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <xbuddy_extension/shared_enums.hpp>
 
@@ -30,6 +31,16 @@ struct DigestRequest {
     bool operator==(const DigestRequest &) const = default;
 };
 
+/// The XL-CAN bridge has a single fan connector (the Modular Bed cooling fan)
+/// wired to the xBE "fan2" pins (PA7 PWM / PA9 tach), so it populates only
+/// this slot of the fan_pwm / fan_rpm arrays.
+///
+/// The fan1 and fan2 slots share one PWM line (TIM3_CH2), so the last write
+/// wins: the bridge applies fan_pwm[0] before fan_pwm[1], and the master
+/// leaves fan_pwm[0] at zero. Driving the fan from slot 0, or applying the
+/// slots in the other order, would silently zero it.
+static constexpr size_t XL_CAN_FAN_IDX = 1;
+
 /// MODBUS register file for reporting current status of xBuddyExtension to motherboard.
 struct Status {
     static constexpr uint16_t address = 0x8000;
@@ -47,6 +58,11 @@ struct Status {
     DigestRequest digest_request; ///< request to compute digest
 
     uint16_t log_message_sequence; ///< increments when new log message available
+
+    /// Fan 5 V power switch fault (boolean). XL-CAN bridge only, 0 on xBE
+    /// (the xBE fan rail has no dedicated switch). 1 = the TPS2041C reports
+    /// overcurrent/overtemperature on the fan rail.
+    uint16_t fan_power_fault;
 };
 
 /// MODBUS register file for setting desired config of xBuddyExtension from motherboard.
@@ -54,14 +70,21 @@ struct Config {
     static constexpr uint16_t address = 0x9000;
 
     std::array<uint16_t, fan_count> fan_pwm; /// PWM of the fan (0-255)
-    uint16_t w_led_pwm; /// white led strip intensity (0-255)
+
+    /// white led strip intensity (0-255)
+    /// DEAD on XL-CAN, the pin is used for something else
+    uint16_t w_led_pwm;
+
     uint16_t rgbw_led_r_pwm; /// RGBW led strip, red component (0-255)
     uint16_t rgbw_led_g_pwm; /// RGBW led strip, green component (0-255)
     uint16_t rgbw_led_b_pwm; /// RGBW led strip, blue component (0-255)
     uint16_t rgbw_led_w_pwm; /// RGBW led strip, white component (0-255)
     uint16_t usb_power; /// enable power for usb port (boolean)
     uint16_t mmu_power; /// enable power for MMU port (boolean)
-    uint16_t mmu_nreset; /// MMU port inverted reset pin value (boolean)
+
+    /// MMU port inverted reset pin value (boolean)
+    /// !!! DISCLAIMER: Used for other devices than just MMU (XLCAN -> ModularBed, INDX -> INDX_HEAD)
+    uint16_t mmu_nreset;
 
     /// Frequency of the white led PWM.
     ///
@@ -71,6 +94,7 @@ struct Config {
     /// Can be used to implement a "strobe"
     ///
     /// Warning: PWM timer shared with some fans.
+    /// DEAD on XL-CAN, the pin is used for something else
     uint16_t w_led_frequency;
 
     /// A value that's changing regularly, to signal to the device that the

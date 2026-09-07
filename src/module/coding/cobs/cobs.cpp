@@ -1,7 +1,9 @@
 #include <cobs/cobs.hpp>
+#include <bsod/bsod.h>
+#include <cstdint>
 namespace cobs {
 
-std::expected<size_t, CobsError> encode(std::span<const uint8_t> input, std::span<uint8_t> output) {
+std::expected<size_t, CobsError> encode(Bytes input, WritableBytes output) {
     // size of encoded empty message
     if (output.size() < 2) {
         return std::unexpected(CobsError::overflow);
@@ -26,13 +28,13 @@ std::expected<size_t, CobsError> encode(std::span<const uint8_t> input, std::spa
 
         // Input is zero or block completed, restart
         if (byte == DELIMITER || code == 0xff) {
-            *code_byte_ptr = code;
+            *code_byte_ptr = std::byte { code };
             code = 1; // reset code
             code_byte_ptr = out_ptr;
             out_ptr++;
         }
     }
-    *code_byte_ptr = code; // Write final code value
+    *code_byte_ptr = std::byte { code }; // Write final code value
 
     if (out_ptr >= output.end()) {
         return std::unexpected(CobsError::overflow);
@@ -43,13 +45,13 @@ std::expected<size_t, CobsError> encode(std::span<const uint8_t> input, std::spa
     return (out_ptr - output.begin());
 }
 
-CobsStreamEncoder::CobsStreamEncoder(std::span<uint8_t> input_buffer, std::span<uint8_t> encoded_buffer)
+CobsStreamEncoder::CobsStreamEncoder(WritableBytes input_buffer, WritableBytes encoded_buffer)
     : input_buffer(input_buffer)
     , encoded_buffer(encoded_buffer) {
     reset();
 }
 
-std::expected<void, CobsError> CobsStreamEncoder::add_bytes(std::span<const uint8_t> data) {
+std::expected<void, CobsError> CobsStreamEncoder::add_bytes(Bytes data) {
 
     if (state.write_position + data.size() > input_buffer.size()) {
         return std::unexpected(CobsError::overflow);
@@ -74,7 +76,7 @@ CobsStreamEncoder::EncodeResult CobsStreamEncoder::finalize() {
 }
 
 void CobsStreamEncoder::reset(OptionalBuffer new_input_buffer /* = std::nullopt */, OptionalBuffer new_encoded_buffer /* = std::nullopt */) {
-    assert(new_input_buffer.has_value() == new_encoded_buffer.has_value());
+    debug_assert(new_input_buffer.has_value() == new_encoded_buffer.has_value());
 
     state = {};
 
@@ -86,7 +88,7 @@ void CobsStreamEncoder::reset(OptionalBuffer new_input_buffer /* = std::nullopt 
     }
 }
 
-void CobsStreamDecoder::add_bytes(std::span<const uint8_t> data, FinishCallback finish_cb, ErrorCallback error_cb) {
+void CobsStreamDecoder::add_bytes(Bytes data, FinishCallback finish_cb, ErrorCallback error_cb) {
     for (auto byte : data) {
         add_byte(byte, finish_cb, error_cb);
         if (state.mode == Mode::error) {
@@ -95,7 +97,7 @@ void CobsStreamDecoder::add_bytes(std::span<const uint8_t> data, FinishCallback 
     }
 }
 
-void CobsStreamDecoder::add_byte(uint8_t byte, FinishCallback finish_cb, ErrorCallback error_cb) {
+void CobsStreamDecoder::add_byte(std::byte byte, FinishCallback finish_cb, ErrorCallback error_cb) {
     switch (state.mode) {
     case Mode::error:
         return;
@@ -110,10 +112,10 @@ void CobsStreamDecoder::add_byte(uint8_t byte, FinishCallback finish_cb, ErrorCa
 
         if (state.remaining_block_bytes == 0) {
             // Waiting for code byte - starting new block
-            state.remaining_block_bytes = byte;
-            state.code = byte;
+            state.remaining_block_bytes = std::to_integer<uint8_t>(byte);
+            state.code = std::to_integer<uint8_t>(byte);
 
-            if (state.code == DELIMITER) {
+            if (byte == DELIMITER) {
                 // A delimiter (0x00) is invalid if it appears where a code
                 // byte is expected, AND the previous code was 0xFF.
                 // This handles both:
@@ -134,7 +136,7 @@ void CobsStreamDecoder::add_byte(uint8_t byte, FinishCallback finish_cb, ErrorCa
             --state.remaining_block_bytes; // Start counting down
 
             // If we had a previous code that wasn't 0xFF, insert zero
-            if (state.previous_code != 0xFF && state.previous_code != DELIMITER) {
+            if (state.previous_code != 0xFF && state.previous_code != to_integer<uint8_t>(DELIMITER)) {
                 if (state.buffer_idx >= decoded_buffer.size()) {
                     error_handler(CobsError::overflow, error_cb);
                     return;

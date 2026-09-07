@@ -6,7 +6,7 @@
 #include <option/has_tool_crash_recovery.h>
 #include <option/has_tool_mapping.h>
 
-#include <cassert>
+#include <bsod/bsod.h>
 
 using namespace marlin_server;
 
@@ -140,7 +140,7 @@ bool JobCommand::pause_toggle() {
         marlin_client::print_resume();
         return true;
     default:
-        assert(0);
+        debug_assert(0);
         // Fall through
     case SimplePrintState::Idle:
     case SimplePrintState::Busy:

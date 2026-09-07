@@ -7,6 +7,7 @@
 #include <event/knob_event.hpp>
 
 #include <option/has_touch.h>
+#include <bsod/bsod.h>
 #if HAS_TOUCH()
     #include <hw/touchscreen/touchscreen.hpp>
 #endif
@@ -18,7 +19,7 @@ IWindowMenu::IWindowMenu(window_t *parent, Rect16 rect)
 }
 
 void IWindowMenu::set_scroll_offset(int set) {
-    assert(set >= 0 && set <= max_scroll_offset());
+    debug_assert(set >= 0 && set <= max_scroll_offset());
 
     if (scroll_offset_ == set) {
         return;
@@ -206,7 +207,7 @@ Rect16 IWindowMenu::slot_rect(int slot) const {
         Width(),
         item_height(),
     };
-    assert(GetRect().Contain(result));
+    debug_assert(GetRect().Contain(result));
     return result;
 }
 

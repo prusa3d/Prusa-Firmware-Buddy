@@ -40,6 +40,11 @@
     #include <fanctl.hpp>
 #endif
 
+#include <option/has_indx.h>
+#if HAS_INDX()
+    #include <feature/indx_head_leds/indx_head_leds.hpp>
+#endif
+
 extern osThreadId displayTaskHandle;
 
 using StatusLeds = neopixel::LedsSPI10M5Hz<4, GuiLedsWriter::write>;
@@ -169,6 +174,11 @@ void LEDManager::update() {
     side_leds.update();
     #endif // HAS_SIDE_LED_DRIVER
 #endif // HAS_SIDE_LEDS
+
+#if HAS_INDX()
+    // INDX head LEDs express the printer state (idle / busy / heating / warning).
+    indx_head_leds::update();
+#endif
 }
 
 void LEDManager::enter_power_panic() {

@@ -300,7 +300,7 @@ void XBuddyExtension::set_bed_leds_color(leds::ColorRGBW set) {
 }
 
 void XBuddyExtension::set_strobe(std::optional<uint16_t> freq) {
-    assert(freq != 0);
+    debug_assert(freq != 0);
 
     std::lock_guard _lg(mutex_);
     strobe_freq_ = freq;
@@ -366,7 +366,7 @@ void XBuddyExtension::set_white_led(uint32_t intensity) {
 }
 
 void XBuddyExtension::set_strobe(std::optional<uint16_t> freq) {
-    assert(freq != 0);
+    debug_assert(freq != 0);
     std::lock_guard guard(mutex_);
 
     if (freq) {

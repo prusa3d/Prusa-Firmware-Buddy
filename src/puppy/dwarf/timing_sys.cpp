@@ -5,6 +5,7 @@
 #include "stm32g0xx_hal.h"
 #include "device/peripherals.hpp"
 #include "buddy/priorities_config.h"
+#include <bsod/bsod.h>
 
 TIM_HandleTypeDef TimerSysHandle;
 
@@ -16,7 +17,7 @@ volatile uint32_t ticks_us_base = 0;
 
 /// This is called from HAL, to configure timebase timer on every clock change
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
-    assert(TickPriority == ISR_PRIORITY_TICK_TIMER);
+    debug_assert(TickPriority == ISR_PRIORITY_TICK_TIMER);
     RCC_ClkInitTypeDef clkconfig;
     uint32_t uwTimclock;
     uint32_t uwAPB1Prescaler;

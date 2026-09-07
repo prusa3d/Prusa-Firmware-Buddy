@@ -9,7 +9,7 @@
 #include <gui/menu_item/menu_item_select_menu.hpp>
 
 class MI_MMU_PRELOAD : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Preload to MMU");
+    static constexpr const char *const label = N_("Preload To MMU");
 
 public:
     MI_MMU_PRELOAD();
@@ -29,7 +29,7 @@ protected:
 };
 
 class MI_MMU_LOAD_TO_NOZZLE : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Load to Nozzle");
+    static constexpr const char *const label = N_("Load To Nozzle");
 
 public:
     MI_MMU_LOAD_TO_NOZZLE();
@@ -198,23 +198,6 @@ public:
         : MI_MMU_ISSUE_GCODE(label, "M709 X2", is_hidden_t::dev) {}
 };
 
-// The following homing modes are not yet supported in the MMU FW
-// class MI_MMU_HOME1 : public MI_MMU_ISSUE_GCODE {
-//    static constexpr const char *const label = N_("Force home Idler");
-
-// public:
-//     MI_MMU_HOME1()
-//         : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H1") {}
-// };
-
-// class MI_MMU_HOME2 : public MI_MMU_ISSUE_GCODE {
-//     static constexpr const char *const label = N_("Force home Selector");
-
-// public:
-//     MI_MMU_HOME2()
-//         : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H2") {}
-// };
-
 class MI_MMU_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("MMU Unit");
 
@@ -241,14 +224,14 @@ public:
 };
 
 class MI_MMU_LOAD_FAILS : public WI_INFO_t {
-    constexpr static const char *const label = N_("Load Fails in Print");
+    constexpr static const char *const label = N_("Load Fails In Print");
 
 public:
     MI_MMU_LOAD_FAILS();
 };
 
 class MI_MMU_INVOKE_MAINTENANCE : public IWindowMenuItem {
-    constexpr static const char *const label = N_("Invoke MMU maintenance");
+    constexpr static const char *const label = N_("Invoke MMU Maintenance");
 
 public:
     MI_MMU_INVOKE_MAINTENANCE();
@@ -265,7 +248,7 @@ public:
 };
 
 class MI_MMU_GENERAL_FAILS : public WI_INFO_t {
-    constexpr static const char *const label = N_("General Fails in Print");
+    constexpr static const char *const label = N_("General Fails In Print");
 
 public:
     MI_MMU_GENERAL_FAILS();

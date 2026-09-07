@@ -61,6 +61,7 @@
  * -` P` - Motor current profile (requires HAS_MOTOR_CURRENT_PROFILES). When present, other axis parameters are ignored.
  *   - `0` - Firmware defaults
  *   - `1` - Increased E current
+ *   - `2` - Decreased E current for flexible filaments
  *
  * With no parameters report driver currents.
  */

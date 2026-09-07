@@ -322,6 +322,7 @@ bool has_nfc_probably() {
     case PrinterModel::mk4:
     case PrinterModel::xl_dev_kit:
     case PrinterModel::xl:
+    case PrinterModel::xls:
         return false;
     case PrinterModel::_cnt:
         break;

@@ -1,0 +1,46 @@
+name: On Linux
+
+on:
+  push:
+    branches: [ develop, master ]
+  pull_request:
+    branches: [ develop, master ]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Ubuntu Latest with GCC 14"
+            compiler: gcc
+            compiler_ver: 14
+          - name: "Ubuntu Latests with Clang 18"
+            compiler: clang
+            compiler_ver: 18
+    steps:
+      - name: Prepare specific Clang version
+        if: ${{ matrix.config.compiler == 'clang' }}
+        run: |
+          sudo apt install clang-${{ matrix.config.compiler_ver}}
+          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-${{ matrix.config.compiler_ver}} 100
+          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang-${{ matrix.config.compiler_ver}} 100
+      - name: Prepare specific GCC version
+        if: ${{ matrix.config.compiler == 'gcc' }}
+        run: |
+          sudo apt install g++-${{ matrix.config.compiler_ver}}
+          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-${{ matrix.config.compiler_ver}} 100
+          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-${{ matrix.config.compiler_ver}} 100
+      - name: Installing GTest
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgmock-dev
+      - uses: actions/checkout@v3
+      - name: Configure
+        run: cmake -S . -B build -DBITSERY_BUILD_TESTS=ON -DBITSERY_BUILD_EXAMPLES=ON
+      - name: Build
+        run: cmake --build build
+      - name: Run tests
+        run: ctest --test-dir build

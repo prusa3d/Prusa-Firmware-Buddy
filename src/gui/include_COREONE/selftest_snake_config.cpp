@@ -16,6 +16,7 @@
 #endif
 
 #include <option/has_xbuddy_extension.h>
+#include <bsod/bsod.h>
 #if HAS_XBUDDY_EXTENSION()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
 #endif
@@ -84,6 +85,8 @@ TestResult get_test_result(Action action, [[maybe_unused]] ToolMask tool) {
         return merge_hotends(tool, [&](const PhysicalToolIndex e) {
             return get_fsensor_calibration_result(e);
         });
+    case Action::BeltTuning:
+        return config_store().manual_belt_tuning_completed.get() ? TestResult::passed : TestResult::unknown;
     case Action::_count:
         break;
     }
@@ -96,6 +99,7 @@ uint64_t get_test_mask(Action action) {
     case Action::Gears:
     case Action::DoorSensor:
     case Action::FilamentSensorCalibration:
+    case Action::BeltTuning:
 #if HAS_PRECISE_HOMING_COREXY()
     case Action::PreciseHoming:
 #endif
@@ -107,7 +111,7 @@ uint64_t get_test_mask(Action action) {
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:
-        return stmHeaters;
+        bsod("This should be gcode");
     case Action::Loadcell:
         return stmLoadcell;
     case Action::ZAlign:
@@ -115,7 +119,7 @@ uint64_t get_test_mask(Action action) {
     case Action::_count:
         break;
     }
-    assert(false);
+    debug_assert(false);
     return stmNone;
 }
 

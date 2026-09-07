@@ -24,6 +24,10 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   manufacturer: NXP
+*/
+
 #include "fsl_device_registers.h"
 #include "fsl_gpio.h"
 #include "fsl_power.h"
@@ -33,33 +37,9 @@
 #include "bsp/board_api.h"
 #include "board.h"
 
-#ifdef BOARD_TUD_RHPORT
-  #define PORT_SUPPORT_DEVICE(_n)  (BOARD_TUD_RHPORT == _n)
-#else
-  #define PORT_SUPPORT_DEVICE(_n)  0
-#endif
-
-#ifdef BOARD_TUH_RHPORT
-  #define PORT_SUPPORT_HOST(_n)    (BOARD_TUH_RHPORT == _n)
-#else
-  #define PORT_SUPPORT_HOST(_n)    0
-#endif
-
 //--------------------------------------------------------------------+
 // MACRO TYPEDEF CONSTANT ENUM
 //--------------------------------------------------------------------+
-
-// IOCON pin mux
-#define IOCON_PIO_DIGITAL_EN     0x80u   // Enables digital function
-#define IOCON_PIO_FUNC0          0x00u
-#define IOCON_PIO_FUNC1          0x01u   // Selects pin function 1
-#define IOCON_PIO_FUNC7          0x07u   // Selects pin function 7
-#define IOCON_PIO_INPFILT_OFF    0x0100u // Input filter disabled
-#define IOCON_PIO_INV_DI         0x00u   // Input function is not inverted
-#define IOCON_PIO_MODE_INACT     0x00u   // No addition pin function
-#define IOCON_PIO_MODE_PULLUP    0x10u
-#define IOCON_PIO_OPENDRAIN_DI   0x00u   // Open drain is disabled
-#define IOCON_PIO_SLEW_STANDARD  0x00u   // Standard mode, output slew rate control is enabled
 
 // Digital pin function n enabled
 #define IOCON_PIO_DIG_FUNC0_EN   (IOCON_PIO_DIGITAL_EN | IOCON_PIO_INPFILT_OFF | IOCON_PIO_FUNC0)
@@ -71,11 +51,11 @@
 // Forward USB interrupt events to TinyUSB IRQ Handler
 //--------------------------------------------------------------------+
 void USB0_IRQHandler(void) {
-  tud_int_handler(0);
+  tusb_int_handler(0, true);
 }
 
 void USB1_IRQHandler(void) {
-  tud_int_handler(1);
+  tusb_int_handler(1, true);
 }
 
 /****************************************************************
@@ -88,8 +68,7 @@ settings:
 sources:
 - {id: SYSCON.fro_hf.outFreq, value: 96 MHz}
 ******************************************************************/
-void BootClockFROHF96M(void)
-{
+void BootClockFROHF96M(void) {
   /*!< Set up the clock sources */
   /*!< Set up FRO */
   POWER_DisablePD(kPDRUNCFG_PD_FRO_EN); /*!< Ensure FRO is on  */
@@ -110,18 +89,19 @@ void BootClockFROHF96M(void)
   SystemCoreClock = 96000000U;
 }
 
-void board_init(void)
-{
+void board_init(void) {
   // Enable IOCON clock
   CLOCK_EnableClock(kCLOCK_Iocon);
 
   // Init 96 MHz clock
   BootClockFROHF96M();
 
+#if CFG_TUSB_OS == OPT_OS_NONE
   // 1ms tick timer
   SysTick_Config(SystemCoreClock / 1000);
-
-#if CFG_TUSB_OS == OPT_OS_FREERTOS
+#elif CFG_TUSB_OS == OPT_OS_FREERTOS
+  // Explicitly disable systick to prevent its ISR from running before scheduler start
+  SysTick->CTRL &= ~1U;
   // If freeRTOS is used, IRQ priority is limit by max syscall ( smaller is higher )
   NVIC_SetPriority(USB0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 #endif
@@ -157,37 +137,71 @@ void board_init(void)
   USART_Init(UART_DEV, &uart_config, 12000000);
 #endif
 
-  // USB
-  IOCON_PinMuxSet(IOCON, USB0_VBUS_PINMUX);
-
 #if defined(FSL_FEATURE_SOC_USBHSD_COUNT) && FSL_FEATURE_SOC_USBHSD_COUNT
   // LPC546xx and LPC540xx has OTG 1 FS + 1 HS rhports
-  #if PORT_SUPPORT_DEVICE(0)
+  #if (CFG_TUD_ENABLED && BOARD_TUD_RHPORT == 0) || (CFG_TUH_ENABLED && BOARD_TUH_RHPORT == 0)
+    /* PORT0 PIN22 configured as USB0_VBUS */
+    IOCON_PinMuxSet(IOCON, USB0_VBUS_PINMUX);
+
     // Port0 is Full Speed
     POWER_DisablePD(kPDRUNCFG_PD_USB0_PHY); /*< Turn on USB Phy */
     CLOCK_SetClkDiv(kCLOCK_DivUsb0Clk, 1, false);
     CLOCK_AttachClk(kFRO_HF_to_USB0_CLK);
 
-    /*According to reference manual, device mode setting has to be set by access usb host register */
-    CLOCK_EnableClock(kCLOCK_Usbhsl0); /* enable usb0 host clock */
-    USBFSH->PORTMODE |= USBFSH_PORTMODE_DEV_ENABLE_MASK;
-    CLOCK_DisableClock(kCLOCK_Usbhsl0); /* disable usb0 host clock */
+    if (CFG_TUD_ENABLED && BOARD_TUD_RHPORT == 0) {
+      /*According to reference manual, device mode setting has to be set by access usb host register */
+      CLOCK_EnableClock(kCLOCK_Usbhsl0); /* enable usb0 host clock */
+      USBFSH->PORTMODE |= USBFSH_PORTMODE_DEV_ENABLE_MASK;
+      CLOCK_DisableClock(kCLOCK_Usbhsl0); /* disable usb0 host clock */
 
-    CLOCK_EnableUsbfs0DeviceClock(kCLOCK_UsbSrcFro, CLOCK_GetFroHfFreq());
+      CLOCK_EnableUsbfs0DeviceClock(kCLOCK_UsbSrcFro, CLOCK_GetFroHfFreq());
+    } else {
+    #ifdef USBFS_POWER_PORT
+      /* Configure USB0 Power Switch Pin */
+      IOCON_PinMuxSet(IOCON, USBFS_POWER_PORT, USBFS_POWER_PIN, IOCON_PIO_DIG_FUNC0_EN);
+
+      gpio_pin_config_t const power_pin_config = {kGPIO_DigitalOutput, USBFS_POWER_STATE_ON};
+      GPIO_PinInit(GPIO, USBFS_POWER_PORT, USBFS_POWER_PIN, &power_pin_config);
+    #endif
+      CLOCK_EnableUsbfs0HostClock(kCLOCK_UsbSrcFro, CLOCK_GetFroHfFreq());
+      USBFSH->PORTMODE &= ~USBFSH_PORTMODE_DEV_ENABLE_MASK;
+    }
   #endif
 
-  #if PORT_SUPPORT_DEVICE(1)
-    // Port1 is High Speed
-    POWER_DisablePD(kPDRUNCFG_PD_USB1_PHY);
+ #if (CFG_TUD_ENABLED && BOARD_TUD_RHPORT == 1) || (CFG_TUH_ENABLED && BOARD_TUH_RHPORT == 1)
+  // Port1 is High Speed
 
-    /*According to reference manual, device mode setting has to be set by access usb host register */
-    CLOCK_EnableClock(kCLOCK_Usbh1); /* enable usb1 host clock */
+  /* Turn on USB1 Phy */
+  POWER_DisablePD(kPDRUNCFG_PD_USB1_PHY);
+
+  /* reset the IP to make sure it's in reset state. */
+  RESET_PeripheralReset(kUSB1H_RST_SHIFT_RSTn);
+  RESET_PeripheralReset(kUSB1D_RST_SHIFT_RSTn);
+  RESET_PeripheralReset(kUSB1RAM_RST_SHIFT_RSTn);
+
+  if (CFG_TUD_ENABLED && BOARD_TUD_RHPORT == 1) {
+    /* According to reference manual, device mode setting has to be set by access usb host register */
+    CLOCK_EnableClock(kCLOCK_Usbh1); // enable usb0 host clock
+
+    USBHSH->PORTMODE = USBHSH_PORTMODE_SW_PDCOM_MASK; // Put PHY powerdown under software control
     USBHSH->PORTMODE |= USBHSH_PORTMODE_DEV_ENABLE_MASK;
-    CLOCK_DisableClock(kCLOCK_Usbh1); /* enable usb1 host clock */
 
+    CLOCK_DisableClock(kCLOCK_Usbh1); // disable usb0 host clock
+    /* enable USB Device clock */
     CLOCK_EnableUsbhs0DeviceClock(kCLOCK_UsbSrcUsbPll, 0U);
+  } else {
+  #ifdef USBHS_POWER_PORT
+    /* Configure USB1 Power Switch Pin */
+    IOCON_PinMuxSet(IOCON, USBHS_POWER_PORT, USBHS_POWER_PIN, IOCON_PIO_DIG_FUNC0_EN);
+
+    gpio_pin_config_t const power_pin_config = {kGPIO_DigitalOutput, USBHS_POWER_STATE_ON};
+    GPIO_PinInit(GPIO, USBHS_POWER_PORT, USBHS_POWER_PIN, &power_pin_config);
+  #endif
+    CLOCK_EnableUsbhs0HostClock(kCLOCK_UsbSrcUsbPll, 0U);
+  }
   #endif
 #else
+  IOCON_PinMuxSet(IOCON, USB0_VBUS_PINMUX);
   // LPC5411x series only has full speed device
   POWER_DisablePD(kPDRUNCFG_PD_USB0_PHY); // Turn on USB Phy
   CLOCK_EnableUsbfs0Clock(kCLOCK_UsbSrcFro, CLOCK_GetFreq(kCLOCK_FroHf)); /* enable USB IP clock */
@@ -198,38 +212,69 @@ void board_init(void)
 // Board porting API
 //--------------------------------------------------------------------+
 
-void board_led_write(bool state)
-{
-  GPIO_PinWrite(GPIO, LED_PORT, LED_PIN, state ? LED_STATE_ON : (1-LED_STATE_ON));
+void board_led_write(bool state) {
+  GPIO_PinWrite(GPIO, LED_PORT, LED_PIN, state ? LED_STATE_ON : (1 - LED_STATE_ON));
 }
 
-uint32_t board_button_read(void)
-{
+uint32_t board_button_read(void) {
   // active low
   return BUTTON_STATE_ACTIVE == GPIO_PinRead(GPIO, BUTTON_PORT, BUTTON_PIN);
 }
 
-int board_uart_read(uint8_t* buf, int len)
-{
-  (void) buf; (void) len;
-  return 0;
+int board_uart_read(uint8_t* buf, int len) {
+  (void) buf;
+  (void) len;
+  return -1;
 }
 
-int board_uart_write(void const * buf, int len)
-{
-  USART_WriteBlocking(UART_DEV, (uint8_t const *) buf, len);
-  return 0;
+int board_uart_write(void const* buf, int len) {
+#ifdef UART_DEV
+  const uint8_t *p = (const uint8_t *) buf;
+  int count = 0;
+  while (count < len) {
+    if (UART_DEV->FIFOSTAT & USART_FIFOSTAT_TXNOTFULL_MASK) {
+      UART_DEV->FIFOWR = p[count];
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
+#else
+  (void) buf;
+  (void) len;
+  return -1;
+#endif
 }
 
 #if CFG_TUSB_OS == OPT_OS_NONE
 volatile uint32_t system_ticks = 0;
-void SysTick_Handler(void)
-{
+
+void SysTick_Handler(void) {
   system_ticks++;
 }
 
-uint32_t board_millis(void)
-{
+uint32_t tusb_time_millis_api(void) {
   return system_ticks;
 }
+#endif
+
+
+#ifndef __ICCARM__
+// Implement _start() since we use linker flag '-nostartfiles'.
+// Requires defined __STARTUP_CLEAR_BSS,
+extern int main(void);
+TU_ATTR_UNUSED void _start(void) {
+  // called by startup code
+  main();
+  while (1) {}
+}
+
+#ifdef __clang__
+void	_exit (int __status) {
+  (void) __status;
+  while (1) {}
+}
+#endif
+
 #endif

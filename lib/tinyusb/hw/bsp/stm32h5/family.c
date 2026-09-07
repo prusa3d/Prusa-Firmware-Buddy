@@ -1,0 +1,267 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2019 Ha Thach (tinyusb.org)
+ * Copyright (c) 2023 HiFiPhile
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * This file is part of the TinyUSB stack.
+ */
+
+/* metadata:
+   manufacturer: STMicroelectronics
+*/
+
+// Suppress warning caused by mcu driver
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
+#endif
+
+#include "stm32h5xx_hal.h"
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
+#include "bsp/board_api.h"
+
+TU_ATTR_UNUSED static void Error_Handler(void) {
+}
+
+// STM32H5 errata: reading UID_BASE with ICACHE enabled causes hard fault.
+// Cache the unique ID early in board_init() before ICACHE may be enabled.
+static uint32_t cached_uid[3];
+
+typedef struct {
+  GPIO_TypeDef* port;
+  GPIO_InitTypeDef pin_init;
+  uint8_t active_state;
+} board_pindef_t;
+
+#include "board.h"
+
+#ifdef UART_ID
+  #if UART_ID == 1
+    #define USARTn            USART1
+    #define UARTn_CLK_ENABLE  __HAL_RCC_USART1_CLK_ENABLE
+  #elif UART_ID == 2
+    #define USARTn            USART2
+    #define UARTn_CLK_ENABLE  __HAL_RCC_USART2_CLK_ENABLE
+  #elif UART_ID == 3
+    #define USARTn            USART3
+    #define UARTn_CLK_ENABLE  __HAL_RCC_USART3_CLK_ENABLE
+  #endif
+#endif
+
+//--------------------------------------------------------------------+
+// Forward USB interrupt events to TinyUSB IRQ Handler
+//--------------------------------------------------------------------+
+void USB_DRD_FS_IRQHandler(void) {
+  tusb_int_handler(0, true);
+}
+
+//--------------------------------------------------------------------+
+// MACRO TYPEDEF CONSTANT ENUM
+//--------------------------------------------------------------------+
+#ifdef UART_ID
+static UART_HandleTypeDef UartHandle = {
+  .Instance = USARTn,
+  .Init = {
+    .BaudRate = CFG_BOARD_UART_BAUDRATE,
+    .WordLength = UART_WORDLENGTH_8B,
+    .StopBits = UART_STOPBITS_1,
+    .Parity = UART_PARITY_NONE,
+    .HwFlowCtl = UART_HWCONTROL_NONE,
+    .Mode = UART_MODE_TX_RX,
+    .OverSampling = UART_OVERSAMPLING_16,
+    .AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT
+  }
+};
+#endif
+
+void board_init(void) {
+  // Cache UID before ICACHE is enabled (STM32H5 errata: reading UID_BASE with ICACHE causes hard fault)
+  volatile uint32_t* stm32_uuid = (volatile uint32_t*) UID_BASE;
+  cached_uid[0] = stm32_uuid[0];
+  cached_uid[1] = stm32_uuid[1];
+  cached_uid[2] = stm32_uuid[2];
+
+  HAL_Init(); // required for HAL_RCC_Osc TODO check with freeRTOS
+  SystemClock_Config(); // implemented in board.h
+  SystemCoreClockUpdate();
+
+  // Enable All GPIOs clocks
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+
+  #ifdef __HAL_RCC_GPIOE_CLK_ENABLE
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  #endif
+  #ifdef __HAL_RCC_GPIOG_CLK_ENABLE
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  #endif
+  #ifdef __HAL_RCC_GPIOI_CLK_ENABLE
+  __HAL_RCC_GPIOI_CLK_ENABLE();
+  #endif
+
+  #if CFG_TUSB_OS == OPT_OS_NONE
+  // 1ms tick timer
+  SysTick_Config(SystemCoreClock / 1000);
+  #elif CFG_TUSB_OS == OPT_OS_FREERTOS
+  // Explicitly disable systick to prevent its ISR from running before scheduler start
+  SysTick->CTRL &= ~1U;
+
+  // If freeRTOS is used, IRQ priority is limit by max syscall ( smaller is higher )
+  NVIC_SetPriority(USB_DRD_FS_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+  #endif
+
+  for (uint8_t i = 0; i < TU_ARRAY_SIZE(board_pindef); i++) {
+    HAL_GPIO_Init(board_pindef[i].port, &board_pindef[i].pin_init);
+  }
+
+  #ifdef UART_ID
+  UARTn_CLK_ENABLE();
+  HAL_UART_Init(&UartHandle);
+  HAL_UARTEx_EnableFifoMode(&UartHandle);
+  #endif
+
+  // USB Pins TODO double check USB clock and pin setup
+  // Configure USB DM and DP pins. This is optional, and maintained only for user guidance.
+  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitStruct.Pin = (GPIO_PIN_11 | GPIO_PIN_12);
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* Peripheral clock enable */
+  __HAL_RCC_USB_CLK_ENABLE();
+
+  /* Enable VDDUSB */
+  #if defined (PWR_USBSCR_USB33DEN)
+  HAL_PWREx_EnableVddUSB();
+  #endif
+
+  board_init2();
+
+#if CFG_TUH_ENABLED
+  board_vbus_set(BOARD_TUH_RHPORT, 1);
+#endif
+}
+
+//--------------------------------------------------------------------+
+// Board porting API
+//--------------------------------------------------------------------+
+
+void board_led_write(bool state) {
+#ifdef PINID_LED
+  board_pindef_t* pindef = &board_pindef[PINID_LED];
+  GPIO_PinState pin_state = state == pindef->active_state ? GPIO_PIN_SET : GPIO_PIN_RESET;
+  HAL_GPIO_WritePin(pindef->port, pindef->pin_init.Pin, pin_state);
+#else
+  (void) state;
+#endif
+}
+
+uint32_t board_button_read(void) {
+#ifdef PINID_BUTTON
+  board_pindef_t* pindef = &board_pindef[PINID_BUTTON];
+  return pindef->active_state == HAL_GPIO_ReadPin(pindef->port, pindef->pin_init.Pin);
+#else
+  return 0;
+#endif
+}
+
+size_t board_get_unique_id(uint8_t id[], size_t max_len) {
+  (void) max_len;
+  uint32_t* id32 = (uint32_t*) (uintptr_t) id;
+  uint8_t const len = 12;
+
+  id32[0] = cached_uid[0];
+  id32[1] = cached_uid[1];
+  id32[2] = cached_uid[2];
+
+  return len;
+}
+
+int board_uart_read(uint8_t* buf, int len) {
+#ifdef UART_ID
+  int count = 0;
+  while (count < len) {
+    if (__HAL_UART_GET_FLAG(&UartHandle, UART_FLAG_RXNE)) {
+      buf[count] = (uint8_t) UartHandle.Instance->RDR;
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
+#else
+  (void) buf; (void) len;
+  return 0;
+#endif
+}
+
+int board_uart_write(void const* buf, int len) {
+#ifdef UART_ID
+  const uint8_t *p = (const uint8_t *) buf;
+  int count = 0;
+  while (count < len) {
+    if (__HAL_UART_GET_FLAG(&UartHandle, UART_FLAG_TXE)) {
+      UartHandle.Instance->TDR = p[count];
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
+#else
+  (void) buf; (void) len;
+  return -1;
+#endif
+}
+
+#if CFG_TUSB_OS == OPT_OS_NONE
+volatile uint32_t system_ticks = 0;
+
+void SysTick_Handler(void) {
+  system_ticks++;
+  HAL_IncTick();
+}
+
+uint32_t tusb_time_millis_api(void) {
+  return system_ticks;
+}
+
+#endif
+
+void HardFault_Handler(void) {
+  __asm("BKPT #0\n");
+}
+
+// Required by __libc_init_array in startup code if we are compiling using
+// -nostdlib/-nostartfiles.
+void _init(void) {
+
+}

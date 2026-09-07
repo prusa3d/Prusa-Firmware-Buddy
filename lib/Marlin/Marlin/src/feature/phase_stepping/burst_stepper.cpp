@@ -3,6 +3,7 @@
 #include <hwio.h>
 #include <array>
 #include <device/peripherals.hpp>
+#include <bsod/bsod.h>
 
 #if BOARD_IS_XLBUDDY()
     // TODO: include directly from src/hw as the cmake-based add_subdirectory
@@ -43,7 +44,7 @@ public:
     };
 
     void add_event(int idx, uint32_t event_mask) {
-        assert(idx < SIZE);
+        debug_assert(idx < SIZE);
         _buffer[idx] |= event_mask;
     }
 
@@ -143,7 +144,7 @@ void burst_stepping::init() {
 
 FORCE_OFAST void burst_stepping::set_phase_diff(AxisEnum axis, int diff) {
     // ensure we're called at most once per burst in order not to trash the sparse map
-    assert(!axis_was_set[axis]);
+    debug_assert(!axis_was_set[axis]);
 
     if (axis >= SUPPORTED_AXIS_COUNT) {
         bsod("Unsupported axis");
@@ -191,7 +192,7 @@ FORCE_OFAST static bool burst_dma_busy() {
 }
 
 FORCE_OFAST static void setup_and_fire_dma() {
-    assert(!burst_dma_busy());
+    debug_assert(!burst_dma_busy());
     BURST_DMA->CR = BURST_DMA->CR & (~DMA_SxCR_EN_Msk);
     BURST_DMA->NDTR = fire_buffer->max_event_count();
     BURST_DMA->PAR = reinterpret_cast<uint32_t>(&step_gpio_port->BSRR);

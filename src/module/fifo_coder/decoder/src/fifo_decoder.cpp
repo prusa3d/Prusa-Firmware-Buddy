@@ -1,6 +1,6 @@
 #include <fifo_coder/fifo_decoder.hpp>
 
-#include <cassert>
+#include <bsod/bsod.h>
 
 namespace fifo_coder {
 
@@ -8,7 +8,7 @@ Decoder::Decoder(std::span<uint16_t, MODBUS_FIFO_LEN> fifo, size_t len)
     : fifo(fifo)
     , data(reinterpret_cast<uint8_t *>(fifo.data()))
     , len(len * sizeof(uint16_t)) {
-    assert(len <= fifo.size() * sizeof(uint16_t));
+    debug_assert(len <= fifo.size() * sizeof(uint16_t));
 }
 
 void Decoder::decode(Callbacks &callbacks) {
@@ -33,7 +33,7 @@ void Decoder::decode(Callbacks &callbacks) {
             make_call(callbacks, &Callbacks::decode_accelerometer_freq);
             break;
         default:
-            assert(false);
+            debug_assert(false);
         }
     }
 }

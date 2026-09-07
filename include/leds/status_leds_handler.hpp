@@ -64,6 +64,8 @@ public:
 
     ColorRGBW get_color() const;
 
+    StateAnimation current_animation();
+
     bool get_active();
     void set_active(bool val);
 

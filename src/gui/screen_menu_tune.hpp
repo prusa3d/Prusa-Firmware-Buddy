@@ -14,16 +14,18 @@
 #include "MItem_mmu.hpp"
 #include <device/board.h>
 #include "config_features.h"
+#include <option/has_crash_detection.h>
 #include <option/has_emergency_stop.h>
 #include <option/has_chamber_api.h>
 #include <option/has_loadcell.h>
+#include <option/has_power_panic.h>
 #include <option/has_toolchanger.h>
-#include <option/developer_mode.h>
 #include <option/has_mmu2.h>
 #include <option/xbuddy_extension_variant.h>
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_indx.h>
 #include <option/has_wastebin_fill_tracking.h>
+#include <option/has_lights_menu.h>
 #include <device/board.h>
 #include <gui/screen/screen_m600.hpp>
 
@@ -50,32 +52,17 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_M600,
 #if HAS_WASTEBIN_FILL_TRACKING()
-    MI_NOZZLE_CLEANER_EMPTY_WASTEBIN,
-    MI_NOZZLE_CLEANER_AUTOPAUSE,
+    MI_WASTEBIN,
 #endif
+
 #if HAS_CANCEL_OBJECT()
     MI_CO_CANCEL_OBJECT,
 #endif
     MI_SPEED,
     MI_NOZZLE_TARGET_TEMP,
-#if HAS_TOOLCHANGER()
-    // Multi-tool: additional submenu to set target temp for all tools, not just the active one.
-    WithIcon<MenuItemVirtualSubmenu<N_("Nozzle Temperatures"), MI_NOZZLE_TARGET_TEMP, PhysicalToolIndex::count, PhysicalToolIndex::from_raw>,
-        &img::nozzle_16x16>,
-#endif
     MI_HEATBED,
-#if HAS_CHAMBER_API()
-    MI_CHAMBER_TARGET_TEMP,
-#endif
     MI_PRINTFAN,
-#if HAS_INDX()
-    MI_DOCKFAN,
-#endif
-#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
-    MI_XBUDDY_EXTENSION_COOLING_FANS,
-    MI_XBUDDY_EXTENSION_COOLING_FANS_CONTROL_MAX,
-    MI_XBE_FILTRATION_FAN,
-#endif
+    MI_TEMPERATURE_AND_FANS,
 #if HAS_CHAMBER_FILTRATION_API()
     MI_CHAMBER_FILTRATION,
 #endif
@@ -99,12 +86,6 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_ENCLOSURE,
 #endif
     MI_STEALTH_MODE,
-    MI_SOUND_MODE,
-#if HAS_ST7789_DISPLAY()
-    // We could potentionally have MINI display without buzzer.
-    // So we only allow sound control for ST7789
-    MI_SOUND_VOLUME,
-#endif
     MI_INPUT_SHAPER,
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,
@@ -115,23 +96,22 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_MMU_CUTTER,
     MI_MMU_INVOKE_MAINTENANCE,
 #endif // HAS_MMU2()
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     MI_CRASH_DETECTION,
     MI_CRASH_SENSITIVITY_XY,
-#endif // ENABLED(CRASH_RECOVERY)
-    MI_USER_INTERFACE, MI_NETWORK,
-#if (!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG) // Save space in MINI release
-    MI_HARDWARE_TUNE,
-#endif /*(!PRINTER_IS_PRUSA_MINI()) || defined(_DEBUG)*/
-    MI_TIMEZONE, MI_TIMEZONE_MIN, MI_TIMEZONE_SUMMER, MI_INFO,
-#if ENABLED(POWER_PANIC)
-    MI_TRIGGER_POWER_PANIC,
 #endif
-
-/* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future
-#if DEVELOPER_MODE()
-    // #error dead code found by automatic analyses (see BFW-5461)
-    MI_ERROR_TEST,
+    MI_USER_INTERFACE,
+#if HAS_LIGHTS_MENU()
+    MI_LIGHTS,
+#endif
+    MI_NETWORK,
+#if DEVELOPMENT_ITEMS()
+    MI_HARDWARE_TUNE,
+#endif
+    MI_LANG_AND_TIME,
+    MI_INFO,
+#if HAS_POWER_PANIC()
+    MI_TRIGGER_POWER_PANIC,
 #endif
     MI_MESSAGES>;
 

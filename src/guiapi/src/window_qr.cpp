@@ -2,6 +2,7 @@
 
 #include "display.hpp"
 #include "qrcodegen.h"
+#include <bsod/bsod.h>
 
 void draw_qr(const DrawQROptions &options) {
     /// Defines maximal size of QR code and buffers needed for generating. Keep it low.
@@ -20,7 +21,7 @@ void draw_qr(const DrawQROptions &options) {
     { // Create QR code
         /// Temporary buffer, 353 B using display buffer
         display::BorrowBuffer buffer;
-        assert(display::buffer_pixel_size() >= qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max));
+        debug_assert(display::buffer_pixel_size() >= qrcodegen_BUFFER_LEN_FOR_VERSION(qr_version_max));
         if (!qrcodegen_encodeText(options.data, buffer, qrcode, qrcodegen_Ecc_LOW, 1, qr_version_max, qrcodegen_Mask_AUTO, true)) {
             return;
         }

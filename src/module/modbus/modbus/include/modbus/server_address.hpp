@@ -15,6 +15,7 @@ enum class ServerAddress : uint8_t {
     mmu = 220,
     tool_offset_sensor = 223,
     xbuddy_extension = 0x1a + 7,
+    xl_can = 0x1a + 9,
 };
 
 }

@@ -3,8 +3,9 @@
 
 #include <nfcv/decode.hpp>
 #include <nfcv/encode.hpp>
+#include <utils/byte_utils.hpp>
 
-void test_decode(std::span<const std::byte> input, std::span<const std::byte> expected_output) {
+void test_decode(Bytes input, Bytes expected_output) {
     std::vector<std::byte> output;
     output.resize(input.size());
     std::span output_span { output.data(), output.size() };
@@ -136,7 +137,7 @@ TEST_CASE("Test NFC-V response deserialization - expected error response is erro
     REQUIRE(res.error() == nfcv::Error::response_is_error);
 }
 
-void test_encode(const nfcv::Command &command, std::span<const std::byte> expected_output) {
+void test_encode(const nfcv::Command &command, Bytes expected_output) {
     stdext::inplace_vector<std::byte, 512> msg_builder;
 
     const auto res = nfcv::construct_command(msg_builder, command);

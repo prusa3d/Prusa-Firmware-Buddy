@@ -5,6 +5,7 @@
 #include "device/board.h"
 #include "usbh_async_diskio.hpp"
 #include "usb_host.h"
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_DEF(USBHost, logging::Severity::info);
 

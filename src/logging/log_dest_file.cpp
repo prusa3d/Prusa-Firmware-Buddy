@@ -11,6 +11,7 @@
 #include <async_job/async_job.hpp>
 #include <sys/unistd.h>
 #include <freertos/timing.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(FileSystem);
 
@@ -110,7 +111,7 @@ static void file_log_write(AsyncJobExecutionControl &) {
 }
 
 static void flush_chunk() {
-    assert(data->wip_chunk.size <= data->wip_chunk.data.size());
+    debug_assert(data->wip_chunk.size <= data->wip_chunk.data.size());
 
     (void)data->buffer.enqueue(data->wip_chunk);
     data->wip_chunk.size = 0;

@@ -22,6 +22,8 @@
 
 #include "../../../inc/MarlinConfig.h"
 #include "config_store/store_instance.hpp"
+#include <option/has_crash_detection.h>
+#include <option/has_power_panic.h>
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -54,14 +56,19 @@
     #include "loadcell.hpp"
   #endif
 
+  #include <option/has_nozzle_cleaner_lite.h>
+  #if HAS_NOZZLE_CLEANER_LITE()
+    #include <feature/nozzle_cleaner_lite/include/nozzle_cleaner_lite.hpp>
+  #endif
+
   #if ENABLED(EXTENSIBLE_UI)
     #include "../../../lcd/extensible_ui/ui_api.h"
   #endif
 
-  #if ENABLED(CRASH_RECOVERY)
+  #if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
   #endif
-  #if ENABLED(POWER_PANIC)
+  #if HAS_POWER_PANIC()
     #include "power_panic.hpp"
   #endif
 
@@ -471,7 +478,7 @@
               SERIAL_ECHOLNPGM("Mesh invalidated. Probing mesh.");
             }
 
-            #if ENABLED(CRASH_RECOVERY)
+            #if HAS_CRASH_DETECTION()
               // we're going to move to an absolute position: inhibit XYZ repositioning
               crash_s.set_gcode_replay_flags(Crash_s::RECOVER_AXIS_STATE);
             #endif
@@ -570,11 +577,24 @@
 
         #if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
           case 9: {
+            #if HAS_CRASH_DETECTION()
+              // we're going to move to an absolute position: inhibit XYZ repositioning
+              crash_s.set_gcode_replay_flags(Crash_s::RECOVER_AXIS_STATE);
+            #endif
+            #if HAS_NOZZLE_CLEANER_LITE()
+              // The nozzle cleaner physically removes debris instead of just
+              // detecting it, and cleans at a fixed hardcoded location, so it
+              // doesn't need the X/Y/W/H rectangle the loadcell tap-based
+              // cleaning below scans.
+              if (nozzle_cleaner_lite::is_available()) {
+                // The start gcode set the probing temperature; clean at it and
+                // keep the cooled-down default target for the probing that follows.
+                ubl.g29_nozzle_cleaning_failed |= !nozzle_cleaner_lite::clean(
+                  { .cleaning_temp = thermalManager.degTargetHotend(active_extruder), .cooldown = true, .keep_target = true });
+                break;
+              }
+            #endif
             if (g29_size_seen && (xy_seen.x || xy_seen.y)) {
-              #if ENABLED(CRASH_RECOVERY)
-                // we're going to move to an absolute position: inhibit XYZ repositioning
-                crash_s.set_gcode_replay_flags(Crash_s::RECOVER_AXIS_STATE);
-              #endif
               ubl.g29_nozzle_cleaning_failed |= !cleanup_probe(g29_pos, g29_pos + g29_size);
             } else {
               SERIAL_ECHOLNPGM("G29 P9 requires X, Y, W and H arguments");
@@ -897,7 +917,7 @@
       set_bed_leveling_enabled(true);
       report_state();
 
-      #if ENABLED(POWER_PANIC)
+      #if HAS_POWER_PANIC()
       // prepare for PP only when successful
       if (!planner.draining())
         power_panic::prepare();
@@ -966,7 +986,7 @@
 
     bool found_a_NAN = false, found_a_real = false;
 
-    mesh_index_pair farthest { -1, -1, -99999.99f };
+    mesh_index_pair farthest { .pos { -1, -1 }, .distance = -99999.99f };
 
     for (int8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
       for (int8_t j = 0; j < GRID_MAX_POINTS_Y; j++) {
@@ -1025,7 +1045,7 @@
     closest.distance = -99999.9f;
 
     // Get the reference position, either nozzle or probe
-    const xy_pos_t ref = probe_relative ? pos + probe_offset : pos;
+    const xy_pos_t ref = probe_relative ? pos + probe_offset.xy() : pos;
 
     float best_so_far = 99999.99f;
 

@@ -2,6 +2,7 @@
 #include "hal_pub.hpp"
 
 #include <stm32h5xx_hal.h>
+#include <utils/byte_utils.hpp>
 
 // CAN FD configuration
 
@@ -251,7 +252,7 @@ void hal::pub::init() {
     enable_pin_set(true);
 }
 
-bool hal::pub::transmit(Identifier identifier, std::span<const std::byte> span) {
+bool hal::pub::transmit(Identifier identifier, Bytes span) {
     const FDCAN_TxHeaderTypeDef header {
         .Identifier = identifier,
         .IdType = FDCAN_EXTENDED_ID,

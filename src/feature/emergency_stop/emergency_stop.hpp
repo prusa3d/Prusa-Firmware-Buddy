@@ -23,6 +23,7 @@ private:
     // Init before the start_z is set, so the ISR can just read them, without
     // accessing the config storage.
     std::atomic<int32_t> allowed_steps;
+    std::atomic<int32_t> escalate_steps;
     std::atomic<int32_t> extra_emergency_steps;
 
     /// Make sure we call invoke_emergency just once in each emergency.

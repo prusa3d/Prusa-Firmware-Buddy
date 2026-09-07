@@ -9,6 +9,7 @@
 #include <tasks.hpp>
 #include <logging/log.hpp>
 #include <marlin_server.hpp>
+#include <option/has_crash_detection.h>
 #include <option/has_selftest.h>
 #include <option/has_mmu2.h>
 
@@ -22,20 +23,16 @@
 #include "str_utils.hpp"
 
 #include <option/has_gui.h>
+#include <bsod/bsod.h>
 #if HAS_GUI()
     #include <window_msgbox.hpp>
-#endif
-
-#if HAS_SELFTEST() && HAS_GUI()
-    #include <ScreenHandler.hpp>
-    #include "screen_menu_selftest_snake.hpp"
 #endif
 
 #if HAS_MMU2()
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
 #endif
 
@@ -223,7 +220,7 @@ void FilamentSensors::process_events() {
             return false;
         }
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
         if (crash_s.get_state() != Crash_s::PRINTING) {
             // Only allow runouts in print and outside of crash recovery
             return false;
@@ -239,29 +236,29 @@ void FilamentSensors::process_events() {
     };
 
     const auto check_autoload = [&]() {
-        const auto extruder_fs = sensor(LogicalFilamentSensor::extruder);
-        const auto side_fs = sensor(LogicalFilamentSensor::side);
+        const auto is_insert_event = [&](LogicalFilamentSensor s) {
+            const auto si = sensor(s);
+            return si && si->last_event() == IFSensor::Event::filament_inserted;
+        };
 
-        const bool extruder_fs_inserted = extruder_fs && extruder_fs->last_event() == IFSensor::Event::filament_inserted;
-        const bool extruder_fs_no_filament = !extruder_fs || extruder_fs->get_state() == FilamentSensorState::NoFilament;
+        if (!(
+                (
+                    // Trigger autoload from extruder FS only if the filament is not missing in the side FS
+                    (is_insert_event(LogicalFilamentSensor::extruder) && !no_filament_surely(LogicalFilamentSensor::side)
+                        // On the MMU rework, the "FS autoload" configuration item is hidden (BFW-4290)
+                        // So there's no way to enable it when it has been disabled in prior.
+                        // Keep the option enabled for power users, in the spirit of the OG task assignment
+                        && (config_store().fs_autoload_enabled.get() || !extruder_fs_independent))
 
-        const bool side_fs_enabled = side_fs && side_fs->is_enabled();
-        const bool side_fs_inserted = side_fs && side_fs->last_event() == IFSensor::Event::filament_inserted;
-        const bool side_fs_has_filament = side_fs && side_fs->get_state() == FilamentSensorState::HasFilament;
-
-        const bool trigger_autoload = (extruder_fs_inserted && (!side_fs_enabled || side_fs_has_filament))
-            || (side_fs_inserted && extruder_fs_no_filament);
-
-        if (!trigger_autoload
-            || has_mmu
-            || autoload_sent
-            || isAutoloadLocked()
-            || !config_store().fs_autoload_enabled.get()
-#if HAS_SELFTEST() && HAS_GUI()
-            // FIXME: We're accessing screens from the the marlin thread here. Terrible hack.
-            || Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-            || Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
-#endif
+                    // Trigger autoload from side FS only if there is no filament in the extruder
+                    || (is_insert_event(LogicalFilamentSensor::side) && !has_filament_surely(LogicalFilamentSensor::extruder) && config_store().fs_autoload_enabled.get())
+                    //
+                    )
+                && !has_mmu
+                && !autoload_sent
+                && !marlin_server::is_processing()
+                && !isAutoloadLocked())
+            //
         ) {
             return false;
         }

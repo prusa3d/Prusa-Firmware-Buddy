@@ -64,3 +64,18 @@ TEST_CASE("marlin_temptable::MarlinTemptableRawMinMax::1010") {
     CHECK(!minmax.is_mintemp(OV(640)));
     CHECK(minmax.is_maxtemp(OV(640)));
 }
+
+TEST_CASE("marlin_temptable::MarlinTemptableRawMinMax::1010 HT safety threshold") {
+    // Regression: the HT hotend max nozzle temperature is 415°C; the table must extend above it so
+    // compute() can pick a raw_max that actually corresponds to ~415°C. If the table
+    // topped out at 400°C, raw_max collapsed to OV(729) and MAXTEMP fired at the user's
+    // target (400°C), giving zero margin.
+    const auto &tt = temptable_1010;
+    auto minmax = MarlinTemptableRawMinMax::compute(tt, 5, 415);
+
+    // 400°C must NOT trigger MAXTEMP (user-targetable max)
+    CHECK(!minmax.is_maxtemp(OV(729)));
+
+    // 425°C must trigger (above safety cutoff)
+    CHECK(minmax.is_maxtemp(OV(736)));
+}

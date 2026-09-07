@@ -1,4 +1,10 @@
-#include "screen_chamber_filtration.hpp"
+/// @file
+#include <gui/screen/screen_chamber_filtration.hpp>
+
+#include <img_resources.hpp>
 
 ScreenChamberFiltration::ScreenChamberFiltration()
-    : ScreenMenu(_("CHAMBER FILTRATION")) {}
+    : ScreenChamberFiltrationBase {
+        _("CHAMBER FILTRATION"),
+        &img::settings_16x16,
+    } {}

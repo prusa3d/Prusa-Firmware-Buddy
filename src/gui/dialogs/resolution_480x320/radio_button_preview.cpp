@@ -72,16 +72,6 @@ void RadioButtonPreview::unconditionalDraw() {
 void RadioButtonPreview::windowEvent(window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
 
-    case GUI_event_t::CLICK: {
-        const Response response = Click();
-
-        marlin_client::FSM_response(fsm_and_phase(), response);
-
-        if (GetParent()) {
-            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, event_conversion_union { .response = response }.pvoid);
-        }
-    } break;
-
     case GUI_event_t::TOUCH_CLICK: {
         event_conversion_union un;
         un.pvoid = param;

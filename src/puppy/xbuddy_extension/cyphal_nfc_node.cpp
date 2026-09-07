@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 #include <modbus/traits.hpp>
+#include <utils/byte_utils.hpp>
 
 namespace cyphal {
 
@@ -71,7 +72,7 @@ void NfcNode::consume(anfc::modbus::Event &event) {
     pending_event.size = 0;
 }
 
-void NfcNode::receive_event(std::span<const std::byte> data) {
+void NfcNode::receive_event(Bytes data) {
     const auto size = std::min(data.size(), sizeof(pending_event.data));
     pending_event.size = static_cast<uint16_t>(size);
     pending_event.data = {};

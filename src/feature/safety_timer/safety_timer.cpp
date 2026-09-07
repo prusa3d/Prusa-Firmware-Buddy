@@ -86,7 +86,7 @@ void SafetyTimer::reset_restore_nonblocking() {
 
     for (auto tool : PhysicalToolIndex::all()) {
         auto &hotend = Hotend::for_tool(tool);
-        assert(hotend.nozzle_target_temp() <= 0);
+        debug_assert(hotend.nozzle_target_temp() <= 0);
 
         const auto temp = nozzle_temperatures_to_restore_[tool];
         hotend.set_nozzle_target_temp(temp);
@@ -94,7 +94,7 @@ void SafetyTimer::reset_restore_nonblocking() {
 }
 
 void SafetyTimer::reset_restore_blocking() {
-    assert(!prevent_recursion_);
+    debug_assert(!prevent_recursion_);
 
     reset_restore_nonblocking();
 
@@ -111,7 +111,7 @@ void SafetyTimer::reset_restore_blocking() {
     // Prevent the timer from timing out during the heatup
     SafetyTimerBlocker timer_blocker;
 
-    StrongIndexArray<float, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> start_temperatures;
+    StrongIndexArray<Hotend::OptionalTemperature, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> start_temperatures;
     for (auto tool : PhysicalToolIndex::all()) {
         start_temperatures[tool] = Hotend::for_tool(tool).nozzle_temp();
     }
@@ -120,7 +120,12 @@ void SafetyTimer::reset_restore_blocking() {
         float min_progress = 1;
         for (auto tool : PhysicalToolIndex::all()) {
             const auto &hotend = Hotend::for_tool(tool);
-            const float hotend_progress = to_normalized_progress(start_temperatures[tool], hotend.nozzle_target_temp(), hotend.nozzle_temp());
+            const auto current = hotend.nozzle_temp();
+            if (!current.has_value() || !start_temperatures[tool].has_value()) {
+                // inactive tool with no current reading shouldn't participate in the resuming progress.
+                continue;
+            }
+            const float hotend_progress = to_normalized_progress(*start_temperatures[tool], hotend.nozzle_target_temp(), *current);
             min_progress = std::min(min_progress, hotend_progress);
         }
         marlin_server::fsm_change(PhaseSafetyTimer::resuming, fsm::serialize_data<float>(min_progress * 100));
@@ -136,7 +141,7 @@ void SafetyTimer::reset_restore_blocking() {
 }
 
 void SafetyTimer::trigger() {
-    assert(!prevent_recursion_);
+    debug_assert(!prevent_recursion_);
     AutoRestore recursion_guard { prevent_recursion_, true };
 
     if (blocker_count_ > 0) {
@@ -219,7 +224,7 @@ void SafetyTimer::trigger() {
 }
 
 void SafetyTimer::step() {
-    assert(!prevent_recursion_);
+    debug_assert(!prevent_recursion_);
 
     const auto now = ticks_ms();
 
@@ -246,7 +251,7 @@ SafetyTimerBlocker::SafetyTimerBlocker() {
     st.reset_restore_nonblocking();
 
     // Check for overflows
-    assert(st.blocker_count_ > 0);
+    debug_assert(st.blocker_count_ > 0);
 }
 
 SafetyTimerBlocker::~SafetyTimerBlocker() {
@@ -257,19 +262,19 @@ SafetyTimerBlocker::~SafetyTimerBlocker() {
     // otherwise it would get stuck in a finished state
     st.reset_restore_nonblocking();
 
-    assert(st.blocker_count_ > 0);
+    debug_assert(st.blocker_count_ > 0);
     st.blocker_count_--;
 }
 
 SafetyTimerNonBlockingGuard::SafetyTimerNonBlockingGuard() {
     auto &st = safety_timer();
     st.non_blocking_guard_count_++;
-    assert(st.non_blocking_guard_count_ > 0);
+    debug_assert(st.non_blocking_guard_count_ > 0);
 }
 
 SafetyTimerNonBlockingGuard::~SafetyTimerNonBlockingGuard() {
     auto &st = safety_timer();
-    assert(st.non_blocking_guard_count_ > 0);
+    debug_assert(st.non_blocking_guard_count_ > 0);
     st.non_blocking_guard_count_--;
 }
 

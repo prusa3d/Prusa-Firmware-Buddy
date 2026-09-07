@@ -26,7 +26,7 @@
 
 void PrusaGcodeSuite::M340() {
     // Syslog has to be allowed in settings
-    if (config_store().enable_metrics.get()) {
+    if (!config_store().enable_metrics.get()) {
         SERIAL_ERROR_MSG("Syslog is not allowed!");
         return;
     }

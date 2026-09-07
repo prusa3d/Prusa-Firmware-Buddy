@@ -3,7 +3,6 @@
 #include <memory_resource>
 
 #include <bsod.h>
-#include <assert.h>
 
 namespace MMU2::bootloader {
 

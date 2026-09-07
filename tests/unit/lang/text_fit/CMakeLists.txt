@@ -3,7 +3,7 @@
 #
 
 # Common dependencies
-link_libraries(SG14 buddy_utils)
+link_libraries(SG14 buddy_utils font_data)
 
 # Extract texts from error yaml
 file(GLOB ERROR_TEXT_EXTRACTOR ${PROJECT_ROOT_DIR}/utils/extract_error_texts.py)
@@ -39,6 +39,7 @@ foreach(
   set(MO_FILE "${CMAKE_CURRENT_BINARY_DIR}/MO/${LANG}.mo")
   add_custom_command(
     OUTPUT ${MO_FILE}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/MO
     COMMAND msgfmt ${PO_FILE} -o ${MO_FILE}
     DEPENDS ${PO_FILE}
     COMMENT "Generating ${MO_FILE} from ${PO_FILE}"
@@ -70,7 +71,6 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/common/utils
           ${CMAKE_SOURCE_DIR}/src/lang
-          ${CMAKE_BINARY_DIR}/src/lang
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src/gui/dialogs
           ${CMAKE_SOURCE_DIR}/src/guiapi/include
@@ -112,7 +112,6 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/common/utils
           ${CMAKE_SOURCE_DIR}/src/lang
-          ${CMAKE_BINARY_DIR}/src/lang
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src/gui/dialogs
           ${CMAKE_SOURCE_DIR}/src/guiapi/include

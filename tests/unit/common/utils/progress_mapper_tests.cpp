@@ -11,6 +11,7 @@ enum class TestState {
     next_2,
     next_3,
     not_used,
+    not_used_2,
     finish
 };
 
@@ -19,13 +20,13 @@ std::ostream &operator<<(std::ostream &out, const ProgressSpan &span) {
     return out;
 }
 
-ProgressMapperWorkflowArray test_pipeline {
+constexpr ProgressMapperWorkflowArray test_pipeline {
     std::to_array<ProgressMapperWorkflowStep<TestState>>({
         { TestState::start, 2 }, // 0-20
         { TestState::next_1, 4 }, // 20-60
         { TestState::next_2, 1 }, // 60-70
         { TestState::next_3, 1 }, // 70-80
-        { TestState::finish, 2 } // 80-100
+        { TestState::finish, 2 }, // 80-100
     })
 };
 
@@ -35,7 +36,7 @@ enum class ZeroScaleState {
     end,
 };
 
-ProgressMapperWorkflowArray pipeline_zero_scale_middle {
+constexpr ProgressMapperWorkflowArray pipeline_zero_scale_middle {
     std::to_array<ProgressMapperWorkflowStep<ZeroScaleState>>({
         { ZeroScaleState::begin, 1 },
         { ZeroScaleState::middle, 0 },
@@ -43,7 +44,7 @@ ProgressMapperWorkflowArray pipeline_zero_scale_middle {
     })
 };
 
-ProgressMapperWorkflowArray pipeline_zero_scale_end {
+constexpr ProgressMapperWorkflowArray pipeline_zero_scale_end {
     std::to_array<ProgressMapperWorkflowStep<ZeroScaleState>>({
         { ZeroScaleState::begin, 1 },
         { ZeroScaleState::middle, 1 },
@@ -111,10 +112,41 @@ TEST_CASE("ProgressMapper: Skip around") {
     CHECK(mapper.update_progress(TestState::finish, 1.0f) == 100);
 }
 
-TEST_CASE("ProgressMapper: State not in pipeline") {
-    ProgressMapper<TestState> mapper(test_pipeline);
+TEST_CASE("ProgressMapper: Improvised states") {
+    static constexpr ProgressMapperWorkflowArray workflow {
+        std::to_array<ProgressMapperWorkflowStep<TestState>>({
+            { TestState::start, 1 },
+            { TestState::next_1, 1 },
+            { TestState::next_2, 1 },
+            { TestState::finish, 1 },
+        })
+    };
 
-    CHECK(mapper.update_progress_span(TestState::not_used) == ProgressSpan { 0, 0 });
+    ProgressMapper<TestState> mapper(workflow);
+
+    // 4 remaining scale + 1 improvised
+    CHECK(mapper.update_progress_span(TestState::not_used) == ProgressSpan { 0, 20 });
+
+    CHECK(mapper.update_progress_span(TestState::start) == ProgressSpan { 20, 40 });
+    CHECK(mapper.update_progress_span(TestState::next_1) == ProgressSpan { 40, 60 });
+
+    // 60-100, 2 remaining scale + 1 improvised
+    CHECK(mapper.update_progress_span(TestState::not_used) == ProgressSpan { 60, 73 });
+    CHECK(mapper.update_progress_span(TestState::next_2) == ProgressSpan { 73, 87 });
+
+    // Regression resets the state
+    CHECK(mapper.update_progress_span(TestState::next_1) == ProgressSpan { 25, 50 });
+
+    // Subsequent alterations slice more and more from the pie, every item smaller
+    CHECK(mapper.update_progress_span(TestState::not_used) == ProgressSpan { 50, 67 });
+    CHECK(mapper.update_progress_span(TestState::not_used_2) == ProgressSpan { 67, 78 });
+    CHECK(mapper.update_progress_span(TestState::not_used) == ProgressSpan { 78, 85 });
+
+    // Finish skips next_1 and next_2 and finishes
+    CHECK(mapper.update_progress_span(TestState::finish) == ProgressSpan { 85, 100 });
+
+    // Rogue states after that don't have any more space
+    CHECK(mapper.update_progress_span(TestState::not_used) == ProgressSpan { 100, 100 });
 }
 
 TEST_CASE("ProgressMapper: Update current progress") {

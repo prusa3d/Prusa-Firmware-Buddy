@@ -3,7 +3,6 @@
  */
 #include <cstring> // memset
 #include <stdint.h>
-#include <assert.h>
 #include <climits>
 #include <atomic>
 

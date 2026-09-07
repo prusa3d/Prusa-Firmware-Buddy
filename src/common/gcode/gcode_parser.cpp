@@ -1,15 +1,15 @@
 #include "gcode_parser.hpp"
 #include "gcode_parser_helper.hpp"
 
-#include <cassert>
 #include <cstring>
 #include <cstdarg>
 #include <cinttypes>
 #include <str_utils.hpp>
+#include <bsod/bsod.h>
 
 GCodeParser2::StoreOptionResult GCodeParser2::store_option_if_present(char key, std::string_view &target, std::span<char> buffer) const {
     if (key < first_option_letter || key > last_option_letter) {
-        assert(0); // You shouldn't be feeding invalid keys to the function
+        debug_assert(0); // You shouldn't be feeding invalid keys to the function
         return std::unexpected(OptionError::not_present);
     }
 
@@ -125,7 +125,7 @@ bool GCodeParser2::parse(const std::string_view &gcode) {
         p.advance();
         p.skip_whitespaces();
 
-        assert(p.pos() < 256);
+        debug_assert(p.pos() < 256);
         auto &opt_pos = option_positions[option_letter - first_option_letter];
         if (opt_pos != 0) {
             p.report_error("Option '%c' already defined", option_letter);
@@ -144,7 +144,7 @@ std::optional<std::string_view> GCodeParser2::parse_option_value(GCodeParserHelp
     auto accum_it = accumulator.begin();
 
     const auto accumulate = [&](char ch) {
-        assert(ch != '\0');
+        debug_assert(ch != '\0');
 
         if (accumulator.empty()) {
             return true;

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <limits>
 #include <optional>
+#include <option/has_crash_detection.h>
 #include <option/has_mmu2.h>
 #include <option/has_dwarf.h>
 #include "module/temperature.h"
@@ -21,6 +22,7 @@
 #include <tool_index.hpp>
 #include <mapi/parking.hpp>
 #include <mapi/motion.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 #include <pause_stubbed.hpp>
 #include <include/fs_event_autolock.hpp>
 #include <feature/prusa/e-stall_detector.h>
@@ -36,11 +38,12 @@
 #endif
 
 #include <option/has_filament_tracker.h>
+#include <bsod/bsod.h>
 #if HAS_FILAMENT_TRACKER()
     #include <feature/filament_tracker/filament_tracker.hpp>
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include <feature/prusa/crash_recovery.hpp>
 #endif
 
@@ -102,7 +105,7 @@ bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
 }
 
 void SpoolJoin::remove_join_at(size_t idx) {
-    assert(num_joins > 0 && idx < num_joins);
+    debug_assert(num_joins > 0 && idx < num_joins);
     joins[idx].spool_1 = joins[idx].spool_2 = reset_value;
     // so that we can insert new join at num_joins, we need to store the last join instead of the one we're deleting (note: we can swap even if `idx == num_joins - 1`)
     std::swap(joins[idx], joins[num_joins - 1]);
@@ -272,7 +275,7 @@ bool SpoolJoin::do_join(VirtualToolIndex current_virtual_tool) {
     const auto orig_e_pos = current_position.e;
 
     bool should_park = true;
-    #if ENABLED(CRASH_RECOVERY)
+    #if HAS_CRASH_DETECTION()
     // Do not park/unpark during crash recovery (= gcode intterupt)
     // Crash recovery handles that
     should_park &= (crash_s.get_state() != Crash_s::RECOVERY);
@@ -310,7 +313,7 @@ bool SpoolJoin::do_join(VirtualToolIndex current_virtual_tool) {
 
     const auto wait_for_temp = [&] {
         if (nozzle_temp != 0) {
-            thermalManager.wait_for_hotend(new_physical_tool, false, true);
+            thermalManager.wait_for_hotend(new_physical_tool, { .no_wait_for_cooling = false, .fan_cooling = true });
         }
     };
 
@@ -346,8 +349,7 @@ bool SpoolJoin::do_join(VirtualToolIndex current_virtual_tool) {
     }
 
     // Match the retracted distance of the original tool
-    const float current_retracted_distance = buddy::filament_tracker().get_retracted_distance(new_physical_tool).value_or(0);
-    mapi::extruder_move(-(target_retracted_distance - current_retracted_distance), ADVANCED_PAUSE_PURGE_FEEDRATE);
+    mapi::restore_retracted_distance(target_retracted_distance, buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::retract));
 
     // Make the spool join seamless in terms of E stepper position
     sync_e_position_to(orig_e_pos);

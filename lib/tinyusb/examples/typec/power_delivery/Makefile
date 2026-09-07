@@ -1,11 +1,13 @@
-include ../../make.mk
+include ../../../hw/bsp/family_support.mk
 
 INC += \
   src \
-  $(TOP)/hw \
+
 
 # Example source
-EXAMPLE_SOURCE += $(wildcard src/*.c)
-SRC_C += $(addprefix $(CURRENT_PATH)/, $(EXAMPLE_SOURCE))
+EXAMPLE_SOURCE += \
+  src/main.c
 
-include ../../rules.mk
+SRC_C += $(addprefix $(EXAMPLE_PATH)/, $(EXAMPLE_SOURCE))
+
+include ../../../hw/bsp/family_rules.mk

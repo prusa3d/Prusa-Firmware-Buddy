@@ -1,19 +1,11 @@
-/**
- * @file screen_menu_input_shaper.hpp
- * @brief displaying and setting of input shaper values
- */
-
+/// @file
 #pragma once
 
-#include "screen_menu.hpp"
+#include <basic_screen_menu.hpp>
 #include "MItem_input_shaper.hpp"
 #include <option/has_input_shaper_calibration.h>
 
-namespace detail {
-
-using ScreenMenuInputShaper = ScreenMenu<
-    GuiDefaults::MenuFooter,
-    MI_RETURN,
+using ScreenMenuInputShaperBase = BasicScreenMenu<
 #if HAS_INPUT_SHAPER_CALIBRATION()
     MI_IS_CALIB,
 #endif
@@ -22,12 +14,9 @@ using ScreenMenuInputShaper = ScreenMenu<
     MI_IS_Y_TYPE,
     MI_IS_Y_FREQUENCY,
     MI_IS_RESTORE_DEFAULTS>;
-} // namespace detail
 
-class ScreenMenuInputShaper : public detail::ScreenMenuInputShaper {
-
+class ScreenMenuInputShaper final : public ScreenMenuInputShaperBase {
 public:
-    constexpr static const char *label = N_("INPUT SHAPER");
     ScreenMenuInputShaper();
 
     /// Updates values & states of the menu items to match the current IS config

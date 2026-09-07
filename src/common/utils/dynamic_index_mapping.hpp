@@ -3,6 +3,7 @@
 #include <array>
 #include <algorithm>
 #include <numeric>
+#include <bsod/bsod.h>
 
 enum class DynamicIndexMappingType {
     /// Single static item that is always in the list
@@ -34,7 +35,7 @@ public:
         : item(item)
         , type(type)
         , section_size(section_size) {
-        assert(type != DynamicIndexMappingType::static_item || section_size > 0);
+        debug_assert(type != DynamicIndexMappingType::static_item || section_size > 0);
     }
 
 public:

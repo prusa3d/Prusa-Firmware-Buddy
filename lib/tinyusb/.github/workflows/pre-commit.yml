@@ -7,25 +7,20 @@ on:
     branches: [ master ]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.0'
 
     - name: Checkout TinyUSB
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
 
     - name: Get Dependencies
       run: |
@@ -34,10 +29,12 @@ jobs:
         #ceedling test:all
 
     - name: Run pre-commit
-      uses: pre-commit/action@v3.0.0
+      uses: pre-commit/action@v3.0.1
 
     - name: Build Fuzzer
       run: |
+        sudo apt install libc++-dev libc++abi-dev
+        clang --version
         export CC=clang
         export CXX=clang++
         fuzz_harness=$(ls -d test/fuzz/device/*/)

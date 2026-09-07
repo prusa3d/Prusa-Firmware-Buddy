@@ -2,7 +2,7 @@
 #pragma once
 
 #include <cstdint>
-#include <cassert>
+#include <bsod/bsod.h>
 
 struct EndToolIndexIterator {};
 
@@ -61,7 +61,7 @@ public:
 
     /// Prefix operator
     constexpr inline ToolIndexIterator &operator++() {
-        assert(!at_end());
+        debug_assert(!at_end());
         increment_impl();
         ensure_valid();
         return *this;
@@ -71,7 +71,7 @@ public:
     }
 
     constexpr inline Index index() const {
-        assert(!at_end());
+        debug_assert(!at_end());
         return Index::from_raw(pos_);
     }
 

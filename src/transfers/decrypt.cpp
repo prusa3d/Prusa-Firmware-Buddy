@@ -4,7 +4,6 @@
 #include <logging/log.hpp>
 
 #include <type_traits>
-#include <cassert>
 #include <cstring>
 
 using std::make_tuple;
@@ -18,7 +17,7 @@ namespace transfers {
 Decryptor::Decryptor(const Block &key, const Block &nonce, size_t offset, size_t size_left)
     : size_left(size_left)
     , nonce(nonce) {
-    assert(offset % BlockSize == 0);
+    debug_assert(offset % BlockSize == 0);
 
     /// Set counter to the block index we are going to decrypt
     uint32_t block_idx = offset / BlockSize;

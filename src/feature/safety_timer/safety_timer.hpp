@@ -103,7 +103,7 @@ private:
 };
 
 /// Guard marking a section where safety timer will not expire
-/// The guard does NOT call \p restore_blocking()
+/// The guard does NOT call \p reset_restore_blocking()
 class SafetyTimerBlocker : public Uncopyable {
 
 public:

@@ -4,11 +4,14 @@
 #include <variant>
 
 #include <option/has_nozzle_cleaner.h>
+#include <option/has_nozzle_cleaner_lite.h>
 #include <option/has_wastebin.h>
 #include <option/has_wastebin_fill_tracking.h>
 #include <option/has_indx.h>
 #include <bsod/bsod.h>
 #include <tool_index.hpp>
+#include <utils/compact_optional.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 
 namespace mapi {
 
@@ -24,9 +27,29 @@ enum class ParkPosition : uint8_t {
     unload,
     loadcell_selftest,
 
+    /// Default position for filament change (M600, M1601, MMU errors)
+    filament_change,
+
+    /// User-accessible position for manual nozzle cleaning after the automatic
+    /// nozzle cleaning failed. Uses the M600 position - while we are not changing
+    /// filament, the nozzle parks at an accessible place to have it cleaned.
+    nozzle_cleaning_failed,
+    /// Position to park the head at when the print finishes
+    print_end,
+
 #if HAS_WASTEBIN_FILL_TRACKING()
     /// Head clear of the nozzle cleaner so the wastebin can be pulled out, lifted above the print.
     empty_wastebin,
+#endif
+
+#if HAS_NOZZLE_CLEANER() || HAS_NOZZLE_CLEANER_LITE()
+    /// Just outside the cleaner area, staging the tool for a cleaning sequence.
+    /// Does not define Z; set it explicitly if a Z move is needed.
+    nozzle_cleaner_approach,
+
+    /// Clear of the cleaner area, for parking after a cleaning sequence.
+    /// Does not define Z; set it explicitly if a Z move is needed.
+    nozzle_cleaner_exit,
 #endif
 
 #if HAS_TOOLCHANGER()
@@ -113,7 +136,7 @@ struct ParkingPosition {
     }
 };
 
-ParkingPosition get_parking_position(ParkPosition position, std::variant<VirtualToolIndex, NoTool> tool = NoTool {});
+ParkingPosition get_parking_position(ParkPosition position, std::variant<PhysicalToolIndex, NoTool> tool = NoTool {});
 
 #if HAS_NOZZLE_CLEANER()
 void move_out_of_nozzle_cleaner_area();
@@ -132,7 +155,7 @@ struct ParkArgs {
     float retract_distance_mm = 0;
 
     /// Feedrate of the retraction
-    float retract_fr_mm_s = PAUSE_PARK_RETRACT_FEEDRATE;
+    CompactOptional<float, NAN> retract_fr_mm_s = {};
 
     /// If > 0, the Z moves are done in parallel to the XY moves
     /// with an angle `z_ramp_slope = tan(angle)` (1 → 45°) respective to the XY moves
@@ -141,6 +164,12 @@ struct ParkArgs {
     /// a final Z-only move is done at the end.
     /// !!! Warning - this bypasses the Z move prevention when Z is unhomed
     float z_ramp_slope = 0;
+
+    /// @brief Gives retract feedrate, handles if stored feedrate is NAN
+    /// @return (mm/s) stored feedrate or standard feedrate adjusted for current filament
+    inline float evaluate_feedrate() const {
+        return retract_fr_mm_s.has_value() ? retract_fr_mm_s.value() : buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::retract);
+    }
 };
 
 /**

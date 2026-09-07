@@ -9,11 +9,7 @@ static_assert(DISABLED(PID_OPENLOOP), "Not supported anymore");
 
 //! @brief Get model output hotend
 //!
-//! @param last_target Target temperature for this cycle
-//! (Can not be measured due to transport delay)
-//! @param expected Expected measurable hotend temperature in this cycle
-//! @param E_NAME hotend index
-
+//! @param args contains target/current temperature, fan speed and other info relevant for this cycle
 float ModelBasedHotendRegulator::get_model_output_hotend(const HotendRegulatorArgs &args) {
     if (args.target_temp > (target_temp + epsilon)) {
         if (state != Ramp::Up) {

@@ -1,7 +1,7 @@
 #pragma once
 #include <string.h>
 #include <utility>
-#include <cassert>
+#include <bsod/bsod.h>
 
 extern "C" size_t strlcat(char *, const char *, size_t);
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
@@ -20,7 +20,7 @@ private:
         [[nodiscard]] TemporaryExtender(const MutablePath &path, const char *extension)
             : mp(path) {
             mp.push(extension);
-            assert(strchr(extension, '/') == NULL); // pop woudln't return the path to previous state if someone attempts to push extension with '/' in it
+            debug_assert(strchr(extension, '/') == NULL); // pop woudln't return the path to previous state if someone attempts to push extension with '/' in it
         }
         ~TemporaryExtender() {
             mp.pop();

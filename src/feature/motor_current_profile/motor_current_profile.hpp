@@ -15,6 +15,7 @@ struct MotorCurrentProfile {
 enum class StandardMotorCurrentProfile : uint8_t {
     fw_default = 0, ///< Firmware default currents for all axes
     increased_e = 1, ///< Increased E stepper current for higher torque
+    decreased_e_flex = 2, ///< Decreased E stepper current for flexible filaments
     _count,
 };
 

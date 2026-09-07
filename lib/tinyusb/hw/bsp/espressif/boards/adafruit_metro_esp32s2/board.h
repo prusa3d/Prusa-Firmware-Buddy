@@ -24,6 +24,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: Adafruit Metro ESP32-S2
+   url: https://www.adafruit.com/product/4775
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -37,7 +42,7 @@
 #define BUTTON_STATE_ACTIVE   0
 
 // SPI for USB host shield
-#define MAX3421_SPI_HOST  SPI2_HOST
+#define MAX3421_SPI_HOST SPI2_HOST
 #define MAX3421_SCK_PIN  36
 #define MAX3421_MOSI_PIN 35
 #define MAX3421_MISO_PIN 37

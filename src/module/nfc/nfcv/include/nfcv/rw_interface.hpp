@@ -8,6 +8,7 @@
 #include <expected>
 
 #include <utils/uncopyable.hpp>
+#include <utils/byte_utils.hpp>
 
 namespace nfcv {
 
@@ -70,8 +71,8 @@ public: //* Utility wrappers for nfcv commands
     Result<UID> inventory();
     Result<void> stay_quiet(const UID &uid);
     Result<TagInfo> get_system_info(const UID &uid);
-    Result<void> read_single_block(const UID &uid, BlockID block_id, const std::span<std::byte> &buffer);
-    Result<void> write_single_block(const UID &uid, BlockID block_id, const std::span<const std::byte> &buffer);
+    Result<void> read_single_block(const UID &uid, BlockID block_id, const WritableBytes &buffer);
+    Result<void> write_single_block(const UID &uid, BlockID block_id, const Bytes &buffer);
 
     /// Writes to a specified register
     /// For passwords, this means changing the password. "Logging in" with the password is done with \p set_password

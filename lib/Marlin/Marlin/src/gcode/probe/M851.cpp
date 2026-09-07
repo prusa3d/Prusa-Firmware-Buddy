@@ -37,7 +37,7 @@
  *
  *#### Usage
  *
- *    M851 [ X ]
+ *    M851 [ X | Y | Z ]
  *
  *#### Parameters
  *

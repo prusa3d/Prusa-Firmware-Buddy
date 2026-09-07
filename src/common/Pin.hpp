@@ -7,6 +7,7 @@
 #pragma once
 
 #include <device/hal.h>
+#include <bsod/bsod.h>
 
 /**
  * @name Macros manipulating PIN_TABLE macro

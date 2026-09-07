@@ -120,8 +120,8 @@ static ep0_stage_t ep0_get_stage(void)
 /*------------------------------------------------------------------*/
 /* Controller API
  *------------------------------------------------------------------*/
-void dcd_init(uint8_t rhport)
-{
+bool dcd_init(uint8_t rhport, const tusb_rhport_init_t* rh_init) {
+  (void) rh_init;
   // Disable endpoint interrupts for now
   USB_REGS->INTRRXEbits.w = 0;
   USB_REGS->INTRTXEbits.w = 0;
@@ -129,6 +129,7 @@ void dcd_init(uint8_t rhport)
   USB_REGS->INTRUSBEbits.w = 7;
 
   dcd_connect(rhport);
+  return true;
 }
 
 void dcd_int_enable(uint8_t rhport)
@@ -161,13 +162,7 @@ void dcd_remote_wakeup(uint8_t rhport)
   (void) rhport;
 
   USB_REGS->POWERbits.RESUME = 1;
-#if CFG_TUSB_OS != OPT_OS_NONE
-  osal_task_delay(10);
-#else
-  // TODO: Wait in non blocking mode
-  unsigned cnt = 2000;
-  while (cnt--) __asm__("nop");
-#endif
+  tusb_time_delay_ms_api(10);
   USB_REGS->POWERbits.RESUME = 0;
 }
 
@@ -443,14 +438,23 @@ void dcd_edpt_close_all (uint8_t rhport)
   }
 }
 
-void dcd_edpt_close(uint8_t rhport, uint8_t ep_addr)
-{
+bool dcd_edpt_iso_alloc(uint8_t rhport, uint8_t ep_addr, uint16_t largest_packet_size) {
   (void) rhport;
   (void) ep_addr;
+  (void)largest_packet_size;
+  return false;
 }
 
-bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes)
+bool dcd_edpt_iso_activate(uint8_t rhport, const tusb_desc_endpoint_t *desc_ep) {
+  (void)rhport;
+  (void)desc_ep;
+  return false;
+}
+
+
+bool dcd_edpt_xfer(uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes, bool is_isr)
 {
+  (void) is_isr;
   uint8_t const epnum = tu_edpt_number(ep_addr);
   uint8_t const dir   = tu_edpt_dir(ep_addr);
   xfer_ctl_t * xfer = XFER_CTL_BASE(epnum, dir);
@@ -749,5 +753,4 @@ void dcd_int_handler(uint8_t rhport)
     }
   }
 }
-
 #endif

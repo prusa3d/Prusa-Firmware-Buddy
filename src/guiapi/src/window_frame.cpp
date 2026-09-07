@@ -5,6 +5,7 @@
 #include "display.hpp"
 #include "marlin_client.hpp"
 #include <gui/event/knob_event.hpp>
+#include <bsod/bsod.h>
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_printing_t close_on_print)
     : window_t(parent, rect, type)
@@ -25,8 +26,8 @@ window_frame_t::window_frame_t(window_t *parent, Rect16 rect, positioning sub_wi
 
 window_frame_t::~window_frame_t() {
     // The frame should have no children
-    assert(!first_normal);
-    assert(!last_normal);
+    debug_assert(!first_normal);
+    debug_assert(!last_normal);
 }
 
 void window_frame_t::SetMenuTimeoutClose() { flags.timeout_close = is_closed_on_timeout_t::yes; }
@@ -312,9 +313,6 @@ void window_frame_t::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t 
         switch (ev.reason) {
 
         case Reason::unspecified:
-            pWin = nullptr;
-            break;
-
         case Reason::forward_focus_chain:
             pWin = GetFirstEnabledSubWin();
             break;

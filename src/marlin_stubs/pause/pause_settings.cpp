@@ -46,7 +46,7 @@ float Settings::GetDefaultPurgeLength(uint8_t extruder) {
 }
 
 float Settings::GetDefaultRetractLength() {
-    return -std::abs(PAUSE_PARK_RETRACT_LENGTH);
+    return -std::abs(STANDARD_RETRACT_LENGTH);
 }
 
 void Settings::SetUnloadLength(const std::optional<float> &len) {

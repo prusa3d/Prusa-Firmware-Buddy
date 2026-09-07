@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "ScreenHandler.hpp"
-#include "gui_time.hpp" //gui::GetTick
+#include "gui_time.hpp"
 #include "mock_windows.hpp"
 #include "knob_event.hpp"
 #include <memory>

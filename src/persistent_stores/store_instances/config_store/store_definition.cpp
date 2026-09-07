@@ -1,4 +1,5 @@
 #include "store_definition.hpp"
+#include <common/visit_all_struct_fields.hpp>
 #include <Marlin/src/inc/MarlinConfigPre.h>
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
@@ -8,10 +9,23 @@
 #include <option/has_touch.h>
 #include <option/has_chamber_filtration_api.h>
 #include <common/sys.hpp>
+#include <common/printer_variant/printer_variant.hpp>
 
+#include <option/has_selftest.h>
+#if HAS_SELFTEST()
+    #include <selftest_result.hpp>
+#endif
+
+#include <option/has_nozzle_cleaner_lite.h>
 #include <option/has_auto_retract.h>
 #if HAS_AUTO_RETRACT()
     #include <feature/auto_retract/auto_retract.hpp>
+#endif
+
+#include <option/has_anfc.h>
+#include <bsod/bsod.h>
+#if HAS_ANFC()
+    #include <feature/openprinttag/tool_tag.hpp>
 #endif
 
 namespace config_store_ns {
@@ -43,21 +57,26 @@ void CurrentStore::perform_config_check() {
         force_default_hw_config.set(false);
 
 #if PRINTER_IS_PRUSA_MK4()
-        static_assert(extended_printer_type_model[1] == PrinterModel::mk4s);
-        extended_printer_type.set(1);
+        change_extended_printer_type(PrinterModel::mk4s, ChangeExtendedPrinterTypeMode::config_store_init);
         hotend_type.set(0, HotendType::stock_with_sock);
         nozzle_is_high_flow.set(1 << 0); // Bitset -> first and only nozzle
 
 #elif PRINTER_IS_PRUSA_XL()
-        // New XL printers have .4mm nozzles: BFW-5638
+        change_extended_printer_type(PrinterModel::xls, ChangeExtendedPrinterTypeMode::config_store_init);
+
         for (auto tool : PhysicalToolIndex::all()) {
-            set_nozzle_diameter(tool, 0.4f);
+            set_nozzle_diameter(tool, 0.4f); // New XL printers have .4mm nozzles: BFW-5638
+            hotend_type.set(tool.to_raw(), HotendType::stock_with_sock); // New printers also sock
         }
 
 #elif PRINTER_IS_PRUSA_MK3_5()
-        static_assert(extended_printer_type_model[1] == PrinterModel::mk3_5s);
-        extended_printer_type.set(1);
+        change_extended_printer_type(PrinterModel::mk3_5s, ChangeExtendedPrinterTypeMode::config_store_init);
 
+#endif
+
+#if HAS_PRINTER_VARIANT()
+        // The restart-required result can be ignored: this runs at boot, before the planner reads steps/mm.
+        (void)apply_printer_variant_defaults(printer_variant_after_factory_reset);
 #endif
     }
 
@@ -150,6 +169,19 @@ void CurrentStore::perform_config_migrations() {
     }
 #endif
 
+#if HAS_INDX()
+    if (should_migrate<6>()) {
+        // BFW-9018
+        // The X calibration measures the nozzle cleaner V-groove, but the nominal reference
+        // (X_NOZZLE_CLEANER_ORIGIN) used to point 0.65 mm away from it, so every stored offset
+        // has +0.65 baked in. This FW moves the reference onto the V-groove, so remove it.
+        // Uncalibrated printers keep the default offset untouched.
+        if (selftest_result_nozzle_cleaner_calibration.get() == TestResult::passed) {
+            nozzle_cleaner_x_origin_offset.set(nozzle_cleaner_x_origin_offset.get() - 0.65f);
+        }
+    }
+#endif
+
     // To add a migration:
     // - increment newest_config_version
     // - add if(should_migrate<X>) { your migration code } at the END of this function
@@ -207,15 +239,18 @@ void CurrentStore::set_filament_type(VirtualToolIndex virtual_tool, FilamentType
     if (value == PendingAdHocFilamentType {}) {
         const FilamentType new_value = AdHocFilamentType { .tool = virtual_tool.to_raw() };
         new_value.set_parameters(value.parameters());
+
+#if HAS_ANFC()
+        value.modify_parameters([](FilamentTypeParameters &p) {
+            // Clear OPT link so that it's not accidentally reused
+            p.openprinttag_uid_hash = buddy::openprinttag::ToolTag::no_tag_hash;
+        });
+#endif
+
         value = new_value;
     }
 
     if (value == FilamentType::none) {
-#if HAS_ANFC()
-        // Unassign OpenPrintTag on filament removal
-        opt_tool_assigned_tag.set_to_default(virtual_tool.to_raw());
-#endif
-
 #if HAS_AUTO_RETRACT()
         // On filament removal, it invalidates retracted distance
         buddy::auto_retract().set_retracted_distance(virtual_tool.to_physical(), std::nullopt);
@@ -287,7 +322,7 @@ float CurrentStore::get_odometer_axis(uint8_t index) {
     case 2:
         return odometer_z.get();
     default:
-        assert(false && "invalid index");
+        debug_assert(false && "invalid index");
         return {};
     }
 }
@@ -304,7 +339,7 @@ void CurrentStore::set_odometer_axis(uint8_t index, float value) {
         odometer_z.set(value);
         break;
     default:
-        assert(false && "invalid index");
+        debug_assert(false && "invalid index");
         return;
     }
 }
@@ -327,7 +362,7 @@ void CurrentStore::set_odometer_toolpicks(PhysicalToolIndex tool, uint32_t value
 
 #if HAS_SHEET_PROFILES()
 Sheet CurrentStore::get_sheet(uint8_t index) {
-    assert(index < config_store_ns::sheets_num);
+    debug_assert(index < config_store_ns::sheets_num);
     switch (index) {
     case 0:
         return sheet_0.get();
@@ -346,13 +381,13 @@ Sheet CurrentStore::get_sheet(uint8_t index) {
     case 7:
         return sheet_7.get();
     default:
-        assert(false && "invalid index");
+        debug_assert(false && "invalid index");
         return {};
     }
 }
 
 void CurrentStore::set_sheet(uint8_t index, Sheet value) {
-    assert(index < config_store_ns::sheets_num);
+    debug_assert(index < config_store_ns::sheets_num);
     switch (index) {
     case 0:
         sheet_0.set(value);
@@ -379,9 +414,51 @@ void CurrentStore::set_sheet(uint8_t index, Sheet value) {
         sheet_7.set(value);
         break;
     default:
-        assert(false && "invalid index");
+        debug_assert(false && "invalid index");
         return;
     }
+}
+#endif
+
+#if HAS_15GT_BELTS()
+bool CurrentStore::set_belts_15gt(bool installed) {
+    if (belts_15gt_installed.get() == installed) {
+        return false;
+    }
+    auto transaction = get_backend().transaction_guard();
+    belts_15gt_installed.set(installed);
+    #if HAS_EXTRA_EXPERIMENTAL_SETTINGS()
+    // Clear any manual override so the resolved default follows the belt HW.
+    axis_steps_per_unit_x.set_to_default();
+    axis_steps_per_unit_y.set_to_default();
+    #endif
+    // Belt type changes X/Y steps/mm -> XY geometry calibration and axis selftest are invalid.
+    homing_sens_x.set_to_default();
+    homing_sens_y.set_to_default();
+    homing_bump_divisor_x.set_to_default();
+    homing_bump_divisor_y.set_to_default();
+    #if HAS_PRECISE_HOMING()
+    precise_homing_sample_history.set_all_to_default();
+    precise_homing_sample_history_index.set_all_to_default();
+    #endif
+    #if HAS_PRECISE_HOMING_COREXY()
+    // The grid origin is a motor-phase-to-position mapping, so a different belt pitch invalidates it.
+    corexy_grid_origin.set_to_default();
+    precise_homing_instability_history.set_to_default();
+        #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+    corexy_home_tmc_sens.set_to_default();
+        #endif
+    #endif
+    #if HAS_MANUAL_BELT_TUNING()
+    manual_belt_tuning_completed.set_to_default();
+    #endif
+    #if HAS_SELFTEST()
+    selftest_result.apply([](SelftestResult &r) {
+        r.set_xaxis(TestResult::unknown);
+        r.set_yaxis(TestResult::unknown);
+    });
+    #endif
+    return true;
 }
 #endif
 
@@ -470,7 +547,7 @@ bool CurrentStore::get_phase_stepping_enabled(AxisEnum axis) {
         return phase_stepping_enabled_y.get();
         break;
     default:
-        assert(false && "invalid index");
+        debug_assert(false && "invalid index");
         return {};
     }
 }
@@ -484,7 +561,7 @@ void CurrentStore::set_phase_stepping_enabled(AxisEnum axis, bool new_state) {
         phase_stepping_enabled_y.set(new_state);
         break;
     default:
-        assert(false && "invalid index");
+        debug_assert(false && "invalid index");
         return;
     }
 }
@@ -500,7 +577,7 @@ void CurrentStore::set_filament_retracted_distance(PhysicalToolIndex tool, std::
 
     const float rounded_dist = std::round(dist.value());
     const float clamped_dist = std::clamp<float>(rounded_dist, 0, invalid_retracted_distance - 1);
-    assert(clamped_dist == rounded_dist);
+    debug_assert(clamped_dist == rounded_dist);
     filament_retracted_distances.set(tool.to_raw(), static_cast<uint8_t>(clamped_dist));
 }
 

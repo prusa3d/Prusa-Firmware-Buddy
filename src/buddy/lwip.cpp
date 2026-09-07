@@ -2,6 +2,7 @@
 #include <lwip/tcpip.h>
 #include <semphr.h>
 #include <task.h>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Network);
 

@@ -25,43 +25,48 @@
  * This file is part of the TinyUSB stack.
  */
 
-#ifndef _TUSB_NET_DEVICE_H_
-#define _TUSB_NET_DEVICE_H_
+#ifndef TUSB_NET_DEVICE_H_
+#define TUSB_NET_DEVICE_H_
 
+#include <stdint.h>
 #include "class/cdc/cdc.h"
 
 #if CFG_TUD_ECM_RNDIS && CFG_TUD_NCM
 #error "Cannot enable both ECM_RNDIS and NCM network drivers"
 #endif
 
-#include "ncm.h"
-
-/* declared here, NOT in usb_descriptors.c, so that the driver can intelligently ZLP as needed */
-#define CFG_TUD_NET_ENDPOINT_SIZE (TUD_OPT_HIGH_SPEED ? 512 : 64)
-
 /* Maximum Transmission Unit (in bytes) of the network, including Ethernet header */
 #ifndef CFG_TUD_NET_MTU
 #define CFG_TUD_NET_MTU           1514
 #endif
 
-#ifndef CFG_TUD_NCM_IN_NTB_MAX_SIZE
-#define CFG_TUD_NCM_IN_NTB_MAX_SIZE 3200
-#endif
 
-#ifndef CFG_TUD_NCM_OUT_NTB_MAX_SIZE
-#define CFG_TUD_NCM_OUT_NTB_MAX_SIZE 3200
-#endif
+// Table 4.3 Data Class Interface Protocol Codes
+typedef enum
+{
+  NCM_DATA_PROTOCOL_NETWORK_TRANSFER_BLOCK = 0x01
+} ncm_data_interface_protocol_code_t;
 
-#ifndef CFG_TUD_NCM_MAX_DATAGRAMS_PER_NTB
-#define CFG_TUD_NCM_MAX_DATAGRAMS_PER_NTB 8
-#endif
-
-#ifndef CFG_TUD_NCM_ALIGNMENT
-#define CFG_TUD_NCM_ALIGNMENT 4
-#endif
+// Table 5.2 bmNetworkCapabilities bits
+typedef enum {
+  NCM_NETWORK_CAPS_NONE              = 0x00,
+  NCM_NETWORK_CAPS_ETH_FILTER        = (1 << 0),
+  NCM_NETWORK_CAPS_NET_ADDRESS       = (1 << 1),
+  NCM_NETWORK_CAPS_ENCAP_COMMAND     = (1 << 2),
+  NCM_NETWORK_CAPS_MAX_DATAGRAM_SIZE = (1 << 3),
+  NCM_NETWORK_CAPS_CRC_MODE          = (1 << 4),
+  NCM_NETWORK_CAPS_NTB_INPUT_SIZE    = (1 << 5)
+} ncm_network_capabilities_t;
 
 #ifdef __cplusplus
  extern "C" {
+#endif
+
+//--------------------------------------------------------------------+
+// Implemented by Application
+//--------------------------------------------------------------------+
+#if CFG_TUD_ECM_RNDIS
+extern void rndis_class_set_handler(uint8_t *data, int size);
 #endif
 
 //--------------------------------------------------------------------+
@@ -98,13 +103,17 @@ extern uint8_t tud_network_mac_address[6];
 
 //------------- NCM -------------//
 
-// callback to client providing optional indication of internal state of network driver
-void tud_network_link_state_cb(bool state);
+// Optional callback: informs the application about host requested packet filter bits
+void tud_network_set_packet_filter_cb(uint16_t packet_filter);
+
+// Set the network link state (up/down) and notify the host
+void tud_network_link_state(uint8_t rhport, bool is_up);
 
 //--------------------------------------------------------------------+
 // INTERNAL USBD-CLASS DRIVER API
 //--------------------------------------------------------------------+
 void     netd_init            (void);
+bool     netd_deinit          (void);
 void     netd_reset           (uint8_t rhport);
 uint16_t netd_open            (uint8_t rhport, tusb_desc_interface_t const * itf_desc, uint16_t max_len);
 bool     netd_control_xfer_cb (uint8_t rhport, uint8_t stage, tusb_control_request_t const * request);
@@ -115,4 +124,4 @@ void     netd_report          (uint8_t *buf, uint16_t len);
  }
 #endif
 
-#endif /* _TUSB_NET_DEVICE_H_ */
+#endif /* TUSB_NET_DEVICE_H_ */

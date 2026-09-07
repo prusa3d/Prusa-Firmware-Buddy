@@ -3,7 +3,7 @@
 #include "inject_queue_actions.hpp"
 #include <common/circular_buffer.hpp>
 #include <expected>
-#include <file_list_defs.h>
+#include <buddy/filename_defs.hpp>
 
 class InjectQueue {
 public:

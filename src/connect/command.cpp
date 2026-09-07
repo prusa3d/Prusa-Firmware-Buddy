@@ -289,7 +289,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                     }
                 }
             }
-        } else if (in_tool_mapping && event.key->compare("tool_mapping") == 0 && event.type == Type::Pop && event.depth == 2) {
+        } else if (in_tool_mapping && event.key == "tool_mapping" && event.type == Type::Pop && event.depth == 2) {
             in_tool_mapping = false;
         } else if (auto index = is_tool_mapping_index(); index.has_value()) {
             tool_mapping_index_inner = 0;

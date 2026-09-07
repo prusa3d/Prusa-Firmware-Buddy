@@ -1,6 +1,8 @@
 /// @file
 #pragma once
 
+#include "option/extension_variant.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -48,6 +50,23 @@ namespace fan3 {
     uint32_t get_rpm();
 } // namespace fan3
 
+#if EXTENSION_IS_XL_CAN()
+/// Fan 5 V power switch, XL-CAN bridge PCB only (PA6 EN / PB13 fault drive a
+/// TPS2041C; on xBE those pins serve other roles and the fan rail has no
+/// switch). This is the "fully disable the fan" mechanism — PWM 0 alone
+/// leaves a 4-wire fan powered.
+namespace fan_power {
+    /// Parks the gate off (the on-board pull-up holds it off through MCU reset).
+    void init();
+    /// true powers the fan 5 V rail (EN line is active low at the TPS2041C).
+    void enable_pin_set(bool enabled);
+    /// true = the TPS2041C reports overcurrent/overtemperature (active-low
+    /// open-drain fault input, board pull-up).
+    bool fault_pin_get();
+} // namespace fan_power
+#endif
+
+#if PA6_PIN_DRIVES_W_LED()
 namespace w_led {
     void set_pwm(DutyCycle duty_cycle);
     /**
@@ -59,6 +78,7 @@ namespace w_led {
      */
     void set_frequency(uint16_t freq);
 } // namespace w_led
+#endif
 
 namespace rgbw_led {
     void set_r_pwm(DutyCycle duty_cycle);

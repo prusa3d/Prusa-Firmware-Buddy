@@ -2,27 +2,8 @@
  * @file MItem_touch.cpp
  */
 #include "MItem_touch.hpp"
-#include "window_msgbox.hpp"
-#include "img_resources.hpp"
-#include "ScreenHandler.hpp"
-#include <device/peripherals.hpp>
 #include <hw/touchscreen/touchscreen.hpp>
-#include "screen_touch_playground.hpp"
-
-/*****************************************************************************/
-
-MI_TOUCH_PLAYGROUND::MI_TOUCH_PLAYGROUND()
-    : IWindowMenuItem {
-        string_view_utf8::MakeCPUFLASH("Touch Playground"), // dev item, intentionally not translated
-        nullptr,
-        is_enabled_t::yes,
-        is_hidden_t::dev,
-    } {
-}
-
-void MI_TOUCH_PLAYGROUND::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenTouchPlayground>);
-}
+#include <config_store/store_instance.hpp>
 
 /*****************************************************************************/
 

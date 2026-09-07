@@ -25,6 +25,11 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: STM32 U575 Eval
+   url: https://www.st.com/en/evaluation-tools/stm32u575i-ev.html
+*/
+
 #ifndef BOARD_H_
 #define BOARD_H_
 
@@ -44,23 +49,22 @@ extern "C"
 #define BUTTON_STATE_ACTIVE 1
 
 // UART Enable for STLink VCOM
-#define UART_DEV USART1
-#define UART_CLK_EN __HAL_RCC_USART1_CLK_ENABLE
+#define UART_ID  1
 #define UART_GPIO_PORT GPIOA
 #define UART_GPIO_AF GPIO_AF7_USART1
 #define UART_TX_PIN GPIO_PIN_9
 #define UART_RX_PIN GPIO_PIN_10
 
+#define VBUS_SENSE_EN 0
+
 //--------------------------------------------------------------------+
 // RCC Clock
 //--------------------------------------------------------------------+
 
-static inline void board_clock_init(void)
-{
-
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+static void SystemClock_Config(void) {
+  RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
 
   /* Enable Power Clock*/
   __HAL_RCC_PWR_CLK_ENABLE();
@@ -94,7 +98,8 @@ static inline void board_clock_init(void)
 
   /** Initializes the CPU, AHB and APB buses clocks
    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_PCLK3;
+  RCC_ClkInitStruct.ClockType =
+      RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_PCLK3;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -104,6 +109,11 @@ static inline void board_clock_init(void)
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4);
 }
 
+static void SystemPower_Config(void) {
+}
+
+static inline void board_vbus_sense_init(void) {
+}
 
 #ifdef __cplusplus
 }

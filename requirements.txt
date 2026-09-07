@@ -7,7 +7,7 @@ nunavut~=2.3
 pillow~=10.4
 pip~=23.0
 polib~=1.2
-pre-commit
+prek~=0.4.5
 pytest~=7.3.2
 pyyaml~=6.0
 qoi~=0.5

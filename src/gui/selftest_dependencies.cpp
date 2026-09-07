@@ -1,9 +1,10 @@
 #include "selftest_dependencies.hpp"
 
-#if HAS_SELFTEST_DEPENDENCIES()
-    #include <string_builder.hpp>
-    #include <window_msgbox.hpp>
-#endif
+#include <string_builder.hpp>
+#include <window_msgbox.hpp>
+#include <utils/bitset_utils.hpp>
+#include <printers.h>
+#include <option/has_nextruder.h>
 
 namespace SelftestSnake {
 
@@ -13,6 +14,10 @@ bool is_completed(TestResult test_result) {
 }
 
 #if HAS_SELFTEST_DEPENDENCIES()
+
+Dependencies all_transitive_dependencies(Action action) {
+    return bitset_flood_fill(get_dependencies(action), [](size_t i) { return get_dependencies(static_cast<Action>(i)); });
+}
 
 bool are_dependencies_met(Action action) {
     const auto dependencies = get_dependencies(action);
@@ -37,11 +42,11 @@ bool are_all_actions_completed() {
 }
 
 void show_unmet_dependencies_warning(Action action) {
-    constexpr int msg_size = 2 * (sizeof("Complete these calibrations first:") + 4 * sizeof("Filament Sensor Calibration"));
-    char msg[msg_size];
-    StringBuilder sb(msg);
+    // Assume 3 bytes per symbol at most (Katakana)
+    constexpr int msg_size = 3 * (sizeof("Complete these calibrations first:") + 4 * sizeof("Filament Sensor Calibration"));
+    ArrayStringBuilder<msg_size> sb;
     sb.append_string_view(_("Complete these calibrations first:"));
-    const auto dependencies = get_dependencies(action);
+    const auto dependencies = all_transitive_dependencies(action);
     for (Action dependency : valid_actions()) {
         if (!dependencies.test(dependency)) {
             continue;
@@ -51,8 +56,25 @@ void show_unmet_dependencies_warning(Action action) {
             sb.append_string_view(_(get_action_label(dependency)));
         }
     }
-    MsgBoxWarning(string_view_utf8::MakeRAM(msg), Responses_Ok);
+
+    // The string may overflow if there is too many dependencies
+    MsgBoxWarning(string_view_utf8::MakeRAM(sb.str_nocheck()), Responses_Ok);
 }
+
+consteval bool check_selftest_ordering() {
+    for (auto i = 0; i < static_cast<int>(Action::_count); i++) {
+        const auto deps = get_dependencies(static_cast<Action>(i));
+        for (auto j = i; j < static_cast<int>(Action::_count); j++) {
+            // selftest j goes after i -> if j has dependency on i the ordering is wrong
+            if (deps.test(static_cast<Action>(j))) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static_assert(check_selftest_ordering(), "selftests ordering does not satisfy dependencies");
 
 #else
 
@@ -69,6 +91,10 @@ bool are_previous_completed(Action action) {
     return true;
 }
 
+#endif
+
+#if HAS_NEXTRUDER() && !PRINTER_IS_PRUSA_iX()
+static_assert(Action::Gears < Action::FilamentSensorCalibration, "Filament could get locked up in the gearbox");
 #endif
 
 }; // namespace SelftestSnake

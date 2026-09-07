@@ -5,6 +5,7 @@
  */
 
 #include "DialogTimed.hpp"
+#include "gui_time.hpp"
 
 DialogTimed::DialogTimed(window_t *parent, Rect16 rect, uint32_t open_period)
     : IDialog(parent, rect)

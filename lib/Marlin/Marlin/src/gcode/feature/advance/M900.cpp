@@ -35,14 +35,12 @@
  *
  *#### Usage
  *
- *    M900 [ T | K | L | S ]
+ *    M900 [ T | K ]
  *
  *#### Parameters
  *
  * - `T` - Tool
- * - `K` - Set current advance K factor (Slot 0)
- * - `L` - Set secondary advance K factor (Slot 1)
- * - `S` - Activate slot 0 or 1
+ * - `K` - Set advance K factor
  *
  * With no parameters report Linear Advance K-factor(s)
  */

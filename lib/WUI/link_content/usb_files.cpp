@@ -1,8 +1,7 @@
 #include "usb_files.h"
 #include "../nhttp/headers.h"
 
-// Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
-#include "../../src/gui/file_list_defs.h"
+#include <buddy/filename_defs.hpp>
 
 namespace nhttp::link_content {
 
@@ -27,7 +26,7 @@ Selector::Accepted UsbFiles::accept(const RequestParser &parser, handler::Step &
         return Accepted::Accepted;
     }
 
-    char fname[FILE_PATH_BUFFER_LEN];
+    char fname[filename_defs::path_buffer_size];
     if (!parser.uri_filename(fname, sizeof(fname))) {
         out.next = StatusPage(Status::NotFound, parser, "This doesn't look like file name");
         return Accepted::Accepted;

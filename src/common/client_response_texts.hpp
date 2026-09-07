@@ -32,6 +32,8 @@ inline constexpr const char *get_response_text(Response response) {
         return N_("CONTINUE");
     case Response::Cooldown:
         return N_("COOLDOWN");
+    case Response::Details:
+        return N_("DETAILS");
     case Response::Disable:
         return N_("DISABLE");
     case Response::Done:

@@ -8,6 +8,7 @@
 #include <segmented_json_macros.h>
 #include <filepath_operation.h>
 #include <http/chunked.h>
+#include <bsod/bsod.h>
 
 using namespace json;
 using namespace http;
@@ -87,7 +88,7 @@ void SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
         return;
     case Progress::Done:
     default:
-        assert(false);
+        debug_assert(false);
         out = Step { 0, 0, Continue() };
         return;
     }

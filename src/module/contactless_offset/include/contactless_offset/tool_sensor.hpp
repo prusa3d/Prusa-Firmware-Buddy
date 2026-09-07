@@ -26,6 +26,9 @@ public:
     virtual Error get_last_error() const = 0;
 };
 
-std::unique_ptr<Sensor> get_default_sensor();
+inline constexpr uint16_t sensor_data_port_ch0 = 900;
+inline constexpr uint16_t sensor_data_port_ch1 = 902;
+
+std::unique_ptr<Sensor> make_sensor(uint16_t accepted_port);
 
 } // namespace tool_offset

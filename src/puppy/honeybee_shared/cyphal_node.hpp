@@ -47,6 +47,7 @@
 #include <utility>
 #include <device/cmsis.h>
 #include <magic_enum.hpp>
+#include <bsod/bsod.h>
 
 LOG_COMPONENT_REF(Node);
 
@@ -444,7 +445,7 @@ public:
 
     /// Task function (never exits)
     [[noreturn]] static void task(void *argument) {
-        assert(argument != nullptr);
+        debug_assert(argument != nullptr);
         reinterpret_cast<Node *>(argument)->task();
     }
 
@@ -488,7 +489,7 @@ public:
                 last_status_timestamp = 0; // Send status immediately
 
                 if (!first_time_sync) {
-                    assert(new_is_time_sync_precise);
+                    debug_assert(new_is_time_sync_precise);
                     log_info(Node, "Time synchronized with master");
 
                 } else if (new_is_time_sync_precise) {

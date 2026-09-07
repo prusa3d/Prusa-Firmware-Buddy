@@ -10,6 +10,7 @@
 #include <gui/event/focus_event.hpp>
 #include <gui/event/touch_event.hpp>
 #include <option/development_items.h>
+#include <bsod/bsod.h>
 
 namespace window_menu_item_private {
 
@@ -472,7 +473,7 @@ void IWindowMenuItem::event(WindowMenuItemEventContext &ctx) {
 
 #if HAS_TOUCH()
     if (const auto *e = ctx.event.value_maybe<gui_event::TouchEvent>()) {
-        assert(ctx.menu);
+        debug_assert(ctx.menu);
         if (!touch_extension_only_ || is_touch_in_extension_rect(*ctx.menu, e->relative_touch_point)) {
             click(*ctx.menu);
         }
@@ -491,7 +492,7 @@ void IWindowMenuItem::set_is_hidden(bool set) {
 
     // set_is_hidden should only be called before the items are first rendered
     // the WindowMenu is not equipped to handle items appearing and disappearing (except for SwapVisibility)
-    assert(invalid_extension && invalid_icon && invalid_label);
+    debug_assert(invalid_extension && invalid_icon && invalid_label);
 
     hidden = set;
 

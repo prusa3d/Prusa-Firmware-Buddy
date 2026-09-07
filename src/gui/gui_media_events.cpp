@@ -7,7 +7,6 @@
 #include "gui_media_events.hpp"
 #include "marlin_client.hpp"
 #include "marlin_events.h"
-#include "gui_time.hpp" //gui::GetTick()
 #include "usb_host/usb_host.h"
 
 GuiMediaEventsHandler &GuiMediaEventsHandler::Instance() {

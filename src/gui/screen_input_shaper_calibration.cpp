@@ -227,10 +227,10 @@ public:
     }
 };
 
-class FrameMeasurementFailed final : public FrameInstructions {
+class FrameMeasurementFailed final : public standard_frame_without_radio::FrameInstructions {
 public:
     explicit FrameMeasurementFailed(window_t *parent)
-        : FrameInstructions(parent, _(text_measurement_failed)) {}
+        : standard_frame_without_radio::FrameInstructions(parent, _(text_measurement_failed)) {}
 
     static constexpr const char *text_measurement_failed = N_("Measurement failed.");
 };
@@ -238,10 +238,10 @@ public:
 using Frames = FrameDefinitionList<ScreenInputShaperCalibration::FrameStorage,
 #if HAS_ATTACHABLE_ACCELEROMETER()
     FrameDefinition<PhasesInputShaperCalibration::info, FrameInfo>,
-    FrameDefinition<PhasesInputShaperCalibration::connect_to_board, FrameConnectToBoard>,
-    FrameDefinition<PhasesInputShaperCalibration::wait_for_extruder_temperature, FrameWaitForExtruderTemperature>,
-    FrameDefinition<PhasesInputShaperCalibration::attach_to_extruder, FrameAttachToExtruder>,
-    FrameDefinition<PhasesInputShaperCalibration::attach_to_bed, FrameAttachToBed>,
+    FrameDefinition<PhasesInputShaperCalibration::connect_to_board, standard_frame_without_radio::FrameConnectToBoard>,
+    FrameDefinition<PhasesInputShaperCalibration::wait_for_extruder_temperature, standard_frame_without_radio::FrameWaitForExtruderTemperature>,
+    FrameDefinition<PhasesInputShaperCalibration::attach_to_extruder, standard_frame_without_radio::FrameAttachToExtruder>,
+    FrameDefinition<PhasesInputShaperCalibration::attach_to_bed, standard_frame_without_radio::FrameAttachToBed>,
 #endif
     FrameDefinition<PhasesInputShaperCalibration::parking, FrameParking>,
     FrameDefinition<PhasesInputShaperCalibration::measuring_x_axis, FrameMeasuringExtruder>,
@@ -274,7 +274,7 @@ ScreenInputShaperCalibration *ScreenInputShaperCalibration::GetInstance() {
 }
 
 void ScreenInputShaperCalibration::create_frame() {
-    Frames::create_frame(frame_storage, get_phase(fsm_base_data), this);
+    Frames::create_frame(frame_storage, get_phase(fsm_base_data), &inner_frame);
     radio.Change(get_phase(fsm_base_data));
 }
 

@@ -4,7 +4,6 @@
 #include <tuple>
 #include <cstdint>
 #include <cstdlib>
-#include <assert.h>
 
 #include <mbedtls/aes.h>
 

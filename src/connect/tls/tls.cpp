@@ -12,6 +12,7 @@
 #include <raii/deleter.hpp>
 
 #include <lwip/mem.h>
+#include <bsod/bsod.h>
 
 using http::Error;
 using std::unique_ptr;
@@ -252,7 +253,7 @@ std::variant<size_t, Error> tls::tx(const uint8_t *send_buffer, size_t data_len)
 std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, [[maybe_unused]] bool nonblock) {
     // Non-blocking reading is not supported on TLS sockets right now
     // (it probably _can_ be done, we just didn't need it).
-    assert(!nonblock);
+    debug_assert(!nonblock);
     size_t bytes_received = 0;
 
     int status = mbedtls_ssl_read(&ssl_context, (unsigned char *)read_buffer, buffer_len);

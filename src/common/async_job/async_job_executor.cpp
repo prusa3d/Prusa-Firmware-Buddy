@@ -2,6 +2,7 @@
 
 #include "async_job.hpp"
 #include <buddy/priorities_config.h>
+#include <bsod/bsod.h>
 
 static __attribute__((section(".ccmram"))) AsyncJobExecutor default_instance;
 
@@ -43,8 +44,8 @@ void AsyncJobExecutor::thread_routine() {
             }
 
             job = synchronized_data.first_job;
-            assert(job);
-            assert(job->state_ == State::queued);
+            debug_assert(job);
+            debug_assert(job->state_ == State::queued);
 
             callback = job->callback;
 
@@ -68,7 +69,7 @@ void AsyncJobExecutor::thread_routine() {
                 continue;
             }
 
-            assert(job->state_ == State::running);
+            debug_assert(job->state_ == State::running);
 
             // KEEP the executor set to prevent race conditions (BFW-8766)
 

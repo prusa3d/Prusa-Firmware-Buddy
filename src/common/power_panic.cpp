@@ -3,7 +3,6 @@
 #include "timing_precise.hpp"
 
 #include <type_traits>
-#include <assert.h>
 
 #include <option/has_modular_bed.h>
 #include <option/has_puppies.h>
@@ -77,6 +76,7 @@
 #include "odometer.hpp"
 #include "marlin_vars.hpp"
 #include <mapi/motion.hpp>
+#include <mapi/feedrates/standard_feedrates.hpp>
 
 // print progress
 #include "M73_PE.h"
@@ -107,7 +107,16 @@ namespace {
 
 constexpr uint16_t chamber_temp_off = 0xffff;
 
-}
+constexpr bool power_panic_retracts =
+    // Dwarf gets turned off during the shutdown loop, so no retraction can happen
+    !HAS_DWARF();
+
+constexpr bool power_panic_deretracts = power_panic_retracts
+    // Skipped where G12 S21 already pressurizes the nozzle (see WaitForHeaters).
+    && !(HAS_NOZZLE_CLEANER() && (PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()))
+    && true;
+
+} // namespace
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -239,8 +248,7 @@ static void atomic_finish() {
     } else
 #endif
 #if HAS_TOOLCHANGER() && HAS_TOOL_CRASH_RECOVERY()
-        if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL // Was in toolchange area
-            && prusa_toolchanger.is_toolchanger_enabled()) { // Toolchanger is installed
+        if (prusa_toolchanger.is_pos_in_toolchange_area(state_buf.crash.crash_machine_position.xy()) && prusa_toolchanger.is_toolchanger_enabled()) {
 
         // Continue with toolcrash recovery
         marlin_server::powerpanic_finish_toolcrash();
@@ -259,8 +267,8 @@ static void atomic_finish() {
 }
 
 void resume_print() {
-    assert(state_stored()); // caller is responsible for checking
-    assert(marlin_server::printer_idle()); // caller is responsible for checking
+    debug_assert(state_stored()); // caller is responsible for checking
+    debug_assert(marlin_server::printer_idle()); // caller is responsible for checking
 
     // load the data
     fixed_t::load();
@@ -276,8 +284,8 @@ void resume_print() {
 
         const auto mode_specific = [](const state_progress_t::ModeSpecificData &mbuf, ClProgressData::ModeSpecificData &pdata) {
             pdata.percent_done.mSetValue(mbuf.percent_done, state_buf.progress.print_duration);
-            pdata.percent_done.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
-            pdata.percent_done.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
+            pdata.time_to_end.mSetValue(mbuf.time_to_end, state_buf.progress.print_duration);
+            pdata.time_to_pause.mSetValue(mbuf.time_to_pause, state_buf.progress.print_duration);
         };
         mode_specific(state_buf.progress.standard_mode, oProgressData.standard_mode);
         mode_specific(state_buf.progress.stealth_mode, oProgressData.stealth_mode);
@@ -331,7 +339,7 @@ void resume_loop() {
         // This applies for PowerPanic from paused AND from printing too
         // because printing after power up starts from pause
         marlin_server::resume_state_t resume;
-        resume.pos = state_buf.crash.crash_current_position;
+        resume.pos = state_buf.crash.crash_native_position;
         resume.fan_speed = state_buf.planner.fan_speed;
         resume.print_speed = state_buf.planner.print_speed;
         resume.nozzle_temp = state_buf.planner.target_nozzle;
@@ -388,7 +396,7 @@ void resume_loop() {
         }
 #endif
         // initial planner state (order is relevant!)
-        assert(!planner.leveling_active);
+        debug_assert(!planner.leveling_active);
         current_position[Z_AXIS] = state_buf.planner.z_position;
         planner.set_position_mm(current_position);
         axes_home_level[Z_AXIS] = state_buf.crash.axes_home_level[Z_AXIS];
@@ -419,10 +427,12 @@ void resume_loop() {
 #endif
 
 #if HAS_TOOLCHANGER() && HAS_TOOL_CRASH_RECOVERY()
-        if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
-            prusa_toolchanger.set_return_data({ PhysicalToolIndex::from_raw_notool(state_buf.toolchanger.tool_nr),
+        if (prusa_toolchanger.is_pos_in_toolchange_area(state_buf.crash.crash_machine_position.xy())) {
+            prusa_toolchanger.set_return_data({
+                PhysicalToolIndex::from_raw_notool(state_buf.toolchanger.tool_nr),
                 state_buf.toolchanger.return_type,
-                state_buf.toolchanger.return_pos });
+                state_buf.toolchanger.return_pos,
+            });
             resume_state = ResumeState::Finish; // Do not reheat, do not unpark
             break; // Skip lift and rehome
             // Will continue with toolcrash recovery
@@ -439,7 +449,7 @@ void resume_loop() {
         if (state_buf.crash.recover_flags & Crash_s::RECOVER_AXIS_STATE) {
             // lift and rehome
             if (state_buf.crash.axes_home_level.is_homed(X_AXIS, AxisHomeLevel::imprecise) || state_buf.crash.axes_home_level.is_homed(Y_AXIS, AxisHomeLevel::imprecise)) {
-                float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_current_position[Z_AXIS];
+                float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_native_position[Z_AXIS];
                 float z_lift = z_dist < Z_HOMING_HEIGHT ? Z_HOMING_HEIGHT - z_dist : 0;
                 char cmd_buf[24];
                 snprintf(cmd_buf, sizeof(cmd_buf), "G28 X Y D R%f", (double)z_lift);
@@ -468,15 +478,18 @@ void resume_loop() {
         }
 
 #if HAS_NOZZLE_CLEANER()
-    // Keep the printer list below in sync with the unretract guard in
-    // ResumeState::Unpark — G12 S21 pressurizes the nozzle on its own.
+        if (PhysicalToolIndex::currently_selected_opt().has_value()) {
+            // Keep the printer list below in sync with the unretract guard in
+            // ResumeState::Unpark — G12 S21 pressurizes the nozzle on its own.
     #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
-        marlin_server::enqueue_gcode("G12 S90"); // enter cleaner
-        marlin_server::enqueue_gcode("G12 S21"); // purge (no retract) and brush wipe
-        marlin_server::enqueue_gcode("G12 S91"); // exit cleaner
+            static_assert(!power_panic_deretracts);
+            marlin_server::enqueue_gcode("G12 S90"); // enter cleaner
+            marlin_server::enqueue_gcode("G12 S21"); // purge (no retract) and brush wipe
+            marlin_server::enqueue_gcode("G12 S91"); // exit cleaner
     #else
-        marlin_server::enqueue_gcode("G12"); // clean nozzle on the brush
+            marlin_server::enqueue_gcode("G12"); // clean nozzle on the brush
     #endif
+        }
 #endif
         resume_state = ResumeState::Unpark;
         break;
@@ -490,23 +503,22 @@ void resume_loop() {
         // forget the XYZ resume position if requested
         if (!(state_buf.crash.recover_flags & Crash_s::RECOVER_XY_POSITION)) {
             LOOP_XY(i) {
-                state_buf.crash.crash_current_position[i] = current_position[i];
+                state_buf.crash.crash_native_position[i] = current_position[i];
             }
         }
         if (!(state_buf.crash.recover_flags & Crash_s::RECOVER_Z_POSITION)) {
-            state_buf.crash.crash_current_position[Z_AXIS] = current_position[Z_AXIS];
+            state_buf.crash.crash_native_position[Z_AXIS] = current_position[Z_AXIS];
         }
 
         // unpark only if the position was known
         if (state_buf.crash.axes_home_level.is_homed({ X_AXIS, Y_AXIS }, AxisHomeLevel::imprecise)) {
-            plan_park_move_to_xyz(state_buf.crash.crash_current_position.xyz(), NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, Segmented::yes);
+            plan_park_move_to_xyz(state_buf.crash.crash_native_position.xyz(), NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE, Segmented::yes);
         }
 
         // Unretract paired with the retract in PPState::Prepared.
-        // Skipped where G12 S21 already pressurizes the nozzle (see WaitForHeaters).
-#if !(HAS_NOZZLE_CLEANER() && (PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()))
-        mapi::extruder_move(PAUSE_PARK_RETRACT_LENGTH, PAUSE_PARK_RETRACT_FEEDRATE);
-#endif
+        if (power_panic_deretracts && PhysicalToolIndex::currently_selected_opt().has_value()) {
+            mapi::extruder_move(STANDARD_RETRACT_LENGTH, buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::deretract));
+        }
 
         resume_state = ResumeState::Finish;
         break;
@@ -559,8 +571,8 @@ void resume_loop() {
             const auto &d = state_buf.crash;
 
             crash_s.start_current_position = d.start_current_position;
-            crash_s.crash_current_position = d.crash_current_position;
-            crash_s.crash_position = d.crash_position;
+            crash_s.crash_native_position = d.crash_native_position;
+            crash_s.crash_machine_position = d.crash_machine_position;
             crash_s.segments_finished = d.segments_finished;
             crash_s.leveling_active = d.leveling_active;
             crash_s.recover_flags = d.recover_flags;
@@ -661,7 +673,11 @@ bool shutdown_loop() {
     return true;
 }
 
-bool shutdown_loop_checked() {
+/// Periodic check whether the planned move has finished.
+/// If the planner is running, the procedure starts shutting down devices in parallel
+/// (because we're waiting for the moves to finish and have some spare time)
+/// @returns false when all moves have finished
+bool shutdown_devices_while_moving() {
     bool processing = planner.processing();
     if (!processing) {
         // no time to perform any shutdown
@@ -713,19 +729,17 @@ void panic_loop() {
         crash_s.set_state(Crash_s::RECOVERY);
         planner.refresh_acceleration_rates();
 
-        if (!runtime_state.nested_fault && !state_buf.planner.was_paused && !state_buf.planner.was_crashed && all_axes_homed()) {
-#if !HAS_DWARF()
+        if (power_panic_retracts && PhysicalToolIndex::currently_selected_opt().has_value() && !runtime_state.nested_fault && !state_buf.planner.was_paused && !state_buf.planner.was_crashed) {
             // retract if we were printing
-            mapi::extruder_move(-PAUSE_PARK_RETRACT_LENGTH, PAUSE_PARK_RETRACT_FEEDRATE);
+            mapi::extruder_move(-STANDARD_RETRACT_LENGTH, buddy::standard_feedrates::current_extruder(buddy::standard_feedrates::Extruder::retract));
             planner.start_moving();
-#endif
-
-            // start powering off complex devices
-            shutdown_loop_checked();
         }
 
         // If we didn't prepare (why?), do so in parallel to retracting E, to save some time.
         if (runtime_state.orig_state != PPState::Prepared) {
+            // Maybe do some shutdown first - it's fast and can save energy
+            shutdown_devices_while_moving();
+
             prepare();
         }
 
@@ -734,7 +748,8 @@ void panic_loop() {
         break;
 
     case PPState::Retracting:
-        if (shutdown_loop_checked()) {
+        if (shutdown_devices_while_moving()) {
+            // Do not continue until queued moves are finished
             break;
         }
 
@@ -748,16 +763,13 @@ void panic_loop() {
                 log_debug(PowerPanic, "Z MSCNT start: %d", stepperZ.MSCNT());
 
                 // lift just 1 cycle if already far enough from the print
-                float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_current_position[Z_AXIS];
+                float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_native_position[Z_AXIS];
                 bool already_lifted = z_dist >= planner.mm_per_qsteps(Z_AXIS, POWER_PANIC_Z_LIFT_CYCLES);
                 uint8_t cycles = (already_lifted ? 1 : POWER_PANIC_Z_LIFT_CYCLES);
                 float z_shift = distance_to_reset_point(Z_AXIS, cycles);
                 planner.buffer_line(planner.position_float + MachinePosXYZE { .z = z_shift }, POWER_PANIC_Z_FEEDRATE, PhysicalToolIndex::currently_selected());
                 set_current_position(to_native_pos(planner.get_machine_position_mm()));
                 planner.start_moving();
-
-                // continue powering off devices
-                shutdown_loop_checked();
             }
         }
 
@@ -765,7 +777,8 @@ void panic_loop() {
         break;
 
     case PPState::SaveState: {
-        if (shutdown_loop_checked()) {
+        if (shutdown_devices_while_moving()) {
+            // Do not continue until queued moves are finished
             break;
         }
 
@@ -840,12 +853,10 @@ void panic_loop() {
             destination = current_position;
             const PrintArea::rect_t print_rect = print_area.get_bounding_rect(); // We need to get out of print area
 #if HAS_TOOLCHANGER()
-            bool stay_put = false;
+            bool stay_put = prusa_toolchanger.is_pos_in_toolchange_area(state_buf.crash.crash_machine_position.xy());
     #if HAS_INDX()
-            stay_put = state_buf.crash.crash_position.y < PrusaToolChanger::SAFE_Y_WITH_TOOL // Dock area
-                || state_buf.crash.crash_position.x > X_WASTEBIN_SAFE_POINT; // Cleaner / wastebin strip
+            stay_put |= state_buf.crash.crash_machine_position.x > X_WASTEBIN_SAFE_POINT; // Cleaner / wastebin strip
     #elif PRINTER_IS_PRUSA_XL()
-            stay_put = state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL;
     #else
         #error "Need to know where the toolchanger is"
     #endif
@@ -938,7 +949,10 @@ void ac_fault_isr() {
             runtime_state.fault_stamp = ticks_ms();
             power_panic_state = PPState::WaitingToDie;
             // will continue in the main loop
-            xTaskResumeFromISR(ac_fault_task);
+
+            // Without the yield, the interrupted task would keep running until the next tick, delaying the ac_fault task.
+            const BaseType_t higher_priority_task_woken = xTaskResumeFromISR(ac_fault_task);
+            portYIELD_FROM_ISR(higher_priority_task_woken);
             return;
         }
     }
@@ -980,13 +994,13 @@ void ac_fault_isr() {
         const marlin_server::resume_state_t &resume = *marlin_server::get_resume_data();
 
         if (state_buf.planner.was_paused) {
-            // crash_current_position *is* current_position while the print is paused,
+            // crash_native_position *is* current_position while the print is paused,
             // so abuse the slot for the restore position instead
             state_buf.crash.sdpos = marlin_server::media_position();
-            state_buf.crash.crash_current_position = resume.pos;
+            state_buf.crash.crash_native_position = resume.pos;
         } else {
             state_buf.crash.sdpos = crash_s.sdpos;
-            state_buf.crash.crash_current_position = crash_s.crash_current_position;
+            state_buf.crash.crash_native_position = crash_s.crash_native_position;
         }
 
         // save crash parameters
@@ -1006,7 +1020,7 @@ void ac_fault_isr() {
         {
             state_buf.crash.start_current_position = crash_s.start_current_position;
         }
-        state_buf.crash.crash_position = crash_s.crash_position;
+        state_buf.crash.crash_machine_position = crash_s.crash_machine_position;
         state_buf.crash.segments_finished = crash_s.segments_finished;
         state_buf.crash.axes_home_level = crash_s.crash_axes_home_level;
         state_buf.crash.leveling_active = crash_s.leveling_active;
@@ -1031,7 +1045,7 @@ void ac_fault_isr() {
             state_buf.planner.active_tool = resume.active_tool;
 #endif
         } else {
-            state_buf.planner.fan_speed = thermalManager.fan_speed[0];
+            state_buf.planner.fan_speed = thermalManager.print_fan_speed;
             state_buf.planner.print_speed = marlin_vars().print_speed;
 #if HAS_INDX()
             state_buf.planner.active_tool = match(
@@ -1107,7 +1121,10 @@ void ac_fault_isr() {
     state_buf.planner.marlin_debug_flags = marlin_debug_flags;
 
     // will continue in the main loop
-    xTaskResumeFromISR(ac_fault_task);
+
+    // Without the yield, the interrupted task would keep running until the next tick, delaying the ac_fault task.
+    const BaseType_t higher_priority_task_woken = xTaskResumeFromISR(ac_fault_task);
+    portYIELD_FROM_ISR(higher_priority_task_woken);
 }
 
 bool is_ac_fault_active() {

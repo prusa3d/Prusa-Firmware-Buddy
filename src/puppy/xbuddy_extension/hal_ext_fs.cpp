@@ -11,6 +11,7 @@
 #include <onewire_master/onewire_master.hpp>
 #include <freertos/timing.hpp>
 #include <crc/crc.hpp>
+#include <bsod/bsod.h>
 
 namespace {
 
@@ -100,7 +101,7 @@ void timer_start(uint16_t delay_us = 1) {
 } // namespace
 
 FSState hal::filament_sensor::get_ext(uint8_t index) {
-    assert(index < xbuddy_extension::ext_filament_sensor_count);
+    debug_assert(index < xbuddy_extension::ext_filament_sensor_count);
     return fs_data[index].state.load();
 }
 

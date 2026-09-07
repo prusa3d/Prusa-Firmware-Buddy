@@ -6,6 +6,7 @@
 #include <cstring>
 #include <prusa3d/nfc/command/Request_1_0.h>
 #include <prusa3d/nfc/event/Event_1_0.h>
+#include <utils/byte_utils.hpp>
 
 namespace buddy::openprinttag {
 
@@ -31,7 +32,7 @@ static void serialize_write_field_float(RequestID request_id, TagID tag_id, Tool
     }
 }
 
-static std::expected<std::monostate, Error> deserialize_write_field_result(std::span<const std::byte> event_data) {
+static std::expected<std::monostate, Error> deserialize_write_field_result(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
     size_t size = event_data.size();
     if (prusa3d_nfc_event_Event_1_0_deserialize_(&event, reinterpret_cast<const uint8_t *>(event_data.data()), &size) != 0) {
@@ -55,7 +56,7 @@ void WriteFloatFieldRequest::serialize(RequestID request_id, TagID tag_id, anfc:
     serialize_write_field_float(request_id, tag_id, tag_field_, value_, request);
 }
 
-void WriteFloatFieldRequest::complete(std::span<const std::byte> event_data) {
+void WriteFloatFieldRequest::complete(Bytes event_data) {
     const auto result = deserialize_write_field_result(event_data);
     set_finished(result);
 }

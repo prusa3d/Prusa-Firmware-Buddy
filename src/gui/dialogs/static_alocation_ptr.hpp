@@ -2,6 +2,7 @@
 
 #include <type_traits> //aligned_union
 #include <memory>
+#include <bsod/bsod.h>
 
 /// Alternative to std::unique_ptr that does not delete the underlying memory, only calls the destructor
 /// and \p static_unique_ptr::make constructs the object on the provided memory (without allocating anything).

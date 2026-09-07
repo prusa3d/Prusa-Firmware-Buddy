@@ -57,6 +57,7 @@ public:
 #if HAS_INDX()
     static float head_ambient_temperature();
     static float nozzle_temp_uncompensated();
+    static int16_t ringdown_decay();
 
     float nozzle_power_W() const {
         return nozzle_power_W_.load(std::memory_order_relaxed);

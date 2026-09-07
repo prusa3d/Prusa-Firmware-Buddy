@@ -2,8 +2,9 @@
 #include "safe_state.h"
 #include <common/sys.hpp>
 
-void abort() {
-    bsod("aborted");
+extern "C" [[gnu::noinline]] void abort() {
+    const auto *callee_address = __builtin_extract_return_addr(__builtin_return_address(0));
+    _bsod("aborted %p", nullptr, -1, callee_address);
 }
 
 void __assert_func(const char *file_path, int line, const char * /*func*/, const char *msg) {

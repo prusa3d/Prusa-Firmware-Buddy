@@ -24,12 +24,29 @@
  * This file is part of the TinyUSB stack.
  */
 
+/* metadata:
+   name: LPCXpresso54608
+   url: https://www.nxp.com/design/design-center/software/development-software/mcuxpresso-software-and-tools-/lpcxpresso-development-board-for-lpc5460x-mcus:OM13092
+*/
+
 #ifndef BOARD_LPCXPRESSO54608_H_
 #define BOARD_LPCXPRESSO54608_H_
 
 #ifdef __cplusplus
  extern "C" {
 #endif
+
+// IOCON pin mux
+#define IOCON_PIO_DIGITAL_EN     0x0100u   // Enables digital function
+#define IOCON_PIO_FUNC0          0x00u
+#define IOCON_PIO_FUNC1          0x01u   // Selects pin function 1
+#define IOCON_PIO_FUNC7          0x07u   // Selects pin function 7
+#define IOCON_PIO_INPFILT_OFF    0x0200u // Input filter disabled
+#define IOCON_PIO_INV_DI         0x00u   // Input function is not inverted
+#define IOCON_PIO_MODE_INACT     0x00u   // No addition pin function
+#define IOCON_PIO_MODE_PULLUP    0x10u
+#define IOCON_PIO_OPENDRAIN_DI   0x00u   // Open drain is disabled
+#define IOCON_PIO_SLEW_STANDARD  0x00u   // Standard mode, output slew rate control is enabled
 
 // LED
 #define LED_PORT              2
@@ -48,6 +65,15 @@
 
 // USB0 VBUS
 #define USB0_VBUS_PINMUX      0, 22, IOCON_PIO_DIG_FUNC7_EN
+
+// Power switch
+#define USBFS_POWER_PORT      4
+#define USBFS_POWER_PIN       7
+#define USBFS_POWER_STATE_ON  0
+
+#define USBHS_POWER_PORT      4
+#define USBHS_POWER_PIN       9
+#define USBHS_POWER_STATE_ON  0
 
 // XTAL
 //#define XTAL0_CLK_HZ          (16 * 1000 * 1000U)

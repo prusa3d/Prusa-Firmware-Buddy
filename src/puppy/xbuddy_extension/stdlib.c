@@ -7,6 +7,10 @@
 // For now, let's compile with stdlib and suffer these functions.
 // Buildsystem is not yet ready for -nostdlib
 
+void abort() {
+    hal_panic();
+}
+
 int _close_r(struct _reent *, int) {
     hal_panic();
 }
@@ -20,14 +24,6 @@ _ssize_t _read_r(struct _reent *, int, void *, size_t) {
 }
 
 _ssize_t _write_r(struct _reent *, int, const void *, size_t) {
-    hal_panic();
-}
-
-int __attribute__((used)) _kill_r(struct _reent *, int, int) {
-    hal_panic();
-}
-
-int __attribute__((used)) _getpid_r(struct _reent *) {
     hal_panic();
 }
 

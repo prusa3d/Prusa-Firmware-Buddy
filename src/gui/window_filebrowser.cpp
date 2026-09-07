@@ -5,15 +5,13 @@
 #include "window_filebrowser.hpp"
 #include <logging/log.hpp>
 #include "sound.hpp"
+#include <window_msgbox.hpp>
+#include "i18n.h"
 #include <transfers/transfer.hpp>
+#include <buddy/filename_defs.hpp>
 #include <algorithm>
 
 LOG_COMPONENT_REF(GUI);
-
-#ifndef MAXPATHNAMELENGTH
-    // #error dead code found by automatic analyses (see BFW-5461)
-    #define MAXPATHNAMELENGTH F_MAXPATHNAMELENGTH
-#endif
 
 /// To save first/top visible item in the file browser
 /// This is something else than the selected file for print
@@ -36,7 +34,7 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     *c = 0; // even if we didn't find the '/', c will point to valid memory
     // check if we are at least in the root directory, if not move to root directory
     if (strstr(sfn_path, root) != sfn_path) {
-        strlcpy(sfn_path, root, FILE_PATH_BUFFER_LEN);
+        strlcpy(sfn_path, root, filename_defs::path_buffer_size);
     }
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     Load(GuiFileSort::Get(), c + 1, firstVisibleSFN);
@@ -96,8 +94,9 @@ void WindowFileBrowser::handle_click() {
     log_debug(GUI, "Clicked on item: %s", currentSFN);
 
     size_t sfn_path_len = strlen(sfn_path);
-    if ((sfn_path_len + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
+    if ((sfn_path_len + strlen(currentSFN) + 1) >= filename_defs::path_buffer_size) {
         log_error(GUI, "Path too long");
+        MsgBoxError(_("The path is too long."), Responses_Ok);
         return;
     }
 
@@ -110,7 +109,7 @@ void WindowFileBrowser::handle_click() {
                 sfn_path[sfn_path_len++] = slash;
             }
 
-            strlcpy(sfn_path + sfn_path_len, currentSFN, FILE_PATH_BUFFER_LEN - sfn_path_len);
+            strlcpy(sfn_path + sfn_path_len, currentSFN, filename_defs::path_buffer_size - sfn_path_len);
 
             Load(GuiFileSort::Get(), nullptr, nullptr);
         }
@@ -142,7 +141,7 @@ void WindowFileBrowser::go_up() {
         return;
     }
 
-    char previous_dir_sfn[FILE_PATH_BUFFER_LEN];
+    char previous_dir_sfn[filename_defs::path_buffer_size];
     strlcpy(previous_dir_sfn, last_slash_char + 1, sizeof(previous_dir_sfn));
 
     // We are in the top level directory (sfn_path == "/something", last_slash_char is the first char in the path)

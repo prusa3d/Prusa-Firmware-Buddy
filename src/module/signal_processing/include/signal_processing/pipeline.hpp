@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <cstring>
@@ -12,6 +11,7 @@
 #include <iterator>
 #include <utility>
 #include <array>
+#include <bsod/bsod.h>
 
 // Pull-based signal processing pipeline.
 //
@@ -98,7 +98,7 @@ namespace detail {
         if (next == sp::SamplingFreq { 0 }) {
             return current;
         }
-        assert(current == next && "All sources must have the same sampling frequency");
+        debug_assert(current == next && "All sources must have the same sampling frequency");
         return current;
     }
 
@@ -229,7 +229,7 @@ public:
         , sampling_freq_value(sampling_freq) {}
 
     sample_type next() {
-        assert(poll() == PollResult::ready);
+        debug_assert(poll() == PollResult::ready);
         auto val = queue.front();
         queue.pop();
         return val;
@@ -361,7 +361,7 @@ public:
         : NodeBase<S>(std::move(source))
         , accumulator(initial_value)
         , dt(static_cast<sample_type>(1.0) / static_cast<sample_type>(this->source.sampling_freq())) {
-        assert(this->source.sampling_freq() > sp::SamplingFreq { 0 } && "IntegrateNode requires a source with valid sampling frequency");
+        debug_assert(this->source.sampling_freq() > sp::SamplingFreq { 0 } && "IntegrateNode requires a source with valid sampling frequency");
     }
 
     sample_type next() {
@@ -393,7 +393,7 @@ public:
         : NodeBase<S>(std::move(source))
         , previous_sample(initial_value)
         , sampling_freq_value(static_cast<sample_type>(this->source.sampling_freq())) {
-        assert(this->source.sampling_freq() > sp::SamplingFreq { 0 }
+        debug_assert(this->source.sampling_freq() > sp::SamplingFreq { 0 }
             && "DifferentiateNode requires a source with valid sampling frequency");
     }
 
@@ -511,7 +511,7 @@ inline auto take(sp::Duration duration) {
         requires Source<std::remove_cvref_t<S>>
     {
         float seconds = std::chrono::duration<float>(duration).count();
-        assert(seconds >= 0.f);
+        debug_assert(seconds >= 0.f);
         int samples = static_cast<int>(seconds * s.sampling_freq());
         return TakeSamplesNode<std::remove_cvref_t<S>> {
             std::forward<S>(s), samples
@@ -537,7 +537,7 @@ public:
 
     sample_type next() {
         advance_to_available_source(std::make_index_sequence<sizeof...(Sources)> {});
-        assert(current_index < sizeof...(Sources) && "ChainNode::next() called after all sources finished");
+        debug_assert(current_index < sizeof...(Sources) && "ChainNode::next() called after all sources finished");
         return next_impl(std::make_index_sequence<sizeof...(Sources)> {});
     }
 
@@ -679,7 +679,7 @@ private:
             has_value[I] = true;
             return value;
         } else {
-            assert(has_value[I] && "Source finished without providing any values");
+            debug_assert(has_value[I] && "Source finished without providing any values");
             return std::get<I>(last_values);
         }
     }
@@ -760,17 +760,17 @@ public:
     SignalSource &operator=(const SignalSource &) = delete;
 
     T next() {
-        assert(object != nullptr);
+        debug_assert(object != nullptr);
         return vptr->next(object);
     }
 
     PollResult poll() {
-        assert(object != nullptr);
+        debug_assert(object != nullptr);
         return vptr->poll(object);
     }
 
     sp::SamplingFreq sampling_freq() const {
-        assert(object != nullptr);
+        debug_assert(object != nullptr);
         return vptr->sampling_freq(object);
     }
 

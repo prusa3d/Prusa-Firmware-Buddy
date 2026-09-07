@@ -5,6 +5,7 @@
 #include <module/temperature.h>
 #include <module/temperature/temp_defines.hpp>
 #include <fanctl.hpp>
+#include <freertos/task.hpp>
 
 #include <option/has_planner.h>
 #if HAS_PLANNER()
@@ -13,6 +14,7 @@
 #endif
 
 #include <option/has_power_panic.h>
+#include <bsod/bsod.h>
 #if HAS_POWER_PANIC()
     #include <power_panic.hpp>
 #endif
@@ -22,7 +24,6 @@ static constexpr HeaterWatch::Config heatbreak_watch_config {
     .temp_increase = -WATCH_HEATBREAK_TEMP_DECREASE,
     .period_s = WATCH_HEATBREAK_TEMP_PERIOD,
     .min_temp_diff = -HEATBREAK_MAXTEMP_OFFSET,
-    .error_code = ErrCode::ERR_TEMPERATURE_HEATBREAK_COOLING_TOO_SLOW,
     .watch_cooling_instead = true,
 };
 #endif
@@ -38,10 +39,14 @@ LocalHotend::LocalHotend(PhysicalToolIndex tool, const Config *config)
     , heatbreak_watch_(heatbreak_watch_config)
 #endif
 {
+    // Must be eager-constructed in task context, never lazily from an ISR (BFW-8126):
+    // the temperature ISR touches this singleton and would trip the C++ init-guard assert.
+    debug_assert(!freertos::is_inside_interrupt());
+
     // Do not call pinMode - it does nothing
     // pinMode(local_config_.nozzle_heater_marlin_pin, OUTPUT);
 
-    // Do NOT call digitalWrite. We're in init_isr_statics where digitalWrite is not yet initialized
+    // Do NOT call digitalWrite here — it is unnecessary at construction:
     // - Safe state should be off anyway
     // - Should get off anyway in the first manage() call from within Temperature::init()
     // digitalWrite(local_config_.nozzle_heater_marlin_pin, false);
@@ -73,8 +78,9 @@ void LocalHotend::manage() {
     nozzle_temp_ = marlin_temptable_lookup(local_config_.nozzle_temp_table, nozzle_raw_temp_);
     nozzle_low_temp_filter_.Put(nozzle_raw_temp_);
 
-    // Increase oversampling for values lower than 50 degrees Celsius to reduce noise
-    if (nozzle_temp_ <= 50) {
+    // Extra averaging filter for noise reduction.
+    const float curr_nozzle_temp = nozzle_temp().value();
+    if (curr_nozzle_temp <= local_config_.nozzle_filter_max_temp) {
         const auto filtered_raw_temp = nozzle_low_temp_filter_.GetSum() / nozzle_low_temp_filter_.GetCount();
         nozzle_temp_ = marlin_temptable_lookup(local_config_.nozzle_temp_table, filtered_raw_temp);
     }
@@ -108,13 +114,13 @@ void LocalHotend::manage() {
             .feed_forward = 0,
         };
 
-        if (nozzle_temp() > base_config_.min_nozzle_temp && nozzle_temp() < base_config_.max_nozzle_temp) {
+        if (curr_nozzle_temp > base_config_.min_nozzle_temp && curr_nozzle_temp < base_config_.max_nozzle_temp) {
             static_assert(PhysicalToolIndex::count == 1);
             regulation_result = nozzle_regulator_.get_pid_output_hotend(HotendRegulatorArgs {
                 .pid = nozzle_pid_config(),
                 .hotend_index = tool_.to_raw(),
-                .fan_speed = t.fan_speed[0], // FIXME: Bit of a cockup if we have multiple hotends.
-                    .current_temp = nozzle_temp(),
+                .fan_speed = t.print_fan_speed, // FIXME: Bit of a cockup if we have multiple hotends.
+                    .current_temp = curr_nozzle_temp,
                 .target_temp = nozzle_target_temp(),
 #if ENABLED(PID_EXTRUSION_SCALING)
                 .e_volume_delta = (thermalManager.extrusion_scaling_enabled && is_current_tool) ? e_volume_delta : 0,
@@ -135,9 +141,9 @@ void LocalHotend::manage() {
     }
 
 #if ENABLED(HAS_HOTEND_AUTO_FAN)
-    auto_fan_out_ = (nozzle_temp() >= EXTRUDER_AUTO_FAN_TEMPERATURE)
+    auto_fan_out_ = (curr_nozzle_temp >= EXTRUDER_AUTO_FAN_TEMPERATURE)
         // Give the auto fan a bit of hysteresis
-        || (auto_fan_out_ && nozzle_temp() >= EXTRUDER_AUTO_FAN_TEMPERATURE - 5);
+        || (auto_fan_out_ && curr_nozzle_temp >= EXTRUDER_AUTO_FAN_TEMPERATURE - 5);
 
     const auto auto_fan_pwm =
     #if PRINTER_IS_PRUSA_MK3_5()
@@ -219,7 +225,9 @@ void LocalHotend::manage_heatbreak() {
     next_heatbreak_check_ms_ = ms + 1000;
 
     #if WATCH_HEATBREAK
-    heatbreak_watch_.update(heatbreak_temp());
+    if (heatbreak_watch_.update(heatbreak_temp())) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_COOLING_TOO_SLOW);
+    }
     #endif
 
     // iX has a non-constant maxtemp for the heatbreak, so we need to explicitly set it
@@ -229,11 +237,13 @@ void LocalHotend::manage_heatbreak() {
     int16_t heatbreak_maxtemp = HEATBREAK_MAXTEMP;
     #endif
 
+    const float curr_nozzle_temp = nozzle_temp().value();
+
     if (WITHIN(heatbreak_temp(), HEATBREAK_MINTEMP, heatbreak_maxtemp)) {
         const auto regulator_out = heatbreak_fan_regulator_.step(HeatbreakRegulator::Args {
             .current_temp = heatbreak_temp(),
             .target_temp = heatbreak_target_temp(),
-            .current_hotend_temp = nozzle_temp(),
+            .current_hotend_temp = curr_nozzle_temp,
         });
         heatbreak_fan_pwm_ = PWM255((uint8_t)std::clamp<float>(std::round(regulator_out), 0, 255));
 

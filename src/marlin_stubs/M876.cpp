@@ -26,7 +26,7 @@
     #include "../../lib/Marlin/Marlin/src/feature/host_actions.h"
     #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
     #include "marlin_server.hpp"
-    #include "client_fsm_types.h"
+    #include "client_fsm_types.hpp"
 
 /** \addtogroup G-Codes
  * @{

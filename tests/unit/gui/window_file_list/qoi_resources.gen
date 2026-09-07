@@ -1,0 +1,3 @@
+inline constexpr Resource arrow_right_10x16(0, 10, 16);
+inline constexpr Resource folder_full_16x16(0, 16, 16);
+inline constexpr Resource folder_up_16x16(0, 16, 16);

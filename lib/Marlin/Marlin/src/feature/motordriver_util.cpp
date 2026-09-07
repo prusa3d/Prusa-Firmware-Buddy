@@ -13,6 +13,7 @@
 #endif
 
 #include <option/has_planner.h>
+#include <bsod/bsod.h>
 #if HAS_PLANNER()
     #include <module/planner.h>
 #endif

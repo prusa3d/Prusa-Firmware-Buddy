@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cassert>
 #include <memory>
 #include <type_traits>
+#include <bsod/bsod.h>
 
 template <auto>
 class SingleLinkedList;
@@ -18,7 +18,7 @@ public:
     }
 
     inline T &front() {
-        assert(!empty());
+        debug_assert(!empty());
         return *front_;
     }
 
@@ -30,13 +30,13 @@ public:
     }
 
     void pop_front() {
-        assert(!empty());
+        debug_assert(!empty());
         front_ = front_->*next_ptr;
     }
 
     /// complexity O(size)
     [[nodiscard]] T &back() {
-        assert(!empty());
+        debug_assert(!empty());
         NextPtr curr = front_;
         while (auto next = curr->*next_ptr) {
             curr = next;

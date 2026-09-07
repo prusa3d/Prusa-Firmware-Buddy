@@ -1,5 +1,6 @@
 /// @file
 #include "screen_menu_virtual.hpp"
+#include <bsod/bsod.h>
 
 namespace screen_menu_virtual {
 
@@ -13,7 +14,7 @@ int Menu::item_count() const {
 }
 
 void Menu::setup_item(ItemVariant &variant, int index) {
-    assert(configuration_);
+    debug_assert(configuration_);
     return configuration_->item_constructor(variant, index);
 }
 

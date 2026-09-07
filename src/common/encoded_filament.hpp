@@ -1,17 +1,21 @@
 #pragma once
 
-#include <cassert>
+#include <utility>
 
 #include <filament.hpp>
+#include <bsod/bsod.h>
 
 struct EncodedFilamentType {
 
 public:
     static constexpr uint8_t adhoc_filaments_offset = 176;
     static constexpr uint8_t user_filaments_offset = 192;
+    static constexpr uint8_t pending_adhoc_filament_value = 175;
 
+    static_assert(std::to_underlying(PresetFilamentType::_count) + 1 /* no filament */ <= pending_adhoc_filament_value);
+    static_assert(pending_adhoc_filament_value < adhoc_filaments_offset);
     static_assert(adhoc_filaments_offset + adhoc_filament_type_count <= user_filaments_offset);
-    static_assert(static_cast<int>(user_filaments_offset) + max_user_filament_type_count <= 255);
+    static_assert(user_filaments_offset + max_user_filament_type_count <= 255);
 
     uint8_t data = 0;
 
@@ -32,9 +36,7 @@ public:
                 return v.tool + adhoc_filaments_offset;
 
             } else if constexpr (std::is_same_v<T, PendingAdHocFilamentType>) {
-                // Should never get encoded
-                assert(0);
-                return 0;
+                return pending_adhoc_filament_value;
 
             } else if constexpr (std::is_same_v<T, NoFilamentType>) {
                 return 0;
@@ -60,6 +62,9 @@ public:
 
         } else if (data >= adhoc_filaments_offset && data < adhoc_filaments_offset + adhoc_filament_type_count) {
             return AdHocFilamentType { static_cast<uint8_t>(data - adhoc_filaments_offset) };
+
+        } else if (data == pending_adhoc_filament_value) {
+            return PendingAdHocFilamentType {};
 
         } else {
             return NoFilamentType {};

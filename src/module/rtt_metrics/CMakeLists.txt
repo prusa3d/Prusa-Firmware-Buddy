@@ -1,0 +1,3 @@
+add_subdirectory(rtt_metrics_structs)
+add_subdirectory(rtt_metrics_serialization)
+add_subdirectory(rtt_metrics_segger)

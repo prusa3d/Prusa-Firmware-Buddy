@@ -30,36 +30,34 @@
     #include <feature/bed_fan/controller.hpp>
 #endif
 
+#include <option/has_cpu_fan.h>
+#if HAS_CPU_FAN()
+    #include <cpu_fan_controller.hpp>
+#endif
+
+#include <option/has_xl_can.h>
+#if HAS_XL_CAN()
+    #include <hw/xl/modular_bed_fan.hpp>
+#endif
+
 #include <option/has_dwarf.h>
 #if HAS_DWARF()
     #include <puppies/Dwarf.hpp>
 #endif
 
-#if FAN_COUNT > 0
+#include "../gcode.h"
+#include "../../module/motion.h"
+#include "../../module/temperature.h"
+#include "fanctl.hpp"
+#include <device/board.h>
+#include <utils/variant_utils.hpp>
+#include <option/xbuddy_extension_variant.h>
+#include <pwm_utils.hpp>
+#include <algorithm_scale.hpp>
 
-    #include "../gcode.h"
-    #include "../../module/motion.h"
-    #include "../../module/temperature.h"
-    #include "fanctl.hpp"
-    #include <device/board.h>
-    #include <utils/variant_utils.hpp>
-    #include <option/xbuddy_extension_variant.h>
-    #include <pwm_utils.hpp>
-
-    #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
-        #include <feature/xbuddy_extension/xbuddy_extension.hpp>
-    #endif
-
-    #if ENABLED(SINGLENOZZLE)
-        #define _ALT_P active_extruder
-        #define _CNT_P EXTRUDERS
-    #elif HAS_TOOLCHANGER()
-        #define _ALT_P 0
-        #define _CNT_P FAN_COUNT
-    #else
-        #define _ALT_P _MIN(active_extruder.load(), FAN_COUNT - 1)
-        #define _CNT_P FAN_COUNT
-    #endif
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+    #include <feature/xbuddy_extension/xbuddy_extension.hpp>
+#endif
 
 /**
  * @brief Set fans that are not controlled by Marlin
@@ -73,9 +71,9 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
     [[maybe_unused]] const auto pwm_or_auto = set_auto ? PWM255OrAuto(pwm_auto) : PWM255OrAuto(speed);
 
     switch (fan) {
-    #if HAS_TOOLCHANGER()
+#if HAS_TOOLCHANGER()
     case 1:
-        #if HAS_DWARF()
+    #if HAS_DWARF()
         // Heatbreak fan
         if (tool.has_value()) {
             if (buddy::puppies::dwarfs[*tool].is_enabled()) {
@@ -86,20 +84,18 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
                 }
             }
         }
-        #endif
-        return true; // Eat this G-code, heatbreak fan is not controlled by Marlin
     #endif
+        return true; // Eat this G-code, heatbreak fan is not controlled by Marlin
+#endif
 
-    #if XL_ENCLOSURE_SUPPORT()
+#if XL_ENCLOSURE_SUPPORT()
     case 3:
-        static_assert(FAN_COUNT < 3, "Fan index 3 is reserved for Enclosure fan and should not be set by thermalManager");
         Fans::enclosure().set_pwm(speed);
         return true;
-    #endif
+#endif
 
-    #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
         using XBE = buddy::XBuddyExtension;
-        static_assert(FAN_COUNT < 3, "Fan 3 is dedicated to extboard");
 
     case 3:
         buddy::xbuddy_extension().set_fan_target_pwm(XBE::Fan::cooling_fan_1, pwm_or_auto);
@@ -108,9 +104,9 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
     case 4:
         buddy::xbuddy_extension().set_fan_target_pwm(XBE::Fan::filtration_fan, pwm_or_auto);
         return true;
-    #endif // XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+#endif // XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
 
-    #if HAS_BED_FAN()
+#if HAS_BED_FAN()
     case 5:
         if (set_auto) {
             constexpr float default_temp_threshold = -1.0f; // disabled
@@ -125,15 +121,31 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
             });
         }
         return true;
-    #endif
+#endif
 
-    #if HAS_INDX()
+#if HAS_INDX()
     case 6:
         // Dock fan on the xBuddy NEXTRUDER print-fan pin (same controller as
         // the C1 print fan).
         Fans::dock_fan().set_pwm(speed);
         return true;
-    #endif
+#endif
+
+#if HAS_CPU_FAN()
+    case 7:
+        // CPU fan on the XLS sandwich board; on plain XL the pin is
+        // unconnected, so the override is harmless there.
+        cpu_fan_controller::set_target_pwm(pwm_or_auto);
+        return true;
+#endif
+
+#if HAS_XL_CAN()
+    case 8:
+        // Modular Bed cooling fan on the XL-CAN bridge (XLS only); applied by
+        // the marlin_server loop, which no-ops when the bridge is absent.
+        buddy::ModularBedFanControl::instance().set_pwm_override(pwm_or_auto);
+        return true;
+#endif
 
     default:
         break;
@@ -165,6 +177,8 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
  *     - `4` - Filtration fan (if supported)
  *     - `5` - Bed Fan (if supported)
  *     - `6` - Dock fan (INDX only)
+ *     - `7` - CPU fan (XLS only)
+ *     - `8` - Modular Bed cooling fan (XLS only)
  * - `R` - Set the to auto control (if supported by the fan)
  * - `T` - Select which tool if the same fan is on multiple tools, active_extruder if not specified
  * - `N` - Ramp function breakpoint PWM for chamber fan regulator (0-255, P3/P4 only). See description below.
@@ -205,10 +219,15 @@ static bool set_special_fan_speed(uint8_t fan, std::optional<PhysicalToolIndex> 
  * - Temperature difference > threshold: maximum PWM (A parameter)
  * - Temperature difference 0-threshold: linear scaling
  *
+ *#### CPU and Modular Bed fans (P7/P8, XLS only)
+ * - Both fans normally run under automatic temperature control
+ * - `S` sets a manual PWM that replaces the automatic control until `M106 P<n> R` or reboot
+ * - `M107 P<n>` sets manual PWM 0 (fan truly off); use `R` to return to automatic control
+ *
  *Enclosure fan (index 3) don't support T parameter
  */
 void GcodeSuite::M106() {
-    const uint8_t p = parser.byteval('P', _ALT_P);
+    const uint8_t p = parser.byteval('P', 0);
 
     const bool auto_control = parser.seen('R');
     if (parser.seen('S') || parser.seen('A') || auto_control) {
@@ -218,23 +237,32 @@ void GcodeSuite::M106() {
         if (set_special_fan_speed(p, tool, speed, auto_control)) {
             // Done in the function
 
-        } else if (p < _CNT_P) {
-            uint16_t d = parser.seen('A') ? thermalManager.fan_speed[0] : 255;
+        } else if (p == 0 /* print fan */) {
+            uint16_t d = parser.seen('A') ? thermalManager.print_fan_speed : 255;
             uint16_t s = parser.ushortval('S', d);
             NOMORE(s, 255U);
-    #if HAS_GCODE_COMPATIBILITY()
+#if HAS_GCODE_COMPATIBILITY()
             if (gcode.compatibility.mk4_compatibility_mode) {
                 s = (s * 7) / 10; // Converts speed to 70% of its values
             }
-    #endif
+            if (gcode.compatibility.xl_compatibility_mode && s != 0) {
+                // Interpolate PWM values in case XL gcode is executed on XLS printer
+                // 0 means off, so keep it off - no remapping
+                // Remapping explained in BFW-8540
+                // XLS fan has at 33% PWM the same airflow as GOM at 40% PWM
+                // XLS fan has at 60% PWM the same airflow as Delta at 100% PWM (Delta has a bit higher airflow than GOM)
+                // Clamping applied outside of 20% - 100% of the original value
+                s = scale<uint32_t>(s, 20 * 255 / 100, 100 * 255 / 100, 33 * 255 / 100, 60 * 255 / 100);
+            }
+#endif
 
-            thermalManager.set_fan_speed(p, s);
+            thermalManager.set_print_fan_speed(s);
         }
     }
 
     switch (p) {
 
-    #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
+#if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     case 3:
     case 4:
         if (parser.seen('N')) {
@@ -244,7 +272,7 @@ void GcodeSuite::M106() {
             buddy::xbuddy_extension().set_chamber_regulator_ramp_slope(parser.floatval('G'));
         }
         break;
-    #endif
+#endif
     }
 }
 
@@ -265,19 +293,21 @@ void GcodeSuite::M106() {
  *     - `4` - Filtration fan (if supported)
  *     - `5` - Bed Fan (if supported)
  *     - `6` - Dock fan (INDX only)
+ *     - `7` - CPU fan (XLS only); off until `M106 P7 R` reverts to automatic control
+ *     - `8` - Modular Bed cooling fan (XLS only); off until `M106 P8 R` reverts to automatic control
  * - `T` - Select which tool if there are multiple fans, one on each tool
  */
 void GcodeSuite::M107() {
-    const uint8_t p = parser.byteval('P', _ALT_P);
+    const uint8_t p = parser.byteval('P', 0);
 
     const std::optional<PhysicalToolIndex> tool = stdext::get_optional<PhysicalToolIndex>(get_target_physical_from_command());
     if (set_special_fan_speed(p, tool, 0, false)) {
         return;
     }
 
-    thermalManager.set_fan_speed(p, 0);
+    if (p == 0 /* print fan */) {
+        thermalManager.set_print_fan_speed(0);
+    }
 }
 
 /** @}*/
-
-#endif // FAN_COUNT > 0

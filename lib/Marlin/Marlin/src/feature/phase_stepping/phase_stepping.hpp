@@ -11,6 +11,7 @@
 
     #include "common.hpp"
     #include "lut.hpp"
+    #include "../../core/time_ticks.hpp"
 
     #include <utils/atomic_circular_queue.hpp>
     #include <core/types.h>
@@ -18,7 +19,6 @@
 
     #include <algorithm>
     #include <atomic>
-    #include <cassert>
     #include <optional>
 
 namespace phase_stepping {
@@ -64,7 +64,7 @@ struct AxisState {
     const move_t *last_processed_move = nullptr; // Move reference when using classic stepping
     bool direction = true; // Last non-zero physical movement direction
 
-    uint64_t current_print_time_ticks = 0;
+    uint64_t current_print_time_us = 0;
     uint32_t initial_time = 0; // Initial timestamp when the movement start
 
     // As move_t is being processed by the step generator its data is buffered into next_target.
@@ -120,7 +120,7 @@ struct AxisState {
             // We don't really _need_ the old value, but unfortunately, acquire
             // memory order needs to be on an operation that reads.
             [[maybe_unused]] State old = state.exchange(State::updating, std::memory_order_acquire);
-            assert(old != State::updating);
+            debug_assert(old != State::updating);
             value = v;
             state.store(State::full, std::memory_order_release);
         }
@@ -174,7 +174,7 @@ struct AxisState {
     };
     StealableTarget next_target; // Next planned target to move
 
-    double next_target_end_time; // Absolute end time (s) for the next planned target
+    TimeTicks next_target_end_time; // Absolute end time for the next planned target
     std::atomic<bool> is_cruising = false;
 
     float initial_hold_multiplier; // Original holding current multiplier
@@ -535,7 +535,7 @@ constexpr const char *get_correction_file_path(AxisEnum axis, CorrectionType lut
     default:
         break;
     }
-    assert(false);
+    debug_assert(false);
     return "";
 }
 

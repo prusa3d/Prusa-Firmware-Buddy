@@ -3,6 +3,7 @@
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include "loadcell.hpp"
 #include <common/sys.hpp>
+#include <bsod/bsod.h>
 
 // Ensure coherence between loadcell and lower-level types/values without creating a circular header
 // dependency between Loadcell and HX717Mux
@@ -58,7 +59,7 @@ void HX717Mux::handler() {
             // only verified when:
             // - no debugger attached in debug builds
             // - debugger attached, DEBUGGING(ERRORS) set (M111 S4)
-            assert(!(was_initialized && raw_value == HX717::undefined_value));
+            debug_assert(!(was_initialized && raw_value == HX717::undefined_value));
         }
     }
 

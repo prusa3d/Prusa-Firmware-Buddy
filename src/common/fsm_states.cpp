@@ -1,5 +1,6 @@
 #include <common/fsm_states.hpp>
 
+#include <option/has_crash_detection.h>
 #include <option/has_esp.h>
 #include <option/has_serial_print.h>
 #include <option/has_phase_stepping_calibration.h>
@@ -7,6 +8,7 @@
 #include <option/has_door_sensor_calibration.h>
 #include <option/has_manual_belt_tuning.h>
 #include <option/has_indx.h>
+#include <option/has_heaters_selftest_gcode.h>
 #include <logging/log.hpp>
 
 LOG_COMPONENT_DEF(Fsm, logging::Severity::debug);
@@ -30,6 +32,9 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::FansSelftest:
     case ClientFSM::SelftestFSensors:
 #endif
+#if HAS_HEATERS_SELFTEST_GCODE()
+    case ClientFSM::HeatersSelftest:
+#endif
 #if HAS_GEARBOX_ALIGNMENT()
     case ClientFSM::GearboxAlignment:
 #endif
@@ -38,14 +43,16 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
 #endif
 #if HAS_INDX()
     case ClientFSM::DockCalibration:
-    case ClientFSM::ToolOffsetsCalibration:
     case ClientFSM::NozzleCleanerCalibration:
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    case ClientFSM::ToolOffsetsCalibration:
 #endif
         return 1;
 
     case ClientFSM::Load_unload:
     case ClientFSM::Preheat:
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     case ClientFSM::CrashRecovery:
 #endif
     case ClientFSM::QuickPause:

@@ -2,6 +2,7 @@
 
 #include <window_dlg_wait.hpp>
 #include <window_msgbox.hpp>
+#include <bsod/bsod.h>
 
 namespace buddy::openprinttag {
 

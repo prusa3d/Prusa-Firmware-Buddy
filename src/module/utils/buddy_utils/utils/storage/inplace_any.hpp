@@ -3,9 +3,9 @@
 
 #include <memory>
 #include <type_traits>
-#include <cassert>
 
 #include <utils/uncopyable.hpp>
+#include <bsod/bsod.h>
 
 template <typename Base = void>
 struct InplaceAnyRTTI {
@@ -66,14 +66,14 @@ public:
     /// \returns reference to the value of type T. Assumes the Any holds the correct type.
     template <typename T>
     constexpr inline T &get() {
-        assert(holds_alternative<T>());
+        debug_assert(holds_alternative<T>());
         return *reinterpret_cast<T *>(data_.data());
     }
 
     /// \returns reference to the value of type T. Assumes the Any holds the correct type.
     template <typename T>
     constexpr inline const T &get() const {
-        assert(holds_alternative<T>());
+        debug_assert(holds_alternative<T>());
         return *reinterpret_cast<const T *>(data_.data());
     }
 

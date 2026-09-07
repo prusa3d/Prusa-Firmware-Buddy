@@ -17,7 +17,7 @@ HX717::HX717()
 }
 
 void HX717::init(Channel configureChannel) {
-    assert(configureChannel != CHANNEL_NOT_SET);
+    debug_assert(configureChannel != CHANNEL_NOT_SET);
 
     initialized = false;
     currentChannel = configureChannel;
@@ -53,8 +53,8 @@ void HX717::init(Channel configureChannel) {
  */
 int32_t HX717::ReadValue(Channel nextChannel, uint32_t readyTimestamp) {
     // ensure init() has been called
-    assert(currentChannel != CHANNEL_NOT_SET);
-    assert(nextChannel != CHANNEL_NOT_SET);
+    debug_assert(currentChannel != CHANNEL_NOT_SET);
+    debug_assert(nextChannel != CHANNEL_NOT_SET);
 
     int32_t result = 0;
     static constexpr int32_t zero = 0;

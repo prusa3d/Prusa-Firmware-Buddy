@@ -90,6 +90,7 @@ target_link_libraries(
           LP5817
           cortex-m0-atomic
           tpis
+          coroutines
   )
 
 target_include_directories(firmware PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")

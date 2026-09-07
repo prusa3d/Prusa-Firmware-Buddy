@@ -1,9 +1,10 @@
 #include "i_window_menu_container.hpp"
+#include <bsod/bsod.h>
 
 IWinMenuContainer::Node IWinMenuContainer::FindFirstVisible() const {
     for (int i = 0; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
-        assert(item);
+        debug_assert(item);
 
         if (item->IsHidden()) {
             continue;
@@ -26,7 +27,7 @@ IWinMenuContainer::Node IWinMenuContainer::FindNextVisible(Node prev) const {
 
     for (int i = prev.raw_index + 1; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
-        assert(item);
+        debug_assert(item);
 
         if (item->IsHidden()) {
             continue;

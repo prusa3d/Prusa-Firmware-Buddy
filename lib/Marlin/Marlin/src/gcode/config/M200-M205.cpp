@@ -132,10 +132,10 @@ void GcodeSuite::M201() {
  *
  *#### Parameters
  *
- * - `X` - X axis max acceleration
- * - `Y` - Y axis max acceleration
- * - `Z` - Z axis max acceleration
- * - `E` - E axis max acceleration
+ * - `X` - X axis max feedrate
+ * - `Y` - Y axis max feedrate
+ * - `Z` - Z axis max feedrate
+ * - `E` - E axis max feedrate
  * - `T` - Tool. With multiple extruders use T to specify which one.
  */
 void GcodeSuite::M203() {

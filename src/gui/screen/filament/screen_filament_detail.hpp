@@ -2,6 +2,7 @@
 
 #include <filament.hpp>
 
+#include <common/aggregate_arity.hpp>
 #include <WindowMenuInfo.hpp>
 #include <WindowMenuSpin.hpp>
 #include <MItem_tools.hpp>
@@ -12,6 +13,11 @@
 #include <option/has_chamber_api.h>
 #include <option/has_filament_heatbreak_param.h>
 #include <option/has_filament_base_preset_param.h>
+
+#include <option/has_anfc.h>
+#if HAS_ANFC()
+    #include <feature/openprinttag/tool_tag.hpp>
+#endif
 
 namespace screen_filament_detail {
 
@@ -54,14 +60,14 @@ public:
 };
 #endif
 
-class MI_FILAMENT_NOZZLE_TEMPERATURE final : public WiSpin {
+class MI_FILAMENT_NOZZLE_TEMPERATURE final : private NumericInputConfigHolder, public WiSpin {
 public:
     static constexpr auto parameter_ptr = &FilamentTypeParameters::nozzle_temperature;
 
     MI_FILAMENT_NOZZLE_TEMPERATURE();
 };
 
-class MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE final : public WiSpin {
+class MI_FILAMENT_NOZZLE_PREHEAT_TEMPERATURE final : private NumericInputConfigHolder, public WiSpin {
 public:
     static constexpr auto parameter_ptr = &FilamentTypeParameters::nozzle_preheat_temperature;
 
@@ -114,12 +120,36 @@ public:
 };
 #endif
 
-#if HAS_CHAMBER_API()
+#if HAS_CHAMBER_FILTRATION_API()
 class MI_FILAMENT_REQUIRES_FILTRATION final : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     static constexpr auto parameter_ptr = &FilamentTypeParameters::requires_filtration;
 
     MI_FILAMENT_REQUIRES_FILTRATION();
+};
+#endif
+
+#if HAS_ANFC()
+class MI_FILAMENT_ASSIGNED_OPENPRINTTAG final : public WI_ICON_SWITCH_OFF_ON_t {
+public:
+    static constexpr auto parameter_ptr = &FilamentTypeParameters::openprinttag_uid_hash;
+
+    MI_FILAMENT_ASSIGNED_OPENPRINTTAG();
+
+    using Value = buddy::openprinttag::ToolTag::UIDHash;
+    static constexpr Value no_tag_hash = buddy::openprinttag::ToolTag::no_tag_hash;
+
+    Value value() const {
+        return WI_ICON_SWITCH_OFF_ON_t::value() ? original_uid_hash_ : no_tag_hash;
+    }
+
+    void set_value(Value set);
+
+protected:
+    void OnChange(size_t) override;
+
+private:
+    Value original_uid_hash_ = no_tag_hash;
 };
 #endif
 
@@ -169,13 +199,27 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
 #endif
     MI_FILAMENT_IS_ABRASIVE,
     MI_FILAMENT_IS_FLEXIBLE,
-#if HAS_CHAMBER_API()
+#if HAS_CHAMBER_FILTRATION_API()
     MI_FILAMENT_REQUIRES_FILTRATION,
+#endif
+#if HAS_ANFC()
+    MI_FILAMENT_ASSIGNED_OPENPRINTTAG,
 #endif
     MI_CONFIRM //
     >;
 
-static_assert(aggregate_arity<FilamentTypeParameters>() == 6 + HAS_FILAMENT_HEATBREAK_PARAM() * 1 + HAS_CHAMBER_API() * 4 + HAS_FILAMENT_BASE_PRESET_PARAM() * 1, "Revise ScreenFilamentDetail");
+static_assert(
+    aggregate_arity<FilamentTypeParameters>()
+        == 6
+            + HAS_FILAMENT_HEATBREAK_PARAM() * 1
+            + HAS_CHAMBER_API() * 4
+            + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
+            + HAS_ANFC() * 1
+            // requires_ht_idler_door - preset-only hack
+            + HAS_HT_HOTEND() * 1
+    //
+    ,
+    "Revise ScreenFilamentDetail");
 
 /// Management of a specified filament type
 class ScreenFilamentDetail : public ScreenFilamentDetail_ {
@@ -186,6 +230,7 @@ public:
         using ToolIndex = std::variant<VirtualToolIndex, AllTools>;
 
         ToolIndex tool = AllTools {};
+        PreheatMode mode;
     };
 
 public:
@@ -207,7 +252,7 @@ public:
 protected:
     ScreenFilamentDetail(const char *title);
 
-    void setup_preheat_mode_confirm(PreheatModeParams::ToolIndex tool);
+    void setup_preheat_mode_confirm(PreheatModeParams params);
 
 protected:
     FilamentType filament_type_;

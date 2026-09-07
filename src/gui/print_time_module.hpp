@@ -31,7 +31,7 @@ public:
     /**
      * @brief Prints time to end (countdown) into the buffer
      *
-     * @param time_to_end
+     * @param duration
      * @param buffer
      * @param parse_seconds whether to include seconds in the printing output or not
      */

@@ -13,7 +13,7 @@
 #include <option/has_chamber_filtration_api.h>
 #include <device/board.h>
 #include <gui/menu_item/specific/menu_items_chamber.hpp>
-#include <option/has_leds_menu.h>
+#include <option/has_lights_menu.h>
 
 namespace detail {
 using ScreenMenuEnclosure = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
@@ -29,9 +29,9 @@ using ScreenMenuEnclosure = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
     ,
     MI_CHAMBER_TEMP
 #endif
-#if HAS_LEDS_MENU()
+#if HAS_LIGHTS_MENU()
     ,
-    MI_LEDS_SETTINGS
+    MI_LIGHTS
 #endif
     >;
 } // namespace detail

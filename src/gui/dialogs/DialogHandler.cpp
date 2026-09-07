@@ -9,6 +9,7 @@
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_warning.hpp"
+#include <option/has_crash_detection.h>
 #include <option/has_gearbox_alignment.h>
 #include <option/has_phase_stepping_calibration.h>
 #include <option/has_input_shaper_calibration.h>
@@ -17,6 +18,8 @@
 #include <option/has_manual_belt_tuning.h>
 #include <option/has_loadcell.h>
 #include <option/has_indx.h>
+#include <option/has_heaters_selftest_gcode.h>
+#include <option/has_tool_offset_sensor.h>
 #include <gui/screen/screen_preheat.hpp>
 #include <gui/screen/dialog_safety_timer.hpp>
 
@@ -28,7 +31,10 @@
     #include <gui/screen/screen_nozzle_mismatch.hpp>
     #include <feature/indx_dock_calibration/screen_dock_calibration.hpp>
     #include <feature/indx_nozzle_cleaner_calibration/screen_nozzle_cleaner_calibration.hpp>
-    #include <feature/indx_tool_offsets_calibration/screen_indx_tool_offsets_calibration.hpp>
+#endif
+
+#if HAS_TOOL_OFFSET_SENSOR()
+    #include <feature/tool_offset_wizard/screen_tool_offset_wizard.hpp>
 #endif
 
 #if HAS_MANUAL_BELT_TUNING()
@@ -41,11 +47,14 @@
 
 #if HAS_SELFTEST()
     #include <screen_fan_selftest.hpp>
+    #if HAS_HEATERS_SELFTEST_GCODE()
+        #include <screen_heaters_selftest.hpp>
+    #endif
     #include "ScreenSelftest.hpp"
     #include <gui/screen/selftest/screen_selftest_fsensors.hpp>
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     #include "screen_crash_recovery.hpp"
 #endif
 
@@ -71,6 +80,7 @@
 #endif
 
 #include <option/has_esp.h>
+#include <bsod/bsod.h>
 #if HAS_ESP()
     #include <screen_network_setup.hpp>
 #endif
@@ -115,7 +125,7 @@ struct FSMScreenDef : public FSMScreenDefBase {
     }
 
     static void close() {
-        assert(Screens::Access()->IsScreenOnStack<Screen>());
+        debug_assert(Screens::Access()->IsScreenOnStack<Screen>());
         Screens::Access()->Close<Screen>();
     }
 
@@ -148,7 +158,7 @@ struct FSMDialogDefBase {
     [[nodiscard]] static bool change(fsm::BaseData data) {
         // We CANNOT check for gui nesting for dialogs - dialogs can be shown blockingly over screens
         // One just has to hope that noone would call DialogHandler::Loop() inside a FSM dialog function - there's no nice way to check it
-        // assert(!gui_get_nesting())
+        // debug_assert(!gui_get_nesting())
 
         if (auto &ptr = DialogHandler::Access().ptr) {
             ptr->Change(data);
@@ -156,7 +166,7 @@ struct FSMDialogDefBase {
 
         } else {
             // The dialog is not on the stact - should not happen
-            assert(false);
+            debug_assert(false);
             return false;
         }
     }
@@ -272,11 +282,14 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMScreenDef<ClientFSM::FansSelftest, ScreenFanSelftest>,
     FSMScreenDef<ClientFSM::SelftestFSensors, ScreenSelftestFSensors>,
 #endif
+#if HAS_HEATERS_SELFTEST_GCODE()
+    FSMScreenDef<ClientFSM::HeatersSelftest, ScreenHeatersSelftest>,
+#endif
 #if HAS_ESP()
     FSMScreenDef<ClientFSM::NetworkSetup, ScreenNetworkSetup>,
 #endif
     FSMPrintDef<ClientFSM::Printing>,
-#if ENABLED(CRASH_RECOVERY)
+#if HAS_CRASH_DETECTION()
     FSMScreenDef<ClientFSM::CrashRecovery, ScreenCrashRecovery>,
 #endif
     FSMDialogDef<ClientFSM::QuickPause, DialogQuickPause>,
@@ -306,8 +319,10 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
 #if HAS_INDX()
     FSMScreenDef<ClientFSM::NozzleMismatch, ScreenNozzleMismatch>,
     FSMScreenDef<ClientFSM::DockCalibration, ScreenDockCalibration>,
-    FSMScreenDef<ClientFSM::ToolOffsetsCalibration, ScreenToolOffsetsCalibration>,
     FSMScreenDef<ClientFSM::NozzleCleanerCalibration, ScreenNozzleCleanerCalibration>,
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    FSMScreenDef<ClientFSM::ToolOffsetsCalibration, ScreenToolOffsetWizard>,
 #endif
     // This is here so that we can worry-free write commas at the end of each argument
     FSMEndDef>;

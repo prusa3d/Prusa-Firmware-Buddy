@@ -1,5 +1,3 @@
-DEPS_SUBMODULES += hw/mcu/nxp/lpcopen
-
 MCU_DIR = hw/mcu/nxp/lpcopen/lpc13xx/lpc_chip_13xx
 include $(TOP)/$(BOARD_PATH)/board.mk
 CPU_CORE ?= cortex-m3
@@ -13,6 +11,8 @@ CFLAGS += \
   -DCFG_EXAMPLE_VIDEO_READONLY \
   -DCFG_TUSB_MCU=OPT_MCU_LPC13XX \
   -DCFG_TUSB_MEM_ALIGN='__attribute__((aligned(64)))'
+
+LDFLAGS += -specs=nosys.specs -specs=nano.specs
 
 # startup.c and lpc_types.h cause following errors
 CFLAGS += -Wno-error=strict-prototypes -Wno-error=redundant-decls
@@ -31,4 +31,5 @@ SRC_C += \
 	$(MCU_DIR)/src/sysinit_13xx.c
 
 INC += \
-	$(TOP)/$(MCU_DIR)/inc
+  $(TOP)/$(BOARD_PATH) \
+  $(TOP)/$(MCU_DIR)/inc

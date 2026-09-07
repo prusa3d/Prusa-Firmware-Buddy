@@ -20,7 +20,7 @@ constexpr std::optional<ErrCode> nozzle_cleaning_failed_phase_error_code_mapper(
     case PhaseNozzleCleaningFailed::remove_filament:
         return ErrCode::CONNECT_NOZZLE_CLEANING_FAILED_REMOVE_FILAMENT;
 #endif
-#if HAS_AUTO_RETRACT()
+#if HAS_SWITCHABLE_AUTO_RETRACT()
     case PhaseNozzleCleaningFailed::offer_auto_retract_enable:
         return ErrCode::CONNECT_NOZZLE_CLEANING_FAILED_AUTORETRACT_ENABLE_ASK;
 #endif

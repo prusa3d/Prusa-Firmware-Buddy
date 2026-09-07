@@ -103,4 +103,4 @@ bool HAL_timer_interrupt_enabled(const uint8_t timer_num) {
   return false;
 }
 
-#endif // STM32GENERIC && STM32F4
+#endif // STM32GENERIC && STM32G0

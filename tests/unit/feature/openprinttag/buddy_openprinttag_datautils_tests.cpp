@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <feature/openprinttag/data_utils.hpp>
+#include <utils/byte_utils.hpp>
 
 using namespace buddy::openprinttag;
 
@@ -24,11 +25,15 @@ void Request::set_finished(std::expected<std::monostate, Error> result) {
     error_ = result.error_or(Error::_cnt);
 }
 
-void ReadEnumArrayRequestBase::complete(std::span<const std::byte> event_data) {}
-void ReadEnumFieldRequestBase::complete(std::span<const std::byte> event_data) {}
-void ReadFloatFieldRequest::complete(std::span<const std::byte> event_data) {}
-void ReadInt32FieldRequest::complete(std::span<const std::byte> event_data) {}
-void ReadStringRequestBase::complete(std::span<const std::byte> event_data) {}
+void ReadEnumArrayRequestBase::complete(Bytes event_data) {}
+void ReadEnumFieldRequestBase::complete(Bytes event_data) {}
+void ReadFloatFieldRequest::complete(Bytes event_data) {}
+void ReadInt32FieldRequest::complete(Bytes event_data) {}
+void ReadStringRequestBase::complete(Bytes event_data) {}
+
+Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
+    return std::nullopt;
+}
 
 void ReadEnumArrayRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadEnumFieldRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
@@ -57,11 +62,12 @@ FilamentTypeParameters FilamentType::parameters() const {
 
 TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
     // If the requirements change, we probably want to update the tests
-    static_assert(AmountsInfo::Requirements::size == 3);
+    static_assert(AmountsInfo::Requirements::size == 5);
 
-    SECTION("Nominal weight only (fresh spool)") {
+    SECTION("Nominal only (fresh spool)") {
         stub_data = StubData {
             stub_field<MainField::nominal_netto_full_weight>(1000.0f),
+            stub_field<MainField::nominal_full_length>(330000.0f),
         };
 
         MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
@@ -69,15 +75,20 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
 
         AmountsInfo info { req };
 
-        CHECK(info.full_weight_g == 1000.0f);
         // Consumed defaults to 0 if full weight is present but consumed is missing
+        CHECK(info.full_weight_g == 1000.0f);
         CHECK(info.remaining_weight_g == 1000.0f);
+
+        CHECK(info.full_length_mm == 330000.0f);
+        CHECK(info.remaining_length_mm == 330000.0f);
     }
 
-    SECTION(" Actual weight overrides Nominal, and consumed is subtracted") {
+    SECTION(" Actual overrides Nominal, and consumed is subtracted") {
         stub_data = StubData {
             stub_field<MainField::nominal_netto_full_weight>(1000.0f),
             stub_field<MainField::actual_netto_full_weight>(950.0f),
+            stub_field<MainField::nominal_full_length>(330000.0f),
+            stub_field<MainField::actual_full_length>(320000.0f),
             stub_field<AuxField::consumed_weight>(150.0f),
         };
 
@@ -88,11 +99,15 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
 
         CHECK(info.full_weight_g == 950.0f);
         CHECK(info.remaining_weight_g == 800.0f); // 950 - 150
+
+        CHECK(info.full_length_mm == 320000.0f);
+        CHECK(info.remaining_length_mm == 320000.0f / 950.0f * 800.0f);
     }
 
     SECTION(" Missing critical data") {
         stub_data = StubData {
             stub_field<AuxField::consumed_weight>(50.0f),
+            stub_field<MainField::nominal_full_length>(330000.0f),
             // Missing full weights
         };
 
@@ -103,6 +118,10 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
 
         CHECK(!info.full_weight_g.has_value());
         CHECK(!info.remaining_weight_g.has_value());
+
+        // Length alone is known, but without the weight ratio the remaining length cannot be derived
+        CHECK(info.full_length_mm == 330000.0f);
+        CHECK(!info.remaining_length_mm.has_value());
     }
 }
 

@@ -32,15 +32,14 @@
  * Auto ProductID layout's Bitmap:
  *   [MSB]         HID | MSC | CDC          [LSB]
  */
-#define _PID_MAP(itf, n)  ( (CFG_TUD_##itf) << (n) )
-#define USB_PID           (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
-                           _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4) )
+#define PID_MAP(itf, n)  ((CFG_TUD_##itf) ? (1 << (n)) : 0)
+#define USB_PID           (0x4000 | PID_MAP(CDC, 0) | PID_MAP(MSC, 1) | PID_MAP(HID, 2) | \
+                           PID_MAP(MIDI, 3) | PID_MAP(VENDOR, 4) )
 
 //--------------------------------------------------------------------+
 // Device Descriptors
 //--------------------------------------------------------------------+
-tusb_desc_device_t const desc_device =
-{
+static tusb_desc_device_t const desc_device = {
     .bLength            = sizeof(tusb_desc_device_t),
     .bDescriptorType    = TUSB_DESC_DEVICE,
     .bcdUSB             = 0x0200,
@@ -62,18 +61,13 @@ tusb_desc_device_t const desc_device =
 
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
-uint8_t const * tud_descriptor_device_cb(void)
-{
+uint8_t const * tud_descriptor_device_cb(void) {
   return (uint8_t const *) &desc_device;
 }
-
-
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
-
-enum
-{
+enum {
   ITF_NUM_MIDI = 0,
   ITF_NUM_MIDI_STREAMING,
   ITF_NUM_TOTAL
@@ -84,19 +78,27 @@ enum
 #if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
   // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
   // 0 control, 1 In, 2 Bulk, 3 Iso, 4 In etc ...
-  #define EPNUM_MIDI_OUT   0x02
-  #define EPNUM_MIDI_IN   0x02
-#elif CFG_TUSB_MCU == OPT_MCU_FT90X || CFG_TUSB_MCU == OPT_MCU_FT93X
-  // On Bridgetek FT9xx endpoint numbers must be unique...
-  #define EPNUM_MIDI_OUT   0x02
-  #define EPNUM_MIDI_IN   0x03
+  #define EPNUM_MIDI_OUT  0x02
+  #define EPNUM_MIDI_IN   0x82
+
+#elif CFG_TUSB_MCU == OPT_MCU_CXD56
+  // CXD56 USB driver has fixed endpoint type (bulk/interrupt/iso) and direction (IN/OUT) by its number
+  // 0 control (IN/OUT), 1 Bulk (IN), 2 Bulk (OUT), 3 In (IN), 4 Bulk (IN), 5 Bulk (OUT), 6 In (IN)
+  #define EPNUM_MIDI_OUT  0x02
+  #define EPNUM_MIDI_IN   0x81
+
+#elif CFG_TUD_ENDPOINT_ONE_DIRECTION_ONLY
+  // MCUs that don't support a same endpoint number with different direction IN and OUT defined in tusb_mcu.h
+  //    e.g EP1 OUT & EP1 IN cannot exist together
+  #define EPNUM_MIDI_OUT  0x01
+  #define EPNUM_MIDI_IN   0x82
+
 #else
-  #define EPNUM_MIDI_OUT   0x01
-  #define EPNUM_MIDI_IN   0x01
+  #define EPNUM_MIDI_OUT  0x01
+  #define EPNUM_MIDI_IN   0x81
 #endif
 
-uint8_t const desc_fs_configuration[] =
-{
+static uint8_t const desc_fs_configuration[] = {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
@@ -105,8 +107,7 @@ uint8_t const desc_fs_configuration[] =
 };
 
 #if TUD_OPT_HIGH_SPEED
-uint8_t const desc_hs_configuration[] =
-{
+static uint8_t const desc_hs_configuration[] = {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
@@ -118,8 +119,7 @@ uint8_t const desc_hs_configuration[] =
 // Invoked when received GET CONFIGURATION DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
-uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
-{
+uint8_t const * tud_descriptor_configuration_cb(uint8_t index) {
   (void) index; // for multiple configurations
 
 #if TUD_OPT_HIGH_SPEED
@@ -143,8 +143,7 @@ enum {
 };
 
 // array of pointer to string descriptors
-char const *string_desc_arr[] =
-{
+static char const *string_desc_arr[] = {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
   "TinyUSB",                     // 1: Manufacturer
   "TinyUSB Device",              // 2: Product
@@ -173,14 +172,18 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
       // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
       // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
-      if ( !(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0])) ) return NULL;
+      if (!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0]))) {
+        return NULL;
+      }
 
       const char *str = string_desc_arr[index];
 
       // Cap at max char
       chr_count = strlen(str);
-      size_t const max_count = sizeof(_desc_str) / sizeof(_desc_str[0]) - 1; // -1 for string type
-      if ( chr_count > max_count ) chr_count = max_count;
+      const size_t max_count = sizeof(_desc_str) / sizeof(_desc_str[0]) - 1; // -1 for string type
+      if ( chr_count > max_count ) {
+        chr_count = max_count;
+      }
 
       // Convert ASCII string into UTF-16
       for ( size_t i = 0; i < chr_count; i++ ) {

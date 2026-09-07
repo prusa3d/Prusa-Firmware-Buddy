@@ -3,7 +3,6 @@
 #include "cmsis_os.h"
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_RTT.h"
-#include <assert.h>
 #include "task_startup.h"
 #include "led.h"
 #include "timing_sys.h"
@@ -79,7 +78,7 @@ int main() {
     // initialize HAL
     HAL_StatusTypeDef res = HAL_Init();
     (void)res;
-    assert(HAL_OK == res);
+    debug_assert(HAL_OK == res);
 
     // configure system clock and timing
     system_core_init();

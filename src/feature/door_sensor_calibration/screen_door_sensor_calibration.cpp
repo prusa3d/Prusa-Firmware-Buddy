@@ -2,7 +2,6 @@
 #include <feature/door_sensor_calibration/screen_door_sensor_calibration.hpp>
 
 #include <i18n.h>
-#include <frame_calibration_common.hpp>
 #include <gui/qr.hpp>
 #include <window_text.hpp>
 #include <window_icon.hpp>
@@ -13,6 +12,7 @@
 #include <standard_frame/frame_text_prompt.hpp>
 #include <standard_frame/frame_qr_prompt.hpp>
 #include <standard_frame/frame_prompt.hpp>
+#include <standard_frame/frame_calibration_text_with_image.hpp>
 
 static_assert(HAS_DOOR_SENSOR_CALIBRATION(), "Doesn't support door sensor calibration");
 
@@ -33,22 +33,18 @@ constexpr auto txt_done = N_("The door sensor is successfully calibrated now.");
 
 constexpr auto qr_suffix = "core-door-sensor-cal"_tstr;
 
-class FrameFingerTest final : FrameTextWithImage {
+class FrameFingerTest final : FrameCalibrationTextWithImage {
 public:
     FrameFingerTest(window_frame_t *parent)
-        : FrameTextWithImage {
+        : FrameCalibrationTextWithImage {
             parent,
+            PhaseDoorSensorCalibration::finger_test,
             _("Grab the door in the middle, place your fingers behind it, and close it as shown in the picture. Then confirm."),
             WizardDefaults::row_1,
             &img::door_sensor_calibration_170x170,
             170
-        }
-        , radio(parent, WizardDefaults::RectRadioButton(0), PhaseDoorSensorCalibration::finger_test) {
-        parent->CaptureNormalWindow(radio);
+        } {
     }
-
-private:
-    RadioButtonFSM radio;
 };
 
 using Frames = FrameDefinitionList<ScreenDoorSensorCalibration::FrameStorage,

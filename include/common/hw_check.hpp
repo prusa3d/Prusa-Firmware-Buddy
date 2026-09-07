@@ -8,6 +8,7 @@
 
 #include <option/has_gcode_compatibility.h>
 
+/// !!! DO NOT CHANGE, STORED IN EEPROM
 enum class HWCheckSeverity : uint8_t {
     Ignore = 0,
     Warning = 1,
@@ -30,9 +31,3 @@ enum class HWCheckType : uint8_t {
 static constexpr size_t hw_check_type_count = static_cast<size_t>(HWCheckType::_last) + 1;
 
 extern const EnumArray<HWCheckType, const char *, hw_check_type_count> hw_check_type_names;
-
-namespace img {
-class Resource;
-}
-
-extern const EnumArray<HWCheckSeverity, const img::Resource *, std::to_underlying(HWCheckSeverity::_last) + 1> hw_check_severity_icons;

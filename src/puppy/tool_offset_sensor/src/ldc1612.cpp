@@ -1,6 +1,5 @@
 #include "ldc1612.hpp"
 #include <device/board.h>
-#include <cassert>
 
 #include <logging/log.hpp>
 LOG_COMPONENT_DEF(LDC1612, logging::Severity::warning);

@@ -1,5 +1,7 @@
 #include "data_utils.hpp"
 
+#include <option/has_chamber_filtration_api.h>
+
 namespace buddy::openprinttag {
 
 AmountsInfo::AmountsInfo(const RequestRef &req) {
@@ -15,8 +17,47 @@ AmountsInfo::AmountsInfo(const RequestRef &req) {
         full_weight_g = *val;
     }
 
-    if (auto val = req.result<AuxField::consumed_weight>(); full_weight_g.has_value()) {
-        remaining_weight_g = *full_weight_g - val.value_or(0);
+    // Protect against division by zero on malicious data
+    if (full_weight_g.has_value() && full_weight_g.value() <= 0) {
+        full_weight_g = std::nullopt;
+    }
+
+    if (auto val = req.result<MainField::actual_full_length>()) {
+        full_length_mm = *val;
+
+    } else if (auto val = req.result<MainField::nominal_full_length>()) {
+        full_length_mm = *val;
+    }
+
+    // Protect against division by zero on malicious data
+    if (full_length_mm.has_value() && full_length_mm.value() <= 0) {
+        full_length_mm = std::nullopt;
+    }
+
+    if (full_weight_g.has_value()) {
+        const auto consumed_weight = req.result<AuxField::consumed_weight>();
+
+        remaining_weight_g = std::max<float>(*full_weight_g - consumed_weight.value_or(0), 0);
+
+        if (full_length_mm.has_value()) {
+            remaining_length_mm = *full_length_mm / *full_weight_g * *remaining_weight_g;
+        }
+    }
+}
+
+void AmountsInfo::build_weight_str(StringBuilder &sb) const {
+    if (full_weight_g.has_value() && remaining_weight_g.has_value()) {
+        sb.append_printf("%.0f/%.0f g", (double)std::roundf(*remaining_weight_g), (double)std::roundf(*full_weight_g));
+    }
+    // If full_weight_g has value, then remaining_weight_g always has value, too
+}
+
+void AmountsInfo::build_length_str(StringBuilder &sb) const {
+    if (full_length_mm.has_value() && remaining_length_mm.has_value()) {
+        sb.append_printf("%.0f/%.0f m", (double)std::roundf(*remaining_length_mm / 1000), (double)std::roundf(*full_length_mm / 1000));
+
+    } else if (full_length_mm.has_value()) {
+        sb.append_printf("%.0f m", (double)std::roundf(*full_length_mm / 1000));
     }
 }
 
@@ -66,9 +107,19 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
     /// If you want to set a parameter, use the @p set function that also clears missing_parameters
     [[maybe_unused]] const auto &parameters = parameters_unsafe;
 
-    static_assert(filament_type_parameter_count == 6 + HAS_CHAMBER_API() * 4 + HAS_FILAMENT_HEATBREAK_PARAM() * 1 + HAS_FILAMENT_BASE_PRESET_PARAM() * 1, "We probably need to implement something here");
+    static_assert(
+        filament_type_parameter_count
+            == 7
+                + HAS_CHAMBER_API() * 4
+                + HAS_FILAMENT_HEATBREAK_PARAM() * 1
+                + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
+                // requires_ht_idler_door is a preset-only hack
+                + HAS_HT_HOTEND() * 1
+        //
+        ,
+        "We probably need to implement something here");
 
-    // Abbreviation
+    // Abbreviation & inherit from base type
     {
         AbbreviationInfo abbreviation { req };
 
@@ -84,6 +135,9 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
         if (base_type != FilamentType::none) {
             parameters_unsafe = base_type.parameters();
 
+            // We have a base dataset that we can use, consider it safe
+            data_safe_to_use = true;
+
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
             if (auto base_preset = std::get_if<PresetFilamentType>(&base_type)) {
                 set.operator()<&Params::base_preset>(*base_preset);
@@ -98,8 +152,14 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
         } else {
             // Set the name, but do not clear the missing flag
             parameters_unsafe.name = abbreviation.abbreviation;
+
+            // Also we cannot use the dataset
+            data_safe_to_use = false;
         }
     }
+
+    // Grab tag UID from any request
+    set.operator()<&Params::openprinttag_uid_hash>(req.request<MainField::material_type>().tool_tag().uid_hash());
 
     // Nozzle temp
     {
@@ -153,7 +213,7 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
             set.operator()<&Params::is_abrasive>(true);
             break;
 
-#if HAS_CHAMBER_API()
+#if HAS_CHAMBER_FILTRATION_API()
         case Tag::filtration_recommended:
             set.operator()<&Params::requires_filtration>(true);
             break;
@@ -195,8 +255,12 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
     // so if requires_filtration == true from the preset and the tag did not indicate it, the missing flag is kept
     unset_missing_if_equals.operator()<&Params::is_abrasive>(false);
     unset_missing_if_equals.operator()<&Params::is_flexible>(false);
-    unset_missing_if_equals.operator()<&Params::requires_filtration>(false);
 
+#if HAS_CHAMBER_FILTRATION_API()
+    unset_missing_if_equals.operator()<&Params::requires_filtration>(false);
+#endif
+
+#if HAS_CHAMBER_API()
     if (is_missing<&FilamentTypeParameters::chamber_min_temperature>() && is_missing<&FilamentTypeParameters::chamber_max_temperature>()) {
         // Chamber target temperature is not required if neither chamber_min_temperature or chamber_max_temperature are present
         unset_missing.operator()<&FilamentTypeParameters::chamber_target_temperature>();
@@ -205,6 +269,9 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
     // Chamber min max parameters are never required
     unset_missing.operator()<&FilamentTypeParameters::chamber_min_temperature>();
     unset_missing.operator()<&FilamentTypeParameters::chamber_max_temperature>();
+#endif
+
+    data_safe_to_use |= missing_parameters.none();
 }
 
 } // namespace buddy::openprinttag

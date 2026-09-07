@@ -24,43 +24,43 @@
  * This file is part of the TinyUSB stack.
  */
 
-#ifndef _DWC2_STM32_H_
-#define _DWC2_STM32_H_
+#ifndef DWC2_STM32_H_
+#define DWC2_STM32_H_
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
-// EP_MAX       : Max number of bi-directional endpoints including EP0
-// EP_FIFO_SIZE : Size of dedicated USB SRAM
+// EP_MAX          : Max number of bi-directional endpoints including EP0
+// DFIFO_DEPTH_FS/HS : DFIFO depth in 32-bit words (OTG_DFIFO_DEPTH)
 #if CFG_TUSB_MCU == OPT_MCU_STM32F1
   #include "stm32f1xx.h"
   #define EP_MAX_FS       4
-  #define EP_FIFO_SIZE_FS 1280
+  #define DFIFO_DEPTH_FS 320
 
 #elif CFG_TUSB_MCU == OPT_MCU_STM32F2
   #include "stm32f2xx.h"
   #define EP_MAX_FS       USB_OTG_FS_MAX_IN_ENDPOINTS
-  #define EP_FIFO_SIZE_FS USB_OTG_FS_TOTAL_FIFO_SIZE
+  #define DFIFO_DEPTH_FS  320
 
   #define EP_MAX_HS       USB_OTG_HS_MAX_IN_ENDPOINTS
-  #define EP_FIFO_SIZE_HS USB_OTG_HS_TOTAL_FIFO_SIZE
+  #define DFIFO_DEPTH_HS  1024
 
 #elif CFG_TUSB_MCU == OPT_MCU_STM32F4
   #include "stm32f4xx.h"
   #define EP_MAX_FS       USB_OTG_FS_MAX_IN_ENDPOINTS
-  #define EP_FIFO_SIZE_FS USB_OTG_FS_TOTAL_FIFO_SIZE
+  #define DFIFO_DEPTH_FS  320
 
   #define EP_MAX_HS       USB_OTG_HS_MAX_IN_ENDPOINTS
-  #define EP_FIFO_SIZE_HS USB_OTG_HS_TOTAL_FIFO_SIZE
+  #define DFIFO_DEPTH_HS  1024
 
 #elif CFG_TUSB_MCU == OPT_MCU_STM32H7
   #include "stm32h7xx.h"
   #define EP_MAX_FS       9
-  #define EP_FIFO_SIZE_FS 4096
+  #define DFIFO_DEPTH_FS 1024
 
   #define EP_MAX_HS       9
-  #define EP_FIFO_SIZE_HS 4096
+  #define DFIFO_DEPTH_HS 1024
 
   // NOTE: H7 with only 1 USB port: H72x / H73x / H7Ax / H7Bx
   // USB_OTG_FS_PERIPH_BASE and OTG_FS_IRQn not defined
@@ -69,35 +69,69 @@
     #define OTG_FS_IRQn             OTG_HS_IRQn
   #endif
 
+#elif CFG_TUSB_MCU == OPT_MCU_STM32H7RS
+  #include "stm32h7rsxx.h"
+  #define EP_MAX_FS       6
+  #define DFIFO_DEPTH_FS 320
+
+  #define EP_MAX_HS       9
+  #define DFIFO_DEPTH_HS 1024
+
+#elif CFG_TUSB_MCU == OPT_MCU_STM32N6
+  #include "stm32n6xx.h"
+  #define EP_MAX_FS       9
+  #define DFIFO_DEPTH_FS 1024
+
+  #define EP_MAX_HS       9
+  #define DFIFO_DEPTH_HS 1024
+
+  #define USB_OTG_FS_PERIPH_BASE    USB1_OTG_HS_BASE
+  #define OTG_FS_IRQn               USB1_OTG_HS_IRQn
+
+  #define USB_OTG_HS_PERIPH_BASE    USB2_OTG_HS_BASE
+  #define OTG_HS_IRQn               USB2_OTG_HS_IRQn
+
 #elif CFG_TUSB_MCU == OPT_MCU_STM32F7
   #include "stm32f7xx.h"
   #define EP_MAX_FS       6
-  #define EP_FIFO_SIZE_FS 1280
+  #define DFIFO_DEPTH_FS 320
 
   #define EP_MAX_HS       9
-  #define EP_FIFO_SIZE_HS 4096
+  #define DFIFO_DEPTH_HS 1024
 
 #elif CFG_TUSB_MCU == OPT_MCU_STM32L4
   #include "stm32l4xx.h"
   #define EP_MAX_FS       6
-  #define EP_FIFO_SIZE_FS 1280
+  #define DFIFO_DEPTH_FS 320
 
 #elif CFG_TUSB_MCU == OPT_MCU_STM32U5
   #include "stm32u5xx.h"
-  // NOTE: STM595/5A5/599/5A9 only have 1 USB port (with integrated HS PHY)
-  // USB_OTG_FS_BASE and OTG_FS_IRQn not defined
-  #if (! defined USB_OTG_FS)
+  // U59x/5Ax/5Fx/5Gx are highspeed with built-in HS PHY
+  #ifdef USB_OTG_FS
+    #define USB_OTG_FS_PERIPH_BASE    USB_OTG_FS_BASE
+    #define EP_MAX_FS                 6
+    #define DFIFO_DEPTH_FS           320
+  #else
     #define USB_OTG_HS_PERIPH_BASE    USB_OTG_HS_BASE
     #define EP_MAX_HS                 9
-    #define EP_FIFO_SIZE_HS           4096
-    #define USB_OTG_FS_PERIPH_BASE    USB_OTG_HS_BASE
-    #define OTG_FS_IRQn               OTG_HS_IRQn
-  #else
-    #define USB_OTG_FS_PERIPH_BASE    USB_OTG_FS_BASE
+    #define DFIFO_DEPTH_HS           1024
   #endif
-  #define EP_MAX_FS       6
-  #define EP_FIFO_SIZE_FS 1280
 
+#elif CFG_TUSB_MCU == OPT_MCU_STM32WBA
+  #if defined(STM32WBA62xx)
+    #include "stm32wba62xx.h"
+  #elif defined(STM32WBA64xx)
+    #include "stm32wba64xx.h"
+  #elif defined(STM32WBA65xx)
+    #include "stm32wba65xx.h"
+  #else
+    #error "The selected STM32WBA series chip does not support OTG USB HS"
+  #endif
+
+  #define USB_OTG_HS_PERIPH_BASE    USB_OTG_HS_BASE_NS
+  #define OTG_HS_IRQn               USB_OTG_HS_IRQn
+  #define EP_MAX_HS                 9
+  #define DFIFO_DEPTH_HS           1024
 #else
   #error "Unsupported MCUs"
 #endif
@@ -111,15 +145,14 @@
 
 // On STM32 for consistency we associate
 // - Port0 to OTG_FS, and Port1 to OTG_HS
-static const dwc2_controller_t _dwc2_controller[] =
-{
-#ifdef USB_OTG_FS_PERIPH_BASE
-  { .reg_base = USB_OTG_FS_PERIPH_BASE, .irqnum = OTG_FS_IRQn, .ep_count = EP_MAX_FS, .ep_fifo_size = EP_FIFO_SIZE_FS },
-#endif
+static const dwc2_controller_t _dwc2_controller[] = {
+    #ifdef USB_OTG_FS_PERIPH_BASE
+    { .reg_base = USB_OTG_FS_PERIPH_BASE, .irqnum = OTG_FS_IRQn, .ep_count = EP_MAX_FS, .otg_dfifo_depth = DFIFO_DEPTH_FS },
+    #endif
 
-#ifdef USB_OTG_HS_PERIPH_BASE
-  { .reg_base = USB_OTG_HS_PERIPH_BASE, .irqnum = OTG_HS_IRQn, .ep_count = EP_MAX_HS, .ep_fifo_size = EP_FIFO_SIZE_HS },
-#endif
+    #ifdef USB_OTG_HS_PERIPH_BASE
+    { .reg_base = USB_OTG_HS_PERIPH_BASE, .irqnum = OTG_HS_IRQn, .ep_count = EP_MAX_HS, .otg_dfifo_depth = DFIFO_DEPTH_HS },
+    #endif
 };
 
 //--------------------------------------------------------------------+
@@ -129,48 +162,77 @@ static const dwc2_controller_t _dwc2_controller[] =
 // SystemCoreClock is already included by family header
 // extern uint32_t SystemCoreClock;
 
-TU_ATTR_ALWAYS_INLINE
-static inline void dwc2_dcd_int_enable(uint8_t rhport)
-{
-  NVIC_EnableIRQ((IRQn_Type)_dwc2_controller[rhport].irqnum);
+// MCU specific to enable dwc2 clock/power before any access to register
+TU_ATTR_ALWAYS_INLINE static inline void dwc2_clock_init(uint8_t rhport, tusb_role_t role) {
+  (void) rhport;
+  (void) role;
 }
 
-TU_ATTR_ALWAYS_INLINE
-static inline bool dwc2_dcd_int_enabled (uint8_t rhport)
-{
-  return NVIC_GetEnableIRQ((IRQn_Type)_dwc2_controller[rhport].irqnum);
+TU_ATTR_ALWAYS_INLINE static inline void dwc2_int_set(uint8_t rhport, tusb_role_t role, bool enabled) {
+  (void) role;
+  const IRQn_Type irqn = (IRQn_Type) _dwc2_controller[rhport].irqnum;
+  if (enabled) {
+    NVIC_EnableIRQ(irqn);
+  } else {
+    NVIC_DisableIRQ(irqn);
+  }
 }
 
-TU_ATTR_ALWAYS_INLINE
-static inline void dwc2_dcd_int_disable (uint8_t rhport)
-{
-  NVIC_DisableIRQ((IRQn_Type)_dwc2_controller[rhport].irqnum);
+TU_ATTR_ALWAYS_INLINE static inline bool dwc2_dcd_int_enabled(uint8_t rhport) {
+  return NVIC_GetEnableIRQ((IRQn_Type) _dwc2_controller[rhport].irqnum);
 }
 
-TU_ATTR_ALWAYS_INLINE
-static inline void dwc2_remote_wakeup_delay(void)
-{
+#define dwc2_dcd_int_enable(_rhport)  dwc2_int_set(_rhport, TUSB_ROLE_DEVICE, true)
+#define dwc2_dcd_int_disable(_rhport) dwc2_int_set(_rhport, TUSB_ROLE_DEVICE, false)
+
+
+TU_ATTR_ALWAYS_INLINE static inline void dwc2_remote_wakeup_delay(void) {
   // try to delay for 1 ms
   uint32_t count = SystemCoreClock / 1000;
-  while ( count-- ) __NOP();
+  while (count--) {
+    __NOP();
+  }
 }
 
 // MCU specific PHY init, called BEFORE core reset
-static inline void dwc2_phy_init(dwc2_regs_t * dwc2, uint8_t hs_phy_type)
-{
-  if ( hs_phy_type == HS_PHY_TYPE_NONE )
-  {
+// - dwc2 3.30a (H5) use USB_HS_PHYC
+// - dwc2 4.11a (U5) use femtoPHY
+// - dwc2 x.xxx (WBA) use USB_OTG_HS
+static inline void dwc2_phy_init(dwc2_regs_t* dwc2, uint8_t hs_phy_type) {
+  if (hs_phy_type == GHWCFG2_HSPHY_NOT_SUPPORTED) {
     // Enable on-chip FS PHY
     dwc2->stm32_gccfg |= STM32_GCCFG_PWRDWN;
-  }else
-  {
-    // Disable FS PHY
-    dwc2->stm32_gccfg &= ~STM32_GCCFG_PWRDWN;
 
+    // https://community.st.com/t5/stm32cubemx-mcus/why-stm32h743-usb-fs-doesn-t-work-if-freertos-tickless-idle/m-p/349480#M18867
+    // H7 running on full-speed phy need to disable ULPI clock in sleep mode.
+    // Otherwise, USB won't work when mcu executing WFI/WFE instruction i.e tick-less RTOS.
+    // Note: there may be other family that is affected by this, but only H7 and F7 is tested so far
+    #if defined(USB_OTG_FS_PERIPH_BASE) && defined(RCC_AHB1LPENR_USB2OTGFSULPILPEN)
+    if ( USB_OTG_FS_PERIPH_BASE == (uint32_t) dwc2 ) {
+      RCC->AHB1LPENR &= ~RCC_AHB1LPENR_USB2OTGFSULPILPEN;
+    }
+    #endif
+
+    #if defined(USB_OTG_HS_PERIPH_BASE) && defined(RCC_AHB1LPENR_USB1OTGHSULPILPEN)
+    if ( USB_OTG_HS_PERIPH_BASE == (uint32_t) dwc2 ) {
+      RCC->AHB1LPENR &= ~RCC_AHB1LPENR_USB1OTGHSULPILPEN;
+    }
+    #endif
+
+    #if defined(USB_OTG_HS_PERIPH_BASE) && defined(RCC_AHB1LPENR_OTGHSULPILPEN)
+    if ( USB_OTG_HS_PERIPH_BASE == (uint32_t) dwc2 ) {
+      RCC->AHB1LPENR &= ~RCC_AHB1LPENR_OTGHSULPILPEN;
+    }
+    #endif
+
+  } else {
+#if CFG_TUSB_MCU != OPT_MCU_STM32U5 && CFG_TUSB_MCU != OPT_MCU_STM32WBA
+    // Disable FS PHY, TODO on U5A5 (dwc2 4.11a) 16th bit is 'Host CDP behavior enable'
+    dwc2->stm32_gccfg &= ~STM32_GCCFG_PWRDWN;
+#endif
     // Enable on-chip HS PHY
-    if (hs_phy_type == HS_PHY_TYPE_UTMI || hs_phy_type == HS_PHY_TYPE_UTMI_ULPI)
-    {
-#ifdef USB_HS_PHYC
+    if (hs_phy_type == GHWCFG2_HSPHY_UTMI || hs_phy_type == GHWCFG2_HSPHY_UTMI_ULPI) {
+      #ifdef USB_HS_PHYC
       // Enable UTMI HS PHY
       dwc2->stm32_gccfg |= STM32_GCCFG_PHYHSEN;
 
@@ -202,47 +264,212 @@ static inline void dwc2_phy_init(dwc2_regs_t * dwc2, uint8_t hs_phy_type)
 
       // Enable PLL internal PHY
       USB_HS_PHYC->USB_HS_PHYC_PLL |= USB_HS_PHYC_PLL_PLLEN;
-#endif
+
+      // Wait ~2ms until the PLL is ready (there's no RDY bit to query)
+      tusb_time_delay_ms_api(2);
+      #else
+
+      #endif
     }
   }
 }
 
+// MCU specific PHY deinit, disable PHY power
+static inline void dwc2_phy_deinit(dwc2_regs_t* dwc2, uint8_t hs_phy_type) {
+  if (hs_phy_type == GHWCFG2_HSPHY_NOT_SUPPORTED) {
+    // Disable on-chip FS PHY
+    dwc2->stm32_gccfg &= ~STM32_GCCFG_PWRDWN;
+  } else {
+    // Disable HS PHY
+    #ifdef USB_HS_PHYC
+    dwc2->stm32_gccfg &= ~STM32_GCCFG_PHYHSEN;
+    // Disable PLL and LDO
+    USB_HS_PHYC->USB_HS_PHYC_PLL &= ~USB_HS_PHYC_PLL_PLLEN;
+    USB_HS_PHYC->USB_HS_PHYC_LDO &= ~USB_HS_PHYC_LDO_ENABLE;
+    #endif
+  }
+}
+
 // MCU specific PHY update, it is called AFTER init() and core reset
-static inline void dwc2_phy_update(dwc2_regs_t * dwc2, uint8_t hs_phy_type)
-{
+static inline void dwc2_phy_update(dwc2_regs_t* dwc2, uint8_t hs_phy_type) {
   // used to set turnaround time for fullspeed, nothing to do in highspeed mode
-  if ( hs_phy_type == HS_PHY_TYPE_NONE )
-  {
+  if (hs_phy_type == GHWCFG2_HSPHY_NOT_SUPPORTED) {
     // Turnaround timeout depends on the AHB clock dictated by STM32 Reference Manual
     uint32_t turnaround;
 
-    if ( SystemCoreClock >= 32000000u )
+    if (SystemCoreClock >= 32000000u) {
       turnaround = 0x6u;
-    else if ( SystemCoreClock >= 27500000u )
+    } else if (SystemCoreClock >= 27500000u) {
       turnaround = 0x7u;
-    else if ( SystemCoreClock >= 24000000u )
+    } else if (SystemCoreClock >= 24000000u) {
       turnaround = 0x8u;
-    else if ( SystemCoreClock >= 21800000u )
+    } else if (SystemCoreClock >= 21800000u) {
       turnaround = 0x9u;
-    else if ( SystemCoreClock >= 20000000u )
+    }
+    else if (SystemCoreClock >= 20000000u) {
       turnaround = 0xAu;
-    else if ( SystemCoreClock >= 18500000u )
+    }
+    else if (SystemCoreClock >= 18500000u) {
       turnaround = 0xBu;
-    else if ( SystemCoreClock >= 17200000u )
+    }
+    else if (SystemCoreClock >= 17200000u) {
       turnaround = 0xCu;
-    else if ( SystemCoreClock >= 16000000u )
+    }
+    else if (SystemCoreClock >= 16000000u) {
       turnaround = 0xDu;
-    else if ( SystemCoreClock >= 15000000u )
+    }
+    else if (SystemCoreClock >= 15000000u) {
       turnaround = 0xEu;
-    else
+    }
+    else {
       turnaround = 0xFu;
+    }
 
     dwc2->gusbcfg = (dwc2->gusbcfg & ~GUSBCFG_TRDT_Msk) | (turnaround << GUSBCFG_TRDT_Pos);
   }
 }
 
+//------------- GCCFG configuration -------------//
+static inline void dwc2_stm32_gccfg_cfg(dwc2_regs_t* dwc2, bool vbus_sensing, bool is_host) {
+  if (is_host) {
+    vbus_sensing = false;
+  }
+
+  uint32_t gccfg = dwc2->stm32_gccfg;
+  if (dwc2->guid < 0x2000) {
+    // use VBUSASEN/VBUSBSEN/NOVBUSSENS bits
+    if (is_host) {
+      gccfg &= ~(STM32_GCCFG_NOVBUSSENS | STM32_GCCFG_VBUSBSEN | STM32_GCCFG_VBUSASEN);
+    } else {
+      if (vbus_sensing) {
+        gccfg &= ~STM32_GCCFG_NOVBUSSENS;
+        gccfg |= STM32_GCCFG_VBUSBSEN;
+      } else {
+        gccfg |= STM32_GCCFG_NOVBUSSENS;
+        gccfg &= ~(STM32_GCCFG_VBUSBSEN | STM32_GCCFG_VBUSASEN);
+      }
+    }
+  } else if (dwc2->guid < 0x5000) {
+    // the later version uses VBDEN with battery charging detection
+    if (vbus_sensing) {
+      gccfg |= STM32_GCCFG_VBDEN;
+    } else {
+      gccfg &= ~STM32_GCCFG_VBDEN;
+    }
+  } else {
+    // from 0x5000 ST seems to use femtoPHY for UTMI+ HS PHY. Which use VBVALEXTOEN and VBVALOVAL for software override
+    // external VBUS sensing
+    // Note: N6 does not support hardware VBUS sensing, so the software override is always active. Therefore, VBDEN and
+    //       VBVALEXTOEN are not available
+#if CFG_TUSB_MCU == OPT_MCU_STM32N6
+    if (is_host) {
+      gccfg |= STM32_GCCFG_PULLDOWNEN;
+      gccfg &= ~(STM32_GCCFG_VBVALOVAL);
+    } else {
+      gccfg &= ~STM32_GCCFG_PULLDOWNEN;
+      gccfg |= STM32_GCCFG_VBVALOVAL;
+    }
+#else
+    if (is_host) {
+      gccfg |= STM32_GCCFG_PULLDOWNEN;
+      gccfg &= ~(STM32_GCCFG_VBDEN | STM32_GCCFG_VBVALEXTOEN | STM32_GCCFG_VBVALOVAL);
+    } else {
+      gccfg &= ~STM32_GCCFG_PULLDOWNEN;
+      if (vbus_sensing) {
+        gccfg |= STM32_GCCFG_VBDEN;
+        gccfg &= ~(STM32_GCCFG_VBVALEXTOEN | STM32_GCCFG_VBVALOVAL);
+      } else {
+        gccfg &= ~STM32_GCCFG_VBDEN;
+        gccfg |= STM32_GCCFG_VBVALEXTOEN | STM32_GCCFG_VBVALOVAL;
+      }
+    }
+#endif
+  }
+
+  dwc2->stm32_gccfg = gccfg;
+}
+
+//------------- DCache -------------//
+#if CFG_TUD_MEM_DCACHE_ENABLE || CFG_TUH_MEM_DCACHE_ENABLE
+
+typedef struct {
+  uintptr_t start;
+  uintptr_t end;
+} mem_region_t;
+
+// Can be used to define additional uncached regions
+#ifndef CFG_DWC2_MEM_UNCACHED_REGIONS
+#define CFG_DWC2_MEM_UNCACHED_REGIONS
+#endif
+
+static mem_region_t uncached_regions[] = {
+  // DTCM (although USB DMA can't transfer to/from DTCM)
+#if CFG_TUSB_MCU == OPT_MCU_STM32H7
+  {.start = 0x20000000, .end = 0x2001FFFF},
+#elif CFG_TUSB_MCU == OPT_MCU_STM32H7RS
+  // DTCM (although USB DMA can't transfer to/from DTCM)
+  {.start = 0x20000000, .end = 0x2002FFFF},
+#elif CFG_TUSB_MCU == OPT_MCU_STM32F7
+  // DTCM
+  {.start = 0x20000000, .end = 0x2000FFFF},
+#elif CFG_TUSB_MCU == OPT_MCU_STM32N6
+  // DTCM NS
+  {.start = 0x20000000, .end = 0x2003FFFF},
+  // DTCM S
+  {.start = 0x30000000, .end = 0x3003FFFF},
+#else
+#error "Cache maintenance is not supported yet"
+#endif
+  CFG_DWC2_MEM_UNCACHED_REGIONS
+};
+
+TU_ATTR_ALWAYS_INLINE static inline uint32_t round_up_to_cache_line_size(uint32_t size) {
+  if (size & (CFG_TUSB_MEM_DCACHE_LINE_SIZE_DEFAULT-1)) {
+    size = (size & ~(CFG_TUSB_MEM_DCACHE_LINE_SIZE_DEFAULT-1)) + CFG_TUSB_MEM_DCACHE_LINE_SIZE_DEFAULT;
+  }
+  return size;
+}
+
+TU_ATTR_ALWAYS_INLINE static inline bool is_cache_mem(uintptr_t addr) {
+  if (0 == (SCB->CCR & SCB_CCR_DC_Msk)) {
+    return false; // D-Cache is disabled
+  }
+  for (unsigned int i = 0; i < TU_ARRAY_SIZE(uncached_regions); i++) {
+    if (uncached_regions[i].start <= addr && addr <= uncached_regions[i].end) { return false; }
+  }
+  return true;
+}
+
+TU_ATTR_ALWAYS_INLINE static inline bool dwc2_dcache_clean(void const* addr, uint32_t data_size) {
+  const uintptr_t addr32 = (uintptr_t) addr;
+  if (is_cache_mem(addr32)) {
+    data_size = round_up_to_cache_line_size(data_size);
+    SCB_CleanDCache_by_Addr((uint32_t *) addr32, (int32_t) data_size);
+  }
+  return true;
+}
+
+TU_ATTR_ALWAYS_INLINE static inline bool dwc2_dcache_invalidate(void const* addr, uint32_t data_size) {
+  const uintptr_t addr32 = (uintptr_t) addr;
+  if (is_cache_mem(addr32)) {
+    data_size = round_up_to_cache_line_size(data_size);
+    SCB_InvalidateDCache_by_Addr((void*) addr32, (int32_t) data_size);
+  }
+  return true;
+}
+
+TU_ATTR_ALWAYS_INLINE static inline bool dwc2_dcache_clean_invalidate(void const* addr, uint32_t data_size) {
+  const uintptr_t addr32 = (uintptr_t) addr;
+  if (is_cache_mem(addr32)) {
+    data_size = round_up_to_cache_line_size(data_size);
+    SCB_CleanInvalidateDCache_by_Addr((uint32_t *) addr32, (int32_t) data_size);
+  }
+  return true;
+}
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _DWC2_STM32_H_ */
+#endif

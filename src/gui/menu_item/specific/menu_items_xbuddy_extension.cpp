@@ -35,7 +35,7 @@ bool disabled_cooling_fans() {
 }
 } // namespace
 
-// MI_XBUDDY_EXTENSION_CHAMBER_FANS
+// MI_XBUDDY_EXTENSION_COOLING_FANS
 // =============================================
 MI_XBUDDY_EXTENSION_COOLING_FANS::MI_XBUDDY_EXTENSION_COOLING_FANS()
     : WiSpin(0, disabled_cooling_fans() ? numeric_input_config::percent_with_disabled : numeric_input_config::percent_with_auto, _("Chamber Fans")) //

@@ -2,10 +2,15 @@ target_include_directories(firmware PRIVATE . include)
 
 target_link_libraries(firmware PRIVATE buddy_utils bsod random random_sw fanctl)
 
+# Provides the FreeRTOS tick/idle hooks. Must be built wherever cpu_utils.cpp is (every board that
+# enters this directory), as the hooks dispatch into it.
+target_sources(firmware PRIVATE application_hooks.cpp)
+
 if(BOARD IN_LIST BUDDY_BOARDS)
   target_sources(
     firmware
     PRIVATE adc.cpp
+            all_tools_quick_cooling_manager.cpp
             app_metrics.cpp
             appmain.cpp
             awdg.cpp
@@ -15,6 +20,7 @@ if(BOARD IN_LIST BUDDY_BOARDS)
             data_exchange.cpp
             directory.cpp
             error_code_mangle.cpp
+            extended_printer_type.cpp
             ExtInterruptHandler.cpp
             filament.cpp
             filament_common.cpp
@@ -214,6 +220,7 @@ endif()
 
 add_subdirectory(fanctl)
 add_subdirectory(marlin_server_types)
+add_subdirectory(printer_variant)
 
 if(BOARD IN_LIST BUDDY_BOARDS)
   add_subdirectory(crash_dump)

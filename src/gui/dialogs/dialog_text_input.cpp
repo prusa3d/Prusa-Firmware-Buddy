@@ -5,6 +5,7 @@
 #include <sound.hpp>
 #include <img_resources.hpp>
 #include "timing.h"
+#include <bsod/bsod.h>
 
 using namespace dialog_text_input;
 
@@ -233,7 +234,7 @@ void dialog_text_input::DialogTextInput::button_callback(window_t &button) {
 
     // Determine which button from the array the user pressed
     int button_ix = reinterpret_cast<window_text_button_t *>(&button) - ui.btn_matrix;
-    assert(button_ix >= 0 && button_ix < button_count);
+    debug_assert(button_ix >= 0 && button_ix < button_count);
 
     const ButtonRec &rec = (*current_layout_)[button_ix / button_cols][button_ix % button_cols];
     char &edit_char = edit_char_buffer_[0];
