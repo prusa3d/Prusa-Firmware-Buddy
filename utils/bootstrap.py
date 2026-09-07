@@ -8,7 +8,6 @@
 #       them if they are not.
 #
 # pylint: disable=line-too-long
-import json
 import os
 import platform
 import shutil
@@ -282,25 +281,10 @@ def download_and_unzip(url: str, directory: Path):
     os.remove(filename)
 
 
-def run(*cmd):
-    process = subprocess.run([str(a) for a in cmd],
-                             stdout=subprocess.PIPE,
-                             check=True,
-                             encoding='utf-8')
-    return process.stdout.strip()
-
-
 def recommended_version_is_available(dependency):
     version = dependencies[dependency]['version']
     directory = directory_for_dependency(dependency, version)
     return directory.exists() and directory.is_dir()
-
-
-def get_installed_pip_packages():
-    result = run(sys.executable, '-m', 'pip', 'list',
-                 '--disable-pip-version-check', '--format', 'json')
-    data = json.loads(result)
-    return [(pkg['name'].lower(), pkg['version']) for pkg in data]
 
 
 def install_esp_sdk_tools(dependency, directory: Path):
