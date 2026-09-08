@@ -83,8 +83,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(int(filament_used / 10))
         .add(int(target_nozzle))
         .add(int(temp_bed))
-#if PRINTER_IS_PRUSA_iX
-        // #error dead code found by automatic analyses (see BFW-5461)
+#if PRINTER_IS_PRUSA_iX()
         .add(int(temp_psu))
         .add(int(temp_ambient))
 #endif
