@@ -187,7 +187,7 @@ namespace {
                     JSON_FIELD_STR_G(extruder_fs_state, "extruder_fs_state", to_str(*extruder_fs_state)) JSON_COMMA;
                 }
                 if (remote_fs_state) {
-                    JSON_FIELD_STR_G(extruder_fs_state, "remote_fs_state", to_str(*remote_fs_state)) JSON_COMMA;
+                    JSON_FIELD_STR_G(remote_fs_state, "remote_fs_state", to_str(*remote_fs_state)) JSON_COMMA;
                 }
 #endif
                 JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
