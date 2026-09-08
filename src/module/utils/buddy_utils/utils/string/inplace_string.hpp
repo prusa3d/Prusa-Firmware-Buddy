@@ -19,8 +19,8 @@ public:
 
     constexpr InplaceString(std::string_view str) {
         debug_assert(str.size() < capacity_);
-        str.copy(data_.data(), capacity_);
-        data_[str.size()] = '\0';
+        const auto chars_copied = str.copy(data_.data(), capacity_ - 1);
+        data_[chars_copied] = '\0';
     }
 
     constexpr inline InplaceString(const char *str)
