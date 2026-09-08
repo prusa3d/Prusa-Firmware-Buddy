@@ -29,15 +29,22 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     strncpy(sfn_path, media_SFN_path, sizeof(sfn_path));
     // ensure null character at the end no matter what
     sfn_path[sizeof(sfn_path) - 1] = '\0';
-    // cut by the filename to retain only the directory path
-    char *c = strrchr(sfn_path, '/');
-    *c = 0; // even if we didn't find the '/', c will point to valid memory
+    char *sfn_at_cursor;
+    if (char *c = strrchr(sfn_path, '/')) {
+        // cut by the filename to retain only the directory path
+        *c = 0;
+        // the next characters after c contain the filename
+        sfn_at_cursor = c + 1;
+    } else {
+        sfn_at_cursor = nullptr;
+    }
     // check if we are at least in the root directory, if not move to root directory
     if (strstr(sfn_path, root) != sfn_path) {
         strlcpy(sfn_path, root, filename_defs::path_buffer_size);
+        // invalidate cursor if we had to rewrite the path
+        sfn_at_cursor = nullptr;
     }
-    // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
-    Load(GuiFileSort::Get(), c + 1, firstVisibleSFN);
+    Load(GuiFileSort::Get(), sfn_at_cursor, firstVisibleSFN);
 
     // scroll offset/current item is automatically set by IWindowMenu
 }
