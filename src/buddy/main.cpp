@@ -349,6 +349,8 @@ extern "C" void main_cpp(void) {
 
     hw_tim14_init();
 
+    hw_rtc_init();
+
     const bool want_error_screen = (dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed());
 
 #if HAS_NFC()
@@ -425,8 +427,6 @@ extern "C" void main_cpp(void) {
         // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
         if (!running_in_tester_mode() && config_store().connect_enabled.get()) {
             TaskDeps::components_init();
-            // Needed for certificate verification
-            hw_rtc_init();
             // Needed for SSL random data
             hw_rng_init();
 
@@ -492,7 +492,6 @@ extern "C" void main_cpp(void) {
     }
 #endif
 
-    hw_rtc_init();
     hw_rng_init();
 
 #if HAS_ESP()
