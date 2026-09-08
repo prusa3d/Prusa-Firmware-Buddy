@@ -32,7 +32,7 @@ static_assert(layout_no_footer.size() + 1 == layout_with_footer.size(), "Layout 
 
 } // namespace
 
-FrameQRPrompt::FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, const string_view_utf8 &info_text, const char *qr_suffix)
+FrameQRPrompt::FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, const string_view_utf8 &info_text)
     : inner_frame(parent, parent->GetRect())
     , info(&inner_frame, {}, is_multiline::yes, is_closed_on_click_t::no, info_text)
     , scan_me(&inner_frame, {}, is_multiline::no, is_closed_on_click_t::no, txt_scan_me)
@@ -41,17 +41,6 @@ FrameQRPrompt::FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, cons
     , link(&inner_frame, {})
     , radio(parent, {}, fsm_phase) //
 {
-    StringBuilder(link_buffer)
-        .append_string("prusa.io/")
-        .append_string(qr_suffix)
-        .check();
-    link.SetText(string_view_utf8::MakeRAM(link_buffer.data()));
-
-    qr.get_string_builder()
-        .append_string("https://prusa.io/")
-        .append_string(qr_suffix)
-        .check();
-
     qr.SetAlignment(Align_t::CenterTop());
     parent->CaptureNormalWindow(radio);
 #if HAS_LARGE_DISPLAY()
@@ -68,6 +57,22 @@ FrameQRPrompt::FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, cons
     layout_vertical_stack(parent->GetRect(), windows_no_footer, layout_no_footer);
 
     layout_contents();
+}
+
+FrameQRPrompt::FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, const string_view_utf8 &info_text, const char *qr_suffix)
+    : FrameQRPrompt { parent, fsm_phase, info_text } {
+    debug_assert(qr_suffix);
+
+    StringBuilder(link_buffer)
+        .append_string("prusa.io/")
+        .append_string(qr_suffix)
+        .check();
+    link.SetText(string_view_utf8::MakeRAM(link_buffer.data()));
+
+    qr.get_string_builder()
+        .append_string("https://prusa.io/")
+        .append_string(qr_suffix)
+        .check();
 }
 
 void FrameQRPrompt::layout_contents() {
@@ -101,7 +106,7 @@ void FrameQRPrompt::layout_contents() {
 }
 
 FrameQRPrompt::FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, ErrCode err_code)
-    : FrameQRPrompt(parent, fsm_phase, string_view_utf8::MakeNULLSTR(), nullptr) {
+    : FrameQRPrompt(parent, fsm_phase, string_view_utf8::MakeNULLSTR()) {
 
     const auto err = find_error(err_code);
 

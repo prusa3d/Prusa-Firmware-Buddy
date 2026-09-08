@@ -20,6 +20,8 @@
  * A FSM radio sits below the inner frame.
  */
 class FrameQRPrompt {
+private:
+    FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, const string_view_utf8 &info_text);
 
 public:
     FrameQRPrompt(window_frame_t *parent, FSMAndPhase fsm_phase, const string_view_utf8 &info_text, const char *qr_suffix);
