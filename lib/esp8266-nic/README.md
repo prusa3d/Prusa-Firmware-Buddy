@@ -46,3 +46,7 @@ idf.py -p /dev/ttyXXX flash
 - Check tap device was created
 - Run dhcp client on tap device, i.e. `sudo dhclient tap0`
 - Check this works as (terribly slow) network interface
+
+## Original repo
+
+The code was copied from <https://github.com/prusa3d/Prusa-ESP-Nic-FW/>.
