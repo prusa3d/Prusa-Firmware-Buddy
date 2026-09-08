@@ -36,7 +36,7 @@ void m591_no_parser(std::optional<bool> opt_enable_e_stall, IsPermanent is_perma
         }
 
         EMotorStallDetector::Instance().SetEnabled(enable_e_stall);
-        log_info(MarlinServer, "E-stall detection %s%s", enable_e_stall ? "on" : "off", is_permanent == IsPermanent::yes ? " permanent" : nullptr);
+        log_info(MarlinServer, "E-stall detection %s%s", enable_e_stall ? "on" : "off", is_permanent == IsPermanent::yes ? " permanent" : "");
 
     } else {
         // restore and opt_enable_e_stall parameters not supplied
