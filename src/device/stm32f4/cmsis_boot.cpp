@@ -208,10 +208,9 @@ void SystemInit(void) {
 #endif /* DATA_IN_ExtSRAM || DATA_IN_ExtSDRAM */
 
     /* Configure the Vector Table location add offset address ------------------*/
-#ifdef VECT_TAB_SRAM
-    // #error dead code found by automatic analyses (see BFW-5461)
-    SCB->VTOR = SRAM_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM */
-#endif
+    /* Bootloader sets VTOR to 0x00020200 instead of 0x08020200 so we adjust... */
+    extern uint32_t g_pfnVectors;
+    SCB->VTOR = (uint32_t)(&g_pfnVectors);
 }
 
 /**
