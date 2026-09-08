@@ -59,6 +59,9 @@
 #include <option/has_xbuddy_extension.h>
 #include <option/buddy_enable_wui.h>
 #include <option/has_touch.h>
+#if HAS_TOUCH()
+    #include <hw/touchscreen/touchscreen.hpp>
+#endif
 #include <option/has_nfc.h>
 #include <option/has_i2c_expander.h>
 #include <option/has_local_accelerometer.h>
@@ -680,8 +683,7 @@ extern "C" void idle_callback() {
 }
 
 void init_error_screen() {
-#if HAS_TOUCH
-    // #error dead code found by automatic analyses (see BFW-5461)
+#if HAS_TOUCH()
     touchscreen.disable_till_reset();
 #endif
 
