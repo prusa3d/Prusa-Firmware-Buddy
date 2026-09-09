@@ -2,17 +2,12 @@
 
 #include <crash_dump/dump.hpp>
 #include <error_codes.hpp>
-#include <error_code_mangle.hpp>
 #include <sound.hpp>
 #include <support_utils.h>
-#include <config.h>
 #include <version/version.hpp>
 #include <utils/string_builder.hpp>
 #include <bsod_gui.hpp>
 #include <img_resources.hpp>
-#include "display.hpp"
-#include <string_builder.hpp>
-#include <timing.h>
 #include <find_error.hpp>
 
 #include <option/has_leds.h>
@@ -77,11 +72,7 @@ ScreenError::ScreenError()
     txt_debug_info.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::Right() : Align_t::Left());
     txt_bsod_msg.set_check_overflow(false);
     txt_fw_version.set_check_overflow(false); // versions with git tag will probably fail the asserts
-
-    const char *signed_str = signature_exist() ? " [S]" : "";
-    const char *apendix_str = appendix_exist() ? " [A]" : "";
-    StringBuilder(fw_version_buff).append_printf("%s%s%s", version::project_version_full, signed_str, apendix_str);
-    txt_fw_version.SetText(string_view_utf8::MakeRAM(fw_version_buff.data()));
+    txt_fw_version.SetText(string_view_utf8::MakeCPUFLASH(version::project_version_full));
 
     if (config_store().devhash_in_qr.get()) {
         std::array<char, PRINTER_CODE_SIZE + 1> code;

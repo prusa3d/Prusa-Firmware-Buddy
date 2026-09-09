@@ -9,14 +9,12 @@
 #include <window_header.hpp>
 #include <gui/text_error_url.hpp>
 #include <crash_dump/dump.hpp>
-#include <support_utils.h>
 
 class ScreenError : public screen_t {
 public:
     ScreenError();
 
 private:
-    std::array<char, 42> fw_version_buff;
     std::array<char, 42> pcode_buff;
     std::array<char, crash_dump::MSG_TITLE_MAX_LEN> err_title_buff;
     std::array<char, crash_dump::MSG_MAX_LEN> err_msg_buff;
