@@ -313,11 +313,9 @@ static void main_task_code(void *) {
         // Prefer the DRDY interrupt, but recover by polling status in case
         // INTB stayed asserted and we missed the falling edge.
         if (!hal::ldc_data_ready.try_acquire_for(50)) {
-            const auto status = ldc.read_status();
-            if (!status.has_value() || !has_valid_pending_data(*status, ch0, ch1)) {
-                consecutive_failures++;
-                continue;
-            }
+            // DRDY interrupt was not triggered within 50 ms, increment error counter
+            // and try to readout data, there is possible recovery
+            consecutive_failures++;
         }
 
         const auto status = ldc.read_status();
