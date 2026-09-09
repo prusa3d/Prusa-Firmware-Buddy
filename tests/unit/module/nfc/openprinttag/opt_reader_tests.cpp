@@ -777,3 +777,14 @@ TEST_CASE("OPTReader::not_first_ndef_record") {
         CHECK(meta.region[Region::auxiliary].span == td::aux_span);
     }
 }
+
+TEST_CASE("OPTReader::regression_1") {
+    OPTBackend_Mock mock;
+    OPTReader reader(mock);
+
+    namespace td = tag_data::regression_1;
+    mock.tag_data[0] = td::data;
+
+    // Regression test for a bug traced to a nanocbor implementation (BFW-936)
+    CHECK(reader.read_field_float(TagField { .tag = 0, .section = Section::main, .field = 999 }) == std::unexpected(OPTReader::Error::field_not_present));
+}

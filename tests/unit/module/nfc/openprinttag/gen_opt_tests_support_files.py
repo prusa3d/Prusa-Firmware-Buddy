@@ -223,4 +223,10 @@ write_sample_data(
     info=False,
 )
 
+# A tag that was falsely triggering "region corrupt" at one point
+write_sample_data(
+    "regression_1",
+    open(f"{source_dir}/regression_1.bin", "rb").read(),
+)
+
 f.write("\n}\n\n")
