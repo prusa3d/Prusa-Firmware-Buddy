@@ -28,7 +28,6 @@ Printer::Config load_eeprom_config() {
 
 void init_info(Printer::PrinterInfo &info) {
     info.firmware_version = version::project_version_full;
-    info.appendix = appendix_exist();
     if (otp_get_serial_nr(info.serial_number) == 0) {
 #if ALLOW_MISSING_OTP()
         info.serial_number = {};

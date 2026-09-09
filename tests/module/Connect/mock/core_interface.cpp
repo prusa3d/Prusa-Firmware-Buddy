@@ -44,7 +44,6 @@ std::optional<Error> core_interface::get_printer_info(printer_info_t *printer_in
     memcpy(printer_info->fingerprint, "FB34DF45FB34DF45", FINGERPRINT_SIZE);
     printer_info->fingerprint[FINGERPRINT_SIZE] = 0;
 
-    printer_info->appendix = false;
     return std::nullopt;
 }
 

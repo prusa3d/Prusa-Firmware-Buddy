@@ -49,7 +49,6 @@ public:
         static constexpr size_t FINGERPRINT_BUFF_LEN = (FINGERPRINT_SIZE + 1);
         static constexpr size_t FINGERPRINT_HDR_SIZE = 16;
 
-        bool appendix;
         const char *firmware_version;
         serial_nr_t serial_number;
         char fingerprint[FINGERPRINT_BUFF_LEN];

@@ -49,7 +49,6 @@ private:
 public:
     MockPrinter(const Params &params)
         : p(params) {
-        info.appendix = false;
         strcpy(info.fingerprint, "DEADBEEF");
         info.firmware_version = "TST-1234";
         strcpy(info.serial_number.begin(), "FAKE-1234");
