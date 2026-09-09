@@ -76,6 +76,7 @@ void system_core_init(void) {
         | (ARM_MPU_REGION_SIZE_1MB << MPU_RASR_SIZE_Pos)
         | MPU_RASR_ENABLE_Msk;
     MPU->CTRL = MPU_CTRL_ENABLE_Msk | MPU_CTRL_PRIVDEFENA_Msk;
+    SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
     __DSB();
     __ISB();
 }
