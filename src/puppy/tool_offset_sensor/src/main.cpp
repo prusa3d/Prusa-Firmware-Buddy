@@ -182,8 +182,12 @@ void clear_data_ready_semaphore() {
     }
 }
 
-bool has_pending_data(const LDC1612::Status &status, bool ch0, bool ch1) {
-    return (ch0 && status.unread_conv_ch0) || (ch1 && status.unread_conv_ch1);
+bool has_valid_pending_data(const LDC1612::Status &status, bool ch0, bool ch1) {
+    // Each enabled channel must have unread conversion data ready
+    // Otherwise it is considered an error, one channel is not working properly
+    return (ch0 || ch1)
+        && (!ch0 || status.unread_conv_ch0)
+        && (!ch1 || status.unread_conv_ch1);
 }
 
 struct ChannelState {
@@ -310,7 +314,7 @@ static void main_task_code(void *) {
         // INTB stayed asserted and we missed the falling edge.
         if (!hal::ldc_data_ready.try_acquire_for(50)) {
             const auto status = ldc.read_status();
-            if (!status.has_value() || !has_pending_data(*status, ch0, ch1)) {
+            if (!status.has_value() || !has_valid_pending_data(*status, ch0, ch1)) {
                 consecutive_failures++;
                 continue;
             }
@@ -318,7 +322,7 @@ static void main_task_code(void *) {
 
         while (consecutive_failures < max_consecutive_failures) {
             const auto status = ldc.read_status();
-            if (!status.has_value() || !has_pending_data(*status, ch0, ch1)) {
+            if (!status.has_value() || !has_valid_pending_data(*status, ch0, ch1)) {
                 consecutive_failures++;
                 break;
             }
