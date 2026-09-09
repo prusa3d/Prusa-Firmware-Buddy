@@ -344,19 +344,20 @@ static void main_task_code(void *) {
             uint32_t now_us = static_cast<uint32_t>(ticks_us());
 
             if (ch0 && status->unread_conv_ch0) {
-                if (ch0_state.read_and_publish(ldc, LDC1612::Channel::CH0, now_us)) {
-                    consecutive_failures = 0;
-                } else {
+                if (!ch0_state.read_and_publish(ldc, LDC1612::Channel::CH0, now_us)) {
                     consecutive_failures++;
+                    break;
                 }
             }
             if (ch1 && status->unread_conv_ch1) {
-                if (ch1_state.read_and_publish(ldc, LDC1612::Channel::CH1, now_us)) {
-                    consecutive_failures = 0;
-                } else {
+                if (!ch1_state.read_and_publish(ldc, LDC1612::Channel::CH1, now_us)) {
                     consecutive_failures++;
+                    break;
                 }
             }
+            // Successfully read and published data, reset failure counter
+            // When neither channel is enabled, has_valid_pending_data will return false and this part is skipped
+            consecutive_failures = 0;
         }
     }
 }
