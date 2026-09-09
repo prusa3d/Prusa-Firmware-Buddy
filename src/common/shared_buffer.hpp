@@ -77,7 +77,11 @@ public:
 // How large buffer do we need?
 // 512: For the gcode commands.
 // File names: for marlin vars and for commands that manipulate files.
-constexpr size_t BORROW_BUF_SIZE = std::max<size_t>(512, filename_defs::path_buffer_size + filename_defs::filename_buffer_size);
+// - Two modes:
+//   . Commands that create files have /sfn/sfn/sfn/last-segment-is-lfn-because-sfn-doesnt-exist-yet. These have no name after it. That's the hybrid size.
+//   . Commands that ask about existing file. They have /sfn/sfn/sfn/lastsfn and, for the answer rendering, we may append a LFN name after it (that doesn't come from server, we append later).
+// We _could_ do it one or the other, but enforcing it structurally is more work and the hybrid+name still fits below 512 - so we just allow for hybrid+name as the upper bound.
+constexpr size_t BORROW_BUF_SIZE = std::max<size_t>(512, filename_defs::hybrid_path_buffer_size + filename_defs::filename_buffer_size);
 
 using SharedBuffer = Buffer<BORROW_BUF_SIZE>;
 using SharedBorrow = std::shared_ptr<SharedBuffer::Borrow>;
@@ -102,15 +106,17 @@ public:
     char *name() {
         char *path = this->path();
         size_t plen = strlen(path);
-        // Enough space for the name too.
-        debug_assert(plen < filename_defs::path_buffer_size);
+        // The name (up to filename_buffer_size) is written at path+plen+1; keep
+        // it within the buffer. Enforced even in release.
+        release_assert(plen + 1 + filename_defs::filename_buffer_size <= BORROW_BUF_SIZE);
         return path + plen + 1;
     }
     const char *name() const {
         const char *path = this->path();
         size_t plen = strlen(path);
-        // Enough space for the name too.
-        debug_assert(plen < filename_defs::path_buffer_size);
+        // The name (up to filename_buffer_size) is written at path+plen+1; keep
+        // it within the buffer. Enforced even in release.
+        release_assert(plen + 1 + filename_defs::filename_buffer_size <= BORROW_BUF_SIZE);
         return path + plen + 1;
     }
 };
@@ -140,15 +146,17 @@ public:
     char *name() {
         char *path = this->path();
         size_t plen = strlen(path);
-        // Enough space for the name too.
-        debug_assert(plen < filename_defs::path_buffer_size);
+        // The name (up to filename_buffer_size) is written at path+plen+1; keep
+        // it within the buffer. Enforced even in release.
+        release_assert(plen + 1 + filename_defs::filename_buffer_size <= BORROW_BUF_SIZE);
         return path + plen + 1;
     }
     const char *name() const {
         const char *path = this->path();
         size_t plen = strlen(path);
-        // Enough space for the name too.
-        debug_assert(plen < filename_defs::path_buffer_size);
+        // The name (up to filename_buffer_size) is written at path+plen+1; keep
+        // it within the buffer. Enforced even in release.
+        release_assert(plen + 1 + filename_defs::filename_buffer_size <= BORROW_BUF_SIZE);
         return path + plen + 1;
     }
 };

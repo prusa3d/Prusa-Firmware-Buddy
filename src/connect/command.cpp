@@ -3,6 +3,7 @@
 #include <search_json.h>
 #include <json_encode.h>
 
+#include <buddy/filename_defs.hpp>
 #include <general_response.hpp>
 #include <option/has_toolchanger.h>
 #include <netif_settings.h>
@@ -211,13 +212,17 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             seen_args |= MARK;                                                              \
         }                                                                                   \
     }
-#define PATH_ARG(TYPE)                                                            \
-    if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr && buffer_available) {    \
-        const size_t len = min(event.value->size() + 1, buff.size());             \
-        strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len); \
-        cmd->path = SharedPath(move(buff));                                       \
-        buffer_available = false;                                                 \
-        seen_args |= ArgPath;                                                     \
+#define PATH_ARG(TYPE)                                                                \
+    if (auto *cmd = get_if<TYPE>(&data); cmd != nullptr && buffer_available) {        \
+        const size_t len = min(event.value->size() + 1, buff.size());                 \
+        if (len - 1 <= filename_defs::max_hybrid_path_length) {                       \
+            strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len); \
+            cmd->path = SharedPath(move(buff));                                       \
+            buffer_available = false;                                                 \
+            seen_args |= ArgPath;                                                     \
+        } else {                                                                      \
+            data = BrokenCommand { "Path too long" };                                 \
+        }                                                                             \
     }
 #define HEX_ARG(FIELD, MARK)                                                 \
     if (auto *cmd = get_if<StartEncryptedDownload>(&data); cmd != nullptr) { \

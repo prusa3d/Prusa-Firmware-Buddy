@@ -1,8 +1,10 @@
 #include <command.hpp>
 
 #include <module/prusa/tool_mapper.hpp>
+#include <buddy/filename_defs.hpp>
 #include <cstring>
 #include <format>
+#include <string>
 #include <catch2/catch_test_macros.hpp>
 
 using namespace connect_client;
@@ -64,6 +66,35 @@ TEST_CASE("Send file info") {
 
 TEST_CASE("Send file info - missing args") {
     command_test<BrokenCommand>("{\"command\": \"SEND_FILE_INFO\", \"args\": [], \"kwargs\": {}}");
+}
+
+TEST_CASE("Send file info - path too long") {
+    // Reject a path that would overflow the shared buffer downstream.
+    std::string long_path(filename_defs::max_hybrid_path_length + 1, 'x');
+    std::string json = std::format(R"({{"command":"SEND_FILE_INFO","kwargs":{{"path":"{}"}}}})", long_path);
+    command_test<BrokenCommand>(json.c_str());
+}
+
+TEST_CASE("Send file info - path at max length") {
+    std::string long_path(filename_defs::max_hybrid_path_length, 'x');
+    std::string json = std::format(R"({{"command":"SEND_FILE_INFO","kwargs":{{"path":"{}"}}}})", long_path);
+    auto cmd = command_test<SendFileInfo>(json.c_str());
+    REQUIRE(strcmp(cmd.path.path(), long_path.c_str()) == 0);
+}
+
+TEST_CASE("Create folder - hybrid path at max length") {
+    // Creation commands legitimately carry an SFN prefix + LFN tail, which
+    // can exceed max_path_length; only the hybrid length must be enforced.
+    std::string long_path(filename_defs::max_hybrid_path_length, 'x');
+    std::string json = std::format(R"({{"command":"CREATE_FOLDER","kwargs":{{"path":"{}"}}}})", long_path);
+    auto cmd = command_test<CreateFolder>(json.c_str());
+    REQUIRE(strcmp(cmd.path.path(), long_path.c_str()) == 0);
+}
+
+TEST_CASE("Create folder - path too long") {
+    std::string long_path(filename_defs::max_hybrid_path_length + 1, 'x');
+    std::string json = std::format(R"({{"command":"CREATE_FOLDER","kwargs":{{"path":"{}"}}}})", long_path);
+    command_test<BrokenCommand>(json.c_str());
 }
 
 TEST_CASE("Pause print") {

@@ -26,6 +26,11 @@ inline constexpr size_t filename_buffer_size = max_filename_length + 1;
 inline constexpr size_t max_path_length = 103;
 inline constexpr size_t path_buffer_size = max_path_length + 1;
 
+/// Longest path with an LFN last segment (SFN dir prefix + LFN basename), as
+/// produced when creating an entity that has no SFN yet. Upper bound.
+inline constexpr size_t max_hybrid_path_length = max_path_length + max_filename_length;
+inline constexpr size_t hybrid_path_buffer_size = max_hybrid_path_length + 1;
+
 } // namespace filename_defs
 
 #endif // __cplusplus
