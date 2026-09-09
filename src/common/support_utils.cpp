@@ -65,14 +65,6 @@ void printerHash(char *str, size_t size, bool state_prefix) {
     }
 }
 
-/// \returns 40 bit encoded to 8 chars (32 symbol alphabet: 0-9,A-V)
-/// Make sure there's a space for 9 chars
-void printerCode(char *str) {
-    printerHash(str, PRINTER_CODE_SIZE, true);
-
-    str[PRINTER_CODE_SIZE] = '\0';
-}
-
 bool appendix_exist() {
     // With recent bootloader this can be done the easy way
 #if BOOTLOADER()

@@ -33,10 +33,10 @@ void QRErrorUrlWindow::set_error_code(ErrCode ec) {
     builder.append_printf("https://prusa.io/%05d", map_error_code(ec));
     if (config_store().devhash_in_qr.get()) {
         {
-            char printer_code[10] = {};
-            printerCode(printer_code);
+            std::array<char, 8> printer_code;
+            printerHash(printer_code.data(), printer_code.size(), true);
             builder.append_string("?ref_data=");
-            builder.append_string(printer_code);
+            builder.append_std_string_view({ printer_code.data(), printer_code.size() });
         }
         {
             char version[10] = {};

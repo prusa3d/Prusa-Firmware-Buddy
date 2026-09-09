@@ -4,10 +4,7 @@
 extern "C" {
 #endif
 
-#define PRINTER_CODE_SIZE 8
-
-extern void printerCode(char *str);
-// Similar to printerCode, but more generic.
+// Compute printer hash.
 //
 // * Does _not_ set the terminating '\0' (if you need it, set it yourself).
 // * Allows setting the number of characters output.
