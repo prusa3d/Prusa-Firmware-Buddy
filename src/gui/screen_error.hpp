@@ -15,7 +15,6 @@ public:
     ScreenError();
 
 private:
-    std::array<char, 42> pcode_buff;
     std::array<char, crash_dump::MSG_TITLE_MAX_LEN> err_title_buff;
     std::array<char, crash_dump::MSG_MAX_LEN> err_msg_buff;
     std::array<char, 30> debug_info_buff;
@@ -27,7 +26,7 @@ protected:
 
     window_text_t txt_err_title;
     window_text_t txt_err_desc;
-    window_text_t txt_printer_code;
+    window_text_t txt_printer_model;
     window_text_t txt_fw_version;
     window_text_t txt_helper;
     window_text_t txt_scan_me;

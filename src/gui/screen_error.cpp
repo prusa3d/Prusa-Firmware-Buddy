@@ -1,9 +1,9 @@
 #include <screen_error.hpp>
 
+#include <common/printer_model.hpp>
 #include <crash_dump/dump.hpp>
 #include <error_codes.hpp>
 #include <sound.hpp>
-#include <support_utils.h>
 #include <version/version.hpp>
 #include <utils/string_builder.hpp>
 #include <bsod_gui.hpp>
@@ -20,7 +20,7 @@ using namespace bsod_details;
 
 static const constexpr Rect16 QR_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(350, 85, 100, 100) : Rect16(150, 190, 80, 80);
 static const constexpr Rect16 link_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 270, 200, 20) : Rect16(10, 225, 130, 13);
-static const constexpr Rect16 printer_code_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(210, 270, 240, 20) : Rect16(10, 267, 220, 13);
+static const constexpr Rect16 printer_model_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(210, 270, 240, 20) : Rect16(10, 267, 220, 13);
 static const constexpr Rect16 help_txt_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 250, 170, 20) : Rect16(10, 210, 160, 13);
 static const constexpr Rect16 title_line_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 70, 420, 1) : Rect16(10, 44, 220, 1);
 static const constexpr Rect16 fw_version_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(210, 250, 240, 20) : Rect16(10, 300, 220, 13);
@@ -37,7 +37,7 @@ ScreenError::ScreenError()
     , header(this, _(txt_error))
     , txt_err_title(this, GuiDefaults::RedscreenTitleRect, is_multiline::no)
     , txt_err_desc(this, GuiDefaults::RedscreenDescriptionRect, is_multiline::yes)
-    , txt_printer_code(this, printer_code_rect, is_multiline::no)
+    , txt_printer_model(this, printer_model_rect, is_multiline::no)
     , txt_fw_version(this, fw_version_rect, is_multiline::no)
     , txt_helper(this, help_txt_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_help))
     , txt_scan_me(this, scan_me_rect, is_multiline::no, is_closed_on_click_t::no, _(txt_scanme))
@@ -62,26 +62,18 @@ ScreenError::ScreenError()
     }
     txt_fw_version.set_font(Font::small);
     txt_help_link.set_font(Font::small);
-    txt_printer_code.set_font(Font::small);
+    txt_printer_model.set_font(Font::small);
     txt_helper.set_font(Font::small);
     txt_debug_info.set_font(Font::small);
     qr.SetAlignment(Align_t::Right());
     txt_scan_me.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::Center() : Align_t::Center());
     txt_fw_version.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::Right() : Align_t::Left());
-    txt_printer_code.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::Right() : Align_t::Left());
+    txt_printer_model.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::Right() : Align_t::Left());
     txt_debug_info.SetAlignment(GuiDefaults::EnableDialogBigLayout ? Align_t::Right() : Align_t::Left());
     txt_bsod_msg.set_check_overflow(false);
     txt_fw_version.set_check_overflow(false); // versions with git tag will probably fail the asserts
     txt_fw_version.SetText(string_view_utf8::MakeCPUFLASH(version::project_version_full));
-
-    if (config_store().devhash_in_qr.get()) {
-        std::array<char, PRINTER_CODE_SIZE + 1> code;
-        printerCode(code.data());
-        StringBuilder(pcode_buff).append_printf("%s %s", PrinterModelInfo::current().id_str, code.data());
-        txt_printer_code.SetText(string_view_utf8::MakeRAM(pcode_buff.data()));
-    } else {
-        txt_printer_code.Hide();
-    }
+    txt_printer_model.SetText(string_view_utf8::MakeCPUFLASH(PrinterModelInfo::current().display_str()));
 
 #if HAS_LEDS()
     leds::StatusLedsHandler::instance().set_error();
@@ -162,7 +154,7 @@ ScreenError::ScreenError()
     if (msg_type != MsgType::RSOD) {
         // Set up Black error layout
         txt_debug_info.SetTextColor(COLOR_GRAY);
-        txt_printer_code.SetTextColor(COLOR_GRAY);
+        txt_printer_model.SetTextColor(COLOR_GRAY);
         txt_fw_version.SetTextColor(COLOR_GRAY);
         txt_err_title.SetTextColor(COLOR_BRAND);
         title_line.SetBackColor(COLOR_BRAND); // Have to be called after setting up layout
