@@ -322,15 +322,23 @@ static void main_task_code(void *) {
 
         while (consecutive_failures < max_consecutive_failures) {
             const auto status = ldc.read_status();
-            if (!status.has_value() || !has_valid_pending_data(*status, ch0, ch1)) {
+            if (!status.has_value()) {
+                // I2C read error
                 consecutive_failures++;
                 break;
             }
 
+            // Check for errors and report them
             if (status->err_chan0 || status->err_chan1) {
                 sensor_state.sensor_errors |= status->error_flags;
                 can_node.set_sensor_state(sensor_state);
                 consecutive_failures++;
+                break;
+            }
+            // Only then check if there is data ready to read
+            if (!has_valid_pending_data(*status, ch0, ch1)) {
+                consecutive_failures++;
+                break;
             }
 
             uint32_t now_us = static_cast<uint32_t>(ticks_us());
