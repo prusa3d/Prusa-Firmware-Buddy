@@ -60,6 +60,7 @@ public:
     struct ChannelConfig {
         bool ch0_enabled = false;
         bool ch1_enabled = false;
+        bool operator==(const ChannelConfig &) const = default;
     };
 
     struct SensorState {

@@ -16,6 +16,7 @@
 #include <timing.h>
 #include <prusa3d/tool_offset_sensor/Data_1_0.h>
 #include <bsod/bsod.h>
+#include <utils/uncopyable.hpp>
 
 LOG_COMPONENT_REF(LDC1612)
 
@@ -231,49 +232,122 @@ struct ChannelState {
     }
 };
 
-} // namespace
-
 using SensorState = tool_offset_sensor::cyphal::ToolOffsetSensorNode::SensorState;
 
-static void main_task_code(void *) {
-    LDC1612 ldc;
-    ChannelState ch0_state(publish_ch0);
-    ChannelState ch1_state(publish_ch1);
+class SensorTask : Uncopyable {
+public:
+    [[noreturn]] void run();
 
+private:
+    void ensure_sensor_off_and_idle(bool publish_state);
+    bool configure_sensor(bool ch0, bool ch1);
+    bool read_data_from_sensor(bool ch0, bool ch1);
+
+    LDC1612 ldc;
+    ChannelState ch0_state { publish_ch0 };
+    ChannelState ch1_state { publish_ch1 };
+
+    static constexpr uint8_t max_consecutive_failures = 5;
     bool ldc_powered = false;
-    bool prev_ch0 = false;
-    bool prev_ch1 = false;
     SensorState sensor_state;
+    uint8_t consecutive_failures = 0;
+};
+
+void SensorTask::ensure_sensor_off_and_idle(bool publish_state) {
+    if (!ldc_powered) {
+        return;
+    }
+    ch0_state.flush_and_publish();
+    ch1_state.flush_and_publish();
+    hal::ldc1612_set_enabled(false);
+    clear_data_ready_semaphore();
+    ldc_powered = false;
+
+    if (publish_state) {
+        sensor_state = {};
+        can_node.set_sensor_state(sensor_state);
+    }
+}
+
+bool SensorTask::configure_sensor(bool ch0, bool ch1) {
+    ensure_sensor_off_and_idle(false);
+    freertos::delay(1);
+
+    if (!initialize_ldc(ldc, ch0, ch1)) {
+        ldc_powered = false;
+        sensor_state = {};
+        sensor_state.sensor_fault = true;
+        can_node.set_sensor_state(sensor_state);
+        freertos::delay(10);
+        return false;
+    }
+
+    ldc_powered = true;
+    ch0_state.reset();
+    ch1_state.reset();
+    clear_data_ready_semaphore();
+
+    sensor_state = {};
+    sensor_state.ch0_active = ch0;
+    sensor_state.ch1_active = ch1;
+    can_node.set_sensor_state(sensor_state);
+    return true;
+}
+
+bool SensorTask::read_data_from_sensor(bool ch0, bool ch1) {
+    const auto status = ldc.read_status();
+
+    if (!status.has_value()) {
+        // I2C read error
+        return false;
+    }
+
+    // Check for errors and report them
+    if (status->err_chan0 || status->err_chan1) {
+        sensor_state.sensor_errors |= status->error_flags;
+        can_node.set_sensor_state(sensor_state);
+        return false;
+    }
+    // Only then check if there is data ready to read
+    if (!has_valid_pending_data(*status, ch0, ch1)) {
+        return false;
+    }
+
+    uint32_t now_us = static_cast<uint32_t>(ticks_us());
+    if (ch0 && status->unread_conv_ch0) {
+        if (!ch0_state.read_and_publish(ldc, LDC1612::Channel::CH0, now_us)) {
+            return false;
+        }
+    }
+    if (ch1 && status->unread_conv_ch1) {
+        if (!ch1_state.read_and_publish(ldc, LDC1612::Channel::CH1, now_us)) {
+            return false;
+        }
+    }
+    // Successfully read and published data
+    // When neither channel is enabled, has_valid_pending_data will return false and this part is skipped
+    return true;
+}
+
+void SensorTask::run() {
+    tool_offset_sensor::cyphal::ToolOffsetSensorNode::ChannelConfig prev_cfg = {};
 
     while (true) {
-        auto cfg = can_node.get_config();
-        bool ch0 = cfg.ch0_enabled;
-        bool ch1 = cfg.ch1_enabled;
+        const auto cfg = can_node.get_config();
+        const bool ch0 = cfg.ch0_enabled;
+        const bool ch1 = cfg.ch1_enabled;
+        const bool config_changed = cfg != prev_cfg;
+        prev_cfg = cfg;
 
-        bool config_changed = (ch0 != prev_ch0) || (ch1 != prev_ch1);
-        prev_ch0 = ch0;
-        prev_ch1 = ch1;
-
-        constexpr uint8_t max_consecutive_failures = 5;
-        static uint8_t consecutive_failures = 0;
         if (consecutive_failures >= max_consecutive_failures) {
             log_error(LDC1612, "Too many consecutive failures, resetting board");
             freertos::delay(100); // delay to propagate message before reset
             hal::reset();
         }
 
-        // Nothing to do - ensure sensor is off and idle
         if (!ch0 && !ch1) {
-            if (ldc_powered) {
-                ch0_state.flush_and_publish();
-                ch1_state.flush_and_publish();
-                hal::ldc1612_set_enabled(false);
-                clear_data_ready_semaphore();
-                ldc_powered = false;
-
-                sensor_state = {};
-                can_node.set_sensor_state(sensor_state);
-            }
+            // No channels enabled, just clear state
+            ensure_sensor_off_and_idle(true);
             freertos::delay(10);
             consecutive_failures = 0;
             continue;
@@ -281,33 +355,10 @@ static void main_task_code(void *) {
 
         // (Re)configure the sensor when first powering on or config changed
         if (!ldc_powered || config_changed) {
-            if (ldc_powered) {
-                ch0_state.flush_and_publish();
-                ch1_state.flush_and_publish();
-                hal::ldc1612_set_enabled(false);
-                clear_data_ready_semaphore();
-                freertos::delay(1);
-            }
-
-            if (!initialize_ldc(ldc, ch0, ch1)) {
+            if (!configure_sensor(ch0, ch1)) {
                 consecutive_failures++;
-                ldc_powered = false;
-                sensor_state = {};
-                sensor_state.sensor_fault = true;
-                can_node.set_sensor_state(sensor_state);
-                freertos::delay(10);
                 continue;
             }
-
-            ldc_powered = true;
-            ch0_state.reset();
-            ch1_state.reset();
-            clear_data_ready_semaphore();
-
-            sensor_state = {};
-            sensor_state.ch0_active = ch0;
-            sensor_state.ch1_active = ch1;
-            can_node.set_sensor_state(sensor_state);
         }
 
         // Prefer the DRDY interrupt, but recover by polling status in case
@@ -318,44 +369,21 @@ static void main_task_code(void *) {
             consecutive_failures++;
         }
 
-        const auto status = ldc.read_status();
-        if (!status.has_value()) {
-            // I2C read error
+        if (read_data_from_sensor(ch0, ch1)) {
+            consecutive_failures = 0;
+        } else {
             consecutive_failures++;
-            continue;
         }
-
-        // Check for errors and report them
-        if (status->err_chan0 || status->err_chan1) {
-            sensor_state.sensor_errors |= status->error_flags;
-            can_node.set_sensor_state(sensor_state);
-            consecutive_failures++;
-            continue;
-        }
-        // Only then check if there is data ready to read
-        if (!has_valid_pending_data(*status, ch0, ch1)) {
-            consecutive_failures++;
-            continue;
-        }
-
-        uint32_t now_us = static_cast<uint32_t>(ticks_us());
-
-        if (ch0 && status->unread_conv_ch0) {
-            if (!ch0_state.read_and_publish(ldc, LDC1612::Channel::CH0, now_us)) {
-                consecutive_failures++;
-                continue;
-            }
-        }
-        if (ch1 && status->unread_conv_ch1) {
-            if (!ch1_state.read_and_publish(ldc, LDC1612::Channel::CH1, now_us)) {
-                consecutive_failures++;
-                continue;
-            }
-        }
-        // Successfully read and published data, reset failure counter
-        // When neither channel is enabled, has_valid_pending_data will return false and this part is skipped
-        consecutive_failures = 0;
     }
+}
+
+// Static storage keeps the state out of the task stack and visible in the map file.
+SensorTask sensor_task;
+
+} // anonymous namespace
+
+static void main_task_code(void *param) {
+    static_cast<SensorTask *>(param)->run();
 }
 
 namespace {
@@ -429,7 +457,7 @@ extern "C" int main() {
         main_task_code,
         "main_task",
         main_task_stack_size,
-        nullptr,
+        &sensor_task,
         tskIDLE_PRIORITY + 1,
         main_task_stack,
         &main_task_control_block);
