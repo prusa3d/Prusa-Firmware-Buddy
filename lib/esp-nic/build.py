@@ -30,7 +30,7 @@ def prefix_map_flags(old, new):
     return f'-ffile-prefix-map={old}={new} -Wa,--debug-prefix-map={old}={new}'
 
 
-def build(build_dir: Path):
+def build(variant: str, build_dir: Path):
     sdk_dir = os.environ.get('IDF_PATH')
     assert (sdk_dir)
 
@@ -42,6 +42,7 @@ def build(build_dir: Path):
 
     env = dict(os.environ,
                BUILD_DIR=str(build_dir),
+               SDKCONFIG=str(project_dir / f'{variant}.sdkconfig'),
                EXTRA_CPPFLAGS=prefix_map,
                CFLAGS=prefix_map,
                ASMFLAGS=prefix_map,
@@ -50,7 +51,7 @@ def build(build_dir: Path):
     subprocess.run([
         'bash', '-c',
         '. "$IDF_PATH/export.sh" > /dev/null && exec idf.py -B "$BUILD_DIR" '
-        '-DEXCLUDE_COMPONENTS="$EXCLUDE_COMPONENTS" all'
+        '-DSDKCONFIG="$SDKCONFIG" -DEXCLUDE_COMPONENTS="$EXCLUDE_COMPONENTS" all'
     ],
                    cwd=str(project_dir),
                    env=env,
@@ -61,7 +62,9 @@ def build(build_dir: Path):
 
 if __name__ == '__main__':
     parser = ArgumentParser()
+    parser.add_argument('variant', choices=['esp8266', 'esp32'])
     parser.add_argument('--build-dir',
                         type=Path,
                         default=project_dir / 'build')
-    build(parser.parse_args().build_dir)
+    args = parser.parse_args()
+    build(args.variant, args.build_dir)

@@ -7,12 +7,12 @@ The whole IP stack stays on the printer, in LwIP.
 The printer side of the link is `lib/WUI/espif.cpp`.
 Both ends implement the V2 wire protocol, documented in [protocol.txt](protocol.txt).
 
-Two variants live in the tree:
+Firmware for both esp8266 and esp32 is located at `lib/esp-nic/`:
 
-| | Sources | SDK | Printers |
-|---|---|---|---|
-| ESP8266 | `lib/esp8266-nic/` | ESP8266\_RTOS\_SDK | MK4, MK3.5, MINI, COREONE (all `HAS_ESP` except XL) |
-| ESP32 | `lib/esp32-nic/` | ESP-IDF v5.0.3 | XL (`HAS_EMBEDDED_ESP32`) |
+| | SDK | Printers |
+|---|---|---|
+| ESP8266 | ESP8266\_RTOS\_SDK | MK4, MK3.5, MINI, COREONE (all `HAS_ESP` except XL) |
+| ESP32 | ESP-IDF v5.0.3 | XL (`HAS_EMBEDDED_ESP32`) |
 
 > The code was originally developed in separate repositories:
 > - ESP8266: [prusa3d/Prusa-ESP-Nic-FW](https://github.com/prusa3d/Prusa-ESP-Nic-FW)

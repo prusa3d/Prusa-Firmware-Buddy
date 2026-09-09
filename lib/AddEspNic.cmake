@@ -6,14 +6,14 @@ else()
   get_dependency_directory("esp8266-rtos-sdk" sdk_dir)
 endif()
 
-set(project_dir "${CMAKE_CURRENT_SOURCE_DIR}/${variant}-nic")
+set(project_dir "${CMAKE_CURRENT_SOURCE_DIR}/esp-nic")
 set(build_dir "${CMAKE_BINARY_DIR}/${variant}-nic-build")
 set(images "${build_dir}/uart_wifi.bin" "${build_dir}/bootloader/bootloader.bin"
            "${build_dir}/partition_table/partition-table.bin"
     )
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${project_dir}/main/*")
-list(APPEND sources "${project_dir}/CMakeLists.txt" "${project_dir}/sdkconfig"
+list(APPEND sources "${project_dir}/CMakeLists.txt" "${project_dir}/${variant}.sdkconfig"
      "${project_dir}/build.py"
      )
 # dependency on SDK version is defined implicitly by sdk_dir variable in add_custom_command
@@ -31,7 +31,7 @@ add_custom_command(
     ${CMAKE_COMMAND} -E env "IDF_PATH=${sdk_dir}" "IDF_TOOLS_PATH=${sdk_dir}/.idf-tools"
     "EXCLUDE_COMPONENTS=${missing_components}"
     "PATH=${cmake_bin_dir}:${ninja_bin_dir}:${python_bin_dir}:$ENV{PATH}" "${Python3_EXECUTABLE}"
-    "${project_dir}/build.py" --build-dir "${build_dir}"
+    "${project_dir}/build.py" ${variant} --build-dir "${build_dir}"
   DEPENDS ${sources}
   VERBATIM
   )
