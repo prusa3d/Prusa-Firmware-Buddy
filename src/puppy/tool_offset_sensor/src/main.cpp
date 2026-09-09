@@ -320,45 +320,43 @@ static void main_task_code(void *) {
             }
         }
 
-        while (consecutive_failures < max_consecutive_failures) {
-            const auto status = ldc.read_status();
-            if (!status.has_value()) {
-                // I2C read error
-                consecutive_failures++;
-                break;
-            }
-
-            // Check for errors and report them
-            if (status->err_chan0 || status->err_chan1) {
-                sensor_state.sensor_errors |= status->error_flags;
-                can_node.set_sensor_state(sensor_state);
-                consecutive_failures++;
-                break;
-            }
-            // Only then check if there is data ready to read
-            if (!has_valid_pending_data(*status, ch0, ch1)) {
-                consecutive_failures++;
-                break;
-            }
-
-            uint32_t now_us = static_cast<uint32_t>(ticks_us());
-
-            if (ch0 && status->unread_conv_ch0) {
-                if (!ch0_state.read_and_publish(ldc, LDC1612::Channel::CH0, now_us)) {
-                    consecutive_failures++;
-                    break;
-                }
-            }
-            if (ch1 && status->unread_conv_ch1) {
-                if (!ch1_state.read_and_publish(ldc, LDC1612::Channel::CH1, now_us)) {
-                    consecutive_failures++;
-                    break;
-                }
-            }
-            // Successfully read and published data, reset failure counter
-            // When neither channel is enabled, has_valid_pending_data will return false and this part is skipped
-            consecutive_failures = 0;
+        const auto status = ldc.read_status();
+        if (!status.has_value()) {
+            // I2C read error
+            consecutive_failures++;
+            continue;
         }
+
+        // Check for errors and report them
+        if (status->err_chan0 || status->err_chan1) {
+            sensor_state.sensor_errors |= status->error_flags;
+            can_node.set_sensor_state(sensor_state);
+            consecutive_failures++;
+            continue;
+        }
+        // Only then check if there is data ready to read
+        if (!has_valid_pending_data(*status, ch0, ch1)) {
+            consecutive_failures++;
+            continue;
+        }
+
+        uint32_t now_us = static_cast<uint32_t>(ticks_us());
+
+        if (ch0 && status->unread_conv_ch0) {
+            if (!ch0_state.read_and_publish(ldc, LDC1612::Channel::CH0, now_us)) {
+                consecutive_failures++;
+                continue;
+            }
+        }
+        if (ch1 && status->unread_conv_ch1) {
+            if (!ch1_state.read_and_publish(ldc, LDC1612::Channel::CH1, now_us)) {
+                consecutive_failures++;
+                continue;
+            }
+        }
+        // Successfully read and published data, reset failure counter
+        // When neither channel is enabled, has_valid_pending_data will return false and this part is skipped
+        consecutive_failures = 0;
     }
 }
 
