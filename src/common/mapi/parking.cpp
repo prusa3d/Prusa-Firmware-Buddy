@@ -253,7 +253,8 @@ namespace {
 
     public:
         static constexpr feedRate_t fr_xy = NOZZLE_PARK_XY_FEEDRATE;
-        static constexpr feedRate_t fr_z = NOZZLE_PARK_Z_FEEDRATE;
+        static constexpr feedRate_t fr_z_toward_bed = NOZZLE_PARK_Z_FEEDRATE;
+        const feedRate_t fr_z_away_from_bed = HOMING_FEEDRATE_INVERTED_Z;
 
         ParkingExecutor(const ParkArgs &args, const float destination_z)
             : args_(args)
@@ -348,7 +349,9 @@ namespace {
 
         /// Can apply retraction as well, depending on the PrintArgs
         void move_z(float target) {
-            move(current_position.xyz().with_z(target), fr_z);
+            // Away from the bed there is nothing to hit, so lift at the homing speed; the approach stays slow
+            const feedRate_t fr = target > current_position.z ? fr_z_away_from_bed : fr_z_toward_bed;
+            move(current_position.xyz().with_z(target), fr);
         }
 
         /// Retracts the remaining distance, in case the retraction was not fully done during the standard moves
