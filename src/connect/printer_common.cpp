@@ -35,7 +35,7 @@ void init_info(Printer::PrinterInfo &info) {
         bsod("otp_get_serial_nr");
 #endif
     }
-    printerHash(info.fingerprint, sizeof(info.fingerprint) - 1, false);
+    printerHash(info.fingerprint, sizeof(info.fingerprint) - 1);
     info.fingerprint[sizeof(info.fingerprint) - 1] = '\0';
 }
 
