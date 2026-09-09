@@ -40,10 +40,6 @@ bool is_bootloader_valid();
 
 void set_reflash_bbf_sfn(const char *sfn);
 
-bool has_apendix();
-
-bool has_fw_signature();
-
 #if HAS_HT_HOTEND()
 /// Boot-loop guard of the hotend-detection heat pulse.
 ///
@@ -53,4 +49,5 @@ bool is_heat_pulse_guard_set();
 void set_heat_pulse_guard();
 void clear_heat_pulse_guard();
 #endif
+
 } // namespace data_exchange

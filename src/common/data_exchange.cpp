@@ -10,9 +10,6 @@
 #include <option/has_indx.h>
 #include <otp/types.hpp>
 
-// pin PA13 state
-static constexpr uint8_t APPENDIX_FLAG_MASK = 0x01;
-
 enum class FwAutoUpdate : uint8_t {
     on = 0xAA,
     off = 0x00,
@@ -168,10 +165,6 @@ const LoveBoardEeprom &get_loveboard_eeprom() {
 }
 #endif
 
-bool has_fw_signature() {
-    return ram_data_exchange.fw_signature != 0;
-}
-
 void fw_update_on_restart_enable() {
     ram_data_exchange.fw_update_flag = FwAutoUpdate::on;
 }
@@ -187,10 +180,6 @@ bool is_bootloader_valid() {
 void set_reflash_bbf_sfn(const char *sfn) {
     ram_data_exchange.fw_update_flag = FwAutoUpdate::specified;
     strlcpy((char *)ram_data_exchange.bbf_sfn, sfn, sizeof(DataExchange::bbf_sfn));
-}
-
-bool has_apendix() {
-    return ram_data_exchange.appendix_status & APPENDIX_FLAG_MASK;
 }
 
 #if HAS_HT_HOTEND()
@@ -212,6 +201,7 @@ void clear_heat_pulse_guard() {
     ram_data_exchange.heat_pulse_guard = 0;
 }
 #endif
+
 } // namespace data_exchange
 
 bool running_in_tester_mode() {
