@@ -33,6 +33,8 @@ GCodeQueue queue;
 #include "../module/planner.h"
 #include "../module/temperature.h"
 #include "../Marlin.h"
+#include <cstring>
+#include <iterator>
 #include <option/has_serial_print.h>
 #if HAS_SERIAL_PRINT()
     #include "serial_printing.hpp"
@@ -137,7 +139,8 @@ void GCodeQueue::_commit_command(bool say_ok
 /**
  * Copy a command from RAM into the main command buffer.
  * Return true if the command was successfully added.
- * Return false for a full buffer, or if the 'command' is a comment.
+ * Return false for a full buffer, a comment, or a command that would not
+ * fit a queue slot (>= MAX_CMD_SIZE).
  */
 bool GCodeQueue::_enqueue(const char* cmd, bool say_ok/*=false*/
   #if NUM_SERIAL > 1
@@ -146,7 +149,8 @@ bool GCodeQueue::_enqueue(const char* cmd, bool say_ok/*=false*/
   #endif
 ) {
   if (*cmd == ';' || length >= BUFSIZE) return false;
-  strcpy(command_buffer[index_w], cmd);
+  char(&slot)[MAX_CMD_SIZE] = command_buffer[index_w];
+  if (strlcpy(slot, cmd, std::size(slot)) >= std::size(slot)) return false;
   _commit_command(say_ok
     #if NUM_SERIAL > 1
       // #error dead code found by automatic analyses (see BFW-5461)
