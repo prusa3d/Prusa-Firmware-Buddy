@@ -3,9 +3,13 @@
 #include "opt_gui_manager.hpp"
 #include "screen_opt_detected.hpp"
 #include "screen_opt_lost.hpp"
+#include "screen_opt_flashing.hpp"
 
 #include <ScreenFactory.hpp>
 #include <ScreenHandler.hpp>
+
+#include <puppies/cyphal_node_table_host.hpp>
+#include <xbuddy_extension/shared_enums.hpp>
 
 #include <option/has_side_leds.h>
 #if HAS_SIDE_LEDS()
@@ -66,6 +70,17 @@ void gui_loop_opt() {
                 Screens::Access()->Open(ScreenFactory::ScreenWithArg<ScreenOPTLost, VirtualToolIndex>(tool));
             }
         }
+    }
+
+    // Reader firmware update: pop up once per update
+    {
+        static bool prev_flashing = false;
+
+        const bool flashing = puppies::cyphal_node_table().get_node_state(xbuddy_extension::NodeName::cz_prusa3d_honeybee_nfc) == xbuddy_extension::NodeState::flash;
+        if (flashing && !prev_flashing && ScreenOPTFlashing::can_popup() && !Screens::Access()->IsScreenOnStack<ScreenOPTFlashing>()) {
+            Screens::Access()->Open<ScreenOPTFlashing>();
+        }
+        prev_flashing = flashing;
     }
 }
 
