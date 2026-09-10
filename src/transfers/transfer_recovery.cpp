@@ -13,6 +13,7 @@
 #include <common/filename_type.hpp>
 #include <common/filepath_operation.h>
 #include <lang/i18n.h>
+#include <path_utils.h>
 
 LOG_COMPONENT_REF(transfers);
 using namespace transfers;
@@ -358,6 +359,10 @@ Transfer::IndexIter Transfer::next_in_index(unique_file_ptr &index, Path &out) {
         }
         if (len == 0) {
             // Skip empty lines
+            return IndexIter::Skip;
+        }
+
+        if (!path_allowed(path)) {
             return IndexIter::Skip;
         }
 
