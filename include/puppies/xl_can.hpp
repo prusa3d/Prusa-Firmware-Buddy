@@ -36,6 +36,9 @@ public:
     /// role as XBuddyExtension::get_flash_progress_percent.
     [[nodiscard]] uint8_t get_flash_progress_percent() const;
 
+    /// File being flashed, none when not flashing.
+    [[nodiscard]] xbuddy_extension::FileId get_flash_file_id() const;
+
     friend const CyphalNodeTableHost &cyphal_node_table();
 
     void set_otp(const OTP_v5 &);

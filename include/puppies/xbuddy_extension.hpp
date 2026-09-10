@@ -60,6 +60,9 @@ public:
     /// Get current flash progress (0-100 percent, 0 if not flashing)
     uint8_t get_flash_progress_percent() const;
 
+    /// File being flashed, none when not flashing.
+    xbuddy_extension::FileId get_flash_file_id() const;
+
     friend const CyphalNodeTableHost &cyphal_node_table();
 
     bool get_usb_power() const;

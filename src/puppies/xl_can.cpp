@@ -183,6 +183,11 @@ uint8_t XlCan::get_flash_progress_percent() const {
     return flash.progress_percent();
 }
 
+xbuddy_extension::FileId XlCan::get_flash_file_id() const {
+    Lock lock(mutex);
+    return flash.get_flash_file_id();
+}
+
 XlCan xl_can;
 
 const CyphalNodeTableHost &cyphal_node_table() {

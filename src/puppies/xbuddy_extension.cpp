@@ -318,6 +318,11 @@ OTP_v5 XBuddyExtension::get_otp() const {
     return otp;
 }
 
+xbuddy_extension::FileId XBuddyExtension::get_flash_file_id() const {
+    Lock lock(mutex);
+    return flash.get_flash_file_id();
+}
+
 XBuddyExtension xbuddy_extension;
 
 const CyphalNodeTableHost &cyphal_node_table() {

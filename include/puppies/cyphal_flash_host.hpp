@@ -63,6 +63,9 @@ public:
 
     void close_flash_file();
 
+    /// File whose progress progress_percent() reports, none when not flashing.
+    xbuddy_extension::FileId get_flash_file_id() const;
+
 private:
     /// Whether the request fields below come from a successful Status read.
     bool valid = false;

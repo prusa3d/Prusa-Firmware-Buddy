@@ -33,6 +33,10 @@ uint8_t CyphalBridgeFlashHost::progress_percent() const {
     return 100 * flash_file_offset / flash_file_size;
 }
 
+FileId CyphalBridgeFlashHost::get_flash_file_id() const {
+    return flashing() ? xbuddy_extension::modbus::parse_file_id(last_chunk_request.file_id) : FileId::none;
+}
+
 void CyphalBridgeFlashHost::close_flash_file() {
     if (flash_fd != -1) {
         close(flash_fd);
