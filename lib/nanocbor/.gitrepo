@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/bergzand/NanoCBOR
 	branch = master
-	commit = 99c0cee2661e7818a03567b0c1a2849476302142
-	parent = f3a751a66b14888e83034cbae70f81883d4fb754
+	commit = a9eaf98fef10a0aefccd07e027d63f00e368054f
+	parent = 71db78a17a12a3f2b98e07c5ed9b2be2886b7b00
 	method = merge
 	cmdver = 0.4.9

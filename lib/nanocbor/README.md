@@ -94,9 +94,21 @@ while (!nanocbor_at_end(&map)) {
 
 ### Dependencies:
 
-NanoCBOR depends on endian conversion functions.
-These are not provided by the library and have to be configured in the header file.
-On a bare metal ARM platform, `__builtin_bswap64` and `__builtin_bswap32` can be used for this conversion.
+The only external dependency is a standard compliant `<endian.h>` header. On
+a bare metal little endian platform (such as ARM Cortex M or RISC-V)
+without an `<endian.h>`, store the following in `endian.h` and add
+`-I/path/to/folder/containing/endian.h` to `CFLAGS`, and you are good to go.
+
+```c
+#pragma once
+
+#define be64toh(x) __builtin_bswap64(x)
+#define htobe64(x) __builtin_bswap64(x)
+#define be32toh(x) __builtin_bswap32(x)
+#define htobe32(x) __builtin_bswap32(x)
+#define be16toh(x) __builtin_bswap16(x)
+#define htobe16(x) __builtin_bswap16(x)
+```
 
 NanoCBOR is mainly written in standard compliant C99 code, with one exception:
 For maintainable and robust overflow checks, compiler builtins are used.
