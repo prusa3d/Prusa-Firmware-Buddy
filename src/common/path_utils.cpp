@@ -5,6 +5,7 @@
 #include <buddy/filename_defs.hpp>
 
 #include <array>
+#include <cstring>
 #include <stdbool.h>
 #include <errno.h>
 
@@ -12,6 +13,14 @@ extern "C" {
 
 // Inject for tests, which are compiled on systems without it in the header.
 size_t strlcpy(char *, const char *, size_t);
+}
+
+bool path_allowed(const char *path) {
+    constexpr const char *const usb = "/usb/";
+    // Note: allow even "bare" /usb
+    const bool is_on_usb = strncmp(path, usb, strlen(usb)) == 0 || strcmp(path, "/usb") == 0;
+    const bool contains_upper = strstr(path, "/../") != nullptr;
+    return is_on_usb && !contains_upper;
 }
 
 void dedup_slashes(char *filename) {

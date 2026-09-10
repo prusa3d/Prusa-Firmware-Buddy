@@ -172,6 +172,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/common/general_response.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/path_utils.cpp
   ${CMAKE_SOURCE_DIR}/src/common/utils/string_builder.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
@@ -276,6 +277,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/path_utils.cpp
   ${CMAKE_SOURCE_DIR}/src/common/utils/string_builder.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/json_out.cpp
