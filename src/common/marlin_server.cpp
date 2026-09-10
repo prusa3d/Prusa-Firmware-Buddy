@@ -1329,6 +1329,8 @@ void do_babystep_Z(float offs) {
     babystep.add_steps(Z_AXIS, static_cast<int16_t>(std::round(offs * planner.settings.axis_steps_per_mm[Z_AXIS])));
 }
 
+static_assert(MARLIN_MAX_REQUEST == MAX_CMD_SIZE, "gcode request buffer must be exactly one gcode queue slot");
+
 void enqueue_gcode(const char *gcode) {
     if (!queue.enqueue_one(gcode)) {
         bsod("enqueue_gcode failed");

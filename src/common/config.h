@@ -9,7 +9,7 @@
 // marlin api config
 enum {
     MARLIN_MAX_CLIENTS = 3, // maximum number of clients registered in same time
-    MARLIN_MAX_REQUEST = 110, // maximum request length in chars
+    MARLIN_MAX_REQUEST = 96, // gcode request buffer size (bytes); == MAX_CMD_SIZE (one gcode queue slot)
 };
 
 // default string used as LAN hostname

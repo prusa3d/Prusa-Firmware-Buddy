@@ -44,7 +44,7 @@ struct Request {
             uint64_t test_mask;
             selftest::TestData test_data;
         } test_start; // Type::TestStart
-        char gcode[MARLIN_MAX_REQUEST + 1]; // Type::Gcode
+        char gcode[MARLIN_MAX_REQUEST]; // Type::Gcode
         InjectQueueRecord inject; // Type::Inject
         GCodeLiteral gcode_interrupt; // Type::GcodeInterrupt
         float babystep; // Type::Babystep
