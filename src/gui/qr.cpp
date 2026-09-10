@@ -34,7 +34,7 @@ void QRErrorUrlWindow::set_error_code(ErrCode ec) {
     if (config_store().devhash_in_qr.get()) {
         {
             std::array<char, 8> printer_code;
-            printerHash(printer_code.data(), printer_code.size(), true);
+            printerHash(printer_code.data(), printer_code.size(), false);
             builder.append_string("?ref_data=");
             builder.append_std_string_view({ printer_code.data(), printer_code.size() });
         }
