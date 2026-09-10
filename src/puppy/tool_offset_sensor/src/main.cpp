@@ -274,6 +274,7 @@ bool SensorTask::configure_sensor(bool ch0, bool ch1) {
     freertos::delay(1);
 
     if (!initialize_ldc(ldc, ch0, ch1)) {
+        hal::ldc1612_set_enabled(false);
         ldc_powered = false;
         sensor_state = {};
         sensor_state.sensor_fault = true;
