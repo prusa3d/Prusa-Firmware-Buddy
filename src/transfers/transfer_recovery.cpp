@@ -269,8 +269,7 @@ const void *Transfer::RestoredTransfer::get_data_ptr(size_t offset, size_t size)
 
     const auto data_start = sizeof(SerializedTransfer);
     const auto data_end = data_start + data_buffer_size;
-    debug_assert(offset >= data_start && offset + size <= data_end);
-    if (offset < data_start || offset + size > data_end) {
+    if (offset < data_start || offset > data_end || size > data_end - offset) {
         log_error(transfers, "Data offset/size out of range");
         return nullptr;
     }
