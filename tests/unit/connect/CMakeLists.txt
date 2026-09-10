@@ -43,7 +43,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/hostname.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
-  ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
@@ -152,6 +151,10 @@ add_custom_target(
   )
 add_dependencies(connect_tests generate-httpc-automata-tests-connect)
 
+if(NOT WEBSOCKET)
+  target_sources(connect_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp)
+endif()
+
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
   connect_planner_tests
@@ -179,7 +182,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
-  ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
@@ -257,6 +259,10 @@ add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
 target_link_libraries(connect_planner_tests raii xbuddy_extension otp random random_sw)
 
+if(NOT WEBSOCKET)
+  target_sources(connect_planner_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp)
+endif()
+
 add_executable(
   connect_registration_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
@@ -286,7 +292,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/registrator.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/status.cpp
-  ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
@@ -354,6 +359,10 @@ target_include_directories(
 add_dependencies(connect_registration_tests generate-httpc-automata-tests-connect)
 
 target_link_libraries(connect_registration_tests raii xbuddy_extension otp random random_sw)
+
+if(NOT WEBSOCKET)
+  target_sources(connect_registration_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp)
+endif()
 
 add_catch_test(connect_tests)
 add_catch_test(connect_planner_tests)

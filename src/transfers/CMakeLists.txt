@@ -1,7 +1,6 @@
 target_sources(
   firmware
   PRIVATE changed_path.cpp
-          decrypt.cpp
           download.cpp
           files.cpp
           logging.cpp
@@ -13,3 +12,7 @@ target_sources(
           transfer_file_check.cpp
           transfer_recovery.cpp
   )
+
+if(NOT WEBSOCKET)
+  target_sources(firmware PRIVATE decrypt.cpp)
+endif()
