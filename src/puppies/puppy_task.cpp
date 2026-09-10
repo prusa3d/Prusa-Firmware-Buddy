@@ -487,7 +487,12 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
             bootstrap_state_set(0, BootstrapStage::ac_controller_verify);
             break;
         case NodeState::flash:
-            bootstrap_state_set(xbuddy_extension.get_flash_progress_percent(), BootstrapStage::ac_controller_flash);
+            // is ac_controller actually flashing? another CAN puppy can flash at that time (see BFW-9369)
+            if (xbuddy_extension.get_flash_file_id() == xbuddy_extension::FileId::firmware_ac_controller) {
+                bootstrap_state_set(xbuddy_extension.get_flash_progress_percent(), BootstrapStage::ac_controller_flash);
+            } else {
+                bootstrap_state_set(0, BootstrapStage::ac_controller_flash);
+            }
             break;
         case NodeState::ready:
             bootstrap_state_set(0, BootstrapStage::ac_controller_ready);
