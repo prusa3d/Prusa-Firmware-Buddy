@@ -13,6 +13,7 @@
 #include "gcode_reader_restore_info.hpp"
 #include "gcode_reader_result.hpp"
 #include <bsod/bsod.h>
+#include <option/has_e2ee_support.h>
 
 #if HAS_E2EE_SUPPORT()
     #include <e2ee/e2ee.hpp>
