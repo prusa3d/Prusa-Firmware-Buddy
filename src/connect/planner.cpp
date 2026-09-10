@@ -53,7 +53,9 @@ using std::tuple;
 using std::unique_ptr;
 using std::visit;
 using transfers::ChangedPath;
+#if !WEBSOCKET()
 using transfers::Decryptor;
+#endif
 using transfers::Download;
 using transfers::Monitor;
 using transfers::Storage;
@@ -165,6 +167,7 @@ namespace {
         return nullptr;
     }
 
+#if !WEBSOCKET()
     tuple<const char *, uint16_t> host_and_port(const Printer::Config &config, optional<uint16_t> port_override) {
         uint16_t port = config.port;
         if (port == 443 && config.tls) {
@@ -197,6 +200,7 @@ namespace {
         buffer[enc_prefix_len + 2 * iv.size()] = '\0';
         strcat(buffer, enc_suffix);
     }
+#endif
 
     Transfer::BeginResult init_transfer(const StartInlineDownload &download) {
         const char *dpath = download.path.path();
@@ -213,6 +217,7 @@ namespace {
         return Transfer::begin(dpath, std::move(request));
     }
 
+#if !WEBSOCKET()
     Transfer::BeginResult init_transfer(const Printer::Config &config, const StartEncryptedDownload &download) {
         const char *dpath = download.path.path();
         if (!path_allowed(dpath)) {
@@ -236,6 +241,7 @@ namespace {
 
         return Transfer::begin(dpath, std::move(request));
     }
+#endif
 
     bool command_is_error_whitelisted(const Command &command) {
         return holds_alternative<SendInfo>(command.command_data) || holds_alternative<SetToken>(command.command_data) || holds_alternative<ResetPrinter>(command.command_data) || holds_alternative<SendStateInfo>(command.command_data);
@@ -849,6 +855,7 @@ void Planner::command(const Command &command, const StartInlineDownload &downloa
     handle_transfer_result(command, std::move(down_result));
 }
 
+#if !WEBSOCKET()
 void Planner::command(const Command &command, const StartEncryptedDownload &download) {
     // Get the config (we need it for the connection); don't reset the "changed" flag.
     auto [config, config_changed] = printer.config(false);
@@ -870,6 +877,7 @@ void Planner::command(const Command &command, const StartEncryptedDownload &down
 
     handle_transfer_result(command, std::move(down_result));
 }
+#endif
 
 void Planner::command(const Command &command, const DeleteFile &params) {
     const char *path = params.path.path();

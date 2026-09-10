@@ -6,6 +6,7 @@
 #include <buddy/filename_defs.hpp>
 #include <general_response.hpp>
 #include <option/has_toolchanger.h>
+#include <option/websocket.h>
 #include <netif_settings.h>
 #include <str_utils.hpp>
 #include <logging/log.hpp>
@@ -57,6 +58,7 @@ namespace {
         }
     }
 
+#if !WEBSOCKET()
     template <size_t S>
     bool decode_hex(const Event &event, array<uint8_t, S> &dest) {
         if (event.value->size() != 2 * S) {
@@ -70,6 +72,7 @@ namespace {
         }
         return true;
     }
+#endif
 
     enum HasArg : uint32_t {
         ArgJobId = 1 << 0,
@@ -87,8 +90,10 @@ namespace {
     };
 
     constexpr uint32_t NO_ARGS = 0;
+#if !WEBSOCKET()
     // Encrypted download can also process a port, but that one is optional, so not listed here.
     constexpr uint32_t ARGS_ENC_DOWN = ArgPath | ArgKey | ArgIv | ArgOrigSize;
+#endif
     constexpr uint32_t ARGS_DIALOG_ACTION = ArgDialogId | ArgResponse;
     constexpr uint32_t ARGS_INLINE_DOWN = ArgPath | ArgOrigSize | ArgTeamId | ArgHash;
 } // namespace
@@ -195,7 +200,10 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             // which command will be coming from which Connect instance ->
             // accept both, handle the same way.
             T("START_CONNECT_DOWNLOAD", StartInlineDownload, ARGS_INLINE_DOWN)
-            T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN) { // else is part of the previous T
+#if !WEBSOCKET()
+            T("START_ENCRYPTED_DOWNLOAD", StartEncryptedDownload, ARGS_ENC_DOWN)
+#endif
+            { // else is part of the previous T
                 return;
             }
         }
@@ -224,12 +232,14 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             data = BrokenCommand { "Path too long" };                                 \
         }                                                                             \
     }
-#define HEX_ARG(FIELD, MARK)                                                 \
-    if (auto *cmd = get_if<StartEncryptedDownload>(&data); cmd != nullptr) { \
-        if (decode_hex(event, cmd->FIELD)) {                                 \
-            seen_args |= MARK;                                               \
-        }                                                                    \
-    }
+#if !WEBSOCKET()
+    #define HEX_ARG(FIELD, MARK)                                                 \
+        if (auto *cmd = get_if<StartEncryptedDownload>(&data); cmd != nullptr) { \
+            if (decode_hex(event, cmd->FIELD)) {                                 \
+                seen_args |= MARK;                                               \
+            }                                                                    \
+        }
+#endif
 
 #define SET_VALUE_ARG(name_, type)                              \
     if (auto *cmd = get_if<SetValue>(&data); cmd != nullptr) {  \
@@ -284,7 +294,9 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             PATH_ARG(DeleteFile)
             PATH_ARG(DeleteFolder)
             PATH_ARG(CreateFolder)
+#if !WEBSOCKET()
             PATH_ARG(StartEncryptedDownload)
+#endif
             PATH_ARG(StartInlineDownload)
 #if HAS_TOOL_MAPPING()
         } else if (is_arg("tool_mapping", Type::Object)) {
@@ -393,10 +405,14 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             NOZZLE_PARAMS(8)
 #endif
 #undef NOZZLE_PARAMS
+#if !WEBSOCKET()
         } else if (is_arg("port", Type::Primitive)) {
             INT_ARG(StartEncryptedDownload, uint16_t, port, 0)
+#endif
         } else if (is_arg("orig_size", Type::Primitive)) {
+#if !WEBSOCKET()
             INT_ARG(StartEncryptedDownload, uint32_t, orig_size, ArgOrigSize)
+#endif
             INT_ARG(StartInlineDownload, uint32_t, orig_size, ArgOrigSize)
         } else if (is_arg("team_id", Type::Primitive)) {
             INT_ARG(StartInlineDownload, uint64_t, team_id, ArgTeamId)
@@ -406,10 +422,12 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                 strlcpy(cmd->hash, event.value->data(), len);
                 seen_args |= ArgHash;
             }
+#if !WEBSOCKET()
         } else if (is_arg("key", Type::String)) {
             HEX_ARG(key, ArgKey)
         } else if (is_arg("iv", Type::String)) {
             HEX_ARG(iv, ArgIv)
+#endif
         } else if (is_arg("dialog_id", Type::Primitive)) {
             INT_ARG(DialogAction, uint32_t, dialog_id, ArgDialogId)
         } else if (is_arg("id", Type::Primitive)) {

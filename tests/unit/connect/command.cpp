@@ -2,6 +2,7 @@
 
 #include <module/prusa/tool_mapper.hpp>
 #include <buddy/filename_defs.hpp>
+#include <option/websocket.h>
 #include <cstring>
 #include <format>
 #include <string>
@@ -153,6 +154,7 @@ TEST_CASE("Send transfer info") {
     command_test<SendTransferInfo>("{\"command\": \"SEND_TRANSFER_INFO\", \"args\": [], \"kwargs\": {}}");
 }
 
+#if !WEBSOCKET()
 TEST_CASE("Start connect download - encrypted") {
     auto cmd = command_test<StartEncryptedDownload>("{\"command\":\"START_ENCRYPTED_DOWNLOAD\",\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"key\": \"000102030405060708090a0B0c0D0e0F\", \"iv\": \"101112131415161718191a1B1c1D1e1F\", \"orig_size\": 42}}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
@@ -167,6 +169,7 @@ TEST_CASE("Start connect download - encrypted") {
     }
     REQUIRE(cmd.iv == expected);
 }
+#endif
 
 TEST_CASE("Start inline download") {
     auto cmd = command_test<StartInlineDownload>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\", \"orig_size\":1024}}");

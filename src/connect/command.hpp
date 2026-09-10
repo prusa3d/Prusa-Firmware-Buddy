@@ -4,6 +4,7 @@
 
 #include <common/shared_buffer.hpp>
 #include <option/has_side_leds.h>
+#include <option/websocket.h>
 #include <option/xbuddy_extension_variant.h>
 
 #include <cstdint>
@@ -48,9 +49,7 @@ struct StartPrint {
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
 struct SetPrinterIdle {};
-// This command actually implements both the START_CONNECT_DOWNLOAD and
-// START_ENCRYPTED_DOWNLOAD. The reason is, for us, the commands are really
-// similar and we reuse a lot of code for it.
+#if !WEBSOCKET()
 struct StartEncryptedDownload {
     SharedPath path;
     // Port override.
@@ -64,6 +63,7 @@ struct StartEncryptedDownload {
     // Fatfs can't do bigger than 4GB files anyway, right?
     uint32_t orig_size;
 };
+#endif
 struct StartInlineDownload {
     uint64_t team_id;
     uint32_t orig_size;
@@ -136,7 +136,11 @@ struct UncancelObject {
     uint16_t id;
 };
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, SetPrinterIdle, StartEncryptedDownload, StartInlineDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue, CancelObject, UncancelObject>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, SetPrinterIdle,
+#if !WEBSOCKET()
+    StartEncryptedDownload,
+#endif
+    StartInlineDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer, SetToken, ResetPrinter, SendStateInfo, DialogAction, SetValue, CancelObject, UncancelObject>;
 
 struct Command {
     CommandId id;
