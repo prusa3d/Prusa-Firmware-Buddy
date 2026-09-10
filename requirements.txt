@@ -5,7 +5,7 @@ jsonschema~=4.25.1
 ndeflib~=0.3.3
 numpy==1.26.4
 nunavut~=2.3
-pillow~=10.4
+pillow~=12.3
 pip~=23.0
 polib~=1.2
 prek~=0.4.5
