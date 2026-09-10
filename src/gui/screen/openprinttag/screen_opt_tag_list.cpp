@@ -12,6 +12,8 @@
 
 #include <feature/openprinttag/tool_tag.hpp>
 #include <bsod/bsod.h>
+#include <puppies/cyphal_node_table_host.hpp>
+#include <xbuddy_extension/shared_enums.hpp>
 
 namespace buddy::openprinttag {
 
@@ -52,6 +54,12 @@ MI_OPT_READ_TAG::MI_OPT_READ_TAG(Tool tool)
 }
 
 void MI_OPT_READ_TAG::Loop() {
+    if (puppies::cyphal_node_table().get_node_state(xbuddy_extension::NodeName::cz_prusa3d_honeybee_nfc) != xbuddy_extension::NodeState::ready) {
+        set_enabled(false);
+        return;
+    }
+    set_enabled(true);
+
     if (auto *tool = std::get_if<VirtualToolIndex>(&tool_)) {
         // Indicate the item as disabled, but do not really disable it
         // This is so that the click() function gets called even if the item is disabled
