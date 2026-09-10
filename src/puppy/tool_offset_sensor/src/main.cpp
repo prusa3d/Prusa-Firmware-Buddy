@@ -248,20 +248,18 @@ private:
     ChannelState ch1_state { publish_ch1 };
 
     static constexpr uint8_t max_consecutive_failures = 5;
-    bool ldc_powered = false;
     SensorState sensor_state;
     uint8_t consecutive_failures = 0;
 };
 
 void SensorTask::ensure_sensor_off_and_idle(bool publish_state) {
-    if (!ldc_powered) {
+    if (!hal::ldc1612_is_enabled()) {
         return;
     }
     ch0_state.flush_and_publish();
     ch1_state.flush_and_publish();
     hal::ldc1612_set_enabled(false);
     clear_data_ready_semaphore();
-    ldc_powered = false;
 
     if (publish_state) {
         sensor_state = {};
@@ -275,7 +273,6 @@ bool SensorTask::configure_sensor(bool ch0, bool ch1) {
 
     if (!initialize_ldc(ldc, ch0, ch1)) {
         hal::ldc1612_set_enabled(false);
-        ldc_powered = false;
         sensor_state = {};
         sensor_state.sensor_fault = true;
         can_node.set_sensor_state(sensor_state);
@@ -283,7 +280,6 @@ bool SensorTask::configure_sensor(bool ch0, bool ch1) {
         return false;
     }
 
-    ldc_powered = true;
     ch0_state.reset();
     ch1_state.reset();
     clear_data_ready_semaphore();
@@ -355,7 +351,7 @@ void SensorTask::run() {
         }
 
         // (Re)configure the sensor when first powering on or config changed
-        if (!ldc_powered || config_changed) {
+        if (!hal::ldc1612_is_enabled() || config_changed) {
             if (!configure_sensor(ch0, ch1)) {
                 consecutive_failures++;
                 continue;

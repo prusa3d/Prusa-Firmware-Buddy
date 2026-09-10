@@ -29,9 +29,12 @@ void hal::set_status_led(bool set) {
     HAL_GPIO_WritePin(D_LED_USR_GPIO_Port, D_LED_USR_Pin, set ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
+// LDC1612 SD pin: LOW = enabled, HIGH = shutdown
 void hal::ldc1612_set_enabled(bool enabled) {
-    // SD pin: LOW = active, HIGH = shutdown
     HAL_GPIO_WritePin(LDC1612_SD_GPIO_Port, LDC1612_SD_Pin, enabled ? GPIO_PIN_RESET : GPIO_PIN_SET);
+}
+bool hal::ldc1612_is_enabled() {
+    return HAL_GPIO_ReadPin(LDC1612_SD_GPIO_Port, LDC1612_SD_Pin) == GPIO_PIN_RESET;
 }
 
 namespace hal {

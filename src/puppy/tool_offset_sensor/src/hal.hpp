@@ -12,6 +12,7 @@ static constexpr const bool enable_bit_rate_switch = false;
 void init();
 void set_status_led(bool set);
 void ldc1612_set_enabled(bool enabled);
+bool ldc1612_is_enabled();
 
 void __attribute__((noreturn)) panic();
 void __attribute__((noreturn)) reset();
