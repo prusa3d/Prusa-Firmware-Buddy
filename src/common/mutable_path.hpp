@@ -1,6 +1,7 @@
 #pragma once
 #include <string.h>
 #include <utility>
+#include <span>
 #include <bsod/bsod.h>
 #include <buddy/filename_defs.hpp>
 
@@ -89,6 +90,10 @@ public:
     }
 
     char *get_buffer() {
+        return path;
+    }
+
+    std::span<char> get_buffer_span() {
         return path;
     }
 

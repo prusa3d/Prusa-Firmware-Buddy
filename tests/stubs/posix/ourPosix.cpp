@@ -33,9 +33,15 @@ dirent *readdir(DIR *dp) {
     if (dp->obj >= testFiles0.size()) {
         return nullptr;
     } else {
-        MakeLFNSFN(&(dp->dirStruct), testFiles0[dp->obj].lfn.c_str(), dp->obj);
-        dp->dirStruct.d_type = testFiles0[dp->obj].dir ? DT_DIR : DT_REG;
-        dp->dirStruct.time = testFiles0[dp->obj].time;
+        const FileEntry &entry = testFiles0[dp->obj];
+        if (entry.sfn.has_value()) {
+            strlcpy(dp->dirStruct.d_name, entry.sfn->c_str(), sizeof(dp->dirStruct.d_name));
+            dp->dirStruct.lfn = const_cast<char *>(entry.lfn.c_str());
+        } else {
+            MakeLFNSFN(&(dp->dirStruct), entry.lfn.c_str(), dp->obj);
+        }
+        dp->dirStruct.d_type = entry.dir ? DT_DIR : DT_REG;
+        dp->dirStruct.time = entry.time;
         ++dp->obj;
     }
     return &(dp->dirStruct);

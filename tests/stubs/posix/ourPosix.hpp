@@ -1,6 +1,7 @@
 #pragma once
 #include <buddy/filename_defs.hpp>
 #include <string.h>
+#include <optional>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -16,6 +17,10 @@ struct FileEntry {
     std::string lfn;
     uint64_t time;
     bool dir;
+    // Explicit short name, overriding the one MakeLFNSFN would derive from
+    // lfn. Needed to test short names that are not a shortened form of the
+    // long name (eg. longer than it).
+    std::optional<std::string> sfn = std::nullopt;
 };
 
 extern std::vector<FileEntry> testFiles0;

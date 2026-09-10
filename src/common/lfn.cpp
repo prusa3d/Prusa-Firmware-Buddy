@@ -61,20 +61,24 @@ void get_LFN(char *lfn, size_t lfn_size, char *path) {
     });
 }
 
-void get_SFN_path(char *path) {
-    search_file(path, [&](char *fname, struct dirent *ent) {
-        if (ent != nullptr) {
-            // fname is part of the path we passed in, so we can modify it.
-            debug_assert(strlen(fname) >= strlen(ent->d_name));
-            strcpy(fname, ent->d_name);
+void get_SFN_path(std::span<char> path) {
+    search_file(path.data(), [&](char *fname, struct dirent *ent) {
+        if (ent == nullptr) {
+            // Fallback cases (not found / no slash): keep path intact.
+            return;
         }
-        // We are not interested in the other "fallback" cases like the LFN
-        // one. We just keep path intact.
+        // fname points into path. Skip if the SFN would not fit; the LFN (which
+        // can be shorter than the SFN) is left in place.
+        const size_t offset = fname - path.data();
+        if (offset + strlen(ent->d_name) + 1 > path.size()) {
+            return;
+        }
+        strcpy(fname, ent->d_name);
     });
 }
 
 void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size) {
-    char *last = rindex(lfn, '/');
+    const char *last = rindex(lfn, '/');
 
     debug_assert(last);
     if (!last) {
@@ -94,7 +98,7 @@ void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size) {
 
     sfn_out[len] = '\0';
 
-    char *fname = last + 1;
+    const char *fname = last + 1;
     Directory d { sfn_out };
     if (!d) {
         strlcpy(sfn_out, lfn, size);

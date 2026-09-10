@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <sys/stat.h>
+#include <span>
 
 #include <common/mutable_path.hpp>
 #include <common/unique_file_ptr.hpp>
@@ -141,6 +142,10 @@ public:
 
         char *get_buffer() {
             return path.get_buffer();
+        }
+
+        std::span<char> get_buffer_span() {
+            return path.get_buffer_span();
         }
 
         static constexpr size_t maximum_length() {

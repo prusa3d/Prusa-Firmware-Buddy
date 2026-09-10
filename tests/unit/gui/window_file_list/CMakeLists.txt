@@ -3,7 +3,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/mocks.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/ourPosix.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/posix/ourPosix.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/missing_functions.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/mock_display.cpp
   ${CMAKE_SOURCE_DIR}/src/gui/window_file_list.cpp
@@ -28,6 +28,7 @@ target_include_directories(
   window_file_list_tests
   PUBLIC .
          ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock
+         ${CMAKE_SOURCE_DIR}/tests/stubs/posix
          ${CMAKE_SOURCE_DIR}/src
          ${CMAKE_SOURCE_DIR}/src/guiapi/include
          ${CMAKE_SOURCE_DIR}/src/guiconfig

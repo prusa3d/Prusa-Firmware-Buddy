@@ -21,21 +21,9 @@ extern "C" {
 void get_LFN(char *lfn, size_t lfn_size, char *path);
 
 /**
- * \brief Get a SFN path for a given path.
- *
- * Given a full path to a file (either LFN or SFN, doesn't matter), converts
- * the last part to SFN, in-place. This assumes LFN is never shorter than SFN,
- * therefore the result can't overflow the buffer.
- *
- * This might fail internally (eg. for files that don't exist), in such case
- * the path is not modified.
- */
-void get_SFN_path(char *path);
-
-/**
  * \brief Get SFN path copied to provided buffer.
  *
- * Same as get_SFN_path above, only difference is it is not in place, but rather
+ * Same as get_SFN_path, only difference is it is not in place, but rather
  * copied to a new buffer.
  *
  * In case of failure (eg. file not found) we try to copy as much of the LFN as
@@ -45,4 +33,19 @@ void get_SFN_path_copy(const char *lfn, char *sfn_out, size_t size);
 
 #ifdef __cplusplus
 }
+
+    #include <span>
+
+/**
+ * \brief Get a SFN path for a given path.
+ *
+ * Given a full path to a file (either LFN or SFN), converts the last component
+ * to SFN in-place. The size of the span is the capacity of the buffer backing
+ * `path` (including space for '\0').
+ *
+ * If the short name would not fit into the buffer, or the file is not found,
+ * the path is left unchanged.
+ * (Yes, SFN can be _longer_ than LFN in some cases)
+ */
+void get_SFN_path(std::span<char> path);
 #endif

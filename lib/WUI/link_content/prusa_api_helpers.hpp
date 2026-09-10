@@ -5,6 +5,7 @@
 
 #include <string_view>
 #include <optional>
+#include <span>
 
 namespace nhttp::link_content {
 
@@ -25,7 +26,7 @@ handler::StatusPage delete_file(const char *filename, const handler::RequestPars
 
 handler::StatusPage create_folder(const char *filename, const handler::RequestParser &parser);
 
-handler::StatusPage print_file(char *filename, const handler::RequestParser &parser);
+handler::StatusPage print_file(std::span<char> filename, const handler::RequestParser &parser);
 
 void get_only(handler::ConnectionState state, const handler::RequestParser &parser, handler::Step &out);
 } // namespace nhttp::link_content

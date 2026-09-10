@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cerrno>
 #include <charconv>
+#include <span>
 #include <unistd.h>
 
 namespace nhttp::link_content {
@@ -219,7 +220,7 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
             return Accepted::Accepted;
         }
         case Method::Post: {
-            out.next = print_file(filename, parser);
+            out.next = print_file(std::span(filename), parser);
             return Accepted::Accepted;
         }
         default:

@@ -15,6 +15,7 @@
 
 #include <memory>
 #include <optional>
+#include <span>
 #include <tuple>
 
 namespace nhttp {
@@ -31,7 +32,7 @@ namespace printer {
     class GcodeUpload final {
     public:
         using Result = std::tuple<http::Status, const char *>;
-        typedef bool UploadedNotify(char *name, bool start_print);
+        typedef bool UploadedNotify(std::span<char> name, bool start_print);
 
         struct PutParams {
             std::array<char, filename_defs::path_buffer_size> filepath;

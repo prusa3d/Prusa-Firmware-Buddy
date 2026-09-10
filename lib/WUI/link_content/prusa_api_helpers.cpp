@@ -125,9 +125,9 @@ StatusPage create_folder(const char *filename, const RequestParser &parser) {
     return StatusPage(Status::Created, parser);
 }
 
-StatusPage print_file(char *filename, const RequestParser &parser) {
+StatusPage print_file(std::span<char> filename, const RequestParser &parser) {
     // if not exists
-    if (access(filename, R_OK) != 0) {
+    if (access(filename.data(), R_OK) != 0) {
         return StatusPage(Status::NotFound, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
     }
 

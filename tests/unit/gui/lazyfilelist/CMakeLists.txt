@@ -2,7 +2,7 @@
 add_executable(
   lazyfilelist_tests
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/ourPosix.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/posix/ourPosix.cpp
   tests.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock/missing_functions.cpp
   ${CMAKE_SOURCE_DIR}/src/common/directory.cpp
@@ -16,6 +16,7 @@ target_include_directories(
   lazyfilelist_tests
   PUBLIC .
          ${CMAKE_SOURCE_DIR}/tests/unit/gui/mock
+         ${CMAKE_SOURCE_DIR}/tests/stubs/posix
          ${CMAKE_SOURCE_DIR}/src/gui
          ${CMAKE_SOURCE_DIR}/src/guiapi/include
          ${CMAKE_SOURCE_DIR}/src/common

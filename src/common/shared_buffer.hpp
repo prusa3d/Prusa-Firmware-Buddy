@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <span>
 #include <bsod/bsod.h>
 
 template <size_t S>
@@ -101,6 +102,11 @@ public:
     char *path() {
         return reinterpret_cast<char *>(borrow->data());
     }
+    std::span<char> path_span() {
+        // The path may be a hybrid (SFN dir + LFN tail); name() lives behind it.
+        static_assert(filename_defs::hybrid_path_buffer_size <= decltype(borrow)::element_type::SIZE);
+        return { path(), filename_defs::hybrid_path_buffer_size };
+    }
 
     // Stored just behind the path (maybe!)
     char *name() {
@@ -140,6 +146,11 @@ public:
     }
     char *path() {
         return reinterpret_cast<char *>(borrow.data());
+    }
+    std::span<char> path_span() {
+        // The path may be a hybrid (SFN dir + LFN tail); name() lives behind it.
+        static_assert(filename_defs::hybrid_path_buffer_size <= decltype(borrow)::SIZE);
+        return { path(), filename_defs::hybrid_path_buffer_size };
     }
 
     // Stored just behind the path (maybe!)

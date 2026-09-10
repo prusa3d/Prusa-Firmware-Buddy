@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <cstring>
+#include <span>
 #include <string_view>
 
 using std::string_view;
@@ -32,7 +33,7 @@ FileCommand::StartResult FileCommand::start() {
         }
         return StartResult::NotFound;
     }
-    if (wui_start_print(filename, true) == StartPrintResult::PrintStarted) {
+    if (wui_start_print(std::span(filename), true) == StartPrintResult::PrintStarted) {
         return StartResult::Started;
     } else {
         return StartResult::NotReady;

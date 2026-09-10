@@ -138,30 +138,6 @@ void wui_generate_password(char *, uint32_t);
 
 void wui_store_password(char *, uint32_t);
 
-#ifdef __cplusplus
-enum class StartPrintResult {
-    Failed, /// uploading file failed
-    Uploaded, /// uploading succeeded, able to print
-    PrintStarted, /// uploading succeeded and print started immediately
-};
-
-/// Start a print of a given filename.
-///
-/// @param[in] autostart_if_able true  - printer will start print without asking (in case filament, printer type and other checks are satisfied)
-///                              false - printer will not start print without asking, but it will show one click print if able to
-StartPrintResult wui_start_print(char *filename, bool autostart_if_able);
-#endif /* __cplusplus */
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief A new gcode was uploaded, take appropriate actions
-///
-/// @param[in] path Path to the gcode file
-/// @param[in] start_print Should the print be started right away (if possible)?
-///
-/// @return True if everything went fine. False if start_print was enabled and
-///   the print was not possible to start.
-bool wui_uploaded_gcode(char *path, bool start_print);
-
 ////////////////////////////////////////////////////////////////////////////
 /// @brief initialize marlin client for tcpip thread
 ///
@@ -179,5 +155,33 @@ bool wui_media_inserted();
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#ifdef __cplusplus
+
+    #include <span>
+
+enum class StartPrintResult {
+    Failed, /// uploading file failed
+    Uploaded, /// uploading succeeded, able to print
+    PrintStarted, /// uploading succeeded and print started immediately
+};
+
+/// Start a print of a given filename.
+///
+/// @param[in] autostart_if_able true  - printer will start print without asking (in case filament, printer type and other checks are satisfied)
+///                              false - printer will not start print without asking, but it will show one click print if able to
+StartPrintResult wui_start_print(std::span<char> filename, bool autostart_if_able);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief A new gcode was uploaded, take appropriate actions
+///
+/// @param[in] path Path to the gcode file
+/// @param[in] start_print Should the print be started right away (if possible)?
+///
+/// @return True if everything went fine. False if start_print was enabled and
+///   the print was not possible to start.
+bool wui_uploaded_gcode(std::span<char> path, bool start_print);
+
+#endif /* __cplusplus */
 
 #endif /* _WUI_API_H_ */

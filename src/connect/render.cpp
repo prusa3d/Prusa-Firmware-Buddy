@@ -1132,7 +1132,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
             // * If this is ever called multiple times (it can be, if the same
             //   event needs to be resent), it results into the same values
             //   there.
-            get_SFN_path(spath.path());
+            get_SFN_path(spath.path_span());
             get_LFN(spath.name(), filename_defs::filename_buffer_size, spath.path());
             break;
         }
@@ -1141,7 +1141,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
             SharedPath spath = event->path.value();
             path = spath.path();
 
-            get_SFN_path(spath.path());
+            get_SFN_path(spath.path_span());
             get_LFN(spath.name(), filename_defs::filename_buffer_size, spath.path());
         }
         default:;

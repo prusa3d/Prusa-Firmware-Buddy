@@ -230,8 +230,8 @@ JsonResult FileInfo::FileRenderer::renderState(size_t resume_point, JsonOutput &
 }
 
 JsonResult FileInfo::FileRenderer::renderStateV1(size_t resume_point, JsonOutput &output, FileInfo::FileState &state) const {
+    get_SFN_path(state.owner->filepath);
     char *filename = state.owner->filepath;
-    get_SFN_path(filename);
     JSONIFY_STR(filename);
     char long_name[filename_defs::filename_buffer_size];
     get_LFN(long_name, sizeof long_name, filename);

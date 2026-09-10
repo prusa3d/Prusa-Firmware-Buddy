@@ -612,7 +612,7 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
 bool Transfer::cleanup_remove(Path &path) {
     // Without this we would report LFN to connect in FILE_CHANGED event, which is not allowed.
     path.as_destination(); // Reset it to the "base"
-    get_SFN_path(path.get_buffer());
+    get_SFN_path(path.get_buffer_span());
     // Note: Order of removal is important. It is possible the partial can't be
     // removed (eg. because it's being shown as a preview, or being printed).
     // In such case we want to make sure _not_ to delete the (possibly failed)

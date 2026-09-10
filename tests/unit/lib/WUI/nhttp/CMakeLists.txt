@@ -2,6 +2,7 @@ add_executable(
   nhttp_tests
   # Not really tests, just stuffings to satisfy the linker.
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/get_sfn_path_stub.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/status_renderer_mock.cpp

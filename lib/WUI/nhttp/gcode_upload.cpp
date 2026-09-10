@@ -11,6 +11,7 @@
 
 #include <sys/stat.h>
 #include <cstring>
+#include <span>
 #include <unistd.h>
 #include <bsod/bsod.h>
 
@@ -237,7 +238,7 @@ namespace {
                 return make_tuple(Status::UnprocessableEntity, "Filename contains invalid characters");
             }
         } else {
-            return f(fn);
+            return f(std::span(fn));
         }
     }
 
@@ -277,9 +278,9 @@ namespace {
                 // Remove the "/usb/" prefix
                 // FIXME: Why? Relict of old / Post / multipart upload?
                 const char *final_filename = filepath.data() + USB_MOUNT_POINT_LENGTH;
-                error = try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> GcodeUpload::Result {
+                error = try_rename(fname.begin(), final_filename, overwrite, [&](std::span<char> filename) -> GcodeUpload::Result {
                     monitor_slot->done(Monitor::Outcome::Finished);
-                    ChangedPath::instance.changed_path(filename, Type::File, Incident::Created);
+                    ChangedPath::instance.changed_path(filename.data(), Type::File, Incident::Created);
                     cleanup_temp_file = false;
                     if (uploaded_notify != nullptr) {
                         if (uploaded_notify(filename, print_after_upload)) {
@@ -370,8 +371,8 @@ GcodeUpload::Result GcodeUpload::check_filename(const char *filename) const {
         return make_tuple(Status::InternalServerError, "Failed to create a check temp file");
     }
     fclose(tmp);
-    return try_rename(CHECK_FILENAME, filename, false, [](const char *fname) -> GcodeUpload::Result {
-        remove(fname);
+    return try_rename(CHECK_FILENAME, filename, false, [](std::span<const char> fname) -> GcodeUpload::Result {
+        remove(fname.data());
         return make_tuple(Status::Ok, nullptr);
     });
 }
