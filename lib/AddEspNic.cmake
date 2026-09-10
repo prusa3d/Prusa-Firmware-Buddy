@@ -22,6 +22,7 @@ file(STRINGS "${sdk_dir}/missing-components.txt" missing_components)
 
 get_filename_component(cmake_bin_dir "${CMAKE_COMMAND}" DIRECTORY)
 get_filename_component(ninja_bin_dir "${CMAKE_MAKE_PROGRAM}" DIRECTORY)
+get_filename_component(python_bin_dir "${Python3_EXECUTABLE}" DIRECTORY)
 
 # cmake-format: off
 add_custom_command(
@@ -29,7 +30,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E env "IDF_PATH=${sdk_dir}" "IDF_TOOLS_PATH=${sdk_dir}/.idf-tools"
     "EXCLUDE_COMPONENTS=${missing_components}"
-    "PATH=${cmake_bin_dir}:${ninja_bin_dir}:$ENV{PATH}" "${Python3_EXECUTABLE}"
+    "PATH=${cmake_bin_dir}:${ninja_bin_dir}:${python_bin_dir}:$ENV{PATH}" "${Python3_EXECUTABLE}"
     "${project_dir}/build.py" --build-dir "${build_dir}"
   DEPENDS ${sources}
   VERBATIM
