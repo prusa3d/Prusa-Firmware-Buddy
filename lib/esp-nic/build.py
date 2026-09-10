@@ -52,7 +52,8 @@ def build(variant: str, build_dir: Path):
     subprocess.run([
         'bash', '-c',
         '. "$IDF_PATH/export.sh" > /dev/null && exec idf.py -B "$BUILD_DIR" '
-        '-DSDKCONFIG="$SDKCONFIG" -DEXCLUDE_COMPONENTS="$EXCLUDE_COMPONENTS" all'
+        '-DSDKCONFIG="$SDKCONFIG" -DEXCLUDE_COMPONENTS="$EXCLUDE_COMPONENTS" '
+        '-DCMAKE_MESSAGE_LOG_LEVEL=NOTICE all'
     ],
                    cwd=str(project_dir),
                    env=env,
