@@ -9,7 +9,7 @@
 //
 // Copyright (C) 2023 Prusa Research a.s - www.prusa3d.com
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "uart0_driver.h"
+#include "uart0_driver.hpp"
 
 #include "driver/uart.h"
 #include "esp8266/pin_mux_register.h"
