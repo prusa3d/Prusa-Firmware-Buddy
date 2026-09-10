@@ -238,11 +238,21 @@ void Transfer::init_download_order_if_needed() {
 }
 
 void Transfer::update_backup(bool force) {
+    // Notify first, even if there is no downloaded progress to sync yet.
+    if (is_printable && !already_notified) {
+        // Early notification for print-while-downloading — a print started
+        // before the data is available waits for it.
+        notify_created();
+    }
+
     const auto state = partial_file->get_state();
     const size_t size = state.get_valid_size();
+    // The valid parts only ever grow, so an equal size means an unchanged state
+    const bool has_new_progress = size != last_backup_update_bytes;
     const bool backup_outdated = last_backup_update_ms.has_value() == false || ticks_ms() - *last_backup_update_ms > BackupUpdateIntervalMs;
     const bool did_cross_size = size - last_backup_update_bytes > BackupUpdateIntervalBytes;
-    if (force == false && !backup_outdated && !did_cross_size) {
+    const bool update_due = backup_outdated || did_cross_size;
+    if (!force && !(has_new_progress && update_due)) {
         log_debug(transfers, "Not updating backup file (%zu confirmed, %zu downloaded)", last_backup_update_bytes, size);
         return;
     }
@@ -253,19 +263,13 @@ void Transfer::update_backup(bool force) {
         return;
     }
 
-    if (Transfer::update_backup(backup_file.get(), partial_file->get_state()) == false) {
+    if (Transfer::update_backup(backup_file.get(), state) == false) {
         log_error(transfers, "Failed to update backup file");
     } else {
         log_info(transfers, "Backup file updated at %zu", size);
     }
     last_backup_update_ms = ticks_ms();
     last_backup_update_bytes = size;
-
-    if (is_printable && !already_notified) {
-        // Early notification for print-while-downloading — a print started
-        // before the data is available waits for it.
-        notify_created();
-    }
 }
 
 std::optional<struct stat> Transfer::get_transfer_partial_file_stat(MutablePath &destination_path) {
@@ -333,6 +337,8 @@ Transfer::Transfer(Monitor::Slot &&slot, PartialFile::Ptr partial_file)
     , partial_file(partial_file)
     , is_printable(filename_is_printable(slot.destination())) {
     debug_assert(partial_file.get() != nullptr);
+    // The backup file starts out with this state (make_backup() / recovery)
+    last_backup_update_bytes = partial_file->get_state().get_valid_size();
 }
 
 Transfer::State Transfer::step(bool is_printing) {
