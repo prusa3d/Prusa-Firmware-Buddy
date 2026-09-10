@@ -70,7 +70,7 @@ optional<Error> WebSocket::send(Opcode opcode, bool last, uint8_t *data, size_t 
     // RNG for that (it is used only in the theoretical scenario of HW RNG
     // failure anyway).
     uint32_t key_u = rand_u();
-    const uint8_t *key = reinterpret_cast<uint8_t *>(&rand_u);
+    const uint8_t *key = reinterpret_cast<uint8_t *>(&key_u);
 
     memcpy(header + pos, key, sizeof key_u);
     pos += sizeof key_u;
