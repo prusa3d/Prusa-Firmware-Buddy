@@ -14,6 +14,7 @@
 #include <common/filepath_operation.h>
 #include <lang/i18n.h>
 #include <path_utils.h>
+#include <option/websocket.h>
 
 LOG_COMPONENT_REF(transfers);
 using namespace transfers;
@@ -36,6 +37,7 @@ bool Transfer::make_backup(FILE *file, const Download::Request &request, const P
     transfer.partial_file_state = state;
     transfer.partial_file_state_crc = crc32_calc((const uint8_t *)&state, sizeof(state));
     transfer.fw_version = SerializedString::serialize(version::project_version_full, file, error);
+#if !WEBSOCKET()
     if (const auto *encrypted = get_if<Download::Request::Encrypted>(&request.data); encrypted != nullptr) {
         transfer.host = SerializedString::serialize(encrypted->host, file, error);
         transfer.port = encrypted->port;
@@ -46,7 +48,9 @@ bool Transfer::make_backup(FILE *file, const Download::Request &request, const P
         if (encrypted->encryption.get()) {
             transfer.encryption_info = *encrypted->encryption;
         }
-    } else {
+    } else
+#endif
+    {
         const auto &in = get<Download::Request::Inline>(request.data);
         transfer.url_path_or_hash = SerializedString::serialize(in.hash, file, error);
         transfer.team_id = in.team_id;
@@ -296,6 +300,11 @@ std::optional<Download::Request> Transfer::RestoredTransfer::get_download_reques
         }
         req = Download::Request(hash, transfer.team_id, transfer.orig_size);
     } else {
+#if WEBSOCKET()
+        // Encrypted transfers are not supported on websocket builds.
+        // (invalid save file)
+        return std::nullopt;
+#else
         const char *host = transfer.host.deserialize(get_data_ptr);
         const char *url_path = transfer.url_path_or_hash.deserialize(get_data_ptr);
         if (host == nullptr || url_path == nullptr) {
@@ -306,6 +315,7 @@ std::optional<Download::Request> Transfer::RestoredTransfer::get_download_reques
             transfer.port,
             url_path,
             transfer.encryption_info.has_value() ? std::make_unique<Download::EncryptionInfo>(*transfer.encryption_info) : nullptr);
+#endif
     }
     req->set_transfer_id(transfer.transfer_id);
     return *req;

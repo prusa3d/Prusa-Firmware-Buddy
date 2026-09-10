@@ -22,6 +22,7 @@
 #include <lwip/dns.h>
 #include <config_store/store_instance.hpp>
 #include <bsod/bsod.h>
+#include <option/websocket.h>
 
 using automata::ExecutionControl;
 using http::ContentEncryptionMode;
@@ -69,6 +70,7 @@ constexpr uint32_t INLINE_SEGMENT_SIZE = 512 * 512;
 
 namespace transfers {
 
+#if !WEBSOCKET()
 class Download::Async {
 public:
     static constexpr uint32_t REQUEST_TIMEOUT = 10000; // 10 seconds for the whole request (headers, not body)
@@ -263,13 +265,13 @@ public:
         size_t len = resp.content_length.value();
         phase_payload.emplace<Splice>(this, len);
         phase = Phase::Body;
-#ifdef UNITTESTS
+    #ifdef UNITTESTS
         debug_assert(0); // Unimplemented here, see the note about dependency hell
-#else
+    #else
         tcp_pcb *c = conn;
         conn = nullptr;
         httpd_instance()->inject_transfer(c, data.release(), position, &get<Splice>(phase_payload), len);
-#endif
+    #endif
 
         return ERR_OK;
     }
@@ -344,10 +346,10 @@ public:
         phase = Phase::Connecting;
         debug_assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
-#ifndef UNITTESTS
+    #ifndef UNITTESTS
         // Hack to make it compile during tests. Not actually executed.
         conn = altcp_new_ip_type(altcp_tcp_alloc, IP_GET_TYPE(request.ip));
-#endif
+    #endif
 
         if (conn == nullptr) {
             done(DownloadStep::FailedNetwork);
@@ -463,6 +465,7 @@ void Download::AsyncDeleter::operator()(Async *a) {
         delete a;
     }
 }
+#endif
 
 void Download::Request::set_transfer_id(TransferId id) {
     if (auto *in = get_if<Inline>(&data); in != nullptr) {
@@ -472,6 +475,7 @@ void Download::Request::set_transfer_id(TransferId id) {
 }
 
 Download::Download(const Request &request, PartialFile::Ptr destination, uint32_t start_range, optional<uint32_t> end_range) {
+#if !WEBSOCKET()
     if (const auto *encrypted = get_if<Request::Encrypted>(&request.data); encrypted) {
         debug_assert(encrypted->encryption);
         size_t file_size = encrypted->encryption->orig_size;
@@ -482,7 +486,9 @@ Download::Download(const Request &request, PartialFile::Ptr destination, uint32_
         Async *async_raw = async.get();
         engine = std::move(async);
         tcpip_callback_nofail(Async::start_wrapped, async_raw);
-    } else {
+    } else
+#endif
+    {
         const auto &in = get<Request::Inline>(request.data);
         const bool seek_ok = destination->seek(start_range);
         InlinePtr in_ptr(new Inline {
@@ -508,17 +514,18 @@ Download::Download(const Request &request, PartialFile::Ptr destination, uint32_
 }
 
 DownloadStep Download::step() {
+#if !WEBSOCKET()
     if (auto *async = get_if<AsyncPtr>(&engine); async != nullptr) {
         return (*async)->status();
+    }
+#endif
+    const auto &in = get<InlinePtr>(engine);
+    if (in->status != DownloadStep::Continue) {
+        return in->status;
+    } else if (in->start > in->end /* End is inclusive */) {
+        return DownloadStep::Finished;
     } else {
-        const auto &in = get<InlinePtr>(engine);
-        if (in->status != DownloadStep::Continue) {
-            return in->status;
-        } else if (in->start > in->end /* End is inclusive */) {
-            return DownloadStep::Finished;
-        } else {
-            return DownloadStep::Continue;
-        }
+        return DownloadStep::Continue;
     }
 }
 
@@ -527,11 +534,7 @@ uint32_t Download::file_size() const {
 }
 
 PartialFile::Ptr Download::get_partial_file() const {
-    if (auto *async = get_if<AsyncPtr>(&engine); async != nullptr) {
-        return (*async)->destination;
-    } else {
-        return get<InlinePtr>(engine)->destination;
-    }
+    return std::visit([](const auto &e) { return e->destination; }, engine);
 }
 
 optional<Download::InlineRequest> Download::inline_request() {

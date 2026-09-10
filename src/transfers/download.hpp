@@ -7,6 +7,8 @@
 #include <common/http/socket_connection_factory.hpp>
 #include <common/unique_file_ptr.hpp>
 #include <inplace_function.hpp>
+#include <option/websocket.h>
+#include <utils/overloaded_visitor.hpp>
 
 #include <variant>
 #include <memory>
@@ -55,6 +57,7 @@ enum class DownloadStep {
 // around.
 class Download {
 public:
+#if !WEBSOCKET()
     struct EncryptionInfo {
         /// The key used for AES decryption.
         Decryptor::Block key;
@@ -77,6 +80,7 @@ public:
 
         EncryptionInfo(const EncryptionInfo &) = default;
     };
+#endif
 
     /// Getter for extra headers to be sent with the request.
     /// The function should return the number of extra headers it wishes to send
@@ -87,12 +91,14 @@ public:
     using ExtraHeaders = stdext::inplace_function<size_t(size_t headers_size, http::HeaderOut *headers)>;
 
     struct Request {
+#if !WEBSOCKET()
         struct Encrypted {
             const char *host;
             uint16_t port;
             const char *url_path;
             std::shared_ptr<EncryptionInfo> encryption;
         };
+#endif
 
         struct Inline {
             const char *hash;
@@ -101,14 +107,21 @@ public:
             uint32_t orig_size;
         };
 
-        std::variant<Encrypted, Inline> data;
+        std::variant<
+#if !WEBSOCKET()
+            Encrypted,
+#endif
+            Inline>
+            data;
 
+#if !WEBSOCKET()
         Request(const char *host, uint16_t port, const char *url_path, std::unique_ptr<EncryptionInfo> &&encryption)
             : data(Encrypted {
                 host,
                 port,
                 url_path,
                 std::move(encryption) }) {}
+#endif
 
         Request(const char *hash, uint64_t team_id, uint32_t orig_size)
             : data(Inline {
@@ -119,22 +132,28 @@ public:
             }) {}
 
         uint32_t orig_size() const {
-            if (const auto *encrypted = get_if<Encrypted>(&data); encrypted != nullptr) {
-                return encrypted->encryption->orig_size;
-            } else {
-                return get<Inline>(data).orig_size;
-            }
+            return std::visit(
+                Overloaded {
+#if !WEBSOCKET()
+                    [](const Encrypted &encrypted) { return encrypted.encryption->orig_size; },
+#endif
+                        [](const Inline &in) { return in.orig_size; },
+                },
+                data);
         }
 
         void set_transfer_id(TransferId id);
     };
 
 private:
+#if !WEBSOCKET()
     class Async;
     class AsyncDeleter {
     public:
         void operator()(Async *);
     };
+    using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
+#endif
     struct Inline {
         uint64_t team_id;
         uint32_t file_id;
@@ -149,12 +168,15 @@ private:
         static constexpr size_t HASH_BUFF = 29;
         char hash[HASH_BUFF] = {};
     };
-    using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
     // Using pointer here to make both versions same sized. Once we get rid of
     // the old download way, we should be able to just put it inside us
     // directly.
     using InlinePtr = std::unique_ptr<Inline>;
-    using Engine = std::variant<AsyncPtr, InlinePtr>;
+    using Engine = std::variant<
+#if !WEBSOCKET()
+        AsyncPtr,
+#endif
+        InlinePtr>;
     Engine engine;
 
 public:

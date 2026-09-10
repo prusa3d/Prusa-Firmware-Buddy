@@ -6,6 +6,7 @@
 
 #include "transfer.hpp"
 
+#include <option/websocket.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -60,8 +61,10 @@ struct SerializedTransfer {
 
     TransferId transfer_id;
 
+#if !WEBSOCKET()
     // encryption info
     std::optional<Download::EncryptionInfo> encryption_info;
+#endif
 
     // raw data referenced by the above structure continue after this
     // at the end of the raw data, there is a crc32 of the range [fw_version, end_of_file)

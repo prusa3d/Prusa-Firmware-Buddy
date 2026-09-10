@@ -32,6 +32,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/include/usb_host
+          ${CMAKE_BINARY_DIR}/include
   )
 add_definitions(-DDATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 

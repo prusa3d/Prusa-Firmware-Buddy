@@ -73,11 +73,7 @@ TEST_CASE("Serialization and Deserialization of a Transfer", "[transfers]") {
         auto temp_file = std::fopen(temp_file_path, "w+");
 
         // make request
-        auto request = Download::Request(
-            "http://test_host.com",
-            8081,
-            "/test_path",
-            nullptr);
+        auto request = Download::Request("test_hash", 42, 1024);
 
         // make partial file state
         auto partial_file_state = transfers::PartialFile::State();
@@ -97,13 +93,13 @@ TEST_CASE("Serialization and Deserialization of a Transfer", "[transfers]") {
 
             auto restored_request = restored->get_download_request();
             REQUIRE(restored_request.has_value());
-            auto encrypted = get_if<Download::Request::Encrypted>(&request.data);
-            REQUIRE(encrypted != nullptr);
-            auto restored_encrypted = get_if<Download::Request::Encrypted>(&restored_request->data);
-            REQUIRE(restored_encrypted != nullptr);
-            REQUIRE(strcmp(restored_encrypted->host, encrypted->host) == 0);
-            REQUIRE(strcmp(restored_encrypted->url_path, encrypted->url_path) == 0);
-            REQUIRE(restored_encrypted->port == encrypted->port);
+            auto in = get_if<Download::Request::Inline>(&request.data);
+            REQUIRE(in != nullptr);
+            auto restored_in = get_if<Download::Request::Inline>(&restored_request->data);
+            REQUIRE(restored_in != nullptr);
+            REQUIRE(strcmp(restored_in->hash, in->hash) == 0);
+            REQUIRE(restored_in->team_id == in->team_id);
+            REQUIRE(restored_in->orig_size == in->orig_size);
         }
 
         SECTION("Update of download progress and deserialization still has the right data") {
@@ -125,18 +121,14 @@ TEST_CASE("Malformed backup files are rejected", "[transfers]") {
     Monitor::Slot slot = monitor.allocate(Monitor::Type::Connect, "/test_path", 1024).value();
     unique_file_ptr temp_file(fopen(temp_file_path, "w+"));
 
-    Download::Request request(
-        "http://test_host.com",
-        8081,
-        "/test_path",
-        nullptr);
+    Download::Request request("test_hash", 42, 1024);
     PartialFile::State partial_file_state;
 
     REQUIRE(Transfer::make_backup(temp_file.get(), request, partial_file_state, slot) == true);
 
     SECTION("Negative offset is rejected") {
         BackupFile backup = BackupFile::read(temp_file.get());
-        backup.header.host.offset = -256;
+        backup.header.url_path_or_hash.offset = -256;
         backup.write(temp_file.get());
 
         std::optional<Transfer::RestoredTransfer> restored = Transfer::restore(temp_file.get());
@@ -158,9 +150,9 @@ TEST_CASE("Malformed backup files are rejected", "[transfers]") {
 
     SECTION("Unterminated string within bounds is rejected") {
         BackupFile backup = BackupFile::read(temp_file.get());
-        // Point host at a single, non-NUL byte inside the fw_version string.
-        backup.header.host.offset = backup.header.fw_version.offset;
-        backup.header.host.size = 1;
+        // Point the hash at a single, non-NUL byte inside the fw_version string.
+        backup.header.url_path_or_hash.offset = backup.header.fw_version.offset;
+        backup.header.url_path_or_hash.size = 1;
         backup.write(temp_file.get());
 
         std::optional<Transfer::RestoredTransfer> restored = Transfer::restore(temp_file.get());
@@ -170,7 +162,7 @@ TEST_CASE("Malformed backup files are rejected", "[transfers]") {
 
     SECTION("Zero size is rejected") {
         BackupFile backup = BackupFile::read(temp_file.get());
-        backup.header.host.size = 0;
+        backup.header.url_path_or_hash.size = 0;
         backup.write(temp_file.get());
 
         std::optional<Transfer::RestoredTransfer> restored = Transfer::restore(temp_file.get());
