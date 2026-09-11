@@ -37,6 +37,8 @@ add_custom_command(
   )
 # cmake-format: on
 
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${project_dir}/gen_clangd.py")
+
 # images are consumed from another directory
 add_custom_target(esp-firmware DEPENDS ${images})
 set(ESP_NIC_IMAGES
