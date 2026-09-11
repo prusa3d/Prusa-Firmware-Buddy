@@ -187,7 +187,7 @@ static void send_link_status(int8_t status) {
 }
 
 static void do_wifi_scan(void *) {
-    wifi_scan_config_t config = { 0 };
+    wifi_scan_config_t config {};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
     switch (scan.scan_type) {
@@ -675,7 +675,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
     }
 
-    struct header header = { 0 };
+    struct header header {};
     header.type = MSG_SCAN_AP_CNT;
     header.ap_count = scan.stored_ssids_count;
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -687,7 +687,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
 }
 
 static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
-    struct header header = { 0 };
+    struct header header {};
     header.type = MSG_SCAN_AP_GET;
     header.ap_index = index;
     header.size = htons(sizeof(ScanResult));
@@ -839,7 +839,9 @@ extern "C" void app_main() {
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 0,
+        .source_clk = UART_SCLK_DEFAULT
     };
     uart_driver_install(UART_NUM_0, 16384, 0, 0, NULL, 0);
     uart_param_config(UART_NUM_0, &uart_config);

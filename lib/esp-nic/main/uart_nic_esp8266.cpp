@@ -200,7 +200,7 @@ static void IRAM_ATTR send_link_status(int8_t status) {
 }
 
 static void IRAM_ATTR do_wifi_scan(void *arg) {
-    wifi_scan_config_t config = { 0 };
+    wifi_scan_config_t config {};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
     switch (scan.scan_type) {
@@ -645,7 +645,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
     }
 
-    struct uart0_tx_queue_item queue_item = { 0 };
+    struct uart0_tx_queue_item queue_item {};
     queue_item.header.type = MSG_SCAN_AP_CNT;
     queue_item.header.ap_count = scan.stored_ssids_count;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
@@ -655,7 +655,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
 }
 
 static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *ap_info) {
-    struct uart0_tx_queue_item queue_item = { 0 };
+    struct uart0_tx_queue_item queue_item {};
     queue_item.header.type = MSG_SCAN_AP_GET;
     queue_item.header.ap_index = index;
     queue_item.header.size = htons(sizeof(*ap_info));
@@ -690,7 +690,7 @@ static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t *data, struct header header
 
 static void IRAM_ATTR read_message() {
     wait_for_intron();
-    struct uart0_rx_queue_item queue_item = { 0 };
+    struct uart0_rx_queue_item queue_item {};
     uart0_rx_bytes((uint8_t *)&queue_item.header, sizeof(queue_item.header));
 
     switch (queue_item.header.type) {
