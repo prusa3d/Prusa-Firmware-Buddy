@@ -29,7 +29,8 @@ protected:
 
 private:
     OptionalColor color_;
-    std::array<char, 48> label_buffer_;
+    std::array<char, 32> info_buffer_;
+    StringViewUtf8Parameters<4> label_params_;
     VirtualToolIndex tool_;
     FilamentType filament_type_;
     DisplayFormat display_format_ : 2;

@@ -23,7 +23,10 @@
  */
 
 class IWiInfo : public IWindowMenuItem {
+
+public:
     static constexpr Font font = GuiDefaults::FontMenuSpecial;
+    static Color extension_text_color(const IWindowMenuItem &item);
 
 public:
     IWiInfo(const string_view_utf8 &value, const string_view_utf8 &label, const img::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);

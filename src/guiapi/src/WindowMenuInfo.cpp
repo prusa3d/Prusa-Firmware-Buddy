@@ -28,8 +28,12 @@ void IWiInfo::update_extension_width() {
     }
 }
 
+Color IWiInfo::extension_text_color(const IWindowMenuItem &item) {
+    return item.IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER;
+}
+
 void IWiInfo::printExtension(Rect16 extension_rect, [[maybe_unused]] Color color_text, Color color_back, [[maybe_unused]] ropfn raster_op) const {
-    render_text_align(extension_rect, value(), font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
+    render_text_align(extension_rect, value(), font, color_back, extension_text_color(*this), GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
 }
 
 void WiInfoString::set_value(const string_view_utf8 &set) {
