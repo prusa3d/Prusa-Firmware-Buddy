@@ -33,6 +33,7 @@
 #endif
 
 #include <bsod.h>
+#include <raii/auto_restore.hpp>
 #include <raii/scope_guard.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
 #include <feature/input_shaper/input_shaper_config.hpp>
@@ -96,6 +97,11 @@ namespace internal {
     uint8_t refine_id = 0; ///< Refine count for metric cross-referencing
     uint8_t cal_id = 0; ///< Calibration count for metric cross-referencing
 } // namespace internal
+
+/**
+ * Used to signal to other modules that homing is in progress
+ */
+bool homing_in_progress = false;
 } // namespace
 
 METRIC_DEF(metric_phxy_meas, "phxy_meas", METRIC_VALUE_CUSTOM, 0, METRIC_ENABLED);
@@ -950,6 +956,9 @@ bool corexy_rehome_xy(float fr_mm_s) {
  * @param rehome If true, also perform initial home
  */
 static bool corexy_rehome_and_phase(MachinePosXYZE &origin_pos, ab_steps_t &origin_steps, float fr_mm_s, bool rehome) {
+
+    AutoRestore<bool> scope_guard_homing_in_progress(homing_in_progress, true);
+
     // ignore starting position if requested, otherwise assume to be already homed
     if (rehome) {
         if (!corexy_rehome_xy(fr_mm_s)) {
@@ -1154,6 +1163,9 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
 }
 
 bool corexy_sens_calibrate(const float fr_mm_s) {
+
+    AutoRestore<bool> scope_guard_homing_in_progress(homing_in_progress, true);
+
     const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
 
     // finish previous moves and disable main endstop/crash recovery handling
@@ -1190,6 +1202,9 @@ bool corexy_sens_is_calibrated() {
 
 /// Refine home origin precisely on core-XY.
 bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {
+
+    AutoRestore<bool> scope_guard_homing_in_progress(homing_in_progress, true);
+
     const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
 
     // finish previous moves and disable main endstop/crash recovery handling
@@ -1376,4 +1391,8 @@ bool corexy_home_is_unstable() {
 
 void corexy_clear_homing_calibration() {
     config_store().corexy_grid_origin.set_to_default();
+}
+
+bool homing_corexy_in_progress() {
+    return homing_in_progress;
 }

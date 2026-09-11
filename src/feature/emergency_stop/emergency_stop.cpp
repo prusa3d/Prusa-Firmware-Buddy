@@ -16,6 +16,11 @@
 #include <bsod/bsod.h>
 #include <option/has_power_panic.h>
 
+#include <option/has_precise_homing_corexy.h>
+#if HAS_PRECISE_HOMING_COREXY()
+    #include <module/prusa/homing_corexy.hpp>
+#endif
+
 LOG_COMPONENT_DEF(EmergencyStop, logging::Severity::debug);
 
 static_assert(std::to_underlying(WarningType::DoorOpen) == 0, "Door open should have the highest priority for GUI warning to show properly");
@@ -163,7 +168,13 @@ void EmergencyStop::maybe_block() {
         && (current_position.z >= planner.max_printed_z)
 
         // If we are outside the print region, where parking could disrupt a toolchange or cross the wastebin boundary.
-        && is_xy_in_print_region(pos.xy());
+        && is_xy_in_print_region(pos.xy())
+
+#if HAS_PRECISE_HOMING_COREXY()
+        // injecting parking moves during homing can trigger sanity checks
+        && !homing_corexy_in_progress()
+#endif // HAS_PRECISE_HOMING_COREXY()
+        ;
 
     // We are manipulating the moves "under the hands" of other stuff, and "in
     // the middle" of other stuff.

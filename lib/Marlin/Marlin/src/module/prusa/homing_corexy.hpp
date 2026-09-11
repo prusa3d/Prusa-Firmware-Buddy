@@ -41,6 +41,12 @@ bool corexy_home_is_unstable();
 
 void corexy_clear_homing_calibration();
 
+/**
+ * @brief Indicates that homing is in progress
+ * Currently used to prevent parking during emergency stop
+ */
+bool homing_corexy_in_progress();
+
 #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
 /**
  * @brief Calibrate homing sensitivity on TMC
