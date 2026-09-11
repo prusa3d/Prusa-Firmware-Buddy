@@ -82,11 +82,10 @@ namespace {
         plan_to_y(0.0f, vent_feedrate);
     #elif PRINTER_IS_PRUSA_COREONEL()
         plan_to_y(0.0f, approach_feedrate);
-        plan_to_x(149.0f, approach_feedrate);
-        plan_to_y(-16.5f, vent_feedrate);
-        plan_to_xy(146.0f, -17.0f, vent_feedrate);
-        plan_to_x(142.0f, vent_feedrate);
-        plan_to_x(144.0f, vent_feedrate);
+        plan_to_x(153.0f, approach_feedrate);
+        plan_to_y(-10.0f, vent_feedrate);
+        plan_to_xy(147.0f, -16.0f, vent_feedrate);
+        plan_to_x(140.0f, vent_feedrate);
         plan_to_y(0.0f, vent_feedrate);
     #endif
     }
@@ -101,10 +100,10 @@ namespace {
         plan_to_y(0.0f, vent_feedrate);
     #elif PRINTER_IS_PRUSA_COREONEL()
         plan_to_y(0.0f, approach_feedrate);
-        plan_to_x(134.0f, approach_feedrate);
-        plan_to_y(-17.0f, vent_feedrate);
-        plan_to_x(144.0f, vent_feedrate);
-        plan_to_x(142.0f, vent_feedrate);
+        plan_to_x(127.0f, approach_feedrate);
+        plan_to_y(-10.0f, vent_feedrate);
+        plan_to_xy(133.0f, -16.0f, vent_feedrate);
+        plan_to_x(145.0f, vent_feedrate);
         plan_to_y(0.0f, vent_feedrate);
     #endif
     }
