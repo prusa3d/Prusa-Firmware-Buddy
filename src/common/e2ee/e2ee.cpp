@@ -180,6 +180,15 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
     if (block_size < MIN_IDENTITY_BLOCK_SIZE) {
         return identity_parsing_error;
     }
+    // Cap the allocation: a real identity block cannot exceed its fixed fields
+    // plus the largest key and name we accept.
+    //
+    // (Doesn't need to be exact, only some sane upper bound is enough).
+    constexpr size_t MAX_IDENTITY_BLOCK_SIZE
+        = SIGN_SIZE + sizeof(key_len) + PUBLIC_KEY_BUFFER_SIZE + sizeof(name_len) + (IDENTITY_NAME_LEN - 1) + 2 * HASH_SIZE;
+    if (block_size > MAX_IDENTITY_BLOCK_SIZE) {
+        return identity_parsing_error;
+    }
     size_t signed_bytes_size = block_header.get_size() + block_parameters_size(EBlockType::IdentityBlock) + block_size - SIGN_SIZE;
 
     // TODO: Should this be dynamic? fallible or not?

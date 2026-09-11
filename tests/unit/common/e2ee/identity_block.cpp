@@ -42,6 +42,12 @@ const char *parse_identity_block(const std::vector<uint8_t> &payload, uint32_t b
     return e2ee::read_and_verify_identity_block(file.get(), header, nullptr, info, false);
 }
 
+// Largest block_size the parser accepts. A plain literal on purpose (the
+// constant computation is awkward and long). The two boundary tests below
+// bracket the real cap, so a drift in either direction fails one of them and
+// points here to update.
+constexpr uint32_t MAX_LEGAL_BLOCK_SIZE = 754;
+
 } // namespace
 
 TEST_CASE("read_and_verify_identity_block rejects an undersized block_size") {
@@ -66,6 +72,27 @@ TEST_CASE("read_and_verify_identity_block rejects an oversized key_len") {
     const char *err = parse_identity_block(payload, block_size);
     REQUIRE(err != nullptr);
     CHECK(std::string_view(err) == e2ee::identity_parsing_error);
+}
+
+TEST_CASE("read_and_verify_identity_block rejects an oversized block_size") {
+    // A huge attacker-controlled block_size must be rejected before any payload
+    // is read. MAX_LEGAL_BLOCK_SIZE + 1 pins the cap's upper edge.
+    const uint32_t block_size = GENERATE(MAX_LEGAL_BLOCK_SIZE + 1, 0x10000, 0xFFFFFFFF);
+    CAPTURE(block_size);
+
+    std::vector<uint8_t> payload;
+    const char *err = parse_identity_block(payload, block_size);
+    REQUIRE(err != nullptr);
+    CHECK(std::string_view(err) == e2ee::identity_parsing_error);
+}
+
+TEST_CASE("read_and_verify_identity_block accepts block_size at the cap") {
+    // The largest legal block passes the size cap; with no payload present it
+    // then fails on the truncated read rather than the cap, proving the cap is
+    // exactly one byte higher than the rejected size above.
+    const char *err = parse_identity_block({}, MAX_LEGAL_BLOCK_SIZE);
+    REQUIRE(err != nullptr);
+    CHECK(std::string_view(err) == e2ee::file_error);
 }
 
 TEST_CASE("read_and_verify_identity_block rejects an oversized name_len") {
