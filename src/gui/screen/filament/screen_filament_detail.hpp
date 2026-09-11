@@ -28,10 +28,10 @@ public:
 
     MI_FILAMENT_NAME();
 
-    void set_filament_type(FilamentType set);
+    void set_params(const BuildFilamentNameWithInfoParams &set);
 
     const auto &value() const {
-        return value_;
+        return data_.name;
     }
 
     void set_value(const FilamentTypeParameters::Name &set);
@@ -41,8 +41,7 @@ public:
     void update_text();
 
 protected:
-    FilamentTypeParameters::Name value_;
-    FilamentType filament_type_;
+    BuildFilamentNameWithInfoParams data_;
 };
 
 class MI_FILAMENT_COLOR final : public MenuItemColor {

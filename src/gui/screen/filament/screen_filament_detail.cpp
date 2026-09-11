@@ -21,38 +21,43 @@ using namespace screen_filament_detail;
 MI_FILAMENT_NAME::MI_FILAMENT_NAME()
     : WiInfo(_("Name")) {}
 
-void MI_FILAMENT_NAME::set_filament_type(FilamentType set) {
-    if (filament_type_ != set) {
-        filament_type_ = set;
-        value_ = set.parameters().name;
-        update_text();
+void MI_FILAMENT_NAME::set_params(const BuildFilamentNameWithInfoParams &set) {
+    if (data_ == set) {
+        return;
     }
+
+    data_ = set;
+    update_text();
 }
 
 void MI_FILAMENT_NAME::set_value(const FilamentTypeParameters::Name &set) {
-    if (value_ != set) {
-        value_ = set;
-        update_text();
+    if (value() == set) {
+        return;
     }
+
+    data_.name = set;
+    update_text();
 }
 
 void MI_FILAMENT_NAME::update_text() {
     ArrayStringBuilder<GetInfoLen()> sb;
-    filament_type_.build_name_with_info(value_, sb);
+    FilamentType::build_name_with_info(data_, sb);
     ChangeInformation(sb.str());
 }
 
 void MI_FILAMENT_NAME::click(IWindowMenu &) {
+    FilamentTypeParameters::Name new_name = value();
+
     while (true) {
-        if (!DialogTextInput::exec(GetLabel(), value_.data_)) {
+        if (!DialogTextInput::exec(GetLabel(), new_name.data_)) {
             return;
         }
 
-        for (char &ch : value_) {
+        for (char &ch : new_name) {
             ch = toupper(ch);
         }
 
-        if (const auto r = filament_type_.can_be_renamed_to(value_.data()); !r) {
+        if (const auto r = data_.type.can_be_renamed_to(new_name); !r) {
             MsgBoxWarning(_(r.error()), Responses_Ok);
             continue;
         }
@@ -60,7 +65,7 @@ void MI_FILAMENT_NAME::click(IWindowMenu &) {
         break;
     }
 
-    update_text();
+    set_value(new_name);
 }
 
 //* MI_FILAMENT_COLOR
@@ -236,7 +241,7 @@ void ScreenFilamentDetail::setup(FilamentType filament_type, const FilamentTypeP
     const bool hide_chamber_items = !chamber().capabilities().temperature_control_generally();
 #endif
 
-    Item<MI_FILAMENT_NAME>().set_filament_type(filament_type);
+    Item<MI_FILAMENT_NAME>().set_params(BuildFilamentNameWithInfoParams(filament_type, params));
 
     stdext::visit_tuple(container.menu_items, [&]<typename T>(T &item) {
         static constexpr bool is_utility_button = std::is_same_v<T, MI_RETURN> || std::is_same_v<T, MI_CONFIRM>;

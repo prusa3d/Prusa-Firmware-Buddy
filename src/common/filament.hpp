@@ -224,6 +224,8 @@ struct NoFilamentType {
 
 using FilamentType_ = std::variant<NoFilamentType, PresetFilamentType, UserFilamentType, AdHocFilamentType, PendingAdHocFilamentType>;
 
+struct BuildFilamentNameWithInfoParams;
+
 /// Count of all filament types
 constexpr size_t total_filament_type_count = preset_filament_type_count + user_filament_type_count;
 
@@ -284,7 +286,7 @@ public:
     void build_name_with_info(StringBuilder &builder) const;
 
     /// Overload that does not fetch from FilamentTypeParameters
-    void build_name_with_info(std::string_view filament_name, StringBuilder &builder) const;
+    static void build_name_with_info(const BuildFilamentNameWithInfoParams &params, StringBuilder &builder);
 
     /// \returns parameters of the filament type
     FilamentTypeParameters parameters() const;
@@ -349,3 +351,16 @@ public:
 
 constexpr FilamentType FilamentType::none = NoFilamentType {};
 constexpr FilamentType FilamentType::pending_adhoc = PendingAdHocFilamentType {};
+
+struct BuildFilamentNameWithInfoParams {
+    BuildFilamentNameWithInfoParams() = default;
+    BuildFilamentNameWithInfoParams(FilamentType type, const FilamentTypeParameters &params);
+
+    FilamentTypeParameters::Name name;
+    FilamentType type;
+#if HAS_ANFC()
+    bool opt_assigned = false;
+#endif
+
+    bool operator==(const BuildFilamentNameWithInfoParams &) const = default;
+};

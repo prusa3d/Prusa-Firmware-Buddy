@@ -77,15 +77,32 @@ bool FilamentType::matches(const std::string_view &name) const {
     return parameters().name == name;
 }
 
-void FilamentType::build_name_with_info(std::string_view filament_name, StringBuilder &builder) const {
-    builder.append_std_string_view(filament_name);
+BuildFilamentNameWithInfoParams::BuildFilamentNameWithInfoParams(FilamentType type, const FilamentTypeParameters &params)
+    : name { params.name }
+    , type { type }
+#if HAS_ANFC()
+    , opt_assigned { params.openprinttag_uid_hash != buddy::openprinttag::ToolTag::no_tag_hash }
+#endif
+{
+}
+
+void FilamentType::build_name_with_info(const BuildFilamentNameWithInfoParams &params, StringBuilder &builder) {
+    builder.append_std_string_view(params.name);
 
     const char *suffix =
 #if HAS_MINI_DISPLAY()
         // The suffix doesn't fit on the mini display
         nullptr;
 #else
-        std::visit([&]<typename T>(const T &) -> const char * {
+        [&] -> const char * {
+    #if HAS_ANFC()
+        if (params.opt_assigned) {
+            // Indicates that the filament data has been loaded from the OpenPrintTag
+            return N_("Tag");
+        }
+    #endif
+
+        return std::visit([&]<typename T>(const T &) -> const char * {
             if constexpr (std::is_same_v<T, NoFilamentType>) {
                 return nullptr;
 
@@ -105,7 +122,8 @@ void FilamentType::build_name_with_info(std::string_view filament_name, StringBu
                 static_assert(false);
             }
         },
-            *this);
+            params.type);
+    }();
 #endif
 
     if (suffix) {
@@ -116,7 +134,7 @@ void FilamentType::build_name_with_info(std::string_view filament_name, StringBu
 }
 
 void FilamentType::build_name_with_info(StringBuilder &builder) const {
-    build_name_with_info(parameters().name, builder);
+    build_name_with_info(BuildFilamentNameWithInfoParams(*this, parameters()), builder);
 }
 
 FilamentTypeParameters FilamentType::parameters() const {
