@@ -47,7 +47,8 @@ def build(variant: str, build_dir: Path):
                CFLAGS=prefix_map,
                ASMFLAGS=prefix_map,
                SOURCE_DATE_EPOCH='0',
-               PYTHONHASHSEED='0')
+               PYTHONHASHSEED='0',
+               PYTHONWARNINGS='ignore')
     subprocess.run([
         'bash', '-c',
         '. "$IDF_PATH/export.sh" > /dev/null && exec idf.py -B "$BUILD_DIR" '
