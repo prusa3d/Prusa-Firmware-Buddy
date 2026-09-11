@@ -169,7 +169,7 @@ const ScanResult EMPTY_RESULT = {};
 
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
-static struct {
+typedef struct {
     ScanType scan_type;
     wifi_scan_callback callback;
     uint32_t incremental_scan_time;
@@ -177,7 +177,9 @@ static struct {
     uint8_t stored_ssids_count;
     std::atomic_bool in_progress;
     std::atomic_bool should_reconnect;
-} scan = {
+} ScanState;
+
+static ScanState scan {
     .scan_type = SCAN_TYPE_UNKNOWN,
     .callback = NULL,
     .incremental_scan_time = 0,
