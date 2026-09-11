@@ -22,6 +22,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/async_job/async_job.cpp
   missing_functions.c
   decryptor.cpp
+  identity_block.cpp
   )
 target_include_directories(
   decryptor_tests

@@ -23,6 +23,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <optional>
 
 using bgcode::core::block_parameters_size;
 using bgcode::core::BlockHeader;
@@ -37,10 +38,9 @@ using string_view_u8 = std::basic_string_view<uint8_t>;
 
 namespace {
 
-size_t get_block_header_bytes(BlockHeader header, uint8_t *buffer, size_t buffer_size) {
+std::optional<size_t> get_block_header_bytes(BlockHeader header, uint8_t *buffer, size_t buffer_size) {
     if (buffer_size < header.get_size()) {
-        // TODO
-        return 0;
+        return std::nullopt;
     }
     size_t pos = 0;
     memcpy(&buffer[pos], &header.type, sizeof(header.type));
@@ -172,11 +172,23 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
         return compressed_identity_block;
     }
     size_t block_size = block_header.uncompressed_size;
+    uint16_t key_len;
+    uint8_t name_len;
+    // Smaller blocks would underflow the unsigned size arithmetic below.
+    constexpr size_t MIN_IDENTITY_BLOCK_SIZE
+        = SIGN_SIZE + sizeof(key_len) + sizeof(name_len) + 2 * HASH_SIZE;
+    if (block_size < MIN_IDENTITY_BLOCK_SIZE) {
+        return identity_parsing_error;
+    }
     size_t signed_bytes_size = block_header.get_size() + block_parameters_size(EBlockType::IdentityBlock) + block_size - SIGN_SIZE;
 
     // TODO: Should this be dynamic? fallible or not?
     unique_ptr<uint8_t[]> bytes(new uint8_t[signed_bytes_size]);
-    size_t pos = get_block_header_bytes(block_header, bytes.get(), signed_bytes_size);
+    std::optional<size_t> pos_opt = get_block_header_bytes(block_header, bytes.get(), signed_bytes_size);
+    if (!pos_opt.has_value()) {
+        return identity_parsing_error;
+    }
+    size_t pos = *pos_opt;
     memcpy(bytes.get() + pos, &algo, sizeof(algo));
     pos += sizeof(algo);
     memcpy(bytes.get() + pos, &flags, sizeof(flags));
@@ -185,9 +197,18 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
     if (!read_from_file(&bytes.get()[pos], block_size - SIGN_SIZE, file)) {
         return file_error;
     }
-    uint16_t key_len;
     memcpy(&key_len, &bytes.get()[pos], sizeof(key_len));
     pos += sizeof(key_len);
+    if (key_len > signed_bytes_size - pos - (sizeof(name_len) + 2 * HASH_SIZE)) {
+        return identity_parsing_error;
+    }
+    memcpy(&name_len, &bytes.get()[pos + key_len], sizeof(name_len));
+    if (name_len > signed_bytes_size - (pos + key_len + sizeof(name_len)) - 2 * HASH_SIZE) {
+        return identity_parsing_error;
+    }
+    if (name_len > IDENTITY_NAME_LEN - 1) {
+        return identity_name_too_long;
+    }
     string_view_u8 key(&bytes.get()[pos], key_len);
     if (mbedtls_pk_parse_public_key(&info.identity_pk->pk, key.data(), key.length()) != 0) {
         return identity_parsing_error;
@@ -203,12 +224,7 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
         }
     }
     pos += key_len;
-    uint8_t name_len;
-    memcpy(&name_len, &bytes.get()[pos], sizeof(name_len));
     pos += sizeof(name_len);
-    if (name_len > IDENTITY_NAME_LEN - 1) {
-        return identity_name_too_long;
-    }
     memcpy(info.identity_name.data(), &bytes.get()[pos], name_len);
     info.identity_name[name_len] = '\0';
     pos += name_len;
