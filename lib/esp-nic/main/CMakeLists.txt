@@ -1,4 +1,4 @@
-set(sources)
+set(sources "common.cpp")
 
 if(IDF_TARGET STREQUAL "esp8266")
   list(APPEND sources "uart_nic_esp8266.cpp" "uart0_driver.cpp")
