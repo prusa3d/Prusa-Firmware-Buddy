@@ -256,7 +256,13 @@ static esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType
         // The wifi scan behaves differently when the esp is connected to the AP.
         // Intentionally disconnect when starting a scan.
         // The connection will be automatically reestablished after the scan.
-        esp_wifi_disconnect();
+        //
+        // But we don't want to disconnect the wifi while probing.
+        // That can cause "wifi speed decrease" since the connection procedure can take a long time
+        esp_err_t err = esp_wifi_disconnect();
+        if (err != ESP_OK) {
+            ESP_LOGW(TAG, "Unable to disconnect from current wifi AP: %s", esp_err_to_name(err));
+        }
         associated = false;
     }
 
