@@ -122,7 +122,7 @@ void MI_OPT_TAG_STATUS::click(IWindowMenu &) {
     const auto assigned_tag = ToolTag::for_tool_assigned(screen_.tool_);
     PhaseResponses responses = { Response::Ok, assigned_tag.has_value() ? Response::Disable : Response::_none };
 
-    const auto status_response = MsgBoxError(_(msg), responses);
+    const auto status_response = MsgBoxInfo(_(msg), responses);
     switch (status_response) {
 
     case Response::Ok:
