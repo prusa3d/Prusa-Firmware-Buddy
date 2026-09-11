@@ -36,8 +36,9 @@ ScreenOPTDetected::ScreenOPTDetected(ToolTag tag)
         Screens::Access()->close_screen_and_dialog();
     });
 
-    frame_.radio().Change(PhaseResponses { Response::Ok, Response::Load, Response::Details });
-    frame_.radio().SetBtn(Response::Load);
+    const auto load_btn = FilamentType::for_tool(tag_.tool()) != FilamentType::none ? Response::Change : Response::Load;
+    frame_.radio().Change(PhaseResponses { Response::Ok, load_btn, Response::Details });
+    frame_.radio().SetBtn(load_btn);
     frame_.radio().set_callback([this](Response r) { radio_callback(r); });
 }
 
@@ -52,7 +53,8 @@ void ScreenOPTDetected::radio_callback(Response r) {
         close_screen();
         break;
 
-    case Response::Load: {
+    case Response::Load:
+    case Response::Change: {
         if (FilamentType::for_tool(tag_.tool()) != FilamentType::none) {
             StringViewUtf8Parameters<4> params;
             if (MsgBoxWarning(_("Filament is already loaded to tool %i. Unload first?").formatted(params, tag_.tool().display_index()), { Response::Unload, Response::Cancel }) != Response::Unload) {
