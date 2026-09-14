@@ -385,9 +385,9 @@ static void IRAM_ATTR handle_disconnect_and_try_reconnect() {
 static void IRAM_ATTR event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
-        ESP_ERROR_CHECK(esp_wifi_get_protocol(ESP_IF_WIFI_STA, &current_protocol));
+        ESP_ERROR_CHECK(esp_wifi_get_protocol(WIFI_IF_STA, &current_protocol));
         if (current_protocol != uart_nic_protocol) {
-            ESP_ERROR_CHECK(esp_wifi_set_protocol(ESP_IF_WIFI_STA, uart_nic_protocol));
+            ESP_ERROR_CHECK(esp_wifi_set_protocol(WIFI_IF_STA, uart_nic_protocol));
             return;
         }
         start_wifi_connect_task();
@@ -407,7 +407,7 @@ static void IRAM_ATTR event_handler(void *arg, esp_event_base_t event_base, int3
         beacon_quirk = true;
         send_link_status(1);
         s_retry_num = 0;
-        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(ESP_IF_WIFI_STA, INACTIVE_BEACON_SECONDS));
+        ESP_ERROR_CHECK(esp_wifi_set_inactive_time(WIFI_IF_STA, INACTIVE_BEACON_SECONDS));
         cache_current_ap_info();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_SCAN_DONE) {
         scan.in_progress = false;
