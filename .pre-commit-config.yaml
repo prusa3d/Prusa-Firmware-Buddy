@@ -18,12 +18,6 @@ repos:
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']
-    - id: generate-log-components-overview
-      name: log-components-doc-generate
-      description: This hook generate an overview of currently defined Log Components.
-      entry: python utils/logging/generate_overview.py
-      language: python
-      language_version: python3
     - id: generate-cmake-presets
       name: generate-cmake-presets
       description: This hook generates CMakePresets.json file based on utils/presets/presets.json
