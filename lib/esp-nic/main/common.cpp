@@ -9,7 +9,7 @@ uint32_t IRAM_ATTR now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
 }
 
-void IRAM_ATTR do_wifi_scan(void *arg) {
+void IRAM_ATTR do_wifi_scan(void *) {
     wifi_scan_config_t config {};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
@@ -113,7 +113,7 @@ void IRAM_ATTR cache_current_ap_info() {
     }
 }
 
-void IRAM_ATTR wifi_re_connect_task(void *args) {
+void IRAM_ATTR wifi_re_connect_task(void *) {
     if (!scan.in_progress) {
         ESP_LOGI(TAG, "Connecting to AP");
         esp_wifi_connect();
@@ -180,7 +180,7 @@ void IRAM_ATTR probe_run() {
 
 void handle_disconnect_and_try_reconnect();
 
-void IRAM_ATTR event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
+void IRAM_ATTR event_handler(void *, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         uint8_t current_protocol;
         ESP_ERROR_CHECK(esp_wifi_get_protocol(WIFI_IF_STA, &current_protocol));
@@ -268,14 +268,14 @@ void IRAM_ATTR clear_stored_ssids() {
     scan.stored_ssids_count = 0;
 }
 
-void IRAM_ATTR handle_rx_msg_scan_start(uint8_t *data, struct header header) {
+void IRAM_ATTR handle_rx_msg_scan_start(uint8_t *, header) {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
     start_wifi_scan(&store_scanned_ssids, ScanType::incremental);
 }
 
-void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *data, struct header header) {
+void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *, header) {
     // Response is send automatically after scan is stopped
     // Intentionally don't fail if the scan is no longer running
     // (aka we connected to AP during scan)
@@ -284,7 +284,7 @@ void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *data, struct header header) {
 
 void send_scanned_ssid(uint8_t index, const ScanResult *ap_info);
 
-void IRAM_ATTR handle_rx_msg_scan_get(uint8_t *data, struct header header) {
+void IRAM_ATTR handle_rx_msg_scan_get(uint8_t *, header header) {
     if (header.ap_index < scan.stored_ssids_count) {
         send_scanned_ssid(header.ap_index, &scan.stored_ssids[header.ap_index]);
     } else {
