@@ -246,9 +246,11 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
     }
 }
 
+constexpr static uint32_t ST7789V_CMD_RD_TIMEOUT_MS = 10;
+
 #pragma GCC push_options
 #pragma GCC optimize("O3")
-void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
+bool st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS) {
         st7789v_clr_cs(); // CS = L
@@ -259,10 +261,14 @@ void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint8_t data_to_write[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
-    HAL_SPI_TransmitReceive(spi_handle_lcd, data_to_write, pdata, ST7789V_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
+    const auto status = HAL_SPI_TransmitReceive(spi_handle_lcd, data_to_write, pdata, ST7789V_MAX_COMMAND_READ_LENGHT, ST7789V_CMD_RD_TIMEOUT_MS);
+    if (status != HAL_OK) {
+        HAL_SPI_Abort(spi_handle_lcd);
+    }
     if (tmp_flg & FLG_CS) {
         st7789v_set_cs();
     }
+    return status == HAL_OK;
 }
 #pragma GCC pop_options
 
@@ -337,7 +343,9 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
 
 bool st7789v_is_reset_required() {
     uint8_t pdata[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
-    st7789v_cmd_rd(CMD_MADCTLRD, pdata);
+    if (!st7789v_cmd_rd(CMD_MADCTLRD, pdata)) {
+        return true;
+    }
     if ((pdata[1] != 0xE0 && pdata[1] != 0xF0 && pdata[1] != 0xF8)) {
         return true;
     }
