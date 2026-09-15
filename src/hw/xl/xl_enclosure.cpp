@@ -57,11 +57,21 @@ void Enclosure::test_fan_presence(uint32_t curr_tick) {
 }
 
 std::optional<buddy::Temperature> Enclosure::get_enclosure_temperature() {
-    if (const auto temp = active_dwarf_board_temp.load(); is_temp_valid_ && temp.has_value()) {
-        static constexpr int32_t dwarf_board_temp_model_difference = -15; // °C
-        return *temp + dwarf_board_temp_model_difference;
+    const buddy::Temperature temp = enclosure_temp_.load();
+    if (std::isnan(temp)) {
+        return std::nullopt;
     }
-    return std::nullopt;
+    return temp;
+}
+
+void Enclosure::update_enclosure_temperature(int16_t dwarf_board_temp) {
+    if (!is_temp_valid_) {
+        enclosure_temp_ = NAN;
+        return;
+    }
+
+    static constexpr int32_t dwarf_board_temp_model_difference = -15; // °C
+    enclosure_temp_ = dwarf_board_temp + dwarf_board_temp_model_difference;
 }
 
 void Enclosure::update_temp_validation_timer() {
@@ -116,7 +126,6 @@ bool Enclosure::is_mcu_overheating(int32_t mcu_modular_bed_temp) {
 }
 
 void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp) {
-
     static constexpr uint32_t tick_delay_sec = 1;
     const uint32_t curr_sec = ticks_s();
     if (curr_sec - last_sec < tick_delay_sec) {
@@ -124,7 +133,6 @@ void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp) {
     }
 
     last_sec = curr_sec;
-    active_dwarf_board_temp = dwarf_board_temp; // update actual temp of active dwarf board
 
     // Deactivated enclosure
     if (!is_enabled() && active_mode != EnclosureMode::Idle) {
@@ -152,6 +160,8 @@ void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp) {
         update_temp_validation_timer();
         break;
     }
+
+    update_enclosure_temperature(dwarf_board_temp);
 
     // Control Fan PWM
     PWM255 fan_pwm = calculate_pwm(mcu_modular_bed_temp);

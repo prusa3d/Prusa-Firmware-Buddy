@@ -7,6 +7,8 @@
 
 #include <optional>
 #include <array>
+#include <atomic>
+#include <cmath>
 #include <general_response.hpp>
 #include <pwm_utils.hpp>
 #include <temperature.hpp>
@@ -80,6 +82,11 @@ private:
     void update_temp_validation_timer();
 
     /**
+     *  Estimate the chamber temperature from the dwarf board temperature
+     */
+    void update_enclosure_temperature(int16_t dwarf_board_temp);
+
+    /**
      *  Checks if modular bed is overheated and overwrites active_mode if it is
      *  @param mcu_modular_bed_temp
      */
@@ -93,7 +100,7 @@ private:
     bool is_mcu_overheated_ : 1 = false;
     bool is_temp_valid_ : 1 = false;
 
-    std::atomic<std::optional<int16_t>> active_dwarf_board_temp;
+    std::atomic<buddy::Temperature> enclosure_temp_ = NAN;
 };
 
 extern Enclosure xl_enclosure;
