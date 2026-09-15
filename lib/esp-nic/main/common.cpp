@@ -14,13 +14,13 @@ void IRAM_ATTR do_wifi_scan(void *arg) {
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
     switch (scan.scan_type) {
-    case SCAN_TYPE_PROBE:
+    case ScanType::probe:
         config.show_hidden = true;
         config.scan_time.active.min = 120;
         config.scan_time.active.max = 300;
         break;
 
-    case SCAN_TYPE_INCREMENTAL:
+    case ScanType::incremental:
         // The given timeouts are in ms, but per channel
         // On 2.4GHz wifi it would be 12-14 channels
         if (scan.incremental_scan_time == 0) {
@@ -35,7 +35,7 @@ void IRAM_ATTR do_wifi_scan(void *arg) {
         config.scan_time.active.max = config.scan_time.active.min = scan.incremental_scan_time;
         break;
 
-    case SCAN_TYPE_UNKNOWN:
+    case ScanType::unknown:
     default:
         break;
     }
@@ -46,7 +46,7 @@ void IRAM_ATTR do_wifi_scan(void *arg) {
 }
 
 esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType scan_type) {
-    if (scan_type == SCAN_TYPE_UNKNOWN) {
+    if (scan_type == ScanType::unknown) {
         return ESP_FAIL;
     }
 
@@ -69,7 +69,7 @@ esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType scan_t
 
     scan.in_progress = true;
 
-    if (associated && scan_type != SCAN_TYPE_PROBE) {
+    if (associated && scan_type != ScanType::probe) {
         // The wifi scan behaves differently when the esp is connected to the AP.
         // Intentionally disconnect when starting a scan.
         // The connection will be automatically reestablished after the scan.
@@ -100,7 +100,7 @@ esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType scan_t
 
 esp_err_t IRAM_ATTR force_stop_wifi_scan() {
     scan.in_progress = false;
-    scan.scan_type = SCAN_TYPE_UNKNOWN;
+    scan.scan_type = ScanType::unknown;
     scan.incremental_scan_time = 0;
     return esp_wifi_scan_stop();
 }
@@ -175,7 +175,7 @@ void IRAM_ATTR probe_handler(wifi_ap_record_t *aps, int ap_count) {
 }
 
 void IRAM_ATTR probe_run() {
-    start_wifi_scan(&probe_handler, SCAN_TYPE_PROBE);
+    start_wifi_scan(&probe_handler, ScanType::probe);
 }
 
 void handle_disconnect_and_try_reconnect();
@@ -227,12 +227,12 @@ void IRAM_ATTR event_handler(void *arg, esp_event_base_t event_base, int32_t eve
         if (!scan.in_progress) {
             // If callback didn't start a new scan check the scan type, change it and rerun scan if possible
             switch (scan.scan_type) {
-            case SCAN_TYPE_INCREMENTAL:
+            case ScanType::incremental:
                 ESP_LOGI(TAG, "Restarting incremental scan");
-                start_wifi_scan(scan.callback, SCAN_TYPE_INCREMENTAL);
+                start_wifi_scan(scan.callback, ScanType::incremental);
                 break;
             default:
-                scan.scan_type = SCAN_TYPE_UNKNOWN;
+                scan.scan_type = ScanType::unknown;
                 if (scan.should_reconnect) {
                     scan.should_reconnect = false;
                     handle_disconnect_and_try_reconnect();
@@ -272,7 +272,7 @@ void IRAM_ATTR handle_rx_msg_scan_start(uint8_t *data, struct header header) {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
-    start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_INCREMENTAL);
+    start_wifi_scan(&store_scanned_ssids, ScanType::incremental);
 }
 
 void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *data, struct header header) {

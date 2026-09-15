@@ -68,22 +68,22 @@ inline uint8_t latest_ssid[SSID_LEN];
 inline uint8_t latest_bssid[BSSID_LEN];
 inline int s_retry_num = 0;
 
-typedef enum {
-    SCAN_TYPE_UNKNOWN,
-    SCAN_TYPE_PROBE,
-    SCAN_TYPE_INCREMENTAL,
-} ScanType;
+enum class ScanType {
+    unknown,
+    probe,
+    incremental
+};
 
-typedef struct __attribute__((packed)) {
+struct __attribute__((packed)) ScanResult {
     uint8_t ssid[SSID_LEN];
     bool needs_password;
-} ScanResult;
+};
 
 inline constexpr ScanResult EMPTY_RESULT = {};
 
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
-typedef struct {
+struct ScanState {
     ScanType scan_type;
     wifi_scan_callback callback;
     uint32_t incremental_scan_time;
@@ -91,10 +91,10 @@ typedef struct {
     uint8_t stored_ssids_count;
     std::atomic_bool in_progress;
     std::atomic_bool should_reconnect;
-} ScanState;
+};
 
 inline ScanState scan {
-    .scan_type = SCAN_TYPE_UNKNOWN,
+    .scan_type = ScanType::unknown,
     .callback = NULL,
     .incremental_scan_time = 0,
     .stored_ssids = {},

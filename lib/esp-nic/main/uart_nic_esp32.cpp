@@ -56,16 +56,16 @@ QueueHandle_t wifi_egress_queue = 0;
 
 static char intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
 
-typedef struct {
+struct wifi_receive_buff {
     size_t len;
     void *data;
     void *rx_buff;
-} wifi_receive_buff;
+};
 
-typedef struct {
+struct wifi_send_buff {
     size_t len;
     void *data;
-} wifi_send_buff;
+};
 
 static void IRAM_ATTR free_wifi_receive_buff(wifi_receive_buff *buff) {
     if (buff->rx_buff) {
