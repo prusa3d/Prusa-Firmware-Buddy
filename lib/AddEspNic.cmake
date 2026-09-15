@@ -6,6 +6,8 @@ else()
   get_dependency_directory("esp8266-rtos-sdk" sdk_dir)
 endif()
 
+get_filename_component(sdk_dir "${sdk_dir}" REALPATH)
+
 set(project_dir "${CMAKE_CURRENT_SOURCE_DIR}/esp-nic")
 set(build_dir "${CMAKE_BINARY_DIR}/${variant}-nic-build")
 set(images "${build_dir}/uart_wifi.bin" "${build_dir}/bootloader/bootloader.bin"

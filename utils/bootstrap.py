@@ -26,7 +26,7 @@ from urllib.parse import urlparse
 assert sys.version_info >= (3, 8), 'Python 3.8+ is required.'
 is_windows = platform.system() == 'Windows'
 project_root_dir = Path(__file__).resolve().parent.parent
-dependencies_dir = (project_root_dir / '.dependencies').resolve()
+dependencies_dir = project_root_dir / '.dependencies'
 venv_dir = project_root_dir / '.venv'
 venv_bin_dir = venv_dir / 'bin' if not is_windows else venv_dir / 'Scripts'
 running_in_venv = Path(sys.prefix).resolve() == venv_dir.resolve()
