@@ -22,17 +22,17 @@ Generic message description:
                     to ensure synchronization, because we are using
                     unreliable UART.
                     Starting value is 'UN\x00\x01\x02\x03\x04\x05'.
-                    Printer may change it, see MSG_CLIENTCONFIG_V2.
+                    Printer may change it, see client_config.
 
     Type:           This byte indicates type of the message.
                     Possible values are:
-                        0: MSG_DEVINFO_V2
-                        6: MSG_CLIENTCONFIG_V2
-                        7: MSG_PACKET_V2
-                        8: MSG_SCAN_START
-                        9: MSG_SCAN_STOP
-                        10: MSG_SCAN_AP_CNT
-                        11: MSG_SCAN_AP_GET
+                        0: devinfo
+                        6: client_config
+                        7: packet
+                        8: scan_start
+                        9: scan_stop
+                        10: scan_ap_count
+                        11: scan_ap_get
                     Values 1-5 are deprecated and must not be used.
 
     Byte:           Meaning of this field depends on the particular Type.
@@ -45,7 +45,7 @@ Generic message description:
                     Meaning of this field depends on the particular Type.
 
 
-MSG_DEVINFO_V2
+devinfo
     This message is only sent from ESP to printer.
 
         0               1               2               3
@@ -67,7 +67,7 @@ MSG_DEVINFO_V2
     MAC:            MAC address of the ESP.
 
 
-MSG_CLIENTCONFIG_V2
+client_config
     This message is only sent from printer to ESP.
 
         0               1               2               3
@@ -99,7 +99,7 @@ MSG_CLIENTCONFIG_V2
                     followed by Length bytes.
 
 
-MSG_PACKET_V2
+packet
     This message is sent by both printer and ESP.
 
         0               1               2               3
@@ -128,7 +128,7 @@ MSG_PACKET_V2
                     It keeps the line busy, prevents printer from
                     reseting ESP and conveys Up field.
 
-MSG_SCAN_START
+scan_start
     This message is only sent by the printer to the ESP.
 
         0               1               2               3
@@ -149,7 +149,7 @@ MSG_SCAN_START
     When a new scan is started old result are discarded.
 
 
-MSG_SCAN_STOP
+scan_stop
     This message is only sent by the printer to the ESP.
 
         0               1               2               3
@@ -166,7 +166,7 @@ MSG_SCAN_STOP
     is cancelled and the esp sends the last update of scan result.
 
 
-MSG_SCAN_AP_CNT
+scan_ap_count
     This message is only sent by the ESP.
 
         0               1               2               3
@@ -185,7 +185,7 @@ MSG_SCAN_AP_CNT
     COUNT Number of stored scanned result.
 
 
-MSG_SCAN_AP_GET
+scan_ap_get
     This message is sent by both printer and ESP.
 
         0               1               2               3

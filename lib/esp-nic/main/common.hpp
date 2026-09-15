@@ -26,22 +26,24 @@ inline constexpr uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
 inline constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 
 // Note: Values 1..5 are deprecated and must not be used.
-inline constexpr uint8_t MSG_DEVINFO_V2 = 0;
-inline constexpr uint8_t MSG_CLIENTCONFIG_V2 = 6;
-inline constexpr uint8_t MSG_PACKET_V2 = 7;
-inline constexpr uint8_t MSG_SCAN_START = 8;
-inline constexpr uint8_t MSG_SCAN_STOP = 9;
-inline constexpr uint8_t MSG_SCAN_AP_CNT = 10;
-inline constexpr uint8_t MSG_SCAN_AP_GET = 11;
+enum class MsgType : uint8_t {
+    devinfo = 0,
+    client_config = 6,
+    packet = 7,
+    scan_start = 8,
+    scan_stop = 9,
+    scan_ap_count = 10,
+    scan_ap_get = 11
+};
 
 struct __attribute__((packed)) header {
     uint8_t type;
     union {
-        uint8_t version; // when type == MSG_DEVINFO_V2
-        uint8_t unused; // when type == MSG_CLIENTCONFIG_V2 || type == MSG_SCAN_START || type == MSG_SCAN_STOP
-        int8_t link_status; // when type == MSG_PACKET_V2
-        uint8_t ap_count; // when type == MSG_SCAN_AP_GET
-        uint8_t ap_index; // when type == MSG_SCAN_AP_GET
+        uint8_t version; // when type == MsgType::devinfo
+        uint8_t unused; // when type == MsgType::client_config || type == MsgType::scan_start || type == MsgType::scan_stop
+        int8_t link_status; // when type == MsgType::packet
+        uint8_t ap_count; // when type == MsgType::scan_ap_count
+        uint8_t ap_index; // when type == MsgType::scan_ap_get
     };
     uint16_t size;
 };

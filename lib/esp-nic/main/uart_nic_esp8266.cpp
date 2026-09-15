@@ -92,7 +92,7 @@ static union message tx_message = { .bytes = { 'U', 'N', '\x00', '\x01', '\x02',
 
 void IRAM_ATTR send_link_status(int8_t status) {
     struct uart0_tx_queue_item queue_item;
-    queue_item.header.type = MSG_PACKET_V2;
+    queue_item.header.type = static_cast<uint8_t>(MsgType::packet);
     queue_item.header.link_status = status;
     queue_item.header.size = htons(0);
     queue_item.data = nullptr;
@@ -133,7 +133,7 @@ static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     }
 
     struct uart0_tx_queue_item queue_item;
-    queue_item.header.type = MSG_PACKET_V2;
+    queue_item.header.type = static_cast<uint8_t>(MsgType::packet);
     queue_item.header.link_status = get_link_status();
     queue_item.header.size = htons(len);
     queue_item.data = (uint8_t *)buffer;
@@ -165,7 +165,7 @@ static void IRAM_ATTR send_device_info() {
     esp_wifi_get_mac(WIFI_IF_STA, mac); // ignore error
 
     struct uart0_tx_queue_item queue_item;
-    queue_item.header.type = MSG_DEVINFO_V2;
+    queue_item.header.type = static_cast<uint8_t>(MsgType::devinfo);
     queue_item.header.version = FW_VERSION;
     queue_item.header.size = htons(6);
     queue_item.data = nullptr;
@@ -273,7 +273,7 @@ static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, struct header header)
 
 void IRAM_ATTR send_number_of_ssids() {
     struct uart0_tx_queue_item queue_item {};
-    queue_item.header.type = MSG_SCAN_AP_CNT;
+    queue_item.header.type = static_cast<uint8_t>(MsgType::scan_ap_count);
     queue_item.header.ap_count = scan.stored_ssids_count;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
         ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
@@ -282,7 +282,7 @@ void IRAM_ATTR send_number_of_ssids() {
 
 void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *ap_info) {
     struct uart0_tx_queue_item queue_item {};
-    queue_item.header.type = MSG_SCAN_AP_GET;
+    queue_item.header.type = static_cast<uint8_t>(MsgType::scan_ap_get);
     queue_item.header.ap_index = index;
     queue_item.header.size = htons(sizeof(*ap_info));
     queue_item.data = (uint8_t *)(ap_info);
@@ -298,26 +298,26 @@ static void IRAM_ATTR read_message() {
     uart0_rx_bytes((uint8_t *)&queue_item.header, sizeof(queue_item.header));
 
     switch (queue_item.header.type) {
-    case MSG_PACKET_V2:
+    case static_cast<uint8_t>(MsgType::packet):
         queue_item.callback = handle_rx_msg_packet_v2;
         break;
-    case MSG_CLIENTCONFIG_V2:
+    case static_cast<uint8_t>(MsgType::client_config):
         queue_item.callback = handle_rx_msg_clientconfig_v2;
         break;
-    case MSG_SCAN_START:
+    case static_cast<uint8_t>(MsgType::scan_start):
         queue_item.callback = handle_rx_msg_scan_start;
         break;
-    case MSG_SCAN_STOP:
+    case static_cast<uint8_t>(MsgType::scan_stop):
         queue_item.callback = handle_rx_msg_scan_stop;
         break;
-    case MSG_SCAN_AP_CNT:
-        ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
+    case static_cast<uint8_t>(MsgType::scan_ap_count):
+        ESP_LOGE(TAG, "MsgType::scan_ap_count is only transmitted, never recieved");
         queue_item.callback = handle_rx_msg_unknown;
         break;
-    case MSG_SCAN_AP_GET:
+    case static_cast<uint8_t>(MsgType::scan_ap_get):
         queue_item.callback = handle_rx_msg_scan_get;
         break;
-    case MSG_DEVINFO_V2:
+    case static_cast<uint8_t>(MsgType::devinfo):
         ESP_LOGE(TAG, "MSG_DEVINFIO_V2 is only transmitted, never recieved");
         queue_item.callback = handle_rx_msg_unknown;
         break;
@@ -386,9 +386,9 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
             uart0_tx_bytes(tx_message.bytes, sizeof(tx_message.bytes));
 
             // send variable-sized part of the message (payload depending on message type)
-            switch (queue_item.header.type) {
-            case MSG_PACKET_V2: {
-                // size may be empty when we are using MSG_PACKET_V2 to only send link status
+            switch (MsgType { queue_item.header.type }) {
+            case MsgType::packet: {
+                // size may be empty when we are using packet to only send link status
                 uint16_t size = ntohs(queue_item.header.size);
                 if (size) {
                     uart0_tx_bytes(queue_item.data, size);
@@ -398,22 +398,22 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
                     free(queue_item.rx_buffer);
                 }
             } break;
-            case MSG_DEVINFO_V2:
+            case MsgType::devinfo:
                 uart0_tx_bytes(mac, sizeof(mac));
                 break;
-            case MSG_CLIENTCONFIG_V2:
-                ESP_LOGE(TAG, "MSG_CLIENTCONFIG_V2 is only received, never transmitted");
+            case MsgType::client_config:
+                ESP_LOGE(TAG, "MsgType::client_config is only received, never transmitted");
                 break;
-            case MSG_SCAN_START:
-                ESP_LOGE(TAG, "MSG_SCAN_START is only received, never transmitted");
+            case MsgType::scan_start:
+                ESP_LOGE(TAG, "MsgType::scan_start is only received, never transmitted");
                 break;
-            case MSG_SCAN_AP_CNT:
+            case MsgType::scan_ap_count:
                 // no data to send
                 break;
-            case MSG_SCAN_STOP:
-                ESP_LOGE(TAG, "MSG_SCAN_STOP is only received, never transmitted");
+            case MsgType::scan_stop:
+                ESP_LOGE(TAG, "MsgType::scan_stop is only received, never transmitted");
                 break;
-            case MSG_SCAN_AP_GET:
+            case MsgType::scan_ap_get:
                 uart0_tx_bytes(queue_item.data, ntohs(queue_item.header.size));
                 break;
             }

@@ -79,7 +79,7 @@ static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
 void send_link_status(int8_t status) {
     ESP_LOGI(TAG, "Sending link status: %d", status);
     struct header header;
-    header.type = MSG_PACKET_V2;
+    header.type = static_cast<uint8_t>(MsgType::packet);
     header.link_status = status;
     header.size = htons(0);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -156,7 +156,7 @@ static void send_device_info() {
     }
 
     struct header header;
-    header.type = MSG_DEVINFO_V2;
+    header.type = static_cast<uint8_t>(MsgType::devinfo);
     header.version = FW_VERSION;
     header.size = htons(6);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -307,7 +307,7 @@ static int8_t get_link_status() {
 
 void IRAM_ATTR send_number_of_ssids() {
     struct header header {};
-    header.type = MSG_SCAN_AP_CNT;
+    header.type = static_cast<uint8_t>(MsgType::scan_ap_count);
     header.ap_count = scan.stored_ssids_count;
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
@@ -317,7 +317,7 @@ void IRAM_ATTR send_number_of_ssids() {
 
 void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
     struct header header {};
-    header.type = MSG_SCAN_AP_GET;
+    header.type = static_cast<uint8_t>(MsgType::scan_ap_get);
     header.ap_index = index;
     header.size = htons(sizeof(ScanResult));
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -340,30 +340,30 @@ static void IRAM_ATTR read_message() {
     header.size = ntohs(header.size);
 
     switch (header.type) {
-    case MSG_PACKET_V2: {
+    case static_cast<uint8_t>(MsgType::packet): {
         if (header.size > 0) {
             read_packet_message(header.size);
         } else {
             send_link_status(get_link_status());
         }
     } break;
-    case MSG_CLIENTCONFIG_V2:
+    case static_cast<uint8_t>(MsgType::client_config):
         read_wifi_client_message();
         break;
-    case MSG_SCAN_START:
+    case static_cast<uint8_t>(MsgType::scan_start):
         handle_rx_msg_scan_start(nullptr, {});
         break;
-    case MSG_SCAN_STOP:
+    case static_cast<uint8_t>(MsgType::scan_stop):
         handle_rx_msg_scan_stop(nullptr, {});
         break;
-    case MSG_SCAN_AP_CNT:
-        ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
+    case static_cast<uint8_t>(MsgType::scan_ap_count):
+        ESP_LOGE(TAG, "MsgType::scan_ap_count is only transmitted, never recieved");
         break;
-    case MSG_SCAN_AP_GET:
+    case static_cast<uint8_t>(MsgType::scan_ap_get):
         handle_rx_msg_scan_get(nullptr, header);
         break;
-    case MSG_DEVINFO_V2:
-        ESP_LOGE(TAG, "MSG_DEVINFO_V2 is only transmitted, never recieved");
+    case static_cast<uint8_t>(MsgType::devinfo):
+        ESP_LOGE(TAG, "MsgType::devinfo is only transmitted, never recieved");
         break;
     default:
         ESP_LOGE(TAG, "Unknown message type: %d !!!", header.type);
@@ -416,7 +416,7 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
             }
             // ESP_LOGI(TAG, "Printing packet to UART");
             struct header header;
-            header.type = MSG_PACKET_V2;
+            header.type = static_cast<uint8_t>(MsgType::packet);
             header.link_status = get_link_status();
             header.size = htons(buff->len);
             xSemaphoreTake(uart_mtx, portMAX_DELAY);
