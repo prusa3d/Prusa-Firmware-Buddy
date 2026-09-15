@@ -52,8 +52,8 @@ esp_err_t esp_supplicant_init(void);
 //       Send items to this queue in order to transmit them via UART0
 //       from ESP to printer. The queue is drained by realtime priority
 //       task `uart0_tx_task`.
-struct uart0_tx_queue_item {
-    struct header header;
+struct Uart0TxQueueItem {
+    struct Header header;
     uint8_t *data;
     void *rx_buffer; // Note: This is some internal ESP buffer which we are not
                      //       sure if we can free before data is transmitted.
@@ -64,10 +64,10 @@ static QueueHandle_t uart0_tx_queue = nullptr;
 //       Items are send to this queue from realtime priority task `uart0_rx_task`
 //       whenever they are received via UART0 by ESP from the printer. The queue
 //       is drained by lower priority task `main_task`.
-struct uart0_rx_queue_item {
-    void (*callback)(uint8_t *, struct header);
+struct Uart0RxQueueItem {
+    void (*callback)(uint8_t *, struct Header);
     uint8_t *data;
-    struct header header;
+    struct Header header;
 };
 static QueueHandle_t uart0_rx_queue = 0;
 
@@ -81,17 +81,17 @@ static void uart0_rx_skip_bytes(size_t size) {
 // Note: We are using single global buffer here. It has two main parts:
 //        * intron is read-only most of the time. The only write access is synchronized by means of critical section.
 //        * header is used only by `uart0_tx_task`
-union message {
+union Message {
     uint8_t bytes[12];
     struct {
         uint8_t intron[8];
-        struct header header;
+        struct Header header;
     };
 };
-static union message tx_message = { .bytes = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', 0, 0, 0, 0 } };
+static union Message tx_message = { .bytes = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', 0, 0, 0, 0 } };
 
 void IRAM_ATTR send_link_status(int8_t status) {
-    struct uart0_tx_queue_item queue_item;
+    struct Uart0TxQueueItem queue_item;
     queue_item.header.type = static_cast<uint8_t>(MsgType::packet);
     queue_item.header.link_status = status;
     queue_item.header.size = htons(0);
@@ -132,7 +132,7 @@ static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
         }
     }
 
-    struct uart0_tx_queue_item queue_item;
+    struct Uart0TxQueueItem queue_item;
     queue_item.header.type = static_cast<uint8_t>(MsgType::packet);
     queue_item.header.link_status = get_link_status();
     queue_item.header.size = htons(len);
@@ -164,7 +164,7 @@ void IRAM_ATTR wifi_init_sta(void) {
 static void IRAM_ATTR send_device_info() {
     esp_wifi_get_mac(WIFI_IF_STA, mac); // ignore error
 
-    struct uart0_tx_queue_item queue_item;
+    struct Uart0TxQueueItem queue_item;
     queue_item.header.type = static_cast<uint8_t>(MsgType::devinfo);
     queue_item.header.version = FW_VERSION;
     queue_item.header.size = htons(6);
@@ -203,7 +203,7 @@ static int8_t IRAM_ATTR get_link_status() {
     return online ? signal : 0;
 }
 
-static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t *data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t *data, struct Header header) {
     if (header.size == 0) {
         send_link_status(get_link_status());
     } else {
@@ -212,7 +212,7 @@ static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t *data, struct header heade
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, struct Header header) {
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
@@ -265,14 +265,14 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, struct header
     send_device_info();
 }
 
-static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, struct header header) {
+static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, struct Header header) {
     if (data) {
         free(data);
     }
 }
 
 void IRAM_ATTR send_number_of_ssids() {
-    struct uart0_tx_queue_item queue_item {};
+    struct Uart0TxQueueItem queue_item {};
     queue_item.header.type = static_cast<uint8_t>(MsgType::scan_ap_count);
     queue_item.header.ap_count = scan.stored_ssids_count;
     if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
@@ -281,7 +281,7 @@ void IRAM_ATTR send_number_of_ssids() {
 }
 
 void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *ap_info) {
-    struct uart0_tx_queue_item queue_item {};
+    struct Uart0TxQueueItem queue_item {};
     queue_item.header.type = static_cast<uint8_t>(MsgType::scan_ap_get);
     queue_item.header.ap_index = index;
     queue_item.header.size = htons(sizeof(*ap_info));
@@ -294,7 +294,7 @@ void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *ap_info) {
 
 static void IRAM_ATTR read_message() {
     wait_for_intron();
-    struct uart0_rx_queue_item queue_item {};
+    struct Uart0RxQueueItem queue_item {};
     uart0_rx_bytes((uint8_t *)&queue_item.header, sizeof(queue_item.header));
 
     switch (queue_item.header.type) {
@@ -364,7 +364,7 @@ static void IRAM_ATTR main_task(void *arg) {
     send_device_info();
 
     for (;;) {
-        struct uart0_rx_queue_item queue_item;
+        struct Uart0RxQueueItem queue_item;
         if (xQueueReceive(uart0_rx_queue, &queue_item, portMAX_DELAY) == pdTRUE) {
             (*queue_item.callback)(queue_item.data, queue_item.header);
             check_online_status();
@@ -378,7 +378,7 @@ static void IRAM_ATTR uart0_tx_task(void *arg) {
 
     // consume messages from uart0_tx_queue, forever
     for (;;) {
-        struct uart0_tx_queue_item queue_item;
+        struct Uart0TxQueueItem queue_item;
         if (xQueueReceive(uart0_tx_queue, &queue_item, portMAX_DELAY) == pdTRUE) {
 
             // send fix-sized part of the message (intron + header)
@@ -433,12 +433,12 @@ extern "C" void IRAM_ATTR app_main() {
     wifi_init_sta();
     esp_wifi_set_ps(WIFI_PS_NONE);
 
-    uart0_rx_queue = xQueueCreate(20, sizeof(struct uart0_rx_queue_item));
+    uart0_rx_queue = xQueueCreate(20, sizeof(struct Uart0RxQueueItem));
     if (uart0_rx_queue == 0) {
         ESP_LOGE(TAG, "xQueueCreate failed (uart0rx)");
         abort();
     }
-    uart0_tx_queue = xQueueCreate(20, sizeof(struct uart0_tx_queue_item));
+    uart0_tx_queue = xQueueCreate(20, sizeof(struct Uart0TxQueueItem));
     if (uart0_tx_queue == 0) {
         ESP_LOGE(TAG, "xQueueCreate failed (uart0tx)");
         abort();

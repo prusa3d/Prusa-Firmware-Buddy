@@ -51,25 +51,25 @@ QueueHandle_t wifi_egress_queue = 0;
 
 static char intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
 
-struct wifi_receive_buff {
+struct WifiReceiveBuff {
     size_t len;
     void *data;
     void *rx_buff;
 };
 
-struct wifi_send_buff {
+struct WifiSendBuff {
     size_t len;
     void *data;
 };
 
-static void IRAM_ATTR free_wifi_receive_buff(wifi_receive_buff *buff) {
+static void IRAM_ATTR free_wifi_receive_buff(WifiReceiveBuff *buff) {
     if (buff->rx_buff) {
         esp_wifi_internal_free_rx_buffer(buff->rx_buff);
     }
     free(buff);
 }
 
-static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
+static void IRAM_ATTR free_wifi_send_buff(WifiSendBuff *buff) {
     if (buff->data) {
         free(buff->data);
     }
@@ -78,7 +78,7 @@ static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
 
 void send_link_status(int8_t status) {
     ESP_LOGI(TAG, "Sending link status: %d", status);
-    struct header header;
+    struct Header header;
     header.type = static_cast<uint8_t>(MsgType::packet);
     header.link_status = status;
     header.size = htons(0);
@@ -103,7 +103,7 @@ void IRAM_ATTR handle_disconnect_and_try_reconnect() {
 
 static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     // ESP_LOGI(TAG, "Received wifi packet");
-    wifi_receive_buff *buff = nullptr;
+    WifiReceiveBuff *buff = nullptr;
 
     // Seeing some traffic - we have signal :-)
     last_inbound_seen = now_seconds();
@@ -118,7 +118,7 @@ static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
         }
     }
 
-    buff = (wifi_receive_buff *)malloc(sizeof(wifi_receive_buff));
+    buff = (WifiReceiveBuff *)malloc(sizeof(WifiReceiveBuff));
     if (!buff) {
         goto cleanup;
     }
@@ -155,7 +155,7 @@ static void send_device_info() {
         ESP_LOGI(TAG, "Failed to obtain MAC, returning last one or zeroes");
     }
 
-    struct header header;
+    struct Header header;
     header.type = static_cast<uint8_t>(MsgType::devinfo);
     header.version = FW_VERSION;
     header.size = htons(6);
@@ -213,7 +213,7 @@ static void IRAM_ATTR read_packet_message(uint16_t size) {
     // ESP_LOGI(TAG, "Receiving packet size: %d", size);
     // ESP_LOGI(TAG, "Allocating pbuf size: %d, free heap: %d", size, esp_get_free_heap_size());
 
-    wifi_send_buff *buff = (wifi_send_buff *)malloc(sizeof(wifi_send_buff));
+    WifiSendBuff *buff = (WifiSendBuff *)malloc(sizeof(WifiSendBuff));
     if (!buff) {
         goto nomem;
     }
@@ -306,7 +306,7 @@ static int8_t get_link_status() {
 }
 
 void IRAM_ATTR send_number_of_ssids() {
-    struct header header {};
+    struct Header header {};
     header.type = static_cast<uint8_t>(MsgType::scan_ap_count);
     header.ap_count = scan.stored_ssids_count;
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -316,7 +316,7 @@ void IRAM_ATTR send_number_of_ssids() {
 }
 
 void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
-    struct header header {};
+    struct Header header {};
     header.type = static_cast<uint8_t>(MsgType::scan_ap_get);
     header.ap_index = index;
     header.size = htons(sizeof(ScanResult));
@@ -330,7 +330,7 @@ void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
 static void IRAM_ATTR read_message() {
     wait_for_intron();
 
-    struct header header;
+    struct Header header;
     size_t read = uart_read_bytes(UART_NUM_0, (uint8_t *)&header, sizeof(header), portMAX_DELAY);
     if (read != sizeof(header)) {
         ESP_LOGI(TAG, "Cannot read message header");
@@ -380,7 +380,7 @@ static void IRAM_ATTR read_message() {
 
 static void IRAM_ATTR wifi_egress_thread(void *arg) {
     for (;;) {
-        wifi_send_buff *buff;
+        WifiSendBuff *buff;
         if (xQueueReceive(wifi_egress_queue, &buff, (TickType_t)portMAX_DELAY)) {
             if (!buff) {
                 ESP_LOGI(TAG, "NULL pulled from egress queue");
@@ -408,14 +408,14 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
     send_device_info();
 
     for (;;) {
-        wifi_receive_buff *buff;
+        WifiReceiveBuff *buff;
         if (xQueueReceive(uart_tx_queue, &buff, (TickType_t)1000 /*portMAX_DELAY*/)) {
             if (!buff) {
                 ESP_LOGI(TAG, "Skipping packet with null buffer");
                 continue;
             }
             // ESP_LOGI(TAG, "Printing packet to UART");
-            struct header header;
+            struct Header header;
             header.type = static_cast<uint8_t>(MsgType::packet);
             header.link_status = get_link_status();
             header.size = htons(buff->len);
@@ -471,13 +471,13 @@ extern "C" void app_main() {
         return;
     }
 
-    uart_tx_queue = xQueueCreate(20, sizeof(wifi_receive_buff *));
+    uart_tx_queue = xQueueCreate(20, sizeof(WifiReceiveBuff *));
     if (uart_tx_queue == 0) {
         ESP_LOGI(TAG, "Failed to create INPUT/TX queue");
         return;
     }
 
-    wifi_egress_queue = xQueueCreate(20, sizeof(wifi_send_buff *));
+    wifi_egress_queue = xQueueCreate(20, sizeof(WifiSendBuff *));
     if (wifi_egress_queue == 0) {
         ESP_LOGI(TAG, "Failed to create WiFi TX queue");
         return;

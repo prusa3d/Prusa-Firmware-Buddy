@@ -36,7 +36,7 @@ enum class MsgType : uint8_t {
     scan_ap_get = 11
 };
 
-struct __attribute__((packed)) header {
+struct __attribute__((packed)) Header {
     uint8_t type;
     union {
         uint8_t version; // when type == MsgType::devinfo
@@ -48,7 +48,7 @@ struct __attribute__((packed)) header {
     uint16_t size;
 };
 
-inline constexpr uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
+inline constexpr uint8_t UART_NIC_PROTOCOL = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
 inline constexpr const char *TAG = "uart_nic";
 
@@ -83,11 +83,11 @@ struct __attribute__((packed)) ScanResult {
 
 inline constexpr ScanResult EMPTY_RESULT = {};
 
-typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
+typedef void (*WifiScanCallback)(wifi_ap_record_t *, int);
 
 struct ScanState {
     ScanType scan_type;
-    wifi_scan_callback callback;
+    WifiScanCallback callback;
     uint32_t incremental_scan_time;
     ScanResult stored_ssids[SCAN_MAX_STORED_SSIDS];
     uint8_t stored_ssids_count;
@@ -106,7 +106,7 @@ inline ScanState scan {
 };
 
 void do_wifi_scan(void *arg);
-esp_err_t start_wifi_scan(wifi_scan_callback callback, ScanType scan_type);
+esp_err_t start_wifi_scan(WifiScanCallback callback, ScanType scan_type);
 esp_err_t force_stop_wifi_scan();
 void cache_current_ap_info();
 void wifi_re_connect_task(void *args);
@@ -116,7 +116,7 @@ void probe_run();
 void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 void check_online_status();
 void clear_stored_ssids();
-void handle_rx_msg_scan_start(uint8_t *data, struct header header);
-void handle_rx_msg_scan_stop(uint8_t *data, struct header header);
-void handle_rx_msg_scan_get(uint8_t *data, struct header header);
+void handle_rx_msg_scan_start(uint8_t *data, struct Header header);
+void handle_rx_msg_scan_stop(uint8_t *data, struct Header header);
+void handle_rx_msg_scan_get(uint8_t *data, struct Header header);
 void store_scanned_ssids(wifi_ap_record_t *aps, int ap_count);
