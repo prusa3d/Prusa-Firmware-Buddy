@@ -47,9 +47,6 @@
 
 #include "common.hpp"
 
-// Externals with no header
-esp_err_t mac_init(void);
-
 SemaphoreHandle_t uart_mtx = nullptr;
 QueueHandle_t uart_tx_queue = 0;
 QueueHandle_t wifi_egress_queue = 0;

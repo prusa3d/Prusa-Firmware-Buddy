@@ -44,7 +44,6 @@
 
 // Externals with no header
 extern "C" {
-int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 esp_err_t esp_supplicant_init(void);
 }
