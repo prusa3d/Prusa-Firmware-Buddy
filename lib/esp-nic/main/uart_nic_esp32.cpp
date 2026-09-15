@@ -20,8 +20,6 @@
   SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-#define UART_FULL_THRESH_DEFAULT (60)
-
 #include <string.h>
 #include <atomic>
 #include <stdbool.h>
