@@ -237,7 +237,7 @@ private:
     bool download_has_issue;
     bool print_after_upload { false };
 
-    char destination_path[filename_defs::path_buffer_size + filename_defs::max_filename_length];
+    char destination_path[filename_defs::hybrid_path_buffer_size];
 
     // History related
     static constexpr size_t HISTORY_MAX_LEN = 2;

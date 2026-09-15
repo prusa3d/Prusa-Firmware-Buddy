@@ -2,6 +2,7 @@
 #include <string.h>
 #include <utility>
 #include <bsod/bsod.h>
+#include <buddy/filename_defs.hpp>
 
 extern "C" size_t strlcat(char *, const char *, size_t);
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
@@ -9,7 +10,7 @@ extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 class MutablePath {
 private:
     // Must be able to contain hybrid SFN path + LFN tail
-    static constexpr size_t BUFFER_SIZE = 256; // TODO: Provide proper defines of max path length
+    static constexpr size_t BUFFER_SIZE = filename_defs::hybrid_path_buffer_size;
     mutable char path[BUFFER_SIZE];
 
     /**

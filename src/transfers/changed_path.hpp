@@ -130,7 +130,7 @@ public:
 private:
     mutable Mutex mutex;
 
-    std::array<char, filename_defs::path_buffer_size + filename_defs::max_filename_length> path {};
+    std::array<char, filename_defs::hybrid_path_buffer_size> path {};
     Type type {};
     Incident incident {};
     std::optional<uint32_t> command_id;
