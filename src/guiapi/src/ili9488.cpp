@@ -242,7 +242,9 @@ void ili9488_cmd_1_data(uint8_t cmd, uint8_t data) {
     ili9488_cmd(cmd, &data, 1);
 }
 
-void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
+constexpr static uint32_t ILI9488_CMD_RD_TIMEOUT_MS = 10;
+
+bool ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     // reading is even more reliable at 10MHz
     SPIBaudRatePrescalerGuard guard { spi_handle_lcd, SPI_BAUDRATEPRESCALER_8 };
 
@@ -251,8 +253,12 @@ void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint8_t data_to_write[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
-    HAL_SPI_TransmitReceive(spi_handle_lcd, data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
+    const auto status = HAL_SPI_TransmitReceive(spi_handle_lcd, data_to_write, pdata, ILI9488_MAX_COMMAND_READ_LENGHT, ILI9488_CMD_RD_TIMEOUT_MS);
+    if (status != HAL_OK) {
+        HAL_SPI_Abort(spi_handle_lcd);
+    }
     ili9488_set_cs();
+    return status == HAL_OK;
 }
 
 void ili9488_wr(uint8_t *pdata, uint16_t size) {
@@ -336,7 +342,9 @@ bool ili9488_is_reset_required() {
     reduce_display_baudrate = config_store().reduce_display_baudrate.get();
 
     uint8_t pdata[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
-    ili9488_cmd_rd(CMD_MADCTLRD, pdata);
+    if (!ili9488_cmd_rd(CMD_MADCTLRD, pdata)) {
+        return true;
+    }
     if ((pdata[1] != 0xE0 && pdata[1] != 0xF0 && pdata[1] != 0xF8)) {
         return true;
     }
