@@ -52,8 +52,9 @@ public:
      *
      * @param mcu_modular_bed_temp [in] - MCU Temperature for handling fan cooling/filtration
      * @param active_dwarf_board_temp [in] - Current or first dwarf board temperature
+     * @param active_nozzle_temp [in] - Nozzle temperature of the same dwarf
      */
-    void loop(int32_t mcu_modular_bed_temp, int16_t active_dwarf_board_temp);
+    void loop(int32_t mcu_modular_bed_temp, int16_t active_dwarf_board_temp, float active_nozzle_temp);
 
     inline bool is_enabled() const { return is_enabled_; }
     inline bool is_active() const { return active_mode == EnclosureMode::Active; }
@@ -84,7 +85,7 @@ private:
     /**
      *  Estimate the chamber temperature from the dwarf board temperature
      */
-    void update_enclosure_temperature(int16_t dwarf_board_temp);
+    void update_enclosure_temperature(int16_t dwarf_board_temp, float nozzle_temp);
 
     /**
      *  Checks if modular bed is overheated and overwrites active_mode if it is

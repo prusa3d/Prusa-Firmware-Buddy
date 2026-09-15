@@ -64,14 +64,24 @@ std::optional<buddy::Temperature> Enclosure::get_enclosure_temperature() {
     return temp;
 }
 
-void Enclosure::update_enclosure_temperature(int16_t dwarf_board_temp) {
+void Enclosure::update_enclosure_temperature(int16_t dwarf_board_temp, float nozzle_temp) {
     if (!is_temp_valid_) {
         enclosure_temp_ = NAN;
         return;
     }
 
-    static constexpr int32_t dwarf_board_temp_model_difference = -15; // °C
-    enclosure_temp_ = dwarf_board_temp + dwarf_board_temp_model_difference;
+    constexpr float estimated_max_ambient_temp_c = 30;
+    // These parameters were measured in BFW-9363
+    constexpr float nozzle_temp_at_given_correction_c = 275;
+    constexpr float given_correction_c = -15;
+
+    float estimate = dwarf_board_temp;
+    if (nozzle_temp > estimated_max_ambient_temp_c) {
+        // Nozzle hot enough to influence the dwarf board temperature
+        estimate += (nozzle_temp - estimated_max_ambient_temp_c) * given_correction_c / (nozzle_temp_at_given_correction_c - estimated_max_ambient_temp_c);
+    }
+
+    enclosure_temp_ = estimate;
 }
 
 void Enclosure::update_temp_validation_timer() {
@@ -125,7 +135,7 @@ bool Enclosure::is_mcu_overheating(int32_t mcu_modular_bed_temp) {
     return is_mcu_overheated_;
 }
 
-void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp) {
+void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp, float nozzle_temp) {
     static constexpr uint32_t tick_delay_sec = 1;
     const uint32_t curr_sec = ticks_s();
     if (curr_sec - last_sec < tick_delay_sec) {
@@ -161,7 +171,7 @@ void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp) {
         break;
     }
 
-    update_enclosure_temperature(dwarf_board_temp);
+    update_enclosure_temperature(dwarf_board_temp, nozzle_temp);
 
     // Control Fan PWM
     PWM255 fan_pwm = calculate_pwm(mcu_modular_bed_temp);
