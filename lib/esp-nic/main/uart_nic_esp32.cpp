@@ -50,7 +50,7 @@
 // Externals with no header
 esp_err_t mac_init(void);
 
-SemaphoreHandle_t uart_mtx = NULL;
+SemaphoreHandle_t uart_mtx = nullptr;
 QueueHandle_t uart_tx_queue = 0;
 QueueHandle_t wifi_egress_queue = 0;
 
@@ -108,7 +108,7 @@ void IRAM_ATTR handle_disconnect_and_try_reconnect() {
 
 static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     // ESP_LOGI(TAG, "Received wifi packet");
-    wifi_receive_buff *buff = NULL;
+    wifi_receive_buff *buff = nullptr;
 
     // Seeing some traffic - we have signal :-)
     last_inbound_seen = now_seconds();
@@ -147,7 +147,7 @@ void wifi_init_sta(void) {
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init_internal(&cfg));
     ESP_ERROR_CHECK(esp_supplicant_init());
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, nullptr));
     ESP_ERROR_CHECK(esp_wifi_internal_reg_rxcb(WIFI_IF_STA, wifi_receive_cb));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 }
@@ -356,16 +356,16 @@ static void IRAM_ATTR read_message() {
         read_wifi_client_message();
         break;
     case MSG_SCAN_START:
-        handle_rx_msg_scan_start(NULL, {});
+        handle_rx_msg_scan_start(nullptr, {});
         break;
     case MSG_SCAN_STOP:
-        handle_rx_msg_scan_stop(NULL, {});
+        handle_rx_msg_scan_stop(nullptr, {});
         break;
     case MSG_SCAN_AP_CNT:
         ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
         break;
     case MSG_SCAN_AP_GET:
-        handle_rx_msg_scan_get(NULL, header);
+        handle_rx_msg_scan_get(nullptr, header);
         break;
     case MSG_DEVINFO_V2:
         ESP_LOGE(TAG, "MSG_DEVINFO_V2 is only transmitted, never recieved");
@@ -455,7 +455,7 @@ extern "C" void app_main() {
         .rx_flow_ctrl_thresh = 0,
         .source_clk = UART_SCLK_DEFAULT
     };
-    uart_driver_install(UART_NUM_0, 16384, 0, 0, NULL, 0);
+    uart_driver_install(UART_NUM_0, 16384, 0, 0, nullptr, 0);
     uart_param_config(UART_NUM_0, &uart_config);
     uart_intr_config_t uart_intr = {
         .intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M
@@ -499,9 +499,9 @@ extern "C" void app_main() {
     esp_wifi_set_ps(WIFI_PS_NONE);
 
     ESP_LOGI(TAG, "Creating RX thread");
-    xTaskCreate(&output_rx_thread, "output_rx_thread", 4096, NULL, 1, NULL);
+    xTaskCreate(&output_rx_thread, "output_rx_thread", 4096, nullptr, 1, nullptr);
     ESP_LOGI(TAG, "Creating WiFi-out thread");
-    xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12, NULL);
+    xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, nullptr, 12, nullptr);
     ESP_LOGI(TAG, "Creating TX thread");
-    xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, NULL, 14, NULL);
+    xTaskCreate(&uart_tx_thread, "uart_tx_thread", 2048, nullptr, 14, nullptr);
 }

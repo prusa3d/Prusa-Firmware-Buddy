@@ -42,7 +42,7 @@ void IRAM_ATTR do_wifi_scan(void *) {
 
     ESP_ERROR_CHECK(esp_wifi_scan_start(&config, false));
 
-    vTaskDelete(NULL);
+    vTaskDelete(nullptr);
 }
 
 esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType scan_type) {
@@ -94,7 +94,7 @@ esp_err_t IRAM_ATTR start_wifi_scan(wifi_scan_callback callback, ScanType scan_t
         }
     }
 
-    xTaskCreate(&do_wifi_scan, "wifi_scan", 2048, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(&do_wifi_scan, "wifi_scan", 2048, nullptr, tskIDLE_PRIORITY + 1, nullptr);
     return ESP_OK;
 }
 
@@ -122,12 +122,12 @@ void IRAM_ATTR wifi_re_connect_task(void *) {
         scan.should_reconnect = true;
     }
 
-    vTaskDelete(NULL);
+    vTaskDelete(nullptr);
 }
 
 void IRAM_ATTR start_wifi_connect_task() {
     connecting = true;
-    xTaskCreate(wifi_re_connect_task, "wifi_connect_task", 2048, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(wifi_re_connect_task, "wifi_connect_task", 2048, nullptr, tskIDLE_PRIORITY, nullptr);
 }
 
 void send_link_status(int8_t status);
@@ -144,7 +144,7 @@ void IRAM_ATTR probe_handler(wifi_ap_record_t *aps, int ap_count) {
     // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
     // disconnects and the primary motivation of this whole excercise.
     for (int i = 0; i < ap_count; ++i) {
-        if (latest_bssid != NULL && 0 == memcmp(latest_bssid, aps[i].bssid, BSSID_LEN)) {
+        if (latest_bssid != nullptr && 0 == memcmp(latest_bssid, aps[i].bssid, BSSID_LEN)) {
             found = true;
             beacon_quirk = false;
             break;
@@ -152,7 +152,7 @@ void IRAM_ATTR probe_handler(wifi_ap_record_t *aps, int ap_count) {
     }
     if (beacon_quirk && !found) {
         for (int i = 0; i < ap_count; ++i) {
-            if (latest_ssid != NULL && latest_ssid[0] && aps[i].ssid[0]) {
+            if (latest_ssid != nullptr && latest_ssid[0] && aps[i].ssid[0]) {
                 if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_LEN)) {
                     found = true;
                     break;
@@ -215,13 +215,13 @@ void IRAM_ATTR event_handler(void *, esp_event_base_t event_base, int32_t event_
         if (!scan_data->status && ap_count) {
             wifi_ap_record_t *aps = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * ap_count);
             ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&ap_count, aps));
-            if (scan.callback != NULL) {
+            if (scan.callback != nullptr) {
                 scan.callback(aps, ap_count);
             }
             free(aps);
-        } else if (scan.callback != NULL) {
+        } else if (scan.callback != nullptr) {
             // if the scan failed, still call callback with no data to allow logic to redo the scan
-            scan.callback(NULL, 0);
+            scan.callback(nullptr, 0);
         }
 
         if (!scan.in_progress) {

@@ -174,7 +174,7 @@ esp_err_t uart0_driver_install(TaskHandle_t uart0_rx_task_handle, TaskHandle_t u
     portEXIT_CRITICAL();
 
     // Note: We plug into original ISR in order to keep UART_NUM_1 working.
-    if (uart_isr_register(UART_NUM_0, uart0_isr, NULL) != ESP_OK) {
+    if (uart_isr_register(UART_NUM_0, uart0_isr, nullptr) != ESP_OK) {
         return ESP_FAIL;
     }
 

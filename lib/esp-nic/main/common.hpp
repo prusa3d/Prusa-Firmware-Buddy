@@ -95,7 +95,7 @@ struct ScanState {
 
 inline ScanState scan {
     .scan_type = ScanType::unknown,
-    .callback = NULL,
+    .callback = nullptr,
     .incremental_scan_time = 0,
     .stored_ssids = {},
     .stored_ssids_count = 0,
