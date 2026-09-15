@@ -78,7 +78,7 @@ static void IRAM_ATTR free_wifi_send_buff(WifiSendBuff *buff) {
 
 void send_link_status(int8_t status) {
     ESP_LOGI(TAG, "Sending link status: %d", status);
-    struct Header header;
+    Header header;
     header.type = static_cast<uint8_t>(MsgType::packet);
     header.link_status = status;
     header.size = htons(0);
@@ -155,7 +155,7 @@ static void send_device_info() {
         ESP_LOGI(TAG, "Failed to obtain MAC, returning last one or zeroes");
     }
 
-    struct Header header;
+    Header header;
     header.type = static_cast<uint8_t>(MsgType::devinfo);
     header.version = FW_VERSION;
     header.size = htons(6);
@@ -306,7 +306,7 @@ static int8_t get_link_status() {
 }
 
 void IRAM_ATTR send_number_of_ssids() {
-    struct Header header {};
+    Header header {};
     header.type = static_cast<uint8_t>(MsgType::scan_ap_count);
     header.ap_count = scan.stored_ssids_count;
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
@@ -316,7 +316,7 @@ void IRAM_ATTR send_number_of_ssids() {
 }
 
 void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
-    struct Header header {};
+    Header header {};
     header.type = static_cast<uint8_t>(MsgType::scan_ap_get);
     header.ap_index = index;
     header.size = htons(sizeof(ScanResult));
@@ -330,7 +330,7 @@ void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
 static void IRAM_ATTR read_message() {
     wait_for_intron();
 
-    struct Header header;
+    Header header;
     size_t read = uart_read_bytes(UART_NUM_0, (uint8_t *)&header, sizeof(header), portMAX_DELAY);
     if (read != sizeof(header)) {
         ESP_LOGI(TAG, "Cannot read message header");
@@ -415,7 +415,7 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
                 continue;
             }
             // ESP_LOGI(TAG, "Printing packet to UART");
-            struct Header header;
+            Header header;
             header.type = static_cast<uint8_t>(MsgType::packet);
             header.link_status = get_link_status();
             header.size = htons(buff->len);
