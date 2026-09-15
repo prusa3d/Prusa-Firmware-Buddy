@@ -661,6 +661,16 @@ static void IRAM_ATTR clear_stored_ssids() {
     scan.stored_ssids_count = 0;
 }
 
+void IRAM_ATTR send_number_of_ssids() {
+    struct header header {};
+    header.type = MSG_SCAN_AP_CNT;
+    header.ap_count = scan.stored_ssids_count;
+    xSemaphoreTake(uart_mtx, portMAX_DELAY);
+    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
+    uart_write_bytes(UART_NUM_0, (const char *)&header, sizeof(header));
+    xSemaphoreGive(uart_mtx);
+}
+
 static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
     for (uint8_t i = 0; i < ap_count; ++i) {
         bool found = false;
@@ -683,14 +693,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
     }
 
-    struct header header {};
-    header.type = MSG_SCAN_AP_CNT;
-    header.ap_count = scan.stored_ssids_count;
-    xSemaphoreTake(uart_mtx, portMAX_DELAY);
-    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-    uart_write_bytes(UART_NUM_0, (const char *)&header, sizeof(header));
-    xSemaphoreGive(uart_mtx);
-
+    send_number_of_ssids();
     ESP_LOGI(TAG, "Scan done. Found: %d", scan.stored_ssids_count);
 }
 

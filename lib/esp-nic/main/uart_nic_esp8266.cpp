@@ -625,6 +625,15 @@ static void IRAM_ATTR clear_stored_ssids() {
     scan.stored_ssids_count = 0;
 }
 
+void IRAM_ATTR send_number_of_ssids() {
+    struct uart0_tx_queue_item queue_item {};
+    queue_item.header.type = MSG_SCAN_AP_CNT;
+    queue_item.header.ap_count = scan.stored_ssids_count;
+    if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
+        ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
+    }
+}
+
 static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
     for (uint8_t i = 0; i < ap_count; ++i) {
         bool found = false;
@@ -647,12 +656,7 @@ static void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
     }
 
-    struct uart0_tx_queue_item queue_item {};
-    queue_item.header.type = MSG_SCAN_AP_CNT;
-    queue_item.header.ap_count = scan.stored_ssids_count;
-    if (xQueueSendToBack(uart0_tx_queue, &queue_item, 0) != pdTRUE) {
-        ESP_LOGE(TAG, "xQueueSendToBack failed (uart0tx)");
-    }
+    send_number_of_ssids();
     ESP_LOGI(TAG, "Scan done. Found: %d", scan.stored_ssids_count);
 }
 
