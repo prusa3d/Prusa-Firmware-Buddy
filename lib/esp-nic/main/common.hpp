@@ -5,33 +5,34 @@
 #include <cstdint>
 #include "esp_wifi_types.h"
 
-#define FW_VERSION 13
+inline constexpr uint8_t FW_VERSION = 13;
 
-#define SCAN_MAX_STORED_SSIDS 64
-#define SSID_LEN              32
-#define BSSID_LEN             6
+inline constexpr uint8_t SCAN_MAX_STORED_SSIDS = 64;
+inline constexpr size_t SSID_LEN = 32;
+inline constexpr size_t BSSID_LEN = 6;
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
 // inactivity to a ridiculously long time and handle the disconnect ourselves.
 //
 // It's not longer for the only reason the uint16_t doesn't hold as big numbers.
-static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
+inline constexpr uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
+
 // This is the effective timeout. If we don't receive any packet for this long,
 // we consider the signal lost.
 //
 // TODO: Shall we generate something to provoke getting some packets? Like ARP
 // pings to the AP?
-static const uint32_t INACTIVE_PACKET_SECONDS = 5;
+inline constexpr uint32_t INACTIVE_PACKET_SECONDS = 5;
 
 // Note: Values 1..5 are deprecated and must not be used.
-#define MSG_DEVINFO_V2      0
-#define MSG_CLIENTCONFIG_V2 6
-#define MSG_PACKET_V2       7
-#define MSG_SCAN_START      8
-#define MSG_SCAN_STOP       9
-#define MSG_SCAN_AP_CNT     10
-#define MSG_SCAN_AP_GET     11
+inline constexpr uint8_t MSG_DEVINFO_V2 = 0;
+inline constexpr uint8_t MSG_CLIENTCONFIG_V2 = 6;
+inline constexpr uint8_t MSG_PACKET_V2 = 7;
+inline constexpr uint8_t MSG_SCAN_START = 8;
+inline constexpr uint8_t MSG_SCAN_STOP = 9;
+inline constexpr uint8_t MSG_SCAN_AP_CNT = 10;
+inline constexpr uint8_t MSG_SCAN_AP_GET = 11;
 
 struct __attribute__((packed)) header {
     uint8_t type;
@@ -45,11 +46,11 @@ struct __attribute__((packed)) header {
     uint16_t size;
 };
 
-static const uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
+inline constexpr uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
-static const char *TAG = "uart_nic";
+inline constexpr const char *TAG = "uart_nic";
 
-#define MAC_LEN 6
+inline constexpr size_t MAC_LEN = 6;
 inline uint8_t mac[MAC_LEN];
 
 uint32_t now_seconds();
@@ -78,7 +79,7 @@ typedef struct __attribute__((packed)) {
     bool needs_password;
 } ScanResult;
 
-const ScanResult EMPTY_RESULT = {};
+inline constexpr ScanResult EMPTY_RESULT = {};
 
 typedef void (*wifi_scan_callback)(wifi_ap_record_t *, int);
 
