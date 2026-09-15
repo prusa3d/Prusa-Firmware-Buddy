@@ -485,8 +485,8 @@ extern "C" void app_main() {
 
     scan.stored_ssids_count = SCAN_MAX_STORED_SSIDS;
     clear_stored_ssids();
-    memset(latest_ssid, 0, SSID_LEN);
-    memset(latest_bssid, 0, BSSID_LEN);
+    memset(latest_ssid, 0, SSID_MAX_LEN);
+    memset(latest_bssid, 0, BSSID_MAX_LEN);
 
     ESP_LOGI(TAG, "Wifi init");
     esp_wifi_restore();

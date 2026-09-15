@@ -108,8 +108,8 @@ esp_err_t IRAM_ATTR force_stop_wifi_scan() {
 void IRAM_ATTR cache_current_ap_info() {
     wifi_ap_record_t ap_info;
     if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
-        memcpy(latest_bssid, ap_info.bssid, BSSID_LEN);
-        memcpy(latest_ssid, ap_info.ssid, SSID_LEN);
+        memcpy(latest_bssid, ap_info.bssid, BSSID_MAX_LEN);
+        memcpy(latest_ssid, ap_info.ssid, SSID_MAX_LEN);
     }
 }
 
@@ -144,7 +144,7 @@ void IRAM_ATTR probe_handler(wifi_ap_record_t *aps, int ap_count) {
     // beacons and/or probe rensonse. That's the real culprit of the beacon timeout
     // disconnects and the primary motivation of this whole excercise.
     for (int i = 0; i < ap_count; ++i) {
-        if (0 == memcmp(latest_bssid, aps[i].bssid, BSSID_LEN)) {
+        if (0 == memcmp(latest_bssid, aps[i].bssid, BSSID_MAX_LEN)) {
             found = true;
             beacon_quirk = false;
             break;
@@ -153,7 +153,7 @@ void IRAM_ATTR probe_handler(wifi_ap_record_t *aps, int ap_count) {
     if (beacon_quirk && !found) {
         for (int i = 0; i < ap_count; ++i) {
             if (latest_ssid[0] && aps[i].ssid[0]) {
-                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_LEN)) {
+                if (0 == strncmp((char *)(latest_ssid), (char *)(aps[i].ssid), SSID_MAX_LEN)) {
                     found = true;
                     break;
                 }
@@ -303,13 +303,13 @@ void IRAM_ATTR store_scanned_ssids(wifi_ap_record_t *aps, int ap_count) {
         }
         for (uint8_t j = 0; j < scan.stored_ssids_count; ++j) {
             ESP_LOGI(TAG, "Comparing >%s< and %s", (char *)scan.stored_ssids[j].ssid, (char *)aps[i].ssid);
-            if (memcmp(scan.stored_ssids[j].ssid, aps[i].ssid, SSID_LEN) == 0) {
+            if (memcmp(scan.stored_ssids[j].ssid, aps[i].ssid, SSID_MAX_LEN) == 0) {
                 found = true;
                 break;
             }
         }
         if (!found) {
-            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid, aps[i].ssid, SSID_LEN);
+            memcpy(scan.stored_ssids[scan.stored_ssids_count].ssid, aps[i].ssid, SSID_MAX_LEN);
             scan.stored_ssids[scan.stored_ssids_count].needs_password = aps[i].authmode != WIFI_AUTH_OPEN || aps[i].pairwise_cipher != WIFI_CIPHER_TYPE_NONE;
             scan.stored_ssids_count++;
             ESP_LOGI(TAG, "Found SSID: %s", aps[i].ssid);

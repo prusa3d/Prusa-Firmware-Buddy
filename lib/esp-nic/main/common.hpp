@@ -8,8 +8,8 @@
 inline constexpr uint8_t FW_VERSION = 13;
 
 inline constexpr uint8_t SCAN_MAX_STORED_SSIDS = 64;
-inline constexpr size_t SSID_LEN = 32;
-inline constexpr size_t BSSID_LEN = 6;
+inline constexpr size_t SSID_MAX_LEN = 32;
+inline constexpr size_t BSSID_MAX_LEN = 6;
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -66,8 +66,8 @@ inline bool beacon_quirk;
 inline uint8_t probe_max_reties = 3;
 inline std::atomic_bool probe_in_progress = false;
 inline uint8_t probe_retry_count;
-inline uint8_t latest_ssid[SSID_LEN];
-inline uint8_t latest_bssid[BSSID_LEN];
+inline uint8_t latest_ssid[SSID_MAX_LEN];
+inline uint8_t latest_bssid[BSSID_MAX_LEN];
 inline int s_retry_num = 0;
 
 enum class ScanType {
@@ -77,7 +77,7 @@ enum class ScanType {
 };
 
 struct __attribute__((packed)) ScanResult {
-    uint8_t ssid[SSID_LEN];
+    uint8_t ssid[SSID_MAX_LEN];
     bool needs_password;
 };
 
