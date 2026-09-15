@@ -84,6 +84,7 @@ private:
 
     /**
      *  Estimate the chamber temperature from the dwarf board temperature
+     *  and feed it to the smoothing filter
      */
     void update_enclosure_temperature(int16_t dwarf_board_temp, float nozzle_temp);
 
@@ -92,6 +93,8 @@ private:
      *  @param mcu_modular_bed_temp
      */
     bool is_mcu_overheating(int32_t mcu_modular_bed_temp);
+
+    static constexpr uint32_t tick_delay_sec = 1;
 
     EnclosureMode active_mode;
     uint32_t last_sec;

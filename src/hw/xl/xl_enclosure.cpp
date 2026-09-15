@@ -15,6 +15,7 @@
 #include <option/xl_enclosure_support.h>
 #include <option/has_chamber_filtration_api.h>
 #include <feature/chamber_filtration/chamber_filtration.hpp>
+#include <utils/math/ema.hpp>
 
 static_assert(XL_ENCLOSURE_SUPPORT() && HAS_CHAMBER_FILTRATION_API());
 
@@ -75,13 +76,17 @@ void Enclosure::update_enclosure_temperature(int16_t dwarf_board_temp, float noz
     constexpr float nozzle_temp_at_given_correction_c = 275;
     constexpr float given_correction_c = -15;
 
+    constexpr float filter_tau_sec = 100;
+
     float estimate = dwarf_board_temp;
     if (nozzle_temp > estimated_max_ambient_temp_c) {
         // Nozzle hot enough to influence the dwarf board temperature
         estimate += (nozzle_temp - estimated_max_ambient_temp_c) * given_correction_c / (nozzle_temp_at_given_correction_c - estimated_max_ambient_temp_c);
     }
 
-    enclosure_temp_ = estimate;
+    const float previous = enclosure_temp_.load();
+    // Filter smooths out the step in the dwarf board temperature on a tool change
+    enclosure_temp_ = std::isnan(previous) ? estimate : exponential_moving_average(previous, estimate, static_cast<float>(tick_delay_sec), filter_tau_sec);
 }
 
 void Enclosure::update_temp_validation_timer() {
@@ -136,7 +141,6 @@ bool Enclosure::is_mcu_overheating(int32_t mcu_modular_bed_temp) {
 }
 
 void Enclosure::loop(int32_t mcu_modular_bed_temp, int16_t dwarf_board_temp, float nozzle_temp) {
-    static constexpr uint32_t tick_delay_sec = 1;
     const uint32_t curr_sec = ticks_s();
     if (curr_sec - last_sec < tick_delay_sec) {
         return;
