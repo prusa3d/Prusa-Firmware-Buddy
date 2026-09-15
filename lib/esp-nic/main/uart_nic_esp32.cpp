@@ -706,21 +706,21 @@ static void IRAM_ATTR send_scanned_ssid(uint8_t index, const ScanResult *scan) {
     xSemaphoreGive(uart_mtx);
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_start() {
+static void IRAM_ATTR handle_rx_msg_scan_start(uint8_t *data, struct header header) {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
     start_wifi_scan(&store_scanned_ssids, SCAN_TYPE_INCREMENTAL);
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_stop() {
+static void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *data, struct header header) {
     // Response is send automatically after scan is stopped
     // Intentionally don't fail if the scan is no longer running
     // (aka we connected to AP during scan)
     force_stop_wifi_scan();
 }
 
-static void IRAM_ATTR handle_rx_msg_scan_get(struct header header) {
+static void IRAM_ATTR handle_rx_msg_scan_get(uint8_t *data, struct header header) {
     if (header.ap_index < scan.stored_ssids_count) {
         send_scanned_ssid(header.ap_index, &scan.stored_ssids[header.ap_index]);
     } else {
@@ -752,16 +752,16 @@ static void IRAM_ATTR read_message() {
         read_wifi_client_message();
         break;
     case MSG_SCAN_START:
-        handle_rx_msg_scan_start();
+        handle_rx_msg_scan_start(NULL, {});
         break;
     case MSG_SCAN_STOP:
-        handle_rx_msg_scan_stop();
+        handle_rx_msg_scan_stop(NULL, {});
         break;
     case MSG_SCAN_AP_CNT:
         ESP_LOGE(TAG, "MSG_SCAN_AP_CNT is only transmitted, never recieved");
         break;
     case MSG_SCAN_AP_GET:
-        handle_rx_msg_scan_get(header);
+        handle_rx_msg_scan_get(NULL, header);
         break;
     case MSG_DEVINFO_V2:
         ESP_LOGE(TAG, "MSG_DEVINFO_V2 is only transmitted, never recieved");
