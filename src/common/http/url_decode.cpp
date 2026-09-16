@@ -14,7 +14,7 @@ bool url_decode(std::string_view url, char *decoded_url, size_t decoded_url_len)
             decoded_url[out_index] = ' ';
             break;
         case '%': {
-            if (decoded_url_len < i + 3) {
+            if (url.size() < i + 3) {
                 return false;
             }
             int ascii_value;

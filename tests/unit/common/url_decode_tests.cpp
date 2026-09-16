@@ -38,6 +38,12 @@ TEST_CASE("url decode", "[url]") {
         REQUIRE_FALSE(url_decode(common_url, decoded_url, sizeof(decoded_url)));
     }
 
+    SECTION("trailing percent with roomy buffer") {
+        std::string url = "/a/v/f/%";
+        char decoded_url[100];
+        REQUIRE_FALSE(url_decode(url, decoded_url, sizeof(decoded_url)));
+    }
+
     SECTION("empty url") {
         std::string url = "";
         char decoded_url[100];
