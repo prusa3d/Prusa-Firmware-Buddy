@@ -59,7 +59,7 @@ const tmc_reg_t *text_cmd_to_register(const char *cmd_in, bool write, bool read)
  */
 
 void PrusaGcodeSuite::M919() {
-    char cmd[16] = { 0 };
+    std::array<char, 17> cmd = { 0 };
     int val = 0;
     const tmc_reg_t *adress_reg;
 
@@ -67,14 +67,15 @@ void PrusaGcodeSuite::M919() {
 
         if (parser.seen(axis_codes[i]) && parser.string_arg) {
 
-            int read = sscanf(parser.string_arg, "%16s %x", cmd, &val);
+            static_assert(cmd.size() == 17); // %16s is 16 chars + \0
+            int read = sscanf(parser.string_arg, "%16s %x", cmd.data(), &val);
 
             if (read != 2) {
                 SERIAL_ERROR_MSG("does not match '<axis> <TMC reg> <data>'");
                 return;
             }
 
-            adress_reg = text_cmd_to_register(cmd, true, false);
+            adress_reg = text_cmd_to_register(cmd.data(), true, false);
 
             if (adress_reg == nullptr) {
                 SERIAL_ERROR_MSG("Enter valid TMC reg name");
@@ -120,21 +121,22 @@ void PrusaGcodeSuite::M919() {
  * - `<TMC reg>` - Select specific TMC driver's register
  */
 void PrusaGcodeSuite::M920() {
-    char cmd[16] = { 0 };
+    std::array<char, 17> cmd = { 0 };
     const tmc_reg_t *adress_reg;
 
     LOOP_XYZE(i) {
 
         if (parser.seen(axis_codes[i]) && parser.string_arg) {
 
-            int read = sscanf(parser.string_arg, "%16s", cmd);
+            static_assert(cmd.size() == 17); // %16s is 16 chars + \0
+            int read = sscanf(parser.string_arg, "%16s", cmd.data());
 
             if (read != 1) {
                 SERIAL_ERROR_MSG("does not match '<axis> <TMC reg>'");
                 return;
             }
 
-            adress_reg = text_cmd_to_register(cmd, false, true);
+            adress_reg = text_cmd_to_register(cmd.data(), false, true);
 
             if (adress_reg == nullptr) {
                 SERIAL_ERROR_MSG("Enter valid TMC reg name");
