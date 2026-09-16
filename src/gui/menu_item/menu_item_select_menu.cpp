@@ -100,7 +100,7 @@ void MenuItemSelectMenu::printExtension(Rect16 extension_rect, Color color_text,
 void MenuItemSelectMenu::click(IWindowMenu &menu) {
     const auto prev_focus = menu.focused_item_index();
 
-    int new_item;
+    std::optional<int> new_item;
 
     switch (behavior_) {
 
@@ -119,7 +119,6 @@ void MenuItemSelectMenu::click(IWindowMenu &menu) {
                 }
             },
         };
-        new_item = current_item_;
 
         const auto result = dialog_menu_virtual::execute(cfg);
         if (result.has_value() && result > 0) {
@@ -136,18 +135,22 @@ void MenuItemSelectMenu::click(IWindowMenu &menu) {
         break;
     }
 
-    if (new_item == current_item_) {
+    if (!new_item.has_value()) {
+        return;
+    }
+
+    if (new_item == current_item_ && deduplicate_on_item_selected_) {
         return;
     }
 
     const OnItemSelectedArgs args {
         .old_index = current_item_,
-        .new_index = new_item,
+        .new_index = *new_item,
         .menu = menu,
     };
     if (!on_item_selected(args)) {
         return;
     }
 
-    set_current_item(new_item);
+    set_current_item(*new_item);
 }

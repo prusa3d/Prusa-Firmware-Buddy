@@ -62,6 +62,9 @@ protected:
         return true;
     }
 
+    /// If set, on_item_selected will not be emitted when the already selected item is selected again
+    bool deduplicate_on_item_selected_ : 1 = true;
+
 protected:
     /// Resolves the value text color (base highlights the focused & enabled item).
     /// @param base_color color used when the item is not focused & enabled
