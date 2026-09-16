@@ -15,6 +15,7 @@
 #include <client_response_texts.hpp>
 #include <feature/compatibility_checks/filament_compatibility.hpp>
 #include <gui/standard_frame/frame_wait.hpp>
+#include <filament_to_load.hpp>
 
 #if HAS_ANFC()
     #include <feature/openprinttag/tool_tag.hpp>
@@ -430,13 +431,7 @@ bool ScreenPreheat::handle_filament_selection(FilamentType filament_type, Prehea
             return false;
         }
 
-        const OptionalColor color = *color_opt;
-        if (color.has_value()) {
-            filament_type = filament_type.to_pending_adhoc(virtual_tool);
-            filament_type.modify_parameters([color](auto &p) {
-                p.color = color;
-            });
-        }
+        filament_type = filament::apply_load_color(filament_type, virtual_tool, *color_opt);
     }
 
     marlin_client::FSM_response_variant(PhasesPreheat::user_temp_selection, FSMResponseVariant::make<FilamentType>(filament_type));

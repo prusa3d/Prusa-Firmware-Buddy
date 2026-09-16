@@ -284,12 +284,7 @@ void M600_execute(mapi::ParkingPosition park_position, VirtualToolIndex target_t
         filament_type = FilamentType::for_tool_heuristic(target_tool);
     }
 
-    if (filament_colour.has_value()) {
-        // to_pending_adhoc -> the color change should only apply for this load
-        // we don't want to change user preset (or fail when trying to change a system preset)
-        *filament_type = filament_type->to_pending_adhoc(target_tool);
-        filament_type->modify_parameters([&](auto &params) { params.color = *filament_colour; });
-    }
+    *filament_type = filament::apply_load_color(*filament_type, target_tool, filament_colour);
 
     filament::set_type_to_load(*filament_type);
     Pause::Instance().filament_change(settings, is_filament_stuck);

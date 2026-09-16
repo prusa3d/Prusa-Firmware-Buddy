@@ -92,12 +92,7 @@ void filament_gcodes::M701_load(const M701LoadArgs &args) {
         }
     }
 
-    if (args.color_to_be_loaded.has_value()) {
-        // to_pending_adhoc -> the color change should only apply for this load
-        // we don't want to change user preset (or fail when trying to change a system preset)
-        filament_to_be_loaded = filament_to_be_loaded.to_pending_adhoc(virtual_tool);
-        filament_to_be_loaded.modify_parameters([&](auto &params) { params.color = *args.color_to_be_loaded; });
-    }
+    filament_to_be_loaded = filament::apply_load_color(filament_to_be_loaded, virtual_tool, args.color_to_be_loaded);
 
     filament::set_type_to_load(filament_to_be_loaded);
 
@@ -323,12 +318,7 @@ void filament_gcodes::M1600_change_filament(FilamentType filament_to_be_loaded, 
         preheat_to(filament_to_be_loaded, virtual_tool.to_physical(), PreheatBehavior::for_filament_load(false));
     }
 
-    if (color_to_be_loaded.has_value()) {
-        // to_pending_adhoc -> the color change should only apply for this load
-        // we don't want to change user preset (or fail when trying to change a system preset)
-        filament_to_be_loaded = filament_to_be_loaded.to_pending_adhoc(virtual_tool);
-        filament_to_be_loaded.modify_parameters([&](auto &params) { params.color = *color_to_be_loaded; });
-    }
+    filament_to_be_loaded = filament::apply_load_color(filament_to_be_loaded, virtual_tool, color_to_be_loaded);
 
     filament::set_type_to_load(filament_to_be_loaded);
 
