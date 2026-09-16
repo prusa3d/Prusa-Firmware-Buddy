@@ -26,16 +26,16 @@
 
 namespace {
 
-static constexpr feedRate_t align_axis_feedrate = 15.f; // mm/s
-static constexpr float extra_height = 5.f; // mm
+constexpr feedRate_t align_axis_feedrate = 15.f; // mm/s
+constexpr float extra_height = 5.f; // mm
 
 #if PRINTER_IS_PRUSA_XL()
 
 /// Feedrate of the final push into the top hard stop, on which the motors skip to align themselves
-static constexpr feedRate_t align_axis_slow_feedrate = 4.f; // mm/s
+constexpr feedRate_t align_axis_slow_feedrate = 4.f; // mm/s
 
 /// Nozzle clearance left behind, dock calibration crosses the bed right after this
-static constexpr float safe_clearance = 10.f; // mm
+constexpr float safe_clearance = 10.f; // mm
 
 #endif
 
