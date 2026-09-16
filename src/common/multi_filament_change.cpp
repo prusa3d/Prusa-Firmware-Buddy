@@ -7,6 +7,7 @@
 #include <string_builder.hpp>
 #include <mbedtls/base64.h>
 #include <M70X.hpp>
+#include <filament_to_load.hpp>
 
 #include <gcode/gcode.h>
 #include <marlin_server.hpp>
@@ -182,7 +183,6 @@ void Config::execute() const {
         MMU should be in unloaded state right now (as every start of print)
         For all selected tools (in this case tool == MMU's filament slot) change filament
         This means MMU will go through selected tools and load to the slot (NOT load to extruder)
-        M704 for filament pre-load does not support color specification
     */
 
     // Carry out the changes
@@ -212,7 +212,7 @@ void Config::execute() const {
             // preload the MMU slot
             filament_gcodes::mmu_load(tool.to_raw());
 
-            config_store().set_filament_type(tool, item.new_filament);
+            config_store().set_filament_type(tool, filament::apply_load_color(FilamentType { item.new_filament }, tool, item.color));
 #else
             const FilamentType new_filament { item.new_filament };
             if (old_filaments[tool] != FilamentType::none) {
