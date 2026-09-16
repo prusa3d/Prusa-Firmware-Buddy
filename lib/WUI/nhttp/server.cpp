@@ -571,9 +571,18 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
     debug_assert(is_active_slot(base_slot));
     Slot *slot = static_cast<Slot *>(base_slot);
 
-    slot->server->activity(conn, slot);
-
     if (slot->take_pbuf(data)) {
+        /*
+         * Track activity only if we actually take the pbuf.
+         *
+         * On pbuf refusal (the ERR_MEM below), lwip re-submits often and would
+         * keep us "active" even though nothing more really happens on the TCP
+         * connection and we just have a yet unprocessed segment - and if the
+         * send side gets stuck, then unprocessable segment. We want to timeout
+         * a connection where recv side has some waiting data and send side
+         * can't make progress instead of keeping it forever.
+         */
+        slot->server->activity(conn, slot);
         /*
          * Will send data, consume data, free pbufs, release buffers and close
          * connections as needed.
