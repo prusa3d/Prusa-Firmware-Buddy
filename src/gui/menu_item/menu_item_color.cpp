@@ -161,14 +161,16 @@ void MenuItemColor::click(IWindowMenu &menu) {
     if (is_editable_) {
         const auto prev_focus = menu.focused_item_index();
 
-        set_value(color_prompt_dialog(GetLabel(), value_));
+        if (const auto color_opt = color_prompt_dialog(GetLabel(), value_)) {
+            set_value(*color_opt);
+        }
 
         // Opening a dialog with a menu screws up focus for the current menu - we need to restore it
         menu.move_focus_to_index(prev_focus);
     }
 }
 
-OptionalColor MenuItemColor::color_prompt_dialog(const string_view_utf8 &title, OptionalColor default_color) {
+std::optional<OptionalColor> MenuItemColor::color_prompt_dialog(const string_view_utf8 &title, OptionalColor default_color) {
     const auto c5 = default_color.transform<OptionalColor555>(Color555::from_color);
     const auto preset_it = std::ranges::find_if(
         color_presets,
@@ -192,7 +194,7 @@ OptionalColor MenuItemColor::color_prompt_dialog(const string_view_utf8 &title, 
     };
     const auto result = dialog_menu_virtual::execute(config);
     if (!result || result == 0) {
-        return default_color;
+        return std::nullopt;
     }
 
     // - MI_RETURN

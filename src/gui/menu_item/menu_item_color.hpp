@@ -9,8 +9,9 @@ class MenuItemColor : public IWindowMenuItem {
 
 public:
     /// Pops a dialog prompting for color selection
-    /// @returns selected color or default_color on cancel
-    static OptionalColor color_prompt_dialog(const string_view_utf8 &title, OptionalColor default_color);
+    /// @returns selected color or nullopt on cancel
+    /// Sorry about the optionalception
+    static std::optional<OptionalColor> color_prompt_dialog(const string_view_utf8 &title, OptionalColor default_color);
 
 public:
     MenuItemColor(const string_view_utf8 &label);
