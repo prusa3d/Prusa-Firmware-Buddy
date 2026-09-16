@@ -297,7 +297,7 @@ bool RequestParser::uri_filename(char *buffer, size_t buffer_size) const {
 
     // It seems looking for a substring in a non-null-terminated string in C++
     // is kind of painful.
-    for (size_t i = 0; i + 4 < url_len; i++) {
+    for (size_t i = 0; i + 4 <= url_len; i++) {
         if (fname_decoded.substr(i, 4) == "/../") {
             return false;
         }

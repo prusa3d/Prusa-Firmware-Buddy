@@ -57,4 +57,14 @@ TEST_CASE("url parser", "[url]") {
         parser.set_url("/test/api/%2e%2e/file.gcode");
         REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
     }
+
+    SECTION("trailing double dot slash") {
+        parser.set_url("/usb/../");
+        REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
+    }
+
+    SECTION("bare double dot slash") {
+        parser.set_url("/../");
+        REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
+    }
 }
