@@ -134,12 +134,7 @@ void selftest::calib_Z(bool move_down_after) {
     config_store().selftest_result.set(result);
 
     // backup original acceleration/feedrates and reset defaults for calibration
-    static constexpr float def_feedrate[] = DEFAULT_MAX_FEEDRATE;
-    static constexpr float def_accel[] = DEFAULT_MAX_ACCELERATION;
-    float orig_max_feedrate = planner.settings.max_feedrate_mm_s[Z_AXIS];
-    float orig_max_accel = planner.settings.max_acceleration_mm_per_s2[Z_AXIS];
-    planner.set_max_feedrate(Z_AXIS, def_feedrate[Z_AXIS]);
-    planner.set_max_acceleration(Z_AXIS, def_accel[Z_AXIS]);
+    Temporary_Reset_Motion_Parameters mp;
 
     // Z axis lift
     marlin_server::fsm_change(PhasesSelftest::CalibZ);
@@ -166,10 +161,6 @@ void selftest::calib_Z(bool move_down_after) {
 
     // always set axis as unhomed (Z_MAX_POS is unreliable, Z_MIN_POS is not probed with homeaxis()!)
     set_axis_is_not_at_home(Z_AXIS);
-
-    // restore original values
-    planner.set_max_feedrate(Z_AXIS, orig_max_feedrate);
-    planner.set_max_acceleration(Z_AXIS, orig_max_accel);
 
     // Store Z aligned
     result.set_zalign(TestResult::passed);
