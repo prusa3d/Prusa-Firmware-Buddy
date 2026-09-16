@@ -567,6 +567,9 @@ struct CurrentStore
     /// Tristate::other = default (decided dynamically)
     StoreItem<Tristate, Tristate::other, ItemFlag::features, journal::hash("Ask For Filament Color")> load_ask_for_filament_color;
 
+    /// Interprets `load_ask_for_filament_color`
+    bool should_load_ask_for_filament_color();
+
     // This makes sure that we do not exceed 16 hotends, a lot of things are limited to 16 hotends (bitsets, arrays, etc)
     static_assert(HOTENDS <= 16);
 

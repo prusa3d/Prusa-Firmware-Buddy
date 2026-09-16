@@ -650,4 +650,24 @@ void CurrentStore::set_indx_last_picked_tool(std::variant<PhysicalToolIndex, NoT
 
 #endif
 
+bool CurrentStore::should_load_ask_for_filament_color() {
+    switch (load_ask_for_filament_color.get().value) {
+
+    case Tristate::yes:
+        return true;
+
+    case Tristate::no:
+        return false;
+
+    case Tristate::other:
+        break;
+    }
+
+    // Tristate::other or invalid value - can happen in config store
+
+    // By default, ask for colors only if multiple virtual tools are enabled
+    // Colors are handy for toolmapping distinction and such
+    return !VirtualToolIndex::single_enabled_tool().has_value();
+}
+
 } // namespace config_store_ns

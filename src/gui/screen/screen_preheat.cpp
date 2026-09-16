@@ -35,19 +35,7 @@ namespace {
     case PreheatMode::standard_load:
     case PreheatMode::change_load:
     case PreheatMode::autoload:
-        switch (config_store().load_ask_for_filament_color.get().value) {
-
-        case Tristate::yes:
-            return true;
-
-        case Tristate::no:
-            return false;
-
-        case Tristate::other:
-            // By default, ask for colors only if multiple virtual tools are enabled
-            // Colors are handy for toolmapping distinction and such
-            return !VirtualToolIndex::single_enabled_tool().has_value();
-        }
+        return config_store().should_load_ask_for_filament_color();
     }
 
     bsod_unreachable();
