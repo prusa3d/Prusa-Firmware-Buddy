@@ -78,6 +78,18 @@ namespace {
                 .linear_heat_capacity_J_C_m = 5.2f,
             },
         },
+        {
+            PresetFilamentType::PVA,
+            FilamentParameters {
+                .linear_heat_capacity_J_C_m = 7.5f,
+            },
+        },
+        {
+            PresetFilamentType::BVOH,
+            FilamentParameters {
+                .linear_heat_capacity_J_C_m = 6.8f,
+            },
+        },
     };
 
 } // namespace

@@ -61,6 +61,8 @@ enum class PresetFilamentType : uint8_t {
     PPS = 10,
     PPA = 11,
 #endif
+    PVA = 12,
+    BVOH = 13,
 
     // !!! The PresetFilamentType enum is sparse
     // !!! Do not use this for linear iteration
@@ -163,6 +165,8 @@ inline constexpr std::array preset_filament_types {
         PresetFilamentType::PPS,
         PresetFilamentType::PPA,
 #endif
+        PresetFilamentType::PVA,
+        PresetFilamentType::BVOH,
 };
 
 inline constexpr size_t preset_filament_type_count = preset_filament_types.size();

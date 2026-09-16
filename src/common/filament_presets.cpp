@@ -244,6 +244,46 @@ constexpr PresetFilamentParameters preset_filament_parameters_constexpr {
             },
         },
 #endif
+        {
+            PresetFilamentType::PVA,
+            FilamentTypeParameters {
+                .name = "PVA",
+                .nozzle_temperature = 210,
+                .nozzle_preheat_temperature = 160,
+                .heatbed_temperature = 60,
+#if HAS_FILAMENT_BASE_PRESET_PARAM()
+                .base_preset = PresetFilamentType::PVA,
+#endif
+#if HAS_FILAMENT_HEATBREAK_PARAM()
+                .heatbreak_temperature = 45,
+#endif
+#if HAS_CHAMBER_API()
+                .chamber_min_temperature = 15,
+                .chamber_max_temperature = 38,
+                .chamber_target_temperature = 25,
+#endif
+            },
+        },
+        {
+            PresetFilamentType::BVOH,
+            FilamentTypeParameters {
+                .name = "BVOH",
+                .nozzle_temperature = 210,
+                .nozzle_preheat_temperature = 160,
+                .heatbed_temperature = 60,
+#if HAS_FILAMENT_BASE_PRESET_PARAM()
+                .base_preset = PresetFilamentType::BVOH,
+#endif
+#if HAS_FILAMENT_HEATBREAK_PARAM()
+                .heatbreak_temperature = 45,
+#endif
+#if HAS_CHAMBER_API()
+                .chamber_min_temperature = 15,
+                .chamber_max_temperature = 38,
+                .chamber_target_temperature = 25,
+#endif
+            },
+        },
 };
 
 constinit const PresetFilamentParameters preset_filament_parameters = preset_filament_parameters_constexpr;
