@@ -14,6 +14,7 @@
 #include <filament_list.hpp>
 #include <option/has_toolchanger.h>
 #include <bsod/bsod.h>
+#include <gui/menu_item/menu_item_color.hpp>
 
 using namespace multi_filament_change;
 
@@ -24,6 +25,10 @@ MI_ActionSelect::MI_ActionSelect(uint8_t tool_ix)
     has_filament_loaded = (config_store().get_filament_type(tool) != FilamentType::none);
     set_is_hidden(!tool.is_enabled());
     SetLabel(tool.display_name(label_params));
+
+    // Emit on_item_selected even when selecting the same item
+    // the user might want to change to a different color
+    deduplicate_on_item_selected_ = false;
 }
 
 MI_ActionSelect::MI_ActionSelect(SetAllToMode)
@@ -126,15 +131,34 @@ bool MI_ActionSelect::on_item_selected(const OnItemSelectedArgs &args) {
 
         menu.set_configuration(new_config);
 
-    } else {
-        // Skip reminders here, show them only on the final screen confirmation
-        if (!new_config_item.gui_confirm_incompatibilities(std::get<VirtualToolIndex>(tool_filter_), Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder)) {
+        // Just let current_item to be updated by the parent, will be picked up by the owning menu
+        return true;
+    }
+
+    // Skip reminders here, show them only on the final screen confirmation
+    if (args.old_index != args.new_index
+        && !new_config_item.gui_confirm_incompatibilities(std::get<VirtualToolIndex>(tool_filter_), Response::Cancel, buddy::compatibility_checks::CompatibilityLevel::compatible_with_reminder) //
+    ) {
+        return false;
+    }
+
+    if (new_config_item.action == Action::change && config_store().should_load_ask_for_filament_color()) {
+        const auto prev_focus = args.menu.focused_item_index();
+
+        auto new_color = MenuItemColor::color_prompt_dialog(_("FILAMENT COLOR"), color);
+
+        // Opening a dialog with a menu screws up focus for the current menu - we need to restore it
+        args.menu.move_focus_to_index(prev_focus);
+
+        if (!new_color.has_value()) {
+            // User cancelled the selection -> don't even change the action
             return false;
         }
 
-        // Just let current_item to be updated by the parent, will be picked up by the owning menu
+        color = *new_color;
     }
 
+    // Just let current_item to be updated by the parent, will be picked up by the owning menu
     return true;
 }
 
