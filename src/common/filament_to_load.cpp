@@ -11,13 +11,20 @@ void filament::set_type_to_load(FilamentType filament) {
 }
 
 FilamentType filament::apply_load_color(FilamentType filament, VirtualToolIndex virtual_tool, OptionalColor color) {
-    if (!color.has_value()) {
+    // NoFilament must stay NoFilament
+    if (!color.has_value() || filament == FilamentType::none) {
         return filament;
     }
 
+    FilamentTypeParameters params = filament.parameters();
+    params.color = *color;
+
+    // virtual_tool will matter once pending adhoc filaments become per-tool
+    (void)virtual_tool;
+
     // Pending adhoc -> the color applies to this load only,
     // the user preset stays untouched (and a system preset cannot be changed at all)
-    filament = filament.to_pending_adhoc(virtual_tool);
-    filament.modify_parameters([&](auto &params) { params.color = *color; });
+    filament = FilamentType::pending_adhoc;
+    filament.set_parameters(params);
     return filament;
 }

@@ -294,11 +294,6 @@ public:
     /// Sets parameters of the filament type, provided that the filament type is customizable
     void set_parameters(const FilamentTypeParameters &set) const;
 
-    /// Copies parameters over to a PendingAdhocFilamentType and returns it.
-    /// Necessary to allow instance-specific filament customization before load
-    /// NoFilamentType always stays NoFilamentType.
-    FilamentType to_pending_adhoc(VirtualToolIndex for_tool) const;
-
     /// \returns Modified parameters of the filament type (calls \p f(params) and stores the modified data)
     template <class F>
     void modify_parameters(F &&f) const {

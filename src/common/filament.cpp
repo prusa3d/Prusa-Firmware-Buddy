@@ -408,22 +408,3 @@ void FilamentType::set_visible(bool set) const {
     },
         *this);
 }
-
-FilamentType FilamentType::to_pending_adhoc(VirtualToolIndex for_tool) const {
-    // Will be used if pending adhoc filaments would need to be per-tool
-    (void)for_tool;
-    static_assert(aggregate_arity<PendingAdHocFilamentType>() == 0);
-
-    // NoFilament must stay NoFilament
-    if (*this == none) {
-        return *this;
-    }
-
-    const FilamentType target_type = PendingAdHocFilamentType {};
-
-    if (*this != target_type) {
-        target_type.set_parameters(parameters());
-    }
-
-    return target_type;
-}
