@@ -9,7 +9,7 @@ uint32_t IRAM_ATTR now_seconds() {
     return xTaskGetTickCount() / configTICK_RATE_HZ;
 }
 
-void IRAM_ATTR do_wifi_scan(void *) {
+void IRAM_ATTR do_wifi_scan([[maybe_unused]] void *arg) {
     wifi_scan_config_t config {};
 
     config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
@@ -113,7 +113,7 @@ void IRAM_ATTR cache_current_ap_info() {
     }
 }
 
-void IRAM_ATTR wifi_re_connect_task(void *) {
+void IRAM_ATTR wifi_re_connect_task([[maybe_unused]] void *arg) {
     if (!scan.in_progress) {
         ESP_LOGI(TAG, "Connecting to AP");
         esp_wifi_connect();
@@ -268,14 +268,14 @@ void IRAM_ATTR clear_stored_ssids() {
     scan.stored_ssids_count = 0;
 }
 
-void IRAM_ATTR handle_rx_msg_scan_start(uint8_t *, Header) {
+void IRAM_ATTR handle_rx_msg_scan_start([[maybe_unused]] uint8_t *data, [[maybe_unused]] Header header) {
     clear_stored_ssids();
     ESP_LOGI(TAG, "Starting scan...");
 
     start_wifi_scan(&store_scanned_ssids, ScanType::incremental);
 }
 
-void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *, Header) {
+void IRAM_ATTR handle_rx_msg_scan_stop([[maybe_unused]] uint8_t *data, [[maybe_unused]] Header header) {
     // Response is send automatically after scan is stopped
     // Intentionally don't fail if the scan is no longer running
     // (aka we connected to AP during scan)
@@ -284,7 +284,7 @@ void IRAM_ATTR handle_rx_msg_scan_stop(uint8_t *, Header) {
 
 void send_scanned_ssid(uint8_t index, const ScanResult *ap_info);
 
-void IRAM_ATTR handle_rx_msg_scan_get(uint8_t *, Header header) {
+void IRAM_ATTR handle_rx_msg_scan_get([[maybe_unused]] uint8_t *data, Header header) {
     if (header.ap_index < scan.stored_ssids_count) {
         send_scanned_ssid(header.ap_index, &scan.stored_ssids[header.ap_index]);
     } else {

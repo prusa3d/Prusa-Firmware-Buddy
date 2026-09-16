@@ -45,7 +45,7 @@ static FORCE_INLINE uint8_t *uart0_tx_fifo(uint8_t *data, size_t size) {
     return data;
 }
 
-static void IRAM_ATTR uart0_isr(void *param) {
+static void IRAM_ATTR uart0_isr([[maybe_unused]] void *param) {
     // This ISR handles all UART0 conditions:
     //   * TX FIFO empty - happens when TX FIFO has less than `txfifo_empty_thresh` bytes
     //   * RX FIFO full  - happens when RX FIFO has more than `rxfifo_full_thresh` bytes

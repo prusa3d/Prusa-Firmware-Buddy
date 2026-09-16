@@ -212,7 +212,7 @@ static void IRAM_ATTR handle_rx_msg_packet_v2(uint8_t *data, Header header) {
     }
 }
 
-static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, Header header) {
+static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, [[maybe_unused]] Header header) {
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
@@ -265,7 +265,7 @@ static void IRAM_ATTR handle_rx_msg_clientconfig_v2(uint8_t *data, Header header
     send_device_info();
 }
 
-static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, Header header) {
+static void IRAM_ATTR handle_rx_msg_unknown(uint8_t *data, [[maybe_unused]] Header header) {
     if (data) {
         free(data);
     }
@@ -347,7 +347,7 @@ static void IRAM_ATTR read_message() {
     }
 }
 
-static void IRAM_ATTR uart0_rx_task(void *arg) {
+static void IRAM_ATTR uart0_rx_task([[maybe_unused]] void *arg) {
     // wait for uart0_driver_install() to finish
     (void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
@@ -356,7 +356,7 @@ static void IRAM_ATTR uart0_rx_task(void *arg) {
     }
 }
 
-static void IRAM_ATTR main_task(void *arg) {
+static void IRAM_ATTR main_task([[maybe_unused]] void *arg) {
     // Wait because printer sends reset for whatever reason.
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
@@ -372,7 +372,7 @@ static void IRAM_ATTR main_task(void *arg) {
     }
 }
 
-static void IRAM_ATTR uart0_tx_task(void *arg) {
+static void IRAM_ATTR uart0_tx_task([[maybe_unused]] void *arg) {
     // wait for uart0_driver_install() to finish
     (void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 

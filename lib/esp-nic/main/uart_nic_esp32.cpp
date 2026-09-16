@@ -378,7 +378,7 @@ static void IRAM_ATTR read_message() {
     check_online_status();
 }
 
-static void IRAM_ATTR wifi_egress_thread(void *arg) {
+static void IRAM_ATTR wifi_egress_thread([[maybe_unused]] void *arg) {
     for (;;) {
         WifiSendBuff *buff;
         if (xQueueReceive(wifi_egress_queue, &buff, (TickType_t)portMAX_DELAY)) {
@@ -396,14 +396,14 @@ static void IRAM_ATTR wifi_egress_thread(void *arg) {
     }
 }
 
-static void IRAM_ATTR output_rx_thread(void *arg) {
+static void IRAM_ATTR output_rx_thread([[maybe_unused]] void *arg) {
     ESP_LOGI(TAG, "Started RX thread");
     for (;;) {
         read_message();
     }
 }
 
-static void IRAM_ATTR uart_tx_thread(void *arg) {
+static void IRAM_ATTR uart_tx_thread([[maybe_unused]] void *arg) {
     // Send initial device info to let master know ESP is ready
     send_device_info();
 
