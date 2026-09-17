@@ -390,6 +390,7 @@ void GcodeSuite::G29() {
 
         break;
     }
+    debug_assert(axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::full));
 }
 
 /** @}*/
