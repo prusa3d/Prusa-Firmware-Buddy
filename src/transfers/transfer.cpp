@@ -67,7 +67,7 @@ size_t Transfer::PlainGcodeDownloadOrder::get_next_offset(const PartialFile &fil
     }
     case State::DownloadingTail: {
         auto tail = file.get_valid_tail();
-        log_info(transfers, "returning offset for tail: %i, %u, %u", tail.has_value(), tail->start, tail->end);
+        log_info(transfers, "returning offset for tail: %i, %u, %u", tail.has_value(), tail ? tail->start : 0, tail ? tail->end : 0);
         return tail.has_value() ? tail->end : file.final_size() - TailSize;
     }
     default:
