@@ -11,7 +11,6 @@
     #include "ScreenSelftest.hpp"
 #endif
 
-#include "screen_menu_mmu_load_test_filament.hpp"
 #include "screen_menu_mmu_load_to_nozzle.hpp"
 #include "screen/screen_menu_mmu_preload_all.hpp"
 #include "screen_menu_filament_changeall.hpp"
@@ -36,11 +35,8 @@ void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_TEST_FILAMENT
-MI_MMU_LOAD_TEST_FILAMENT::MI_MMU_LOAD_TEST_FILAMENT()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, MMU2::mmu2.Enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
-}
-void MI_MMU_LOAD_TEST_FILAMENT::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadTestFilament>);
+MI_MMU_LOAD_TEST_FILAMENT::MI_MMU_LOAD_TEST_FILAMENT() {
+    set_is_hidden(!MMU2::mmu2.Enabled());
 }
 
 /**********************************************************************************************/

@@ -20,16 +20,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_TEST_FILAMENT : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Loading Test");
-
-public:
-    MI_MMU_LOAD_TEST_FILAMENT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_MMU_LOAD_TO_NOZZLE : public IWindowMenuItem {
     static constexpr const char *const label = N_("Load To Nozzle");
 
@@ -130,12 +120,17 @@ public:
     MI_MMU_CUT_FILAMENT();
 };
 
-template <uint8_t slot_i>
 class MI_MMU_LOAD_TEST_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
-    MI_MMU_LOAD_TEST_FILAMENT_I()
+    MI_MMU_LOAD_TEST_FILAMENT_I(uint8_t slot_i)
         : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Test Filament %i"), "M1704 P%i M0") {}
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT : public MenuItemVirtualSubmenu<N_("Loading Test"), MI_MMU_LOAD_TEST_FILAMENT_I, VirtualToolIndex::count> {
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT();
 };
 
 class MI_MMU_UNLOAD_FILAMENT : public MI_MMU_ISSUE_GCODE {
