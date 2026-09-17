@@ -38,23 +38,23 @@
 class Enclosure {
 public:
     Enclosure();
-    std::optional<buddy::Temperature> getEnclosureTemperature();
+    std::optional<buddy::Temperature> get_enclosure_temperature();
 
     /**
      *  Set persistent flag and save it to EEPROM
      */
-    void setEnabled(bool set);
+    void set_enabled(bool set);
 
     /** Enclosure loop function embedded in marlin_server
      * Handling timers and enclosure fan.
      *
-     * @param MCU_modular_bed_temp [in] - MCU Temperature for handling fan cooling/filtration
+     * @param mcu_modular_bed_temp [in] - MCU Temperature for handling fan cooling/filtration
      * @param active_dwarf_board_temp [in] - Current or first dwarf board temperature
      */
-    void loop(int32_t MCU_modular_bed_temp, int16_t active_dwarf_board_temp);
+    void loop(int32_t mcu_modular_bed_temp, int16_t active_dwarf_board_temp);
 
-    inline bool isEnabled() const { return is_enabled_; }
-    inline bool isActive() const { return active_mode == EnclosureMode::Active; }
+    inline bool is_enabled() const { return is_enabled_; }
+    inline bool is_active() const { return active_mode == EnclosureMode::Active; }
 
 private:
     enum class EnclosureMode {
@@ -65,25 +65,25 @@ private:
 
     /**
      *  Get Fan PWM from active_mode and enclosure state
-     *  @param MCU_modular_bed_temp can override pwm for cooling purposes if overheated
+     *  @param mcu_modular_bed_temp can override pwm for cooling purposes if overheated
      */
-    PWM255 calculatePwm(int32_t MCU_modular_bed_temp);
+    PWM255 calculate_pwm(int32_t mcu_modular_bed_temp);
 
     /**
      *  Test enclosure fan presence
      */
-    void testFanPresence(uint32_t curr_sec);
+    void test_fan_presence(uint32_t curr_sec);
 
     /**
      *  Timing validation period of recorded temperature: 5 minutes
      */
-    void updateTempValidationTimer();
+    void update_temp_validation_timer();
 
     /**
      *  Checks if modular bed is overheated and overwrites active_mode if it is
-     *  @param MCU_modular_bed_temp
+     *  @param mcu_modular_bed_temp
      */
-    bool isMCUOverheating(int32_t MCU_modular_bed_temp);
+    bool is_mcu_overheating(int32_t mcu_modular_bed_temp);
 
     EnclosureMode active_mode;
     uint32_t last_sec;

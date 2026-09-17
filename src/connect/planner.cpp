@@ -996,7 +996,7 @@ void Planner::command(const Command &command, const SetValue &params) {
         break;
 #if XL_ENCLOSURE_SUPPORT() && HAS_CHAMBER_FILTRATION_API()
     case connect_client::PropertyName::EnclosureEnabled:
-        xl_enclosure.setEnabled(get<bool>(params.value));
+        xl_enclosure.set_enabled(get<bool>(params.value));
         break;
     case connect_client::PropertyName::EnclosurePrintingFiltration:
         config_store().chamber_print_filtration_enable.set(get<bool>(params.value));

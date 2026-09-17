@@ -18,9 +18,9 @@ void ScreenMenuControl::windowEvent(window_t *sender, GUI_event_t event, void *p
     }
 #if XL_ENCLOSURE_SUPPORT()
     if (event == GUI_event_t::LOOP) {
-        if (xl_enclosure.isActive() && Item<MI_ENCLOSURE>().IsHidden()) {
+        if (xl_enclosure.is_active() && Item<MI_ENCLOSURE>().IsHidden()) {
             SwapVisibility<MI_ENCLOSURE, MI_ENCLOSURE_ENABLE>();
-        } else if (!xl_enclosure.isActive() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
+        } else if (!xl_enclosure.is_active() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
             SwapVisibility<MI_ENCLOSURE_ENABLE, MI_ENCLOSURE>();
         }
     }

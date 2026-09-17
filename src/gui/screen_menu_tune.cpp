@@ -37,9 +37,9 @@ void ScreenMenuTune::windowEvent(window_t *sender, GUI_event_t event, void *para
         /* If the test passes, MI_ENCLOSURE_ENABLE is swapped with MI_ENCLOSURE and enclosure settings can be accessed */
         /* This hides enclosure settings for Users without enclosure */
 
-        if (xl_enclosure.isActive() && Item<MI_ENCLOSURE>().IsHidden()) {
+        if (xl_enclosure.is_active() && Item<MI_ENCLOSURE>().IsHidden()) {
             SwapVisibility<MI_ENCLOSURE, MI_ENCLOSURE_ENABLE>();
-        } else if (!xl_enclosure.isActive() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
+        } else if (!xl_enclosure.is_active() && Item<MI_ENCLOSURE_ENABLE>().IsHidden()) {
             SwapVisibility<MI_ENCLOSURE_ENABLE, MI_ENCLOSURE>();
         }
 #endif
