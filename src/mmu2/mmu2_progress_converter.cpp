@@ -1,6 +1,8 @@
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
 #include "../lang/i18n.h"
 
+#include <iterator>
+
 namespace MMU2 {
 // clang-format off
                                                        //01234567890123456789
@@ -67,7 +69,7 @@ static constexpr const char *progressTexts[] = {
 
 const char *ProgressCodeToText(ProgressCode pc) {
     // @@TODO ?? a better fallback option?
-    return ((uint16_t)pc <= (sizeof(progressTexts) / sizeof(progressTexts[0])))
+    return ((uint16_t)pc < std::size(progressTexts))
         ? progressTexts[(uint16_t)pc]
         : progressTexts[0];
 }
