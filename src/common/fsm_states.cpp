@@ -46,9 +46,6 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
     case ClientFSM::DockCalibration:
     case ClientFSM::NozzleCleanerCalibration:
 #endif
-#if HAS_TOOL_OFFSET_SENSOR()
-    case ClientFSM::ToolOffsetsCalibration:
-#endif
         return 1;
 
     case ClientFSM::Load_unload:
@@ -75,6 +72,9 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
 #endif
 #if HAS_LOADCELL()
     case ClientFSM::NozzleCleaningFailed:
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    case ClientFSM::ToolOffsetsCalibration:
 #endif
         return 2;
 #if HAS_INDX()

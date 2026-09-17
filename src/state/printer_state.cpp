@@ -66,6 +66,9 @@
     #include <fsm/wastebin_emptying_phases.hpp>
     #include <fsm/wastebin_emptying_mapper.hpp>
 #endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    #include <fsm/tool_offsets_calibration_mapper.hpp>
+#endif
 
 using namespace marlin_server;
 using namespace printer_state;
@@ -294,9 +297,6 @@ DeviceState get_state(bool ready) {
 #if HAS_GANTRY_SQUARENESS_CHECK()
     case ClientFSM::GantrySquareness:
 #endif
-#if HAS_TOOL_OFFSET_SENSOR()
-    case ClientFSM::ToolOffsetsCalibration:
-#endif
 #if HAS_SERIAL_PRINT()
     case ClientFSM::Serial_printing:
 #endif
@@ -316,6 +316,10 @@ DeviceState get_state(bool ready) {
 #if HAS_WASTEBIN_FILL_TRACKING()
     case ClientFSM::WastebinEmptying:
         return wastebin_emptying_is_phase_attention.test(data.GetPhase()) ? DeviceState::Attention : busy_state;
+#endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    case ClientFSM::ToolOffsetsCalibration:
+        return tool_offsets_calibration_phase_error_code_mapper(FSMAndPhase(ClientFSM::ToolOffsetsCalibration, data.GetPhase())).has_value() ? DeviceState::Attention : busy_state;
 #endif
 
     case ClientFSM::SafetyTimer:
@@ -508,6 +512,13 @@ StateWithDialog get_state_with_dialog(bool ready) {
         }
         break;
 #endif
+#if HAS_TOOL_OFFSET_SENSOR()
+    case ClientFSM::ToolOffsetsCalibration:
+        if (auto dialog = attention_phase_dialog(tool_offsets_calibration_phase_error_code_mapper)) {
+            return *dialog;
+        }
+        break;
+#endif
 #if HAS_WASTEBIN_FILL_TRACKING()
     case ClientFSM::WastebinEmptying:
         if (auto dialog = attention_phase_dialog(wastebin_emptying_phase_error_code_mapper)) {
@@ -559,9 +570,6 @@ StateWithDialog get_state_with_dialog(bool ready) {
 #endif
 #if HAS_GANTRY_SQUARENESS_CHECK()
     case ClientFSM::GantrySquareness:
-#endif
-#if HAS_TOOL_OFFSET_SENSOR()
-    case ClientFSM::ToolOffsetsCalibration:
 #endif
     case ClientFSM::Preheat:
     case ClientFSM::SafetyTimer:
@@ -796,19 +804,6 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 
     case WarningType::HomingCalibrationFromMenuNeeded:
         return ErrCode::ERR_MECHANICAL_HOMING_CALIBRATION_FROM_MENU_NEEDED;
-#endif
-
-#if HAS_TOOL_OFFSET_SENSOR()
-    case WarningType::ToolOffsetCalibrationFailed:
-        return ErrCode::ERR_MECHANICAL_TOOL_OFFSET_CALIBRATION_FAILED;
-
-    case WarningType::HotendOffsetUnsafeZDeviation:
-        return ErrCode::ERR_MECHANICAL_TOOL_OFFSET_UNSAFE_Z_DEVIATION;
-
-    case WarningType::HotendOffsetUnsafeXyDeviation:
-        return ErrCode::ERR_MECHANICAL_TOOL_OFFSET_UNSAFE_XY;
-    case WarningType::HotendOffsetUnsafeSensorXY:
-        return ErrCode::ERR_MECHANICAL_TOOL_OFFSET_UNSAFE_SENSOR_XY;
 #endif
 
 #if HAS_SELFTEST()

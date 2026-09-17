@@ -4,7 +4,6 @@
 
 #include <bitset>
 #include <option/has_mmu2.h>
-#include <option/has_tool_offset_sensor.h>
 #include <option/has_ceiling_clearance.h>
 #include <option/has_chamber_api.h>
 #include <option/has_chamber_filtration_api.h>
@@ -93,20 +92,6 @@ constexpr PhasesWarning warning_type_phase_constexpr(WarningType warning) {
 #if HAS_ILI9488_DISPLAY() && HAS_HUMAN_INTERACTIONS()
     case WarningType::DisplayProblemDetected:
         return PhasesWarning::DisplayProblemDetected;
-#endif
-
-#if HAS_TOOL_OFFSET_SENSOR()
-    case WarningType::ToolOffsetCalibrationFailed:
-        return PhasesWarning::ToolOffsetCalibrationFailed;
-
-    case WarningType::HotendOffsetUnsafeZDeviation:
-        return PhasesWarning::HotendOffsetUnsafeZDeviation;
-
-    case WarningType::HotendOffsetUnsafeXyDeviation:
-        return PhasesWarning::HotendOffsetUnsafeXyDeviation;
-
-    case WarningType::HotendOffsetUnsafeSensorXY:
-        return PhasesWarning::HotendOffsetUnsafeSensorXY;
 #endif
 
         //

@@ -17,7 +17,8 @@
 #include <Marlin/src/module/prusa/toolchanger.h>
 #include <marlin_server.hpp>
 #include <common/printer_model.hpp>
-#include <warning_type.hpp>
+#include <common/fsm_base_types.hpp>
+#include <client_response.hpp>
 #include <tool_index.hpp>
 #include <tools_mapping.hpp>
 #include <gcode/gcode_info.hpp>
@@ -251,9 +252,9 @@ bool prepare_tool(PhysicalToolIndex tool, [[maybe_unused]] tool_offset_calibrati
 }
 
 /// Park the head with low Z at the front so the user can inspect/clean the nozzle
-/// and prompt with Retry/Abort.
+/// and prompt with Retry/Abort. `tool` is the tool the failure is attributed to, if any.
 /// Returns: Response::Retry on a successful retry path, Response::Abort otherwise.
-Response prompt_retry(WarningType warning, tool_offset_calibration::Context context) {
+Response prompt_retry(PhaseToolOffsetsCalibration phase, std::optional<PhysicalToolIndex> tool, tool_offset_calibration::Context context) {
     // If the user already aborted, skip the dialog and the parking move. This covers a stopped
     // print as well as a calibration-wizard Abort, which quick-stops the planner (-> draining()).
     if (marlin_server::aborting_or_aborted() || planner.draining()) {
@@ -264,7 +265,10 @@ Response prompt_retry(WarningType warning, tool_offset_calibration::Context cont
     const mapi::ParkingPosition park_cleaning_position = mapi::ParkingPosition::from_xyz_pos({ { { (X_MIN_POS + X_MAX_POS) / 2.0f, 10.0f, park_clean_z } } });
     mapi::park(park_cleaning_position);
 
-    if (marlin_server::prompt_warning(warning) != Response::Retry) {
+    // From a print this opens the calibration FSM just for the prompt; in the wizard the FSM is
+    // already open and the holder only changes its phase.
+    marlin_server::FSM_Holder holder(phase, fsm::serialize_data(tool));
+    if (marlin_server::wait_for_response(phase) != Response::Retry) {
         if (context == tool_offset_calibration::Context::Print) {
             marlin_server::print_abort();
         }
@@ -379,8 +383,8 @@ std::optional<PhysicalToolIndex> biggest_outlier(const PhysicalToolSet &tools, A
     return outlier;
 }
 
-void log_biggest_outlier(const PhysicalToolSet &tools, AxisEnum axis) {
-    if (const auto outlier = biggest_outlier(tools, axis)) {
+void log_biggest_outlier(std::optional<PhysicalToolIndex> outlier, AxisEnum axis) {
+    if (outlier) {
         const char axis_letter = "XYZ"[axis];
         log_error(ToolOffsetCalib, "Biggest outlier on %c: tool %u", axis_letter, outlier->to_raw());
     }
@@ -763,21 +767,22 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
                 continue;
             }
 
-            if (status_guard) {
-                status_guard->update<PrintStatusMessage::Type::tool_offset_calibrating>({
-                    .progress = { .current = static_cast<float>(step + 1), .target = static_cast<float>(num_tools) },
-                    .tool = tool.to_raw(),
-                });
-            }
-            if (progress_cb) {
-                if (!progress_cb({
-                        .step = static_cast<uint8_t>(step + 1),
-                        .total_steps = num_tools,
-                        .tool = tool,
-                    })) {
+            // Sent before every attempt: a failure prompt leaves the wizard FSM in the failure phase
+            const auto report_progress = [&]() -> bool {
+                if (status_guard) {
+                    status_guard->update<PrintStatusMessage::Type::tool_offset_calibrating>({
+                        .progress = { .current = static_cast<float>(step + 1), .target = static_cast<float>(num_tools) },
+                        .tool = tool.to_raw(),
+                    });
+                }
+                if (progress_cb && !progress_cb({ .step = static_cast<uint8_t>(step + 1), .total_steps = num_tools, .tool = tool })) {
                     log_info(ToolOffsetCalib, "Tool offset calibration aborted by progress callback");
                     return false;
                 }
+                return true;
+            };
+            if (!report_progress()) {
+                return false;
             }
 
             if (!tool_change(stdext::to_variant(tool), tool_return_t::no_return)) {
@@ -798,10 +803,13 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
             });
 
             while (!pass.measure_tool(tool, step)) {
-                if (prompt_retry(WarningType::ToolOffsetCalibrationFailed, context) != Response::Retry) {
+                if (prompt_retry(PhaseToolOffsetsCalibration::tool_failed, tool, context) != Response::Retry) {
                     return false;
                 }
                 log_info(ToolOffsetCalib, "Retrying tool %u (step %u)", tool.to_raw(), step);
+                if (!report_progress()) {
+                    return false;
+                }
                 // The failure may be a lost pick, which only a re-pick fixes. Zero the tool's
                 // partial offset first: a same-tool change marks the stored offset as applied
                 // without moving, and the retry re-measures it anyway.
@@ -820,10 +828,12 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
         const xyz_pos_t spread = offsets_bounding_box(pass.measured()).size();
         if (num_tools > 1) {
             if (spread.x > MAX_XY_OFFSET_DIFFERENCE || spread.y > MAX_XY_OFFSET_DIFFERENCE) {
+                const AxisEnum axis = spread.x > spread.y ? X_AXIS : Y_AXIS;
+                const auto outlier = biggest_outlier(pass.measured(), axis);
                 log_error(ToolOffsetCalib, "XY offset spread too large: X=%.3f Y=%.3f (limit %.3f)",
                     static_cast<double>(spread.x), static_cast<double>(spread.y), static_cast<double>(MAX_XY_OFFSET_DIFFERENCE));
-                log_biggest_outlier(pass.measured(), spread.x > spread.y ? X_AXIS : Y_AXIS);
-                if (prompt_retry(WarningType::HotendOffsetUnsafeXyDeviation, context) == Response::Retry) {
+                log_biggest_outlier(outlier, axis);
+                if (prompt_retry(PhaseToolOffsetsCalibration::unsafe_xy_offset, outlier, context) == Response::Retry) {
                     continue;
                 }
                 return false;
@@ -837,7 +847,7 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
             // TODO WP5.4: per-coil stored positions + the config-store migration.
             const xyz_pos_t average_offset = offsets_average(pass.measured());
             if (std::abs(average_offset.x) > probing_config.sensor_position_error_threshold || std::abs(average_offset.y) > probing_config.sensor_position_error_threshold) {
-                if (prompt_retry(WarningType::HotendOffsetUnsafeSensorXY, context) == Response::Retry) {
+                if (prompt_retry(PhaseToolOffsetsCalibration::unsafe_sensor_position, std::nullopt, context) == Response::Retry) {
                     continue;
                 }
                 return false;
@@ -882,7 +892,7 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
             if (std::abs(average_offset.x) > probing_config.sensor_displacement_error_threshold || std::abs(average_offset.y) > probing_config.sensor_displacement_error_threshold) {
                 // in actual configuration this code is dead
                 // TODO: reanalyze the need for this once calibration sequence is finalized for BFW-8420
-                if (prompt_retry(WarningType::HotendOffsetUnsafeSensorXY, context) == Response::Retry) {
+                if (prompt_retry(PhaseToolOffsetsCalibration::unsafe_sensor_position, std::nullopt, context) == Response::Retry) {
                     continue;
                 }
                 return false;
@@ -917,10 +927,11 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context, const ProgressCa
         }
 
         if (measure_z && spread.z > MAX_Z_OFFSET_DIFFERENCE) {
+            const auto outlier = biggest_outlier(pass.measured(), Z_AXIS);
             log_error(ToolOffsetCalib, "Z offset spread too large: %.3f (limit %.3f)",
                 static_cast<double>(spread.z), static_cast<double>(MAX_Z_OFFSET_DIFFERENCE));
-            log_biggest_outlier(pass.measured(), Z_AXIS);
-            if (prompt_retry(WarningType::HotendOffsetUnsafeZDeviation, context) == Response::Retry) {
+            log_biggest_outlier(outlier, Z_AXIS);
+            if (prompt_retry(PhaseToolOffsetsCalibration::unsafe_z_offset, outlier, context) == Response::Retry) {
                 continue;
             }
             return false;

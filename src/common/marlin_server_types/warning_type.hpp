@@ -17,7 +17,6 @@
 #include <option/has_human_interactions.h>
 #include <option/has_anfc.h>
 #include <option/has_tool_offset_pin_calibration.h>
-#include <option/has_tool_offset_sensor.h>
 #include <option/has_indx.h>
 #include <option/has_wastebin_fill_tracking.h>
 #include <option/has_ht_hotend.h>
@@ -120,12 +119,6 @@ enum class WarningType : uint32_t {
     HomingCalibrationFromMenuNeeded,
 #endif
     AccelerometerCommunicationFailed,
-#if HAS_TOOL_OFFSET_SENSOR()
-    ToolOffsetCalibrationFailed,
-    HotendOffsetUnsafeZDeviation,
-    HotendOffsetUnsafeXyDeviation,
-    HotendOffsetUnsafeSensorXY,
-#endif
 #if HAS_ANFC()
     /// Filament tracking unrecoverably failed for any reason
     OpenPrintTagCannotTrack,

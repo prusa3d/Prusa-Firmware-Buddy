@@ -380,14 +380,6 @@ enum class PhasesWarning : PhaseUnderlyingType {
     DisplayProblemDetected,
 #endif
 
-#if HAS_TOOL_OFFSET_SENSOR()
-    /// Blocking dialog shown when tool offset calibration fails. Lets the user abort or retry.
-    ToolOffsetCalibrationFailed,
-    HotendOffsetUnsafeZDeviation,
-    HotendOffsetUnsafeXyDeviation,
-    HotendOffsetUnsafeSensorXY,
-#endif
-
     /// Shown when the M334 is attempting to change metrics configuration, prompting the user to confirm the change (security reasons)
     MetricsConfigChangePrompt,
 
@@ -559,6 +551,10 @@ enum class PhaseToolOffsetsCalibration : PhaseUnderlyingType {
     homing,
     picking_tool,
     calibrating,
+    tool_failed, ///< a tool could not be cleaned, probed or scanned
+    unsafe_xy_offset, ///< XY spread between the tools over the limit
+    unsafe_z_offset, ///< Z spread between the tools over the limit
+    unsafe_sensor_position, ///< the tools' average offset puts the sensor too far from where it should be
     calibration_success,
     calibration_failed,
     _last = calibration_failed,
@@ -759,12 +755,6 @@ inline constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarn
 #if HAS_ILI9488_DISPLAY() && HAS_HUMAN_INTERACTIONS()
         { PhasesWarning::DisplayProblemDetected, { Response::Yes, Response::No } },
 #endif
-#if HAS_TOOL_OFFSET_SENSOR()
-        { PhasesWarning::ToolOffsetCalibrationFailed, { Response::Retry, Response::Abort } },
-        { PhasesWarning::HotendOffsetUnsafeZDeviation, { Response::Retry, Response::Abort } },
-        { PhasesWarning::HotendOffsetUnsafeXyDeviation, { Response::Retry, Response::Abort } },
-        { PhasesWarning::HotendOffsetUnsafeSensorXY, { Response::Retry, Response::Abort } },
-#endif
         { PhasesWarning::MetricsConfigChangePrompt, { Response::Yes, Response::No } },
 };
 
@@ -909,6 +899,10 @@ inline constexpr EnumArray<PhaseToolOffsetsCalibration, PhaseResponses, CountPha
         { PhaseToolOffsetsCalibration::homing, {} },
         { PhaseToolOffsetsCalibration::picking_tool, {} },
         { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
+        { PhaseToolOffsetsCalibration::tool_failed, { Response::Retry, Response::Abort } },
+        { PhaseToolOffsetsCalibration::unsafe_xy_offset, { Response::Retry, Response::Abort } },
+        { PhaseToolOffsetsCalibration::unsafe_z_offset, { Response::Retry, Response::Abort } },
+        { PhaseToolOffsetsCalibration::unsafe_sensor_position, { Response::Retry, Response::Abort } },
         { PhaseToolOffsetsCalibration::calibration_success, { Response::Continue } },
         { PhaseToolOffsetsCalibration::calibration_failed, { Response::Continue } },
 };

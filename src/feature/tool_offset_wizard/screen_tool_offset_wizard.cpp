@@ -1,7 +1,10 @@
 #include "screen_tool_offset_wizard.hpp"
 
 #include "tool_offset_wizard.hpp"
+#include <optional>
+
 #include <common/fsm_base_types.hpp>
+#include <fsm/tool_offsets_calibration_mapper.hpp>
 #include <guiconfig/GuiDefaults.hpp>
 #include <guiconfig/wizard_config.hpp>
 #include <i18n.h>
@@ -9,9 +12,11 @@
 #include <standard_frame/frame_extensions/with_footer.hpp>
 #include <standard_frame/frame_progress_prompt.hpp>
 #include <standard_frame/frame_prompt.hpp>
+#include <standard_frame/frame_qr_prompt.hpp>
 #include <standard_frame/frame_text_prompt.hpp>
 #include <standard_frame/frame_wait.hpp>
 #include <string_view_utf8.hpp>
+#include <tool_index.hpp>
 
 #include "has_tool_offset_nozzle_cleaning_wizard.hpp"
 
@@ -60,6 +65,39 @@ private:
     StringViewUtf8Parameters<20> params_;
 };
 
+// %u placeholder is filled with the 1-based tool the failure is attributed to.
+constexpr auto txt_failed_tool = N_("Tool %u");
+
+class FrameToolFailure : public FrameQRPrompt {
+public:
+    FrameToolFailure(window_frame_t *parent, FSMAndPhase fsm_phase)
+        : FrameQRPrompt(parent, fsm_phase, tool_offsets_calibration_phase_error_code_mapper)
+        , tool_(&inner_frame, {}, is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeNULLSTR()) {
+        // The tool line takes the bottom row of the info text
+        const Rect16 info_rect = info.GetRect();
+        const int16_t row = WizardDefaults::txt_h;
+        info.SetRect(Rect16(info_rect.Left(), info_rect.Top(), info_rect.Width(), info_rect.Height() - row));
+        tool_.SetRect(Rect16(info_rect.Left(), info_rect.Top() + info_rect.Height() - row, info_rect.Width(), row));
+        tool_.SetAlignment(Align_t::LeftTop());
+        tool_.Hide();
+    }
+
+    void update(fsm::PhaseData data) {
+        const auto tool = fsm::deserialize_data<std::optional<PhysicalToolIndex>>(data);
+        if (!tool) {
+            tool_.Hide();
+            return;
+        }
+        tool_.SetText(_(txt_failed_tool).formatted(params_, static_cast<unsigned>(tool->to_raw() + 1)));
+        tool_.Invalidate();
+        tool_.Show();
+    }
+
+private:
+    window_text_t tool_;
+    StringViewUtf8Parameters<8> params_;
+};
+
 #if HAS_TOOL_OFFSET_NOZZLE_CLEANING_WIZARD()
 /// Cleaning prompt with all nozzle temperatures in the footer, so the user can
 /// track the heat-up/cool-down they control with the Heatup/Cooldown buttons.
@@ -78,6 +116,10 @@ using Frames = FrameDefinitionList<ScreenToolOffsetWizard::FrameStorage,
     FrameDefinition<PhaseToolOffsetsCalibration::homing, FrameWait, txt_homing>,
     FrameDefinition<PhaseToolOffsetsCalibration::picking_tool, FrameWait, txt_picking_tool>,
     FrameDefinition<PhaseToolOffsetsCalibration::calibrating, FrameCalibratingProgress, PhaseToolOffsetsCalibration::calibrating, txt_title, txt_calibrating_progress>,
+    FrameDefinition<PhaseToolOffsetsCalibration::tool_failed, FrameToolFailure, PhaseToolOffsetsCalibration::tool_failed>,
+    FrameDefinition<PhaseToolOffsetsCalibration::unsafe_xy_offset, FrameToolFailure, PhaseToolOffsetsCalibration::unsafe_xy_offset>,
+    FrameDefinition<PhaseToolOffsetsCalibration::unsafe_z_offset, FrameToolFailure, PhaseToolOffsetsCalibration::unsafe_z_offset>,
+    FrameDefinition<PhaseToolOffsetsCalibration::unsafe_sensor_position, FrameQRPrompt, PhaseToolOffsetsCalibration::unsafe_sensor_position, tool_offsets_calibration_phase_error_code_mapper>,
     FrameDefinition<PhaseToolOffsetsCalibration::calibration_success, FrameTextPrompt, PhaseToolOffsetsCalibration::calibration_success, txt_success>,
     FrameDefinition<PhaseToolOffsetsCalibration::calibration_failed, FrameTextPrompt, PhaseToolOffsetsCalibration::calibration_failed, txt_failed>>;
 
