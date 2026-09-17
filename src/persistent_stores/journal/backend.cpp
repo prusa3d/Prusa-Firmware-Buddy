@@ -328,7 +328,7 @@ Backend::MultipleTransactionValidationResult Backend::validate_transactions(cons
     uint16_t num_of_transactions = 0;
     TransactionValidationResult last_transaction = { 0, 0, 0 };
 
-    uint16_t free_space = bank_size - BANK_HEADER_SIZE;
+    uint16_t free_space = bank_size - BANK_HEADER_SIZE_WITH_CRC;
     uint16_t pos = address;
 
     while (auto val_res = get_next_transaction(pos, free_space)) {
@@ -547,6 +547,9 @@ bool Backend::fits_in_current_bank(uint16_t size) const {
 }
 uint16_t Backend::get_free_space_in_bank(Address address_in_bank) const {
     uint16_t used_space = current_address - get_bank_start_address(address_in_bank);
+    if (used_space >= bank_size) {
+        return 0;
+    }
     return bank_size - used_space - 1; // 1 to prevent current_address going into next bank when you fit the item size just right
 }
 uint16_t Backend::get_bank_start_address(Address address_in_bank) const {
