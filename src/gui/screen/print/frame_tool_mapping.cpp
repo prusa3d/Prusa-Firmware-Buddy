@@ -21,6 +21,7 @@
 #include <bsod/bsod.h>
 #include <gui/dialogs/dialog_menu_virtual.hpp>
 #include <gui_utils.hpp>
+#include <algorithm_scale.hpp>
 
 namespace screen_tool_mapping {
 
@@ -503,7 +504,7 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
     // The lower the better
     using Penalty = uint32_t;
 
-    constexpr Penalty penalty_color_mismatch_max = 256;
+    constexpr Penalty penalty_color_mismatch_max = 255;
     constexpr Penalty penalty_overridable_incompatibility = 1u << 9;
     constexpr Penalty penalty_already_mapped_flag = 1u << 30;
 
@@ -539,7 +540,20 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
             const OptionalColor gcode_color = GCodeInfo::getInstance().get_extruder_info(*gcode_tool).extruder_colour;
 
             if (virtual_color.has_value() && gcode_color.has_value()) {
-                item_penalty += static_cast<Penalty>(Color::perceptual_distance(*virtual_color, *gcode_color) * penalty_color_mismatch_max);
+                const float perceptual_distance = Color::perceptual_distance(*virtual_color, *gcode_color);
+
+                /// Color mismatch smaller than this value gets no penalty
+                constexpr float no_penalty_perceptual_distance = 0.1f;
+
+                /// Color mismatch bigger than this value gets clamped to maximum penalty
+                constexpr float max_penalty_perceptual_distance = 0.8f;
+
+                item_penalty += (uint8_t)scale<float>(
+                    perceptual_distance,
+                    no_penalty_perceptual_distance, max_penalty_perceptual_distance,
+                    0, penalty_color_mismatch_max //
+                );
+
             } else {
                 item_penalty += penalty_color_mismatch_max;
             }
