@@ -112,7 +112,7 @@ struct AllTools {
 
 /// Strong type for representing when a tool is not mapped, like `std::variant<SomeToolIndex, ToolNotMapped>`
 struct ToolNotMapped {
-    inline constexpr bool operator==(const AllTools &) const {
+    inline constexpr bool operator==(const ToolNotMapped &) const {
         return true;
     }
 };
