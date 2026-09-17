@@ -11,20 +11,29 @@
 
 namespace {
 
-void read_old_item_value_impl(journal::Backend &backend, uint16_t item_hash, void *old_value) {
+// header.len is EEPROM-controlled; only copy a record whose stored length
+// matches the destination, otherwise leave the destination at its default.
+template <typename T>
+void copy_old_item_value(T &dest, journal::Backend::ItemHeader header, const std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) {
+    if (header.len == sizeof(T)) {
+        memcpy(&dest, buffer.data(), sizeof(T));
+    }
+}
+
+template <typename T>
+void read_old_item_value_impl(journal::Backend &backend, uint16_t item_hash, T &old_value) {
     auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
         if (header.id == item_hash) {
-            memcpy(old_value, buffer.data(), header.len);
+            copy_old_item_value(old_value, header, buffer);
         }
     };
-
     backend.read_items_for_migrations(callback);
 }
 
 template <typename OldItem>
 auto read_old_item_value(journal::Backend &backend) {
     typename OldItem::value_type old_value = OldItem::default_val;
-    read_old_item_value_impl(backend, OldItem::hashed_id, &old_value);
+    read_old_item_value_impl(backend, OldItem::hashed_id, old_value);
     return old_value;
 }
 } // namespace
@@ -75,7 +84,7 @@ namespace migrations {
         backend.read_items_for_migrations([&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             for (const auto &migration_rec : migration_mapping) {
                 if (header.id == migration_rec.oldID) {
-                    memcpy(&values[migration_rec.index], buffer.data(), sizeof(Value));
+                    copy_old_item_value(values[migration_rec.index], header, buffer);
                     break;
                 }
             }
@@ -93,7 +102,7 @@ namespace migrations {
 
         auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             if (header.id == OldItem::hashed_id) {
-                memcpy(&has_400_motors, buffer.data(), header.len);
+                copy_old_item_value(has_400_motors, header, buffer);
             }
         };
         backend.read_items_for_migrations(callback);
@@ -111,7 +120,7 @@ namespace migrations {
         auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             // Copy either hostname that's not empty
             if ((header.id == decltype(DeprecatedStore::wifi_hostname)::hashed_id || header.id == decltype(DeprecatedStore::lan_hostname)::hashed_id) && strnlen(reinterpret_cast<const char *>(buffer.data()), sizeof(hostname)) != 0) {
-                memcpy(&hostname, buffer.data(), header.len);
+                copy_old_item_value(hostname, header, buffer);
             }
         };
         backend.read_items_for_migrations(callback);
@@ -133,9 +142,8 @@ namespace migrations {
                 return;
             }
 
-            EncodedFilamentType ft;
-            debug_assert(header.len == sizeof(ft));
-            memcpy(&ft, buffer.data(), sizeof(ft));
+            EncodedFilamentType ft {};
+            copy_old_item_value(ft, header, buffer);
             filament_types[*ix] = ft;
         };
         backend.read_items_for_migrations(callback);
@@ -174,7 +182,7 @@ namespace migrations {
 
         auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             if (header.id == decltype(DeprecatedStore::hotend_type_single_hotend)::hashed_id) {
-                memcpy(&saved_hotend_type, buffer.data(), header.len);
+                copy_old_item_value(saved_hotend_type, header, buffer);
             }
         };
         backend.read_items_for_migrations(callback);
@@ -224,13 +232,13 @@ namespace migrations {
         auto callback
             = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             if (header.id == OldEnabled::hashed_id) {
-                memcpy(&old_vals.saved_flags, buffer.data(), header.len);
+                copy_old_item_value(old_vals.saved_flags, header, buffer);
             } else if (header.id == OldFilterTimer::hashed_id) {
-                memcpy(&old_vals.saved_filter_timer, buffer.data(), header.len);
+                copy_old_item_value(old_vals.saved_filter_timer, header, buffer);
             } else if (header.id == OldFanRPM::hashed_id) {
-                memcpy(&old_vals.saved_fan_manual, buffer.data(), header.len);
+                copy_old_item_value(old_vals.saved_fan_manual, header, buffer);
             } else if (header.id == OldPostPrintDuration::hashed_id) {
-                memcpy(&old_vals.saved_post_print_dur, buffer.data(), header.len);
+                copy_old_item_value(old_vals.saved_post_print_dur, header, buffer);
             }
         };
         backend.read_items_for_migrations(callback);
@@ -263,7 +271,7 @@ namespace migrations {
         OldItem::value_type saved_emergency_enable = NewItem::default_val;
         auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
             if (header.id == OldItem::hashed_id) {
-                memcpy(&saved_emergency_enable, buffer.data(), header.len);
+                copy_old_item_value(saved_emergency_enable, header, buffer);
             }
         };
         backend.read_items_for_migrations(callback);
@@ -280,7 +288,7 @@ namespace migrations {
 
         auto callback = [&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) {
             if (header.id == OldItem::hashed_id) {
-                memcpy(&old_byte, buffer.data(), header.len);
+                copy_old_item_value(old_byte, header, buffer);
             }
         };
 
@@ -300,7 +308,7 @@ namespace migrations {
         using NewItem = decltype(CurrentStore::filament_order);
 
         OldItem::value_type old_data {};
-        read_old_item_value_impl(backend, OldItem::hashed_id, &old_data);
+        read_old_item_value_impl(backend, OldItem::hashed_id, old_data);
 
         NewItem::value_type new_data {};
         static_assert(old_data.size() == new_data.size() * 2);
