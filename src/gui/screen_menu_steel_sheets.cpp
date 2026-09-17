@@ -129,20 +129,15 @@ void SheetProfileMenuScreen::windowEvent(window_t *sender, GUI_event_t ev, void 
     }
 }
 
-ScreenMenuSteelSheets::ScreenMenuSteelSheets()
-    : ScreenMenuSteelSheets__(_(label)) {
-}
-
-I_MI_SHEET_PROFILE::I_MI_SHEET_PROFILE(int sheet_index)
+MI_SHEET_PROFILE::MI_SHEET_PROFILE(uint8_t sheet_index)
     : IWindowMenuItem({}, Rect16::W_t(16), nullptr, is_enabled_t::yes, is_hidden_t::no)
     , sheet_index(sheet_index) {
 
     SteelSheets::SheetName(sheet_index, label_str);
-    // string_view_utf8::MakeRAM is safe. "label_str" is a member var and exists until I_MI_SHEET_PROFILE is destroyed
+    // string_view_utf8::MakeRAM is safe. "label_str" is a member var and exists until MI_SHEET_PROFILE is destroyed
     SetLabel(string_view_utf8::MakeRAM(label_str.data()));
 }
 
-// ScreenFactory::Screen depends on ProfileRecord following code cannot stay in header (be template)
-void I_MI_SHEET_PROFILE::click([[maybe_unused]] IWindowMenu &window_menu) {
+void MI_SHEET_PROFILE::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Open(ScreenFactory::ScreenWithArg<SheetProfileMenuScreen>(sheet_index));
 }

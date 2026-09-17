@@ -204,12 +204,6 @@ using MI_PHASE_STEPPING_SCREEN
         class ScreenMenuPhaseStepping>;
 #endif
 
-#if HAS_SHEET_PROFILES()
-
-using MI_STEEL_SHEETS
-    = MI_SCREEN<N_("Steel Sheets"), class ScreenMenuSteelSheets>;
-#endif
-
 #if HAS_FILAMENT_SENSORS_MENU()
 
 using MI_FILAMENT_SENSORS

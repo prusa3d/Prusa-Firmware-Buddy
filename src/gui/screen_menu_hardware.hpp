@@ -27,6 +27,10 @@
     #include "screen_menu_modular_bed.hpp"
 #endif
 
+#if HAS_SHEET_PROFILES()
+    #include <screen_menu_steel_sheets.hpp>
+#endif
+
 #include <option/xbuddy_extension_variant.h>
 #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     #include "menu_item/specific/menu_items_xbuddy_extension.hpp"

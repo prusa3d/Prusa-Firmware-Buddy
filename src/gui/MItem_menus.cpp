@@ -64,10 +64,6 @@
     #include "screen_menu_filament_sensors.hpp"
 #endif
 
-#if HAS_SHEET_PROFILES()
-    #include <screen_menu_steel_sheets.hpp>
-#endif
-
 #if HAS_CHAMBER_FILTRATION_API()
     #include <gui/screen/screen_chamber_filtration.hpp>
 #endif
@@ -181,10 +177,6 @@ template struct MI_SCREEN_CTOR<ScreenMenuLanguages>;
 
 #if HAS_PHASE_STEPPING()
 template struct MI_SCREEN_CTOR<ScreenMenuPhaseStepping>;
-#endif
-
-#if HAS_SHEET_PROFILES()
-template struct MI_SCREEN_CTOR<ScreenMenuSteelSheets>;
 #endif
 
 #if HAS_FILAMENT_SENSORS_MENU()

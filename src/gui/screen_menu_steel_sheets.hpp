@@ -2,6 +2,9 @@
 
 #include "screen_menu.hpp"
 #include "WindowItemFormatableLabel.hpp"
+#include <config_store/constants.hpp>
+#include <gui/menu_item/menu_item_virtual_submenu.hpp>
+#include <guiconfig/GuiDefaults.hpp>
 
 // TODO there is nowhere displayed currently selected sheet
 // entire menu is confusing
@@ -88,10 +91,11 @@ private:
     std::array<char, 32> label_buffer;
 };
 
-class I_MI_SHEET_PROFILE : public IWindowMenuItem {
-protected:
-    I_MI_SHEET_PROFILE(int sheet_index);
+class MI_SHEET_PROFILE : public IWindowMenuItem {
+public:
+    MI_SHEET_PROFILE(uint8_t sheet_index);
 
+protected:
     void click(IWindowMenu &window_menu) override;
 
 private:
@@ -100,18 +104,4 @@ private:
     uint8_t sheet_index;
 };
 
-template <uint8_t sheet_index_>
-class MI_SHEET_PROFILE : public I_MI_SHEET_PROFILE {
-public:
-    MI_SHEET_PROFILE()
-        : I_MI_SHEET_PROFILE(sheet_index_) {}
-};
-
-using ScreenMenuSteelSheets__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_SHEET_PROFILE<0>, MI_SHEET_PROFILE<1>, MI_SHEET_PROFILE<2>, MI_SHEET_PROFILE<3>, MI_SHEET_PROFILE<4>, MI_SHEET_PROFILE<5>, MI_SHEET_PROFILE<6>, MI_SHEET_PROFILE<7>>;
-
-class ScreenMenuSteelSheets : public ScreenMenuSteelSheets__ {
-public:
-    constexpr static const char *label = N_("Steel Sheets");
-    ScreenMenuSteelSheets();
-};
+using MI_STEEL_SHEETS = MenuItemVirtualSubmenu<N_("Steel Sheets"), MI_SHEET_PROFILE, config_store_ns::sheets_num>;
