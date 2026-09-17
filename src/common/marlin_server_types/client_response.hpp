@@ -550,6 +550,9 @@ enum class PhaseToolOffsetsCalibration : PhaseUnderlyingType {
     moving_away,
     homing,
     picking_tool,
+    #if HAS_INDX()
+    pickup_failed, ///< no tool could be picked; the toolchanger has no prompt of its own outside a print
+    #endif
     calibrating,
     tool_failed, ///< a tool could not be cleaned, probed or scanned
     unsafe_xy_offset, ///< XY spread between the tools over the limit
@@ -898,6 +901,9 @@ inline constexpr EnumArray<PhaseToolOffsetsCalibration, PhaseResponses, CountPha
         { PhaseToolOffsetsCalibration::moving_away, {} },
         { PhaseToolOffsetsCalibration::homing, {} },
         { PhaseToolOffsetsCalibration::picking_tool, {} },
+    #if HAS_INDX()
+        { PhaseToolOffsetsCalibration::pickup_failed, { Response::Retry, Response::Abort } },
+    #endif
         { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
         { PhaseToolOffsetsCalibration::tool_failed, { Response::Retry, Response::Abort } },
         { PhaseToolOffsetsCalibration::unsafe_xy_offset, { Response::Retry, Response::Abort } },

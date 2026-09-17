@@ -14,6 +14,7 @@
 #include <Marlin/src/Marlin.h>
 #include <Marlin/src/module/temperature.h>
 #include <mapi/parking.hpp>
+#include <option/has_indx.h>
 #include <selftest/selftest_invocation.hpp>
 #include <test_result.hpp>
 #include <tool_index.hpp>
@@ -182,7 +183,17 @@ namespace {
 
             // Make the bed provably safe (it may be at an unknown height with Z unhomed) and
             // get a tool picked / XY homed before any moves over the bed.
-            if (!preamble.run()) {
+            while (!preamble.run()) {
+#if HAS_INDX()
+                // XL ends on a red screen before getting here
+                if (!PhysicalToolIndex::currently_selected_opt()) {
+                    disable_xy_steppers();
+                    fsm_change(PhaseToolOffsetsCalibration::pickup_failed);
+                    if (wait_for_response(PhaseToolOffsetsCalibration::pickup_failed) == Response::Retry) {
+                        continue;
+                    }
+                }
+#endif
                 return Result::aborted_before_calib;
             }
 

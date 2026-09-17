@@ -9,6 +9,7 @@
 #include <guiconfig/wizard_config.hpp>
 #include <i18n.h>
 #include <img_resources.hpp>
+#include <option/has_indx.h>
 #include <standard_frame/frame_extensions/with_footer.hpp>
 #include <standard_frame/frame_progress_prompt.hpp>
 #include <standard_frame/frame_prompt.hpp>
@@ -115,6 +116,9 @@ using Frames = FrameDefinitionList<ScreenToolOffsetWizard::FrameStorage,
     FrameDefinition<PhaseToolOffsetsCalibration::moving_away, FrameWait, txt_moving_away>,
     FrameDefinition<PhaseToolOffsetsCalibration::homing, FrameWait, txt_homing>,
     FrameDefinition<PhaseToolOffsetsCalibration::picking_tool, FrameWait, txt_picking_tool>,
+#if HAS_INDX()
+    FrameDefinition<PhaseToolOffsetsCalibration::pickup_failed, FrameQRPrompt, PhaseToolOffsetsCalibration::pickup_failed, tool_offsets_calibration_phase_error_code_mapper>,
+#endif
     FrameDefinition<PhaseToolOffsetsCalibration::calibrating, FrameCalibratingProgress, PhaseToolOffsetsCalibration::calibrating, txt_title, txt_calibrating_progress>,
     FrameDefinition<PhaseToolOffsetsCalibration::tool_failed, FrameToolFailure, PhaseToolOffsetsCalibration::tool_failed>,
     FrameDefinition<PhaseToolOffsetsCalibration::unsafe_xy_offset, FrameToolFailure, PhaseToolOffsetsCalibration::unsafe_xy_offset>,
