@@ -1,6 +1,8 @@
 /// @file
 #pragma once
 
+#include <functional>
+
 #include <i_window_menu.hpp>
 #include <gui/screen/screen_menu_virtual.hpp>
 #include <WindowMenuItems.hpp>
@@ -8,7 +10,7 @@
 
 /// A menu item that opens ScreenMenuVirtual with item_count number of Items (and MI_RETURN)
 /// Each item gets constructed with the index passed on
-template <auto title, typename Item, int item_count, auto index_map_f = [](int v) { return v; }>
+template <auto title, typename Item, int item_count, auto index_map_f = std::identity {}>
 class MenuItemVirtualSubmenu : public IWindowMenuItem {
 
 public:
