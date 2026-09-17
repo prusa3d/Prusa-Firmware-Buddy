@@ -12,14 +12,17 @@ IWiInfo::IWiInfo(const string_view_utf8 &value, const string_view_utf8 &label, c
     update_extension_width();
 }
 
+uint16_t IWiInfo::max_extension_width() {
+    return GuiDefaults::ScreenWidth - (icon_width + resource_font(GuiDefaults::FontMenuItems)->w * 5 + GuiDefaults::MenuScrollbarWidth);
+}
+
 void IWiInfo::update_extension_width() {
     uint16_t new_width = value_.computeNumUtf8Chars() * width(font);
 
     if (!GetLabel().isNULLSTR()) {
         // Make sure there is enough space for at least a few characters of the label
         // This is a bit of a heuristic, we don't know the menu item rect when calling this function
-        const uint16_t max_width = GuiDefaults::ScreenWidth - (icon_width + resource_font(getLabelFont())->w * 5 + GuiDefaults::MenuScrollbarWidth);
-        new_width = std::min<uint16_t>(new_width, max_width);
+        new_width = std::min<uint16_t>(new_width, max_extension_width());
     }
 
     if (new_width != extension_width) {

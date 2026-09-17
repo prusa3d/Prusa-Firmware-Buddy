@@ -35,6 +35,9 @@ public:
         return value_;
     }
 
+    /// @returns maximum reasonable extension width for the current platform
+    static uint16_t max_extension_width();
+
     /// Updates extension width to match the info value
     void update_extension_width();
 
