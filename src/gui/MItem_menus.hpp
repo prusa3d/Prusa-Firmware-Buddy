@@ -109,9 +109,6 @@ using MI_PRUSA_CONNECT
 using MI_PRUSALINK
     = MI_SCREEN<N_("PrusaLink"), class ScreenMenuPrusaLink>;
 
-using MI_FOOTER_SETTINGS
-    = MI_SCREEN<N_("Footer"), class ScreenMenuFooterSettings>;
-
 using MI_USER_INTERFACE
     = MI_SCREEN<N_("User Interface"), class ScreenMenuUserInterface>;
 

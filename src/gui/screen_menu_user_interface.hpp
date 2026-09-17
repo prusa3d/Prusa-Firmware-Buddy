@@ -5,6 +5,7 @@
 #include "MItem_tools.hpp"
 #include <MItem_filament.hpp>
 #include <basic_screen_menu.hpp>
+#include <screen_menu_footer_settings.hpp>
 
 #include <option/has_tool_mapping.h>
 
