@@ -19,11 +19,13 @@
 #include <mbedtls/rsa.h>
 
 #include <utility_extensions.hpp>
+#include <utils/buffer_reader.hpp>
 
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
+#include <span>
 
 using bgcode::core::block_parameters_size;
 using bgcode::core::BlockHeader;
@@ -60,6 +62,7 @@ bool read_from_file(void *data, size_t data_size, FILE *file) {
     const size_t rsize = fread(data, 1, data_size, file);
     return !ferror(file) && rsize == data_size;
 }
+
 } // namespace
 
 namespace e2ee {
@@ -174,7 +177,7 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
     size_t block_size = block_header.uncompressed_size;
     uint16_t key_len;
     uint8_t name_len;
-    // Smaller blocks would underflow the unsigned size arithmetic below.
+    // Keeps block_size - SIGN_SIZE from underflowing the allocation and body read below.
     constexpr size_t MIN_IDENTITY_BLOCK_SIZE
         = SIGN_SIZE + sizeof(key_len) + sizeof(name_len) + 2 * HASH_SIZE;
     if (block_size < MIN_IDENTITY_BLOCK_SIZE) {
@@ -206,22 +209,47 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
     if (!read_from_file(&bytes.get()[pos], block_size - SIGN_SIZE, file)) {
         return file_error;
     }
-    memcpy(&key_len, &bytes.get()[pos], sizeof(key_len));
-    pos += sizeof(key_len);
-    if (key_len > signed_bytes_size - pos - (sizeof(name_len) + 2 * HASH_SIZE)) {
+    BufferReader body(std::span<const uint8_t>(bytes.get(), signed_bytes_size).subspan(pos));
+
+    const uint8_t *key_len_ptr = body.read(sizeof(key_len));
+    if (key_len_ptr == nullptr) {
         return identity_parsing_error;
     }
-    memcpy(&name_len, &bytes.get()[pos + key_len], sizeof(name_len));
-    if (name_len > signed_bytes_size - (pos + key_len + sizeof(name_len)) - 2 * HASH_SIZE) {
+    memcpy(&key_len, key_len_ptr, sizeof(key_len));
+
+    const uint8_t *key_ptr = body.read(key_len);
+    if (key_ptr == nullptr) {
         return identity_parsing_error;
     }
+
+    const uint8_t *name_len_ptr = body.read(sizeof(name_len));
+    if (name_len_ptr == nullptr) {
+        return identity_parsing_error;
+    }
+    memcpy(&name_len, name_len_ptr, sizeof(name_len));
+
+    const uint8_t *name_ptr = body.read(name_len);
+    if (name_ptr == nullptr) {
+        return identity_parsing_error;
+    }
+
+    const uint8_t *intro_hash_ptr = body.read(HASH_SIZE);
+    if (intro_hash_ptr == nullptr) {
+        return identity_parsing_error;
+    }
+    const uint8_t *key_block_hash_ptr = body.read(HASH_SIZE);
+    if (key_block_hash_ptr == nullptr) {
+        return identity_parsing_error;
+    }
+
     if (name_len > IDENTITY_NAME_LEN - 1) {
         return identity_name_too_long;
     }
-    string_view_u8 key(&bytes.get()[pos], key_len);
-    if (mbedtls_pk_parse_public_key(&info.identity_pk->pk, key.data(), key.length()) != 0) {
+
+    if (mbedtls_pk_parse_public_key(&info.identity_pk->pk, key_ptr, key_len) != 0) {
         return identity_parsing_error;
     }
+
     if (verify_signature) {
         uint8_t sign[SIGN_SIZE];
         if (!read_from_file(sign, SIGN_SIZE, file)) {
@@ -232,18 +260,16 @@ const char *read_and_verify_identity_block(FILE *file, const BlockHeader &block_
             return identity_verification_fail;
         }
     }
-    pos += key_len;
-    pos += sizeof(name_len);
-    memcpy(info.identity_name.data(), &bytes.get()[pos], name_len);
+
+    memcpy(info.identity_name.data(), name_ptr, name_len);
     info.identity_name[name_len] = '\0';
-    pos += name_len;
+
     if (computed_intro_hash != nullptr) {
-        if (memcmp(computed_intro_hash, &bytes.get()[pos], HASH_SIZE) != 0) {
+        if (memcmp(computed_intro_hash, intro_hash_ptr, HASH_SIZE) != 0) {
             return corrupted_metadata;
         }
     }
-    pos += HASH_SIZE;
-    memcpy(info.key_block_hash.data(), &bytes.get()[pos], HASH_SIZE);
+    memcpy(info.key_block_hash.data(), key_block_hash_ptr, HASH_SIZE);
 
     return nullptr;
 }
