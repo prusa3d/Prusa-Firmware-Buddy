@@ -153,16 +153,6 @@ public:
         : MI_MMU_ISSUE_GCODE(N_("Unload Filament"), "M702 W2") {}
 };
 
-class MI_MMU_LOAD_TEST_ALL : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Test All");
-
-public:
-    MI_MMU_LOAD_TEST_ALL();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_MMU_SW_RESET : public MI_MMU_ISSUE_GCODE {
 
 public:
