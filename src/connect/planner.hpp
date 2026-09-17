@@ -216,7 +216,7 @@ private:
 
     // Tracks recovery of a transfer after startup.
     // We should not start any other transfer until the recovery is Finished.
-    TransferRecoveryState transfer_recovery;
+    TransferRecoveryState transfer_recovery = TransferRecoveryState::WaitingForUSB;
 
     // Set to true every time a transfer is observed. Also on startup (there
     // might be a leftover from before boot).
