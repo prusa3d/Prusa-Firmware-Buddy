@@ -963,7 +963,8 @@ void FrameToolMapping::show_details_menu() {
     enum class Item : uint8_t {
         return_,
         change_filaments,
-        smart_mapping,
+        smart_mapping_without_colors,
+        smart_mapping_with_colors,
         direct_mapping,
         clear_mapping,
         _cnt
@@ -996,8 +997,12 @@ void FrameToolMapping::show_details_menu() {
                 label = N_("Clear Mapping");
                 break;
 
-            case Item::smart_mapping:
+            case Item::smart_mapping_without_colors:
                 label = N_("Smart Mapping");
+                break;
+
+            case Item::smart_mapping_with_colors:
+                label = N_("Color Mapping");
                 break;
 
             case Item::return_:
@@ -1037,8 +1042,12 @@ void FrameToolMapping::show_details_menu() {
         apply_tool_mapping_preset(ToolMappingPreset::empty);
         break;
 
-    case Item::smart_mapping:
-        apply_tool_mapping_preset(ToolMappingPreset::smart);
+    case Item::smart_mapping_without_colors:
+        apply_tool_mapping_preset(ToolMappingPreset::smart_without_colors);
+        break;
+
+    case Item::smart_mapping_with_colors:
+        apply_tool_mapping_preset(ToolMappingPreset::smart_with_colors);
         break;
 
     case Item::_cnt:
@@ -1052,27 +1061,18 @@ void FrameToolMapping::apply_tool_mapping_preset(ToolMappingPreset preset) {
 
     switch (preset) {
 
-    case ToolMappingPreset::smart:
-        // We need to update mapping every step, the suggest_virtual_tool_to_focus is counting for it to be up to date
-        update_mapping();
+    case ToolMappingPreset::smart_without_colors:
+        smart_tool_mapping_impl(ToolMatchArgs {
+            .compatible_only = true,
+            .consider_colors = false,
+        });
+        break;
 
-        for (const auto gcode_tool : GcodeToolIndex::all()) {
-            if (!GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()) {
-                continue;
-            }
-
-            selected_tool_for_connecting_ = gcode_tool;
-            static constexpr ToolMatchArgs args {
-                .compatible_only = true,
-                .consider_colors = false,
-            };
-            if (auto virtual_tool = suggest_virtual_tool_to_focus(args)) {
-                tool_mapper.set_mapping(gcode_tool, *virtual_tool);
-                update_mapping();
-            }
-        }
-
-        select_tool_for_connecting(NoTool {});
+    case ToolMappingPreset::smart_with_colors:
+        smart_tool_mapping_impl(ToolMatchArgs {
+            .compatible_only = true,
+            .consider_colors = true,
+        });
         break;
 
     case ToolMappingPreset::direct:
@@ -1096,6 +1096,25 @@ void FrameToolMapping::apply_tool_mapping_preset(ToolMappingPreset preset) {
     }
 
     update_mapping();
+}
+
+void FrameToolMapping::smart_tool_mapping_impl(ToolMatchArgs args) {
+    // We need to update mapping every step, the suggest_virtual_tool_to_focus is counting for it to be up to date
+    update_mapping();
+
+    for (const auto gcode_tool : GcodeToolIndex::all()) {
+        if (!GCodeInfo::getInstance().get_extruder_info(gcode_tool).used()) {
+            continue;
+        }
+
+        selected_tool_for_connecting_ = gcode_tool;
+        if (auto virtual_tool = suggest_virtual_tool_to_focus(args)) {
+            tool_mapper.set_mapping(gcode_tool, *virtual_tool);
+            update_mapping();
+        }
+    }
+
+    select_tool_for_connecting(NoTool {});
 }
 
 } // namespace screen_tool_mapping

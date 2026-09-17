@@ -29,6 +29,7 @@
 #include <config_store/store_instance.hpp>
 #include "connect/marlin_printer.hpp"
 #include <crash_dump/dump.hpp>
+#include <utils/algorithm_extensions.hpp>
 #include <feature/prusa/e-stall_detector.h>
 #include <option/bootloader.h>
 #include <option/filament_sensor.h>
@@ -759,28 +760,38 @@ void MI_FILAMENT_CHANGE_PREHEAT_ALL::OnChange(size_t old_index) {
 }
 
 #if HAS_TOOL_MAPPING()
-static constexpr EnumArray<ToolMappingPreset, const char *, ToolMappingPreset::_cnt> tool_mapping_preset_names {
-    { ToolMappingPreset::smart, N_("Smart") },
+static constexpr EnumArray<ToolMappingPreset, const char *, ToolMappingPreset::_cnt, enum_array::AllowWeakIndexing::no> tool_mapping_preset_names {
+    { ToolMappingPreset::smart_without_colors, N_("Smart") },
     { ToolMappingPreset::direct, N_("Direct") },
     { ToolMappingPreset::empty, N_("Empty") },
+    { ToolMappingPreset::smart_with_colors, N_("Smart+Color") },
 };
+
+/// Presets in GUI order
+static constexpr std::array tool_mapping_preset_list {
+    ToolMappingPreset::smart_without_colors,
+    ToolMappingPreset::smart_with_colors,
+    ToolMappingPreset::direct,
+    ToolMappingPreset::empty,
+};
+static_assert(tool_mapping_preset_list.size() == std::to_underlying(ToolMappingPreset::_cnt));
 
 MI_TOOL_MAPPING_PRESET::MI_TOOL_MAPPING_PRESET()
     : MenuItemSelectMenu(_("Default Tool Mapping")) //
 {
-    set_current_item(std::to_underlying(default_tool_mapping_preset()));
+    set_current_item(stdext::index_of(tool_mapping_preset_list, default_tool_mapping_preset()));
 }
 
 int MI_TOOL_MAPPING_PRESET::item_count() const {
-    return static_cast<int>(tool_mapping_preset_names.size());
+    return static_cast<int>(tool_mapping_preset_list.size());
 }
 
 string_view_utf8 MI_TOOL_MAPPING_PRESET::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
-    return _(tool_mapping_preset_names[index]);
+    return _(tool_mapping_preset_names[tool_mapping_preset_list[index]]);
 }
 
 bool MI_TOOL_MAPPING_PRESET::on_item_selected(const OnItemSelectedArgs &args) {
-    config_store().tool_mapping_preset.set(args.new_index);
+    config_store().tool_mapping_preset.set(std::to_underlying(tool_mapping_preset_list[args.new_index]));
     return true;
 }
 #endif

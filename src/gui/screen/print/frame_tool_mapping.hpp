@@ -242,6 +242,10 @@ private:
     /// Discards the current mapping and sets up the one described by \p preset
     void apply_tool_mapping_preset(ToolMappingPreset preset);
 
+    /// Do smart tool mapping
+    /// !!! ONLY to be called from within apply_tool_mapping_preset
+    void smart_tool_mapping_impl(ToolMatchArgs args);
+
     /// Called when a button in the bottom row is clicked
     void on_button_click(Response response);
 
