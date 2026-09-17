@@ -1,9 +1,4 @@
-/**
- * @file screen_menu_filament_mmu.hpp
- * @brief filament menu for MMU
- * it will not open if MMU is disabled, so no need to check it
- */
-
+/// @file
 #pragma once
 
 #include "screen_menu.hpp"
@@ -11,8 +6,10 @@
 #include "MItem_mmu.hpp"
 #include "MItem_filament.hpp"
 #include <gui/screen/filament/screen_filament_management.hpp>
+#include <gui/screen/filament/screen_filaments_loaded.hpp>
 
 using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
+    MI_LOADED_FILAMENT,
     MI_MMU_PRELOAD,
     MI_MMU_PRELOAD_ALL,
     MI_MMU_LOAD_TO_NOZZLE,
