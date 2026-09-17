@@ -40,16 +40,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_EJECT_FILAMENT : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Eject From MMU");
-
-public:
-    MI_MMU_EJECT_FILAMENT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_MMU_PRELOAD_ALL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Preload All");
 
@@ -105,12 +95,17 @@ protected:
     virtual void click(IWindowMenu &) final;
 };
 
-template <uint8_t slot_i>
 class MI_MMU_EJECT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
-    MI_MMU_EJECT_FILAMENT_I()
+    MI_MMU_EJECT_FILAMENT_I(uint8_t slot_i)
         : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Eject From MMU %i"), "M705 P%i") {}
+};
+
+class MI_MMU_EJECT_FILAMENT : public MenuItemVirtualSubmenu<N_("Eject From MMU"), MI_MMU_EJECT_FILAMENT_I, VirtualToolIndex::count> {
+
+public:
+    MI_MMU_EJECT_FILAMENT();
 };
 
 template <uint8_t slot_i>

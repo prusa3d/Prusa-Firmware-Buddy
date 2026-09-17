@@ -142,10 +142,8 @@ endif()
 
 if(HAS_MMU2)
   target_sources(
-    firmware
-    PRIVATE MItem_mmu.cpp screen_menu_filament_changeall.cpp screen_menu_filament_mmu.cpp
-            screen_menu_mmu_eject_filament.cpp screen_menu_mmu_load_test_filament.cpp
-            screen_menu_mmu_load_to_nozzle.cpp
+    firmware PRIVATE MItem_mmu.cpp screen_menu_filament_changeall.cpp screen_menu_filament_mmu.cpp
+                     screen_menu_mmu_load_test_filament.cpp screen_menu_mmu_load_to_nozzle.cpp
     )
 endif()
 
