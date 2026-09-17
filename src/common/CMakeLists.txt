@@ -131,7 +131,7 @@ elseif(BOARD STREQUAL "DWARF")
   target_link_libraries(firmware PRIVATE logging)
 
 elseif(BOARD STREQUAL "MODULARBED")
-  target_sources(firmware PRIVATE heap.cpp otp.cpp)
+  target_sources(firmware PRIVATE heap.cpp)
   target_link_libraries(firmware PRIVATE logging)
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_sources(
