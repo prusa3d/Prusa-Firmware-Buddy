@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <http/url_decode.h>
 
+#include <iterator>
 #include <string>
 #include <cstring>
 
@@ -30,7 +31,7 @@ TEST_CASE("url decode", "[url]") {
 
     SECTION("short buffer") {
         char decoded_url[1];
-        REQUIRE_FALSE(url_decode(common_url, decoded_url, sizeof(decoded_url)));
+        REQUIRE_FALSE(url_decode(common_url, decoded_url, std::size(decoded_url)));
     }
 
     SECTION("zero length buffer") {
@@ -41,13 +42,13 @@ TEST_CASE("url decode", "[url]") {
     SECTION("trailing percent with roomy buffer") {
         std::string url = "/a/v/f/%";
         char decoded_url[100];
-        REQUIRE_FALSE(url_decode(url, decoded_url, sizeof(decoded_url)));
+        REQUIRE_FALSE(url_decode(url, decoded_url, std::size(decoded_url)));
     }
 
     SECTION("empty url") {
         std::string url = "";
         char decoded_url[100];
-        REQUIRE(url_decode(url, decoded_url, sizeof(decoded_url)));
+        REQUIRE(url_decode(url, decoded_url, std::size(decoded_url)));
         REQUIRE(strcmp(decoded_url, "") == 0);
     }
 }

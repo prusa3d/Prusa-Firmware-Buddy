@@ -4,6 +4,7 @@
 #include <nhttp/handler.h>
 #include <http/types.h>
 
+#include <iterator>
 #include <string.h>
 
 using http::MAX_URL_LEN;
@@ -39,32 +40,32 @@ TEST_CASE("url parser", "[url]") {
     SECTION("small buffer") {
         char small_buffer[1];
         parser.set_url("/test/api/file.gcode");
-        REQUIRE_FALSE(parser.uri_filename(small_buffer, sizeof(small_buffer)));
+        REQUIRE_FALSE(parser.uri_filename(small_buffer, std::size(small_buffer)));
     }
 
     SECTION("url with encoded and real ?") {
         parser.set_url("/test/api/file%3f.gcode?somemorestuff");
-        REQUIRE(parser.uri_filename(url, sizeof(url)));
+        REQUIRE(parser.uri_filename(url, std::size(url)));
         REQUIRE(strcmp(url, "/test/api/file?.gcode") == 0);
     }
 
     SECTION("double dot") {
         parser.set_url("/test/api/../file.gcode");
-        REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
+        REQUIRE_FALSE(parser.uri_filename(url, std::size(url)));
     }
 
     SECTION("encoded double dot") {
         parser.set_url("/test/api/%2e%2e/file.gcode");
-        REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
+        REQUIRE_FALSE(parser.uri_filename(url, std::size(url)));
     }
 
     SECTION("trailing double dot slash") {
         parser.set_url("/usb/../");
-        REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
+        REQUIRE_FALSE(parser.uri_filename(url, std::size(url)));
     }
 
     SECTION("bare double dot slash") {
         parser.set_url("/../");
-        REQUIRE_FALSE(parser.uri_filename(url, sizeof(url)));
+        REQUIRE_FALSE(parser.uri_filename(url, std::size(url)));
     }
 }
