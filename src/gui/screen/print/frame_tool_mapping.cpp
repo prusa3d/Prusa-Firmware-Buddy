@@ -1061,6 +1061,10 @@ void FrameToolMapping::show_details_menu() {
         }
     };
 
+    // Whatever the user had selected, drop it
+    select_tool_for_connecting(NoTool {});
+    update_status_text(ShowGuide::no);
+
     const auto result = dialog_menu_virtual::execute(config);
 
     // Fix broken focus
