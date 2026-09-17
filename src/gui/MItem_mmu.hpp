@@ -1,12 +1,15 @@
-/*****************************************************************************/
-// Menu items related to the MMU
+/// @file
 #pragma once
+
+#include <array>
+
 #include "WindowMenuItems.hpp"
 #include "WindowMenuInfo.hpp"
 #include "WindowItemFormatableLabel.hpp"
 #include "i18n.h"
 #include <option/has_nextruder.h>
 #include <tool_index.hpp>
+#include <gui_utils.hpp>
 #include <gui/menu_item/menu_item_select_menu.hpp>
 #include <gui/menu_item/menu_item_virtual_submenu.hpp>
 
@@ -66,15 +69,6 @@ protected:
     const char *const gcode_fmt_;
 };
 
-class MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT : public MI_MMU_ITEM_WITH_SLOT {
-
-public:
-    MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(uint8_t slot_i, TranslatableString label);
-
-protected:
-    virtual void click(IWindowMenu &) final;
-};
-
 class MI_MMU_EJECT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
@@ -88,15 +82,23 @@ public:
     MI_MMU_EJECT_FILAMENT();
 };
 
-class MI_MMU_LOAD_TO_NOZZLE_I : public MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT {
+/// Loads the filament from the slot to the nozzle, with autopreheat based on the filament type stored for the slot.
+/// Shows the stored filament in the extension.
+class MI_MMU_LOAD_TO_NOZZLE_I : public MI_MMU_ITEM_WITH_SLOT {
 
 public:
-    MI_MMU_LOAD_TO_NOZZLE_I(uint8_t slot_i)
-        // load filament slot with autopreheat based on filament type in MMU slots
-        : MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(slot_i, N_("Load Filament %i")) {}
+    MI_MMU_LOAD_TO_NOZZLE_I(VirtualToolIndex tool);
+
+protected:
+    void click(IWindowMenu &) final;
+    void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const final;
+
+private:
+    std::array<char, 32> info_buffer_;
+    MenuItemColorSwatchExtension extension_;
 };
 
-using MI_MMU_LOAD_TO_NOZZLE = MenuItemVirtualSubmenu<N_("Load To Nozzle"), MI_MMU_LOAD_TO_NOZZLE_I, VirtualToolIndex::count>;
+using MI_MMU_LOAD_TO_NOZZLE = MenuItemVirtualSubmenu<N_("Load To Nozzle"), MI_MMU_LOAD_TO_NOZZLE_I, VirtualToolIndex::count, VirtualToolIndex::from_raw>;
 
 class MI_MMU_CUT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 

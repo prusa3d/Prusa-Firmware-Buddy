@@ -15,6 +15,7 @@
 #include "screen_menu_filament_changeall.hpp"
 
 #include <config_store/store_instance.hpp>
+#include <utils/string_builder.hpp>
 #include <feature/prusa/MMU2/mmu2_mk4.h>
 #include <gui/screen_printer_setup.hpp>
 #include <MItem_tools.hpp>
@@ -86,13 +87,30 @@ void MI_MMU_ISSUE_GCODE_SLOT_FMT::click(IWindowMenu &) {
 }
 
 /**********************************************************************************************/
-// MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT
-MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT::MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(uint8_t slot_i, TranslatableString label)
-    : MI_MMU_ITEM_WITH_SLOT(slot_i, label) {}
+// MI_MMU_LOAD_TO_NOZZLE_I
+MI_MMU_LOAD_TO_NOZZLE_I::MI_MMU_LOAD_TO_NOZZLE_I(VirtualToolIndex tool)
+    : MI_MMU_ITEM_WITH_SLOT(tool.to_raw(), N_("Load Filament %i")) {
+    const FilamentType filament_type = FilamentType::for_tool(tool);
 
-void MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT::click(IWindowMenu &) {
+    StringBuilder info_sb { info_buffer_ };
+    filament_type.build_name_with_info(info_sb);
+
+    extension_ = MenuItemColorSwatchExtension {
+        .text = string_view_utf8::MakeRAM(info_buffer_.data()),
+        .color = filament_type.parameters().color,
+        .show_null_color = false,
+    };
+    extension_width = extension_.compute_width();
+}
+
+void MI_MMU_LOAD_TO_NOZZLE_I::printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const {
+    (void)color_text;
+    extension_.draw(*this, extension_rect, color_back, raster_op);
+}
+
+void MI_MMU_LOAD_TO_NOZZLE_I::click(IWindowMenu &) {
     std::array<char, MAX_CMD_SIZE> gcode;
-    FilamentType f = config_store().get_filament_type(slot_i_);
+    FilamentType f = FilamentType::for_tool(VirtualToolIndex::from_raw(slot_i_));
 
     if (f == FilamentType::none) {
         // if, for some reason, no filament type is known on a specific slot, we shall omit the S parameter from the M701 gcode
