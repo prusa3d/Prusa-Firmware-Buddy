@@ -20,16 +20,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_TO_NOZZLE : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Load To Nozzle");
-
-public:
-    MI_MMU_LOAD_TO_NOZZLE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_MMU_PRELOAD_ALL : public IWindowMenuItem {
     static constexpr const char *const label = N_("Preload All");
 
@@ -98,14 +88,15 @@ public:
     MI_MMU_EJECT_FILAMENT();
 };
 
-template <uint8_t slot_i>
 class MI_MMU_LOAD_TO_NOZZLE_I : public MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT {
 
 public:
-    MI_MMU_LOAD_TO_NOZZLE_I()
+    MI_MMU_LOAD_TO_NOZZLE_I(uint8_t slot_i)
         // load filament slot with autopreheat based on filament type in MMU slots
         : MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(slot_i, N_("Load Filament %i")) {}
 };
+
+using MI_MMU_LOAD_TO_NOZZLE = MenuItemVirtualSubmenu<N_("Load To Nozzle"), MI_MMU_LOAD_TO_NOZZLE_I, VirtualToolIndex::count>;
 
 class MI_MMU_CUT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 

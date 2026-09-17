@@ -11,7 +11,6 @@
     #include "ScreenSelftest.hpp"
 #endif
 
-#include "screen_menu_mmu_load_to_nozzle.hpp"
 #include "screen/screen_menu_mmu_preload_all.hpp"
 #include "screen_menu_filament_changeall.hpp"
 
@@ -51,15 +50,6 @@ MI_MMU_EJECT_FILAMENT::MI_MMU_EJECT_FILAMENT() {
 MI_MMU_CUT_FILAMENT::MI_MMU_CUT_FILAMENT() {
     // Cutting is not possible while filament is loaded all the way to the nozzle
     set_enabled(FSensors_instance().WhereIsFilament() != MMU2::FilamentState::AT_FSENSOR);
-}
-
-/**********************************************************************************************/
-// MI_MMU_LOAD_TO_NOZZLE
-MI_MMU_LOAD_TO_NOZZLE::MI_MMU_LOAD_TO_NOZZLE()
-    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-void MI_MMU_LOAD_TO_NOZZLE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadToNozzle>);
 }
 
 /**********************************************************************************************/
