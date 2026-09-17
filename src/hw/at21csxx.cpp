@@ -213,7 +213,7 @@ int AT21CSxx::read(uint8_t data_addr) {
         nack();
         stop_con();
     }
-    osDelay(1); // Give EEPROM some extra time. Reduces errors.
+    HAL_Delay(1); // Give EEPROM some extra time. Reduces errors.
     return data;
 }
 
