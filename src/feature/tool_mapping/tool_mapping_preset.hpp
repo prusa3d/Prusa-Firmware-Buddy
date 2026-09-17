@@ -15,6 +15,7 @@ enum class ToolMappingPreset : uint8_t {
     /// Assigns nothing, the user has to do the mapping himself
     empty = 2,
 
+    /// Assigns the tools based on compatibility, colors and whatnot
     smart_with_colors = 3,
 
     _cnt,

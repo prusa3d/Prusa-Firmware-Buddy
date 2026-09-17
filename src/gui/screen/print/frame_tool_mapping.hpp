@@ -173,7 +173,7 @@ public:
     std::optional<GcodeToolIndex> suggest_gcode_tool_to_focus() const;
 
     struct ToolMatchArgs {
-        /// If set, only items without fatal incompatibilities will be considered
+        /// If set, only items that are not mapped and are without fatal incompatibilities will be considered
         bool compatible_only : 1;
 
         /// If set, the algo will prefer matching colors

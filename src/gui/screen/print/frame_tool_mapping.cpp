@@ -509,11 +509,46 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
     using Penalty = ToolMatchResult::Penalty;
 
     constexpr Penalty penalty_color_mismatch_max = 255;
-    constexpr Penalty penalty_overridable_incompatibility = 1u << 9;
-    constexpr Penalty penalty_already_mapped_flag = 1u << 30;
 
-    // Cannot print - no point in offering at all
-    constexpr Penalty penalty_fatal_incompatibility_flag = 1u << 31;
+    struct PenaltyBuilder {
+        uint8_t nonfatal_incompatibility_count;
+        uint8_t color_mismatch;
+
+        bool fatal_incompatibility : 1;
+        bool already_mapped : 1;
+
+        /// Packs the fields into a number so that comparing penalties turns into a simple int comparison.
+        /// The append order defines the priority, most significant first.
+        constexpr Penalty build() const {
+            Penalty result = 0;
+            const auto append = [&result](Penalty value, int bits) {
+                result = (result << bits) | value;
+            };
+            append(fatal_incompatibility, 1);
+
+            // Lower priority than fatal incompatibility - rather suggest a mapped tool than incompatible tool
+            append(already_mapped, 1);
+
+            append(nonfatal_incompatibility_count, 8);
+            append(color_mismatch, 8);
+            return result;
+        }
+    };
+
+    static constexpr PenaltyBuilder default_penalty_builder {
+        .nonfatal_incompatibility_count = 0,
+        .color_mismatch = penalty_color_mismatch_max,
+        .fatal_incompatibility = false,
+        .already_mapped = false,
+    };
+
+    static constexpr PenaltyBuilder incompatible_penalty_builder {
+        .nonfatal_incompatibility_count = 0,
+        .color_mismatch = 0,
+        .fatal_incompatibility = true,
+        .already_mapped = true,
+    };
+    static constexpr Penalty incompatible_penalty_mask = incompatible_penalty_builder.build();
 
     std::optional<ToolMatchResult> result;
 
@@ -525,7 +560,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
         const VirtualToolIndex virtual_tool = *item.virtual_tool;
         const OptionalColor virtual_color = FilamentType::for_tool(virtual_tool).parameters().color;
 
-        Penalty item_penalty = 0;
+        PenaltyBuilder penalty_builder = default_penalty_builder;
 
         switch (item.connection) {
 
@@ -534,7 +569,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
 
         case MappingDisplayItem::Connection::spool_join:
         case MappingDisplayItem::Connection::main_tool:
-            item_penalty |= penalty_already_mapped_flag;
+            penalty_builder.already_mapped = true;
             break;
         }
 
@@ -552,7 +587,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
                     /// Color mismatch bigger than this value gets clamped to maximum penalty
                     constexpr float max_penalty_perceptual_distance = 0.8f;
 
-                    item_penalty += (uint8_t)scale<float>(
+                    penalty_builder.color_mismatch = (uint8_t)scale<float>(
                         perceptual_distance,
                         no_penalty_perceptual_distance, max_penalty_perceptual_distance,
                         0, penalty_color_mismatch_max //
@@ -578,7 +613,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
             });
 
             // Increase item penalty based on how many checks it has failed
-            speculative_report.visit_failed_checks([virtual_tool, &item_penalty](const auto &failed_check) {
+            speculative_report.visit_failed_checks([virtual_tool, &penalty_builder](const auto &failed_check) {
                 // Only consider checks specific to the virtual tool
                 if (stdext::holds_value(failed_check.tool, virtual_tool)) {
                     using CompatibilityLevel = buddy::gcode_compatibility::CompatibilityLevel;
@@ -591,11 +626,11 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
                         break;
 
                     case CompatibilityLevel::needs_user_approval:
-                        item_penalty += penalty_overridable_incompatibility;
+                        penalty_builder.nonfatal_incompatibility_count++;
                         break;
 
                     case CompatibilityLevel::fatal_incompatibility:
-                        item_penalty |= penalty_fatal_incompatibility_flag;
+                        penalty_builder.fatal_incompatibility = true;
                         break;
                     }
                 }
@@ -603,6 +638,8 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
             },
                 buddy::gcode_compatibility::CompatibilityReport::AggregateTools::no);
         }
+
+        const auto item_penalty = penalty_builder.build();
 
         if (!result.has_value() || item_penalty < result->penalty) {
             result = ToolMatchResult {
@@ -612,7 +649,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
         }
     }
 
-    if (args.compatible_only && result.has_value() && (result->penalty & (penalty_already_mapped_flag | penalty_fatal_incompatibility_flag))) {
+    if (args.compatible_only && result.has_value() && (result->penalty & incompatible_penalty_mask)) {
         return std::nullopt;
     }
 
