@@ -33,6 +33,7 @@ target_sources(
             nhttp/status_page.cpp
             nhttp/status_renderer.cpp
             nhttp/transfer_renderer.cpp
+            ooseq_limit.cpp
             pbuf_rx.cpp
             sntp/sntp.c
             sntp/sntp_client.c

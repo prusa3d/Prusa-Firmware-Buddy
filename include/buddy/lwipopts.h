@@ -120,7 +120,13 @@ extern "C" {
 #define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT 5000 /* 5s for closing a connection must be enough... or let the other side time out */
 #define TCP_OVERSIZE                      128
 #define LWIP_TCP_SACK_OUT                 1
-#define TCP_OOSEQ_MAX_PBUFS               3
+
+// Direction-aware, globally-bounded ooseq caps; see lib/WUI/ooseq_limit.cpp.
+struct tcp_pcb;
+uint32_t buddy_ooseq_bytes_limit(const struct tcp_pcb *pcb);
+uint16_t buddy_ooseq_pbufs_limit(const struct tcp_pcb *pcb);
+#define TCP_OOSEQ_BYTES_LIMIT(pcb) buddy_ooseq_bytes_limit(pcb)
+#define TCP_OOSEQ_PBUFS_LIMIT(pcb) buddy_ooseq_pbufs_limit(pcb)
 
 #define LWIP_DNS 1
 /*
