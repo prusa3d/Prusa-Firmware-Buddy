@@ -32,9 +32,9 @@ void PrusaGcodeSuite::M862_6() {
         char temp_buf[sizeof("  M862.6 P\"01234567890123456789\"")];
         // TODO: Fix not reporting MMU
         for (auto feature : {
-                 "Input Shaper",
+                 gcode_info::m862_6_input_shaper,
     #if HAS_INDX()
-                     "INDX lock",
+                     gcode_info::m862_6_indx_lock,
     #endif
              }) {
             SERIAL_ECHO_START();

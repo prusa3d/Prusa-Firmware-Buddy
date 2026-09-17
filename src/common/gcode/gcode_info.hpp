@@ -37,6 +37,17 @@ inline constexpr const char *filament_wipe_tower_g = "total filament used for wi
 #endif
 inline constexpr const char *printer = "printer_model";
 inline constexpr const char *m862 = "M862";
+
+// M862.6 feature tokens, spelled as the slicer emits them in P"...". Shared with the
+// M862.6 Q response, which must answer in the same spelling it accepts.
+inline constexpr const char *m862_6_input_shaper = "Input Shaper";
+#if HAS_MMU2()
+inline constexpr const char *m862_6_mmu = "MMU3";
+#endif
+#if HAS_INDX()
+inline constexpr const char *m862_6_indx_lock = "INDX lock";
+#endif
+
 inline constexpr const char *m115 = "M115";
 inline constexpr const char *m555 = "M555";
 inline constexpr const char *m486 = "M486";
