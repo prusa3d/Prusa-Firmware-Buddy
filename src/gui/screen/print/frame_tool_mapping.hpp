@@ -180,9 +180,17 @@ public:
         bool consider_colors : 1;
     };
 
+    struct ToolMatchResult {
+        using Penalty = uint32_t;
+
+        VirtualToolIndex tool;
+        Penalty penalty;
+    };
+
     /// @returns preferably unassigned virtual tool
-    /// Also prefers least incompatibilities
-    std::optional<VirtualToolIndex> suggest_virtual_tool_to_focus(ToolMatchArgs args) const;
+    /// Also prefers least incompatibilities with selected_tool_for_connecting_
+    /// If no tool matching the requirements is found, returns nullopt.
+    std::optional<ToolMatchResult> suggest_virtual_tool_to_focus(ToolMatchArgs args) const;
 
     static constexpr int invalid_tool_position = -1;
     struct ToolItemPosition {

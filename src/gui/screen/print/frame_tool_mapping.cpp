@@ -464,8 +464,8 @@ void FrameToolMapping::focus_suggested_tool(ToolType tool_type) {
             .compatible_only = false,
             .consider_colors = true,
         };
-        if (auto tool = suggest_virtual_tool_to_focus(args)) {
-            tool_to_focus = *tool;
+        if (auto r = suggest_virtual_tool_to_focus(args)) {
+            tool_to_focus = r->tool;
         }
         break;
 
@@ -504,9 +504,9 @@ std::optional<GcodeToolIndex> FrameToolMapping::suggest_gcode_tool_to_focus() co
     return result;
 }
 
-std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(ToolMatchArgs args) const {
+std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtual_tool_to_focus(ToolMatchArgs args) const {
     // The lower the better
-    using Penalty = uint32_t;
+    using Penalty = ToolMatchResult::Penalty;
 
     constexpr Penalty penalty_color_mismatch_max = 255;
     constexpr Penalty penalty_overridable_incompatibility = 1u << 9;
@@ -515,8 +515,7 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
     // Cannot print - no point in offering at all
     constexpr Penalty penalty_fatal_incompatibility_flag = 1u << 31;
 
-    std::optional<VirtualToolIndex> result;
-    Penalty result_penalty = std::numeric_limits<Penalty>::max();
+    std::optional<ToolMatchResult> result;
 
     for (const auto &item : items_) {
         if (!item.virtual_tool.has_value()) {
@@ -605,13 +604,15 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
                 buddy::gcode_compatibility::CompatibilityReport::AggregateTools::no);
         }
 
-        if (item_penalty < result_penalty) {
-            result_penalty = item_penalty;
-            result = virtual_tool;
+        if (!result.has_value() || item_penalty < result->penalty) {
+            result = ToolMatchResult {
+                .tool = virtual_tool,
+                .penalty = item_penalty,
+            };
         }
     }
 
-    if (args.compatible_only && result_penalty & (penalty_already_mapped_flag | penalty_fatal_incompatibility_flag)) {
+    if (args.compatible_only && result.has_value() && (result->penalty & (penalty_already_mapped_flag | penalty_fatal_incompatibility_flag))) {
         return std::nullopt;
     }
 
@@ -1108,8 +1109,8 @@ void FrameToolMapping::smart_tool_mapping_impl(ToolMatchArgs args) {
         }
 
         selected_tool_for_connecting_ = gcode_tool;
-        if (auto virtual_tool = suggest_virtual_tool_to_focus(args)) {
-            tool_mapper.set_mapping(gcode_tool, *virtual_tool);
+        if (auto r = suggest_virtual_tool_to_focus(args)) {
+            tool_mapper.set_mapping(gcode_tool, r->tool);
             update_mapping();
         }
     }
