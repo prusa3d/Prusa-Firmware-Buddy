@@ -5,7 +5,6 @@
 #include <gui_utils.hpp>
 #include <gui/dialogs/dialog_menu_virtual.hpp>
 #include <MItem_tools.hpp>
-#include <img_resources.hpp>
 
 namespace {
 struct ColorPreset {
@@ -92,19 +91,17 @@ public:
     DialogMenuItem(const ColorPreset &preset)
         : color_(preset.color()) {
         SetLabel(preset.name);
-        extension_width = 32;
+        extension_width = MenuItemColorSwatchExtension {}.compute_width();
     }
 
 protected:
     void printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const override {
-        (void)color_text, (void)raster_op;
+        (void)color_text;
 
-        constexpr auto margin = 6;
-        draw_color_swatch(
-            Rect16::CutPadding(extension_rect, padding_ui8_t { .top = margin, .bottom = margin }),
-            Align_t::RightCenter(),
-            color_,
-            color_back);
+        const MenuItemColorSwatchExtension ext {
+            .color = color_,
+        };
+        ext.draw(*this, extension_rect, color_back, raster_op);
     }
 
     void click(IWindowMenu &menu) override {
@@ -120,7 +117,7 @@ private:
 
 MenuItemColor::MenuItemColor(const string_view_utf8 &label)
     : IWindowMenuItem(label) {
-    extension_width = 48; // Color swatch + arrow
+    extension_width = MenuItemColorSwatchExtension { .show_arrow = true }.compute_width();
 }
 
 void MenuItemColor::set_value(OptionalColor new_value) {
@@ -144,17 +141,11 @@ void MenuItemColor::set_is_editable(bool set) {
 void MenuItemColor::printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const {
     (void)color_text;
 
-    if (is_editable_ && IsEnabled()) {
-        render_icon_align(extension_rect, &img::arrow_right_10x16, color_back, Align_t::RightCenter(), raster_op);
-        extension_rect -= Rect16::Width_t { 16 };
-    }
-
-    constexpr auto margin = 6;
-    draw_color_swatch(
-        Rect16::CutPadding(extension_rect, padding_ui8_t { .top = margin, .bottom = margin }),
-        Align_t::RightCenter(),
-        value_,
-        color_back);
+    const MenuItemColorSwatchExtension ext {
+        .color = value_,
+        .show_arrow = is_editable_ && IsEnabled(),
+    };
+    ext.draw(*this, extension_rect, color_back, raster_op);
 }
 
 void MenuItemColor::click(IWindowMenu &menu) {
