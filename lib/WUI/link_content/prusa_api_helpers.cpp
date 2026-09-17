@@ -83,6 +83,11 @@ bool parse_file_url(const RequestParser &parser, const size_t prefix_len, char *
             return false;
         }
 
+        // Consumers strip a fixed "/usb/" prefix; normalise the accepted bare "/usb".
+        if (strcmp(fname_real, "/usb") == 0) {
+            fname_real = "/usb/";
+        }
+
         // We need to use memmove, because fname_real points into filename
         // and memmove explicitly allowes for overlapping buffer to be used
         size_t fname_real_len = strlen(fname_real);
