@@ -40,31 +40,19 @@ private:
     StringViewUtf8Parameters<3> label_params_;
 };
 
-class IMI_ExtruderSensor : public IMI_AnySensor {
-protected:
-    inline IMI_ExtruderSensor(uint8_t sensor_index)
-        : IMI_AnySensor(sensor_index, false) {}
-};
-
 template <size_t sensor_index_>
-class MI_ExtruderSensor final : public IMI_ExtruderSensor {
+class MI_ExtruderSensor final : public IMI_AnySensor {
 public:
     MI_ExtruderSensor()
-        : IMI_ExtruderSensor(sensor_index_) {}
+        : IMI_AnySensor(sensor_index_, false) {}
 };
 
 #if HAS_SIDE_FSENSOR()
-class IMI_SideSensor : public IMI_AnySensor {
-protected:
-    inline IMI_SideSensor(uint8_t sensor_index)
-        : IMI_AnySensor(sensor_index, true) {}
-};
-
 template <size_t sensor_index_>
-class MI_SideSensor final : public IMI_SideSensor {
+class MI_SideSensor final : public IMI_AnySensor {
 public:
     MI_SideSensor()
-        : IMI_SideSensor(sensor_index_) {}
+        : IMI_AnySensor(sensor_index_, true) {}
 };
 #endif
 
