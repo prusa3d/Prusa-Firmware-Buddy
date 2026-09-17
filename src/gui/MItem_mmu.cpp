@@ -79,8 +79,8 @@ void MI_MMU_LOAD_TO_NOZZLE::click(IWindowMenu & /*window_menu*/) {
 
 /**********************************************************************************************/
 // MI_MMU_ISSUE_GCODE
-MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode, is_hidden_t hidden)
-    : IWindowMenuItem(_(lbl), nullptr, is_enabled_t::yes, hidden)
+MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(TranslatableString label, const char *gcode, is_hidden_t hidden)
+    : IWindowMenuItem(label, nullptr, is_enabled_t::yes, hidden)
     , gcode(gcode) {
 }
 
@@ -92,22 +92,15 @@ void MI_MMU_ISSUE_GCODE::click(IWindowMenu & /*window_menu*/) {
 
 /**********************************************************************************************/
 // MI_MMU_ITEM_WITH_SLOT
-MI_MMU_ITEM_WITH_SLOT::MI_MMU_ITEM_WITH_SLOT(uint8_t slot_i, const char *label_prefix)
+MI_MMU_ITEM_WITH_SLOT::MI_MMU_ITEM_WITH_SLOT(uint8_t slot_i, TranslatableString label)
     : slot_i_(slot_i) {
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-    std::array<char, 32> translated_prefix;
-    _(label_prefix).copyToRAM(translated_prefix.data(), translated_prefix.size());
-    snprintf(label_.data(), label_.size(), "%s %i", translated_prefix.data(), slot_i + 1);
-    SetLabel(string_view_utf8::MakeRAM(label_.data()));
-#pragma GCC diagnostic pop
+    SetLabel(string_view_utf8(label).formatted(label_params_, slot_i + 1));
 }
 
 /**********************************************************************************************/
 // MI_MMU_ISSUE_GCODE_SLOT_FMT
-MI_MMU_ISSUE_GCODE_SLOT_FMT::MI_MMU_ISSUE_GCODE_SLOT_FMT(uint8_t slot_i, const char *label_prefix, const char *gcode_fmt)
-    : MI_MMU_ITEM_WITH_SLOT(slot_i, label_prefix)
+MI_MMU_ISSUE_GCODE_SLOT_FMT::MI_MMU_ISSUE_GCODE_SLOT_FMT(uint8_t slot_i, TranslatableString label, const char *gcode_fmt)
+    : MI_MMU_ITEM_WITH_SLOT(slot_i, label)
     , gcode_fmt_(gcode_fmt) {
 }
 
@@ -119,8 +112,8 @@ void MI_MMU_ISSUE_GCODE_SLOT_FMT::click(IWindowMenu &) {
 
 /**********************************************************************************************/
 // MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT
-MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT::MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(uint8_t slot_i, const char *label_prefix)
-    : MI_MMU_ITEM_WITH_SLOT(slot_i, label_prefix) {}
+MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT::MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(uint8_t slot_i, TranslatableString label)
+    : MI_MMU_ITEM_WITH_SLOT(slot_i, label) {}
 
 void MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT::click(IWindowMenu &) {
     std::array<char, MAX_CMD_SIZE> gcode;

@@ -73,7 +73,7 @@ class MI_MMU_ISSUE_GCODE : public IWindowMenuItem {
     const char *gcode;
 
 public:
-    MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode, is_hidden_t hidden = is_hidden_t::no);
+    MI_MMU_ISSUE_GCODE(TranslatableString label, const char *gcode, is_hidden_t hidden = is_hidden_t::no);
 
 protected:
     virtual void click(IWindowMenu &) override;
@@ -83,12 +83,10 @@ class MI_MMU_ITEM_WITH_SLOT : public IWindowMenuItem {
 
 public:
     /// \param slot_i Slot index, starting at 0. For label, +1 is shown
-    MI_MMU_ITEM_WITH_SLOT(uint8_t slot_i, const char *label_prefix);
+    MI_MMU_ITEM_WITH_SLOT(uint8_t slot_i, TranslatableString label);
 
 protected:
-    // We need a buffer to store the formatted string
-    // because the label_base needs to go through snprintf
-    std::array<char, 32> label_;
+    StringViewUtf8Parameters<3> label_params_;
 
     const uint8_t slot_i_;
 };
@@ -98,7 +96,7 @@ class MI_MMU_ISSUE_GCODE_SLOT_FMT : public MI_MMU_ITEM_WITH_SLOT {
 public:
     /// \param slot_i Slot index, starting at 0. For label, +1 is shown
     /// \param gcode_fmt Format used for snprintf. An '%i' parameter is passed, being the 0-indexed slot number.
-    MI_MMU_ISSUE_GCODE_SLOT_FMT(uint8_t slot_i, const char *label_prefix, const char *gcode_fmt);
+    MI_MMU_ISSUE_GCODE_SLOT_FMT(uint8_t slot_i, TranslatableString label, const char *gcode_fmt);
 
 protected:
     virtual void click(IWindowMenu &) override;
@@ -109,7 +107,7 @@ protected:
 class MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT : public MI_MMU_ITEM_WITH_SLOT {
 
 public:
-    MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(uint8_t slot_i, const char *label_prefix);
+    MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(uint8_t slot_i, TranslatableString label);
 
 protected:
     virtual void click(IWindowMenu &) final;
@@ -120,7 +118,7 @@ class MI_MMU_EJECT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
     MI_MMU_EJECT_FILAMENT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Eject From MMU"), "M705 P%i") {}
+        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Eject From MMU %i"), "M705 P%i") {}
 };
 
 template <uint8_t slot_i>
@@ -128,7 +126,7 @@ class MI_MMU_PRELOAD_SLOT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
     MI_MMU_PRELOAD_SLOT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, "Preload Filament", "M704 P%i") {}
+        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Preload Filament %i"), "M704 P%i") {}
 };
 
 template <uint8_t slot_i>
@@ -137,7 +135,7 @@ class MI_MMU_LOAD_TO_NOZZLE_I : public MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT {
 public:
     MI_MMU_LOAD_TO_NOZZLE_I()
         // load filament slot with autopreheat based on filament type in MMU slots
-        : MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(slot_i, "Load Filament") {}
+        : MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(slot_i, N_("Load Filament %i")) {}
 };
 
 template <uint8_t slot_i>
@@ -145,7 +143,7 @@ class MI_MMU_CUT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
     MI_MMU_CUT_FILAMENT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, "Cut Filament", "M706 P%i") {}
+        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Cut Filament %i"), "M706 P%i") {}
 };
 
 template <uint8_t slot_i>
@@ -153,15 +151,14 @@ class MI_MMU_LOAD_TEST_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
     MI_MMU_LOAD_TEST_FILAMENT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, "Test Filament", "M1704 P%i M0") {}
+        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Test Filament %i"), "M1704 P%i M0") {}
 };
 
 class MI_MMU_UNLOAD_FILAMENT : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Unload Filament");
 
 public:
     MI_MMU_UNLOAD_FILAMENT()
-        : MI_MMU_ISSUE_GCODE(label, "M702 W2") {}
+        : MI_MMU_ISSUE_GCODE(N_("Unload Filament"), "M702 W2") {}
 };
 
 class MI_MMU_LOAD_TEST_ALL : public IWindowMenuItem {
@@ -175,27 +172,24 @@ protected:
 };
 
 class MI_MMU_SW_RESET : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("SW Reset");
 
 public:
     MI_MMU_SW_RESET()
-        : MI_MMU_ISSUE_GCODE(label, "M709 X0", is_hidden_t::dev) {}
+        : MI_MMU_ISSUE_GCODE(N_("SW Reset"), "M709 X0", is_hidden_t::dev) {}
 };
 
 class MI_MMU_HW_RESET : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("HW Reset");
 
 public:
     MI_MMU_HW_RESET()
-        : MI_MMU_ISSUE_GCODE(label, "M709 X1", is_hidden_t::dev) {}
+        : MI_MMU_ISSUE_GCODE(N_("HW Reset"), "M709 X1", is_hidden_t::dev) {}
 };
 
 class MI_MMU_POWER_CYCLE : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Power Cycle");
 
 public:
     MI_MMU_POWER_CYCLE()
-        : MI_MMU_ISSUE_GCODE(label, "M709 X2", is_hidden_t::dev) {}
+        : MI_MMU_ISSUE_GCODE(N_("Power Cycle"), "M709 X2", is_hidden_t::dev) {}
 };
 
 class MI_MMU_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
