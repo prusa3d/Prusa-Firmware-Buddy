@@ -9,6 +9,7 @@
 #include <utils/color.hpp>
 #include <option/has_indx.h>
 #include <option/has_mmu2.h>
+#include <option/has_ht_hotend.h>
 #include <option/has_gcode_compatibility.h>
 #include <common/filament.hpp>
 #include <common/hw_check.hpp>
@@ -46,6 +47,9 @@ inline constexpr const char *m862_6_mmu = "MMU3";
 #endif
 #if HAS_INDX()
 inline constexpr const char *m862_6_indx_lock = "INDX lock";
+#endif
+#if HAS_HT_HOTEND()
+inline constexpr const char *m862_6_ht_hotend = "HT Hotend";
 #endif
 
 inline constexpr const char *m115 = "M115";
@@ -126,6 +130,9 @@ private:
         bool sliced_with_input_shaper_ = false; ///< True if gcode was sliced with input shaper
 #if HAS_INDX()
         bool sliced_with_indx_lock_ = false; ///< True if gcode was sliced with INDX lock support
+#endif
+#if HAS_HT_HOTEND()
+        bool sliced_for_ht_hotend_ = false; ///< True if gcode declares it needs the high-temperature hotend
 #endif
         bool has_preview_thumbnail_ = false; ///< True if gcode has preview thumbnail
         bool has_progress_thumbnail_ = false; ///< True if gcode has progress thumbnail

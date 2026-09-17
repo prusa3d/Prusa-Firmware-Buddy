@@ -12,6 +12,7 @@
 #include <option/has_mmu2.h>
 #include <option/has_anfc.h>
 #include <option/has_toolchanger.h>
+#include <option/has_ht_hotend.h>
 
 #include "compatibility_checks_common.hpp"
 #include "filament_compatibility.hpp"
@@ -64,6 +65,12 @@ enum class GeneralCheck : uint8_t {
 #if HAS_MMU2()
     /// Fails if the gcode requires MMU and we don't have it
     mmu,
+#endif
+
+#if HAS_HT_HOTEND()
+    /// Fails if the gcode declares it needs the high-temperature hotend and one is not installed
+    /// Checked by M862.6
+    ht_hotend,
 #endif
 
     /// The GCode requests some features the printer doesn't have

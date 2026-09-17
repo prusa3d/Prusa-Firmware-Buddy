@@ -365,6 +365,12 @@ void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
                     break;
                 }
 #endif
+#if HAS_HT_HOTEND()
+                if (compare(feature, gcode_info::m862_6_ht_hotend)) {
+                    info_.sliced_for_ht_hotend_ = true;
+                    break;
+                }
+#endif
 
                 log_error(Buddy, "Unsupported feature: %s", feature.c_str());
                 info_.failed_gcode_checks.set(Check::unsupported_features);

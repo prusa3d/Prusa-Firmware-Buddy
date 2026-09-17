@@ -10,6 +10,12 @@
 #if HAS_MMU2()
     #include <feature/prusa/MMU2/mmu2_mk4.h>
 #endif
+#include <option/has_ht_hotend.h>
+#if HAS_HT_HOTEND()
+    #include <config_store/store_instance.hpp>
+    #include <hotend_type.hpp>
+    #include <tool_index.hpp>
+#endif
 
 #ifdef PRINT_CHECKING_Q_CMDS
 
@@ -27,7 +33,7 @@
  *#### Parameters
  *
  * - `Q` - Print currently supported features. Features tied to hardware that can come and
- *         go (the MMU) are reported only while that hardware is present.
+ *         go (the MMU, the HT hotend) are reported only while that hardware is present.
  * - `P "<string>"` - Check for feature
  */
 void PrusaGcodeSuite::M862_6() {
@@ -57,6 +63,13 @@ void PrusaGcodeSuite::M862_6() {
 
     #if HAS_INDX()
     report(gcode_info::m862_6_indx_lock);
+    #endif
+
+    #if HAS_HT_HOTEND()
+    static_assert(PhysicalToolIndex::count == 1, "HT hotend is a single-tool printer feature");
+    if (config_store().hotend_type.get(0) == HotendType::high_temp) {
+        report(gcode_info::m862_6_ht_hotend);
+    }
     #endif
 }
 

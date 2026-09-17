@@ -27,6 +27,11 @@
 
 #include <option/has_indx.h>
 
+#include <option/has_ht_hotend.h>
+#if HAS_HT_HOTEND()
+    #include <hotend_type.hpp>
+#endif
+
 #include <option/has_anfc.h>
 #if HAS_ANFC()
     #include <feature/openprinttag/filament_usage_tracker/filament_usage_tracker.hpp>
@@ -101,6 +106,19 @@ constinit const ChecksTraits<GeneralCheck>::Metadata ChecksTraits<GeneralCheck>:
                 .severity = HWCheckType::firmware,
                 .title = N_("Sliced for MMU"),
                 .description = N_("G-Code is sliced for MMU, but the MMU is not enabled on the printer. Cannot print."),
+            },
+        },
+#endif
+#if HAS_HT_HOTEND()
+        {
+            GeneralCheck::ht_hotend,
+            CheckMetadata {
+                // Same bucket as GeneralCheck::mmu -- both are "the g-code needs optional
+                // hardware this printer does not have" -- and the same one that governs this
+                // g-code today, through unsupported_features.
+                .severity = HWCheckType::firmware,
+                .title = N_("Sliced for HT hotend"),
+                .description = N_("G-Code is sliced for the high-temperature hotend, which is not installed."),
             },
         },
 #endif
@@ -354,6 +372,16 @@ void CompatibilityReport::generate_without_toolmapping(const GCodeInfo &gcode_in
 #if HAS_INDX()
     if (!gcode_info.info().sliced_with_indx_lock_) {
         failed_general_checks.set(GeneralCheck::indx_lock);
+    }
+#endif
+
+#if HAS_HT_HOTEND()
+    // hotend_type is read from EEPROM, so test against the safe default rather than for
+    // high_temp: an unknown or future-FW value then warns instead of silently letting an
+    // HT-sliced g-code run on a hotend that cannot take its temperatures.
+    static_assert(PhysicalToolIndex::count == 1, "HT hotend is a single-tool printer feature");
+    if (gcode_info.info().sliced_for_ht_hotend_ && config_store().hotend_type.get(0) != HotendType::high_temp) {
+        failed_general_checks.set(GeneralCheck::ht_hotend);
     }
 #endif
 
