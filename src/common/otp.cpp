@@ -122,7 +122,7 @@ static std::optional<datamatrix_t> decode_datamatrix(const uint8_t *src, size_t 
 
     // product ID until a '-' is found
     dm.product_id = 0;
-    while (isdigit(*src) && size) {
+    while (size && isdigit(*src)) {
         dm.product_id *= 10;
         dm.product_id += *src - '0';
         ++src;
