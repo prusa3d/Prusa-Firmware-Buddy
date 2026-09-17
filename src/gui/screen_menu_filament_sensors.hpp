@@ -25,7 +25,7 @@ protected:
 class IMI_AnySensor : public WI_ICON_SWITCH_OFF_ON_t {
 
 protected:
-    IMI_AnySensor(uint8_t sensor_index, bool is_side, const char *label_base);
+    IMI_AnySensor(uint8_t sensor_index, bool is_side);
 
     void OnChange(size_t) final;
     void Loop() final;
@@ -37,17 +37,13 @@ private:
     /// Sync the value and the enable state with the config store
     void update();
 
-    // We need a buffer to store the formatted string
-    // because the label_base needs to go through snprintf
-    std::array<char, 32> label;
+    StringViewUtf8Parameters<3> label_params_;
 };
 
 class IMI_ExtruderSensor : public IMI_AnySensor {
-    static constexpr const char *label_base = N_("Toolhead Filament Sensor");
-
 protected:
     inline IMI_ExtruderSensor(uint8_t sensor_index)
-        : IMI_AnySensor(sensor_index, false, label_base) {}
+        : IMI_AnySensor(sensor_index, false) {}
 };
 
 template <size_t sensor_index_>
@@ -59,11 +55,9 @@ public:
 
 #if HAS_SIDE_FSENSOR()
 class IMI_SideSensor : public IMI_AnySensor {
-    static constexpr const char *label_base = N_("Side Filament Sensor");
-
 protected:
     inline IMI_SideSensor(uint8_t sensor_index)
-        : IMI_AnySensor(sensor_index, true, label_base) {}
+        : IMI_AnySensor(sensor_index, true) {}
 };
 
 template <size_t sensor_index_>

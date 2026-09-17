@@ -2,7 +2,6 @@
 
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <window_msgbox.hpp>
-#include <utils/string_builder.hpp>
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
@@ -11,7 +10,19 @@
 
 using namespace NScreenMenuFilamentSensors;
 
-IMI_AnySensor::IMI_AnySensor(uint8_t sensor_index, bool is_side, const char *label_base)
+namespace {
+
+constexpr TranslatableString extruder_sensor_label = //
+    PhysicalToolIndex::count > 1 ? (TranslatableString)N_("Toolhead Filament Sensor %i")
+                                 : (TranslatableString)N_("Toolhead Filament Sensor");
+
+constexpr TranslatableString side_sensor_label = //
+    PhysicalToolIndex::count > 1 ? (TranslatableString)N_("Side Filament Sensor %i")
+                                 : (TranslatableString)N_("Side Filament Sensor");
+
+} // namespace
+
+IMI_AnySensor::IMI_AnySensor(uint8_t sensor_index, bool is_side)
     : WI_ICON_SWITCH_OFF_ON_t(0, {}, nullptr, is_enabled_t::yes, is_hidden_t::no)
     , sensor_index(sensor_index)
     , is_side(is_side) //
@@ -21,16 +32,11 @@ IMI_AnySensor::IMI_AnySensor(uint8_t sensor_index, bool is_side, const char *lab
     const auto tool = stdext::get_optional<PhysicalToolIndex>(PhysicalToolIndex::from_raw_notool(sensor_index));
     set_is_hidden(!(tool.has_value() && tool->is_enabled()));
 
-    // Format label
-    {
-        StringBuilder sb(label);
-        sb.append_string_view(_(label_base));
-
-        if constexpr (toolhead_count > 1) {
-            sb.append_printf(" %i", sensor_index + 1);
-        }
-
-        SetLabel(string_view_utf8::MakeRAM(label.data()));
+    const TranslatableString label = is_side ? side_sensor_label : extruder_sensor_label;
+    if constexpr (toolhead_count > 1) {
+        SetLabel(string_view_utf8(label).formatted(label_params_, sensor_index + 1));
+    } else {
+        SetLabel(label);
     }
 }
 
