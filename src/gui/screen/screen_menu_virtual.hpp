@@ -3,6 +3,7 @@
 
 #include <window_menu_virtual.hpp>
 #include <screen_menu.hpp>
+#include <guiconfig/GuiDefaults.hpp>
 
 namespace screen_menu_virtual {
 
@@ -16,7 +17,7 @@ struct Configuration {
     /// Screen title, will be translated
     const char *title;
 
-    EFooter footer : 1 = EFooter::Off;
+    EFooter footer : 1 = GuiDefaults::MenuFooter;
 };
 
 class Menu final : public WindowMenuVirtual {
