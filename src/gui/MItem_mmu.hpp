@@ -122,14 +122,6 @@ public:
 };
 
 template <uint8_t slot_i>
-class MI_MMU_PRELOAD_SLOT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
-
-public:
-    MI_MMU_PRELOAD_SLOT_I()
-        : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Preload Filament %i"), "M704 P%i") {}
-};
-
-template <uint8_t slot_i>
 class MI_MMU_LOAD_TO_NOZZLE_I : public MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT {
 
 public:
