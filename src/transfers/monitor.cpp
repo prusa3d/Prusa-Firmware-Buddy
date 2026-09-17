@@ -138,7 +138,7 @@ optional<Monitor::Outcome> Monitor::outcome(TransferId id) const {
 
     // How much to the past into the history do we go?
     uint32_t offset = (history_latest - id).to_uint32_t();
-    if (offset > history_len) {
+    if (offset >= history_len) {
         // The history is continuous segment back. We may be asked for outdated
         // ID (in which case it'll be slightly larger than the length of the
         // history). We may also be asked for completely bogus ID, in wich case
