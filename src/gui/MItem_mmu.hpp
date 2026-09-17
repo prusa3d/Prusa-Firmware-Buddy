@@ -6,7 +6,9 @@
 #include "WindowItemFormatableLabel.hpp"
 #include "i18n.h"
 #include <option/has_nextruder.h>
+#include <tool_index.hpp>
 #include <gui/menu_item/menu_item_select_menu.hpp>
+#include <gui/menu_item/menu_item_virtual_submenu.hpp>
 
 class MI_MMU_PRELOAD : public IWindowMenuItem {
     static constexpr const char *const label = N_("Preload To MMU");
@@ -43,16 +45,6 @@ class MI_MMU_EJECT_FILAMENT : public IWindowMenuItem {
 
 public:
     MI_MMU_EJECT_FILAMENT();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_MMU_CUT_FILAMENT : public IWindowMenuItem {
-    static constexpr const char *const label = N_("Cut Filament");
-
-public:
-    MI_MMU_CUT_FILAMENT();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -130,12 +122,17 @@ public:
         : MI_MMU_ISSUE_LOAD_TO_NOZZLE_SLOT(slot_i, N_("Load Filament %i")) {}
 };
 
-template <uint8_t slot_i>
 class MI_MMU_CUT_FILAMENT_I : public MI_MMU_ISSUE_GCODE_SLOT_FMT {
 
 public:
-    MI_MMU_CUT_FILAMENT_I()
+    MI_MMU_CUT_FILAMENT_I(uint8_t slot_i)
         : MI_MMU_ISSUE_GCODE_SLOT_FMT(slot_i, N_("Cut Filament %i"), "M706 P%i") {}
+};
+
+class MI_MMU_CUT_FILAMENT : public MenuItemVirtualSubmenu<N_("Cut Filament"), MI_MMU_CUT_FILAMENT_I, VirtualToolIndex::count> {
+
+public:
+    MI_MMU_CUT_FILAMENT();
 };
 
 template <uint8_t slot_i>
