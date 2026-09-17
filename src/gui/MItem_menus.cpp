@@ -22,7 +22,6 @@
 #include "screen_menu_lang_and_time.hpp"
 #include "screen_menu_hardware.hpp"
 #include "screen_menu_hardware_tune.hpp"
-#include "screen_menu_gcode_checks.hpp"
 #include "screen_help_fw_update.hpp"
 #include <option/has_wastebin_fill_tracking.h>
 #if HAS_WASTEBIN_FILL_TRACKING()
@@ -156,7 +155,6 @@ template struct MI_SCREEN_CTOR<ScreenMenuNetwork>;
 template struct MI_SCREEN_CTOR<ScreenMenuNetworkStatus>;
 template struct MI_SCREEN_CTOR<ScreenMenuHardware>;
 template struct MI_SCREEN_CTOR<ScreenMenuHardwareTune>;
-template struct MI_SCREEN_CTOR<ScreenMenuGcodeChecks>;
 template struct MI_SCREEN_CTOR<ScreenHelpFWUpdate>;
 #if HAS_WASTEBIN_FILL_TRACKING()
 template struct MI_SCREEN_CTOR<ScreenMenuWastebin>;

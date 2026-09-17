@@ -17,6 +17,8 @@
 #include <common/printer_variant/printer_variant.hpp>
 #include <dynamic_index_mapping.hpp>
 #include <gui/menu_item/menu_item_select_menu.hpp>
+#include <gui/menu_item/menu_item_virtual_submenu.hpp>
+#include <common/hw_check.hpp>
 
 class MI_HARDWARE_CHECK : public MenuItemSwitch {
 public:
@@ -28,6 +30,9 @@ protected:
 private:
     const HWCheckType check_type;
 };
+
+inline constexpr auto mi_gcode_checks_item_f(int i) { return static_cast<HWCheckType>(i); }
+using MI_GCODE_CHECKS = MenuItemVirtualSubmenu<N_("G-Code Checks"), MI_HARDWARE_CHECK, hw_check_type_count, mi_gcode_checks_item_f>;
 
 #if HAS_SIDE_FSENSOR_REMAP()
 class MI_SIDE_FSENSOR_REMAP : public WI_ICON_SWITCH_OFF_ON_t {
