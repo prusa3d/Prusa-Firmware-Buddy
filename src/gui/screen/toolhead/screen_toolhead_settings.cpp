@@ -2,6 +2,8 @@
 
 #include <common/nozzle_diameter.hpp>
 #include <ScreenHandler.hpp>
+#include <WindowMenuItems.hpp>
+#include <gui/screen/screen_menu_virtual.hpp>
 #include <img_resources.hpp>
 #include <gui/dialogs/window_dlg_wait.hpp>
 #include <gcode/queue.h>
@@ -368,7 +370,7 @@ MI_TOOLHEAD::MI_TOOLHEAD(Toolhead toolhead)
     } else {
         const PhysicalToolIndex ix = std::get<PhysicalToolIndex>(toolhead);
         SetLabel(ix.display_name(label_params));
-        set_is_hidden(!ix.is_enabled());
+        set_enabled(ix.is_enabled());
     }
 }
 
@@ -378,9 +380,24 @@ void MI_TOOLHEAD::click(IWindowMenu &) {
 
 #if HAS_TOOLCHANGER()
 
-// * ScreenToolheadSettingsList
-ScreenToolheadSettingsList::ScreenToolheadSettingsList()
-    : ScreenMenu(_("TOOLS SETTINGS")) //
-{}
+// * screen_toolhead_settings_list_creator
+namespace {
+constexpr screen_menu_virtual::Configuration toolhead_list_menu_config {
+    .item_count = [] -> int { return PhysicalToolIndex::enabled_range_size() + 2; }, // + MI_RETURN + All Tools
+    .item_constructor = [](WindowMenuVirtual::ItemVariant &variant, int index) {
+        if (index == 0) {
+            variant.emplace<MI_RETURN>();
+        } else if (index <= PhysicalToolIndex::enabled_range_size()) {
+            variant.emplace<MI_TOOLHEAD>(PhysicalToolIndex::from_raw(index - 1));
+        } else {
+            variant.emplace<MI_TOOLHEAD>(all_toolheads);
+        } },
+    .title = N_("TOOLS SETTINGS"),
+};
+} // namespace
+
+ScreenFactory::Creator screen_toolhead_settings_list_creator() {
+    return ScreenFactory::ScreenWithArg<ScreenMenuVirtual>(&toolhead_list_menu_config);
+}
 
 #endif

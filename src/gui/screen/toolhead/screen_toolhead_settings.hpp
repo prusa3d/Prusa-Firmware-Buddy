@@ -1,10 +1,10 @@
 #pragma once
 
 #include <variant>
-#include <cstdint>
 
 #include "screen_toolhead_settings_common.hpp"
 #include <tool_index.hpp>
+#include <ScreenFactory.hpp>
 
 #include <config_store/store_definition.hpp>
 #include <option/has_mmu2.h>
@@ -178,13 +178,9 @@ private:
     StringViewUtf8Parameters<2> title_params;
 };
 
-class MI_TOOLHEAD : public IWindowMenuItem {
+class MI_TOOLHEAD final : public IWindowMenuItem {
 public:
     MI_TOOLHEAD(Toolhead toolhead);
-
-    // For passing the index through template args in ScreenToolheadSettingsList_
-    MI_TOOLHEAD(uint8_t toolhead)
-        : MI_TOOLHEAD(PhysicalToolIndex::from_raw(toolhead)) {}
 
 protected:
     void click(IWindowMenu &) final;
@@ -194,25 +190,11 @@ private:
     StringViewUtf8Parameters<2> label_params;
 };
 
-#if HAS_TOOLCHANGER()
-template <typename>
-struct ScreenToolheadSettingsList_;
-
-template <size_t... i>
-struct ScreenToolheadSettingsList_<std::index_sequence<i...>> {
-    using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, WithConstructorArgs<MI_TOOLHEAD, i>..., WithConstructorArgs<MI_TOOLHEAD, AllTools {}>>;
-};
-
-class ScreenToolheadSettingsList : public ScreenToolheadSettingsList_<std::make_index_sequence<PhysicalToolIndex::count>>::T {
-public:
-    ScreenToolheadSettingsList();
-};
-#endif
-
 } // namespace screen_toolhead_settings
 
 using ScreenToolheadDetail = screen_toolhead_settings::ScreenToolheadDetail;
 
 #if HAS_TOOLCHANGER()
-using ScreenToolheadSettingsList = screen_toolhead_settings::ScreenToolheadSettingsList;
+/// Menu listing the toolheads and "All Tools", each opening ScreenToolheadDetail
+ScreenFactory::Creator screen_toolhead_settings_list_creator();
 #endif

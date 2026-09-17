@@ -242,7 +242,7 @@ void MI_TOOLHEAD_SETTINGS::click(IWindowMenu &) {
     ScreenFactory::Creator screen = ScreenFactory::Screen<ScreenToolheadDetail>;
 
 #if HAS_TOOLCHANGER()
-    screen = ScreenFactory::Screen<ScreenToolheadSettingsList>;
+    screen = screen_toolhead_settings_list_creator();
 #endif
 
 #if PRINTER_IS_PRUSA_XL()
