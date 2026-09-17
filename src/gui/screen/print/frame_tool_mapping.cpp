@@ -460,7 +460,11 @@ void FrameToolMapping::focus_suggested_tool(ToolType tool_type) {
     switch (tool_type) {
 
     case ToolType::virtual_tool:
-        if (auto tool = suggest_virtual_tool_to_focus(ToolFocusMode::best_effort)) {
+        static constexpr ToolMatchArgs args {
+            .compatible_only = false,
+            .consider_colors = true,
+        };
+        if (auto tool = suggest_virtual_tool_to_focus(args)) {
             tool_to_focus = *tool;
         }
         break;
@@ -500,7 +504,7 @@ std::optional<GcodeToolIndex> FrameToolMapping::suggest_gcode_tool_to_focus() co
     return result;
 }
 
-std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(ToolFocusMode focus_mode) const {
+std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(ToolMatchArgs args) const {
     // The lower the better
     using Penalty = uint32_t;
 
@@ -537,25 +541,27 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
 
         if (const auto *gcode_tool = std::get_if<GcodeToolIndex>(&selected_tool_for_connecting_)) {
             // Consider color match
-            const OptionalColor gcode_color = GCodeInfo::getInstance().get_extruder_info(*gcode_tool).extruder_colour;
+            if (args.consider_colors) {
+                const OptionalColor gcode_color = GCodeInfo::getInstance().get_extruder_info(*gcode_tool).extruder_colour;
 
-            if (virtual_color.has_value() && gcode_color.has_value()) {
-                const float perceptual_distance = Color::perceptual_distance(*virtual_color, *gcode_color);
+                if (virtual_color.has_value() && gcode_color.has_value()) {
+                    const float perceptual_distance = Color::perceptual_distance(*virtual_color, *gcode_color);
 
-                /// Color mismatch smaller than this value gets no penalty
-                constexpr float no_penalty_perceptual_distance = 0.1f;
+                    /// Color mismatch smaller than this value gets no penalty
+                    constexpr float no_penalty_perceptual_distance = 0.1f;
 
-                /// Color mismatch bigger than this value gets clamped to maximum penalty
-                constexpr float max_penalty_perceptual_distance = 0.8f;
+                    /// Color mismatch bigger than this value gets clamped to maximum penalty
+                    constexpr float max_penalty_perceptual_distance = 0.8f;
 
-                item_penalty += (uint8_t)scale<float>(
-                    perceptual_distance,
-                    no_penalty_perceptual_distance, max_penalty_perceptual_distance,
-                    0, penalty_color_mismatch_max //
-                );
+                    item_penalty += (uint8_t)scale<float>(
+                        perceptual_distance,
+                        no_penalty_perceptual_distance, max_penalty_perceptual_distance,
+                        0, penalty_color_mismatch_max //
+                    );
 
-            } else {
-                item_penalty += penalty_color_mismatch_max;
+                } else {
+                    penalty_builder.color_mismatch = penalty_color_mismatch_max;
+                }
             }
 
             // See how many GCode incompatibilities would the tool generate
@@ -605,16 +611,11 @@ std::optional<VirtualToolIndex> FrameToolMapping::suggest_virtual_tool_to_focus(
         }
     }
 
-    switch (focus_mode) {
-
-    case ToolFocusMode::best_effort:
-        return result;
-
-    case ToolFocusMode::compatible_only:
-        return result_penalty < std::min(penalty_already_mapped_flag, penalty_fatal_incompatibility_flag) ? result : std::nullopt;
+    if (args.compatible_only && result_penalty & (penalty_already_mapped_flag | penalty_fatal_incompatibility_flag)) {
+        return std::nullopt;
     }
 
-    bsod_unreachable();
+    return result;
 }
 
 FrameToolMapping::ToolItemPosition FrameToolMapping::tool_item_position(ToolVariant tool) {
@@ -1061,7 +1062,11 @@ void FrameToolMapping::apply_tool_mapping_preset(ToolMappingPreset preset) {
             }
 
             selected_tool_for_connecting_ = gcode_tool;
-            if (auto virtual_tool = suggest_virtual_tool_to_focus(ToolFocusMode::compatible_only)) {
+            static constexpr ToolMatchArgs args {
+                .compatible_only = true,
+                .consider_colors = false,
+            };
+            if (auto virtual_tool = suggest_virtual_tool_to_focus(args)) {
                 tool_mapper.set_mapping(gcode_tool, *virtual_tool);
                 update_mapping();
             }

@@ -166,20 +166,23 @@ public:
     ToolVariant focused_tool() const;
     void focus_tool(ToolVariant tool);
 
-    enum class ToolFocusMode : uint8_t {
-        best_effort,
-        compatible_only,
-    };
-
     /// Calls either suggest_gcode_tool_to_focus or suggest_virtual_tool_to_focus
     void focus_suggested_tool(ToolType tool_type);
 
     /// @returns preferably unassigned gcode tool
     std::optional<GcodeToolIndex> suggest_gcode_tool_to_focus() const;
 
+    struct ToolMatchArgs {
+        /// If set, only items without fatal incompatibilities will be considered
+        bool compatible_only : 1;
+
+        /// If set, the algo will prefer matching colors
+        bool consider_colors : 1;
+    };
+
     /// @returns preferably unassigned virtual tool
     /// Also prefers least incompatibilities
-    std::optional<VirtualToolIndex> suggest_virtual_tool_to_focus(ToolFocusMode focus_mode) const;
+    std::optional<VirtualToolIndex> suggest_virtual_tool_to_focus(ToolMatchArgs args) const;
 
     static constexpr int invalid_tool_position = -1;
     struct ToolItemPosition {
