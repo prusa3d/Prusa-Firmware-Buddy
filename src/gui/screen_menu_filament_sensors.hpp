@@ -23,21 +23,23 @@ protected:
 };
 
 class IMI_AnySensor : public WI_ICON_SWITCH_OFF_ON_t {
-    // We need a buffer to store the formatted string
-    // because the label_base needs to go through snprintf
-    std::array<char, 32> label;
-
-public:
-    /// Update enable value/enable state
-    void update();
 
 protected:
     IMI_AnySensor(uint8_t sensor_index, bool is_side, const char *label_base);
 
     void OnChange(size_t) final;
+    void Loop() final;
 
     const uint8_t sensor_index;
     const bool is_side;
+
+private:
+    /// Sync the value and the enable state with the config store
+    void update();
+
+    // We need a buffer to store the formatted string
+    // because the label_base needs to go through snprintf
+    std::array<char, 32> label;
 };
 
 class IMI_ExtruderSensor : public IMI_AnySensor {
@@ -96,7 +98,4 @@ class ScreenMenuFilamentSensors final : public NScreenMenuFilamentSensors::MenuB
 
 public:
     ScreenMenuFilamentSensors();
-
-protected:
-    void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
 };

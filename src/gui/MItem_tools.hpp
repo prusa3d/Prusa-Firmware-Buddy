@@ -45,11 +45,13 @@ class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
 public:
     MI_FILAMENT_SENSOR();
 
-    /// Set the index to the correct value based on config_store
-    void update();
-
 protected:
     virtual void OnChange(size_t old_index) override;
+    void Loop() override;
+
+private:
+    /// Set the index to the correct value based on config_store
+    void update();
 };
 
 #if !HAS_INDX()

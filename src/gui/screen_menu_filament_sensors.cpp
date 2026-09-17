@@ -1,7 +1,7 @@
 #include "screen_menu_filament_sensors.hpp"
 
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
-#include <ScreenHandler.hpp>
+#include <window_msgbox.hpp>
 #include <utils/string_builder.hpp>
 
 #include <option/has_toolchanger.h>
@@ -45,6 +45,10 @@ void IMI_AnySensor::update() {
     } else {
         set_value(bool(config_store().fsensor_extruder_enabled_bits.get() & bit_mask));
     }
+}
+
+void IMI_AnySensor::Loop() {
+    update();
 }
 
 void IMI_AnySensor::OnChange(size_t old_index) {
@@ -94,32 +98,8 @@ void MI_RestoreDefaults::click(IWindowMenu &) {
     } else {
         MsgBoxInfo(_("All filament sensors enabled."), Responses_Ok);
     }
-
-    // Signal to the parent screen to update other items
-    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
 }
 
 ScreenMenuFilamentSensors::ScreenMenuFilamentSensors()
     : MenuBase(_(label)) {
-}
-
-void ScreenMenuFilamentSensors::windowEvent(window_t *sender, GUI_event_t event, void *param) {
-    switch (event) {
-
-    case GUI_event_t::CHILD_CLICK:
-        [&]<size_t... i>(std::index_sequence<i...>) {
-            Item<MI_FILAMENT_SENSOR>().update();
-#if HAS_EXTRUDER_FSENSOR()
-            (Item<MI_ExtruderSensor<i>>().update(), ...);
-#endif
-#if HAS_SIDE_FSENSOR()
-            (Item<MI_SideSensor<i>>().update(), ...);
-#endif
-        }(std::make_index_sequence<toolhead_count>());
-        break;
-
-    default:
-        NScreenMenuFilamentSensors::MenuBase::windowEvent(sender, event, param);
-        break;
-    }
 }

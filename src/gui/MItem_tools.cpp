@@ -133,6 +133,10 @@ void MI_FILAMENT_SENSOR::update() {
     set_value(config_store().fsensor_enabled.get());
 }
 
+void MI_FILAMENT_SENSOR::Loop() {
+    update();
+}
+
 void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
     // Enabling/disabling FS can generate gcodes (I'm looking at you, MMU!).
     // Fail the action if there's no space in the queue.
@@ -148,9 +152,6 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
         FSensors_instance().set_enabled_global(false);
         set_value(old_index > 0);
     }
-
-    // Signal to the parent to check for changed
-    Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, nullptr);
 }
 
 #if !HAS_INDX()
