@@ -516,6 +516,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
 
         bool fatal_incompatibility : 1;
         bool already_mapped : 1;
+        bool indirect_candidate : 1;
 
         /// Packs the fields into a number so that comparing penalties turns into a simple int comparison.
         /// The append order defines the priority, most significant first.
@@ -531,6 +532,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
 
             append(nonfatal_incompatibility_count, 8);
             append(color_mismatch, 8);
+            append(indirect_candidate, 1);
             return result;
         }
     };
@@ -540,6 +542,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
         .color_mismatch = penalty_color_mismatch_max,
         .fatal_incompatibility = false,
         .already_mapped = false,
+        .indirect_candidate = true,
     };
 
     static constexpr PenaltyBuilder incompatible_penalty_builder {
@@ -547,6 +550,7 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
         .color_mismatch = 0,
         .fatal_incompatibility = true,
         .already_mapped = true,
+        .indirect_candidate = false,
     };
     static constexpr Penalty incompatible_penalty_mask = incompatible_penalty_builder.build();
 
@@ -574,6 +578,11 @@ std::optional<FrameToolMapping::ToolMatchResult> FrameToolMapping::suggest_virtu
         }
 
         if (const auto *gcode_tool = std::get_if<GcodeToolIndex>(&selected_tool_for_connecting_)) {
+            // Prefer direct mapping (G2 -> T2) if it would not come with a penalty
+            // For people who pre-map in the slicer (through GCodeTools) and expect things to match
+            // See BFW-9403
+            penalty_builder.indirect_candidate = (gcode_tool->to_raw() != virtual_tool.to_raw());
+
             // Consider color match
             if (args.consider_colors) {
                 const OptionalColor gcode_color = GCodeInfo::getInstance().get_extruder_info(*gcode_tool).extruder_colour;
