@@ -577,13 +577,17 @@ BGCODE_CORE_EXPORT size_t block_parameters_size(EBlockType type)
 
 BGCODE_CORE_EXPORT EResult skip_block_content(FILE& file, const FileHeader& file_header, const BlockHeader& block_header)
 {
-    fseek(&file, (long)block_content_size(file_header, block_header), SEEK_CUR);
+    if (fseek(&file, (long)block_content_size(file_header, block_header), SEEK_CUR) != 0) {
+        return EResult::ReadError;
+    }
     return ferror(&file) ? EResult::ReadError : EResult::Success;
 }
 
 BGCODE_CORE_EXPORT EResult skip_block(FILE& file, const FileHeader& file_header, const BlockHeader& block_header)
 {
-    fseek(&file, block_header.get_position() + (long)block_header.get_size() + (long)block_content_size(file_header, block_header), SEEK_SET);
+    if (fseek(&file, block_header.get_position() + (long)block_header.get_size() + (long)block_content_size(file_header, block_header), SEEK_SET) != 0) {
+        return EResult::ReadError;
+    }
     return ferror(&file) ? EResult::ReadError : EResult::Success;
 }
 
