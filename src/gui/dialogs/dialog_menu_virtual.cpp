@@ -11,7 +11,7 @@
 namespace dialog_menu_virtual {
 
 // Size-sensitive
-static_assert(sizeof(MenuItem) == 60);
+static_assert(sizeof(MenuItem) == 56);
 
 // This dialog gets allocated on the stack, so we want to have the WindowMenuVirtual as small as possible
 // This means ditching the default alloc buffer size for the extact MenuItem sizeof, at the cost of extra flash usage

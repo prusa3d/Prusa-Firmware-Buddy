@@ -1,7 +1,4 @@
-/**
- * @file i_window_menu_item.cpp
- */
-
+/// @file
 #include "i_window_menu_item.hpp"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
@@ -11,6 +8,14 @@
 #include <gui/event/touch_event.hpp>
 #include <option/development_items.h>
 #include <bsod/bsod.h>
+
+// UNITTESTS run on x64, which has higher sizeof(void*), and the check does not match
+#ifndef UNITTESTS
+
+// Make sure this highly used base class does not grow in size
+static_assert(sizeof(IWindowMenuItem) == 24);
+
+#endif
 
 namespace window_menu_item_private {
 
@@ -81,8 +86,8 @@ IWindowMenuItem::IWindowMenuItem(const string_view_utf8 &label, Rect16::Width_t 
     : label(label)
     , hidden((uint8_t)hidden)
     , enabled(enabled)
-    , show_disabled_extension(show_disabled_extension_t::yes)
     , extension_width(extension_width_)
+    , show_disabled_extension(show_disabled_extension_t::yes)
     , id_icon(id_icon) {
 }
 

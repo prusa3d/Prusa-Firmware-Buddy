@@ -147,15 +147,19 @@ protected:
     static constexpr int16_t icon_extension_spacing = 8;
 
 private:
-    Font label_font = GuiDefaults::FontMenuItems;
     string_view_utf8 label;
+
+    Font label_font : 3 = GuiDefaults::FontMenuItems;
+    static_assert(std::to_underlying(Font::largest_available) < (1 << 3));
 
     uint8_t hidden : 2;
     is_enabled_t enabled : 1;
-    show_disabled_extension_t show_disabled_extension : 1 = show_disabled_extension_t::yes; // Hide disabled menu_items's extension
 
 protected:
     uint16_t extension_width : 10;
+
+    show_disabled_extension_t show_disabled_extension : 1 = show_disabled_extension_t::yes; // Hide disabled menu_items's extension
+
     /// Marks this menu item as returning.
     /// TOUCH_SWIPE_LEFT gesture tries to find an item with this flag in the menu and execute it.
     bool has_return_behavior_ : 1 = false;
