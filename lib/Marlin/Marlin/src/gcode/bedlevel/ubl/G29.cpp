@@ -278,6 +278,9 @@ void GcodeSuite::G29() {
     const uint8_t max_nozzle_cleaning_retries = 3;        
     uint8_t nozzle_cleaning_retries = 0;
 #endif
+#if HAS_UNEVEN_BED_PROMPT()
+    bool automatic_z_align_attempted = false;
+#endif
 
     while (true) {
         ubl.g29_min_max_measured_z = std::nullopt;
@@ -373,8 +376,17 @@ void GcodeSuite::G29() {
             && !parser.seenval('C') //
         ) {
             log_warning(Marlin, "Uneven bed detected: %f - %f", (double)ubl.g29_min_max_measured_z->min, (double)ubl.g29_min_max_measured_z->max);
-
         #if HAS_SELFTEST()
+            if (!automatic_z_align_attempted) {
+                //only automatically attempt once
+                automatic_z_align_attempted = true;
+                
+                if (selftest::auto_calib_Z(true)) {
+                    // if we were successful, tun MBL again, if not, ask user
+                    continue;
+                }
+            }
+
             if (marlin_server::prompt_warning(WarningType::BedUnevenAlignmentPrompt) == Response::Yes) {
                 // calib_Z does not have its own holder - we have to handle that
                 marlin_server::FSM_Holder _fsm(PhasesSelftest::CalibZ);

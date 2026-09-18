@@ -19,6 +19,9 @@
     #include "loadcell.hpp"
 #endif
 
+#include <feature/print_status_message/print_status_message.hpp>
+#include <feature/print_status_message/print_status_message_guard.hpp>
+
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -194,6 +197,10 @@ void selftest::calib_Z(bool move_down_after) {
     #if HAS_UNEVEN_BED_PROMPT()
 bool selftest::auto_calib_Z(bool move_down_after) {
     // ensure Z axis is homed
+
+    PrintStatusMessageGuard statusGuard;
+    statusGuard.update<PrintStatusMessage::bed_aligning>({});
+
     GcodeSuite::G28_no_parser(false, false, true, { .only_if_needed = true, .precise = false });
     return calib_Z_no_fsm(move_down_after, true);
 }

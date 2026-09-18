@@ -13,7 +13,7 @@ namespace selftest {
 void calib_Z(bool move_down_after);
 
 #if HAS_UNEVEN_BED_PROMPT()
-/// Z align calibration that can happen without notifying the user
+/// Z align calibration that can happen without users intervention
 /// Checks for obstructions in Z axis
 /// @return true - Z aligned, false - unable to align
 bool auto_calib_Z(bool move_down_after);

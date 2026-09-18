@@ -26,6 +26,7 @@ static constexpr EnumArray<Message::Type, const char *, Message::Type::_cnt> mes
         { Message::Type::calibrating_axis, N_("Calibrating axis") },
         { Message::Type::probing_bed, N_("Probing bed") },
         { Message::Type::additional_probing, N_("Additional probing") },
+        { Message::Type::bed_aligning, N_("Aligning the bed") },
         { Message::Type::dwelling, N_("Dwelling") },
         { Message::Type::absorbing_heat, N_("Absorbing heat") },
         { Message::Type::waiting_for_hotend_temp, N_("Waiting for hotend") },
@@ -95,6 +96,7 @@ void PrintStatusMessageFormatterBuddy::format(StringBuilder &target, const Messa
 #if HAS_NOZZLE_CLEANER_LITE()
     case Message::Type::nozzle_cleaner_lite:
 #endif
+    case Message::Type::bed_aligning:
 
         // No extra data to show
         break;
