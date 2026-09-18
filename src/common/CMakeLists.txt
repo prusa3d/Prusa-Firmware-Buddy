@@ -122,7 +122,6 @@ elseif(BOARD STREQUAL "DWARF")
     PRIVATE adc.cpp
             heap.cpp
             marlin_log_component.cpp
-            otp.cpp
             Pin.cpp
             random_sw.cpp
             safe_state.cpp

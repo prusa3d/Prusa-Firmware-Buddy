@@ -14,6 +14,7 @@ target_sources(
           logging.cpp
           main.cpp
           module_marlin.cpp
+          otp.cpp
           task_startup.cpp
           timing_sys.cpp
           tool_filament_sensor.cpp

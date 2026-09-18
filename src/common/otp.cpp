@@ -6,8 +6,6 @@
 
 #ifdef STM32F4
     #include <stm32f4xx.h>
-#elif defined(STM32G0)
-    #include <stm32g0xx.h>
 #elif defined(UNITTEST)
 
 #else /*MCU*/
@@ -23,7 +21,7 @@
 
 // Private absolute addresses for items already provided by the public otp functions.
 // These absolute addresses/constants shall not be used outside of otp.cpp anymore!
-#if defined(UNITTEST) && !defined(STM32F4) && !defined(STM32G0)
+#if defined(UNITTEST) && !defined(STM32F4)
 static constexpr size_t UID_BASE = 0;
 #endif
 
@@ -43,9 +41,6 @@ namespace {
 Bytes otp_memory() {
 #ifdef STM32F4
     return { reinterpret_cast<std::byte *>(FLASH_OTP_BASE), FLASH_OTP_END - FLASH_OTP_BASE };
-#elif defined(STM32G0)
-    // G0 doesn't have the OTP_MEMORY defines
-    return { reinterpret_cast<std::byte *>(0x1FFF7000UL), 1024 };
 #elif defined(UNITTEST) /*MCU*/
     static constexpr std::array<std::byte, 1024> memory {};
     return memory;
