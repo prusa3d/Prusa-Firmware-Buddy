@@ -68,6 +68,31 @@ constexpr FanProbeVerdict classify_fan_probe(FanProbeInputs in, FanProbeThreshol
     return FanProbeVerdict::inconclusive;
 }
 
+/// What the heat-pulse phase concluded.
+enum class HeatPulseVerdict : uint8_t {
+    stock_ntc, ///< the reading fell hard: an NTC being heated
+    high_temp_pt1000, ///< the reading rose: a PT1000 being heated
+    sensor_fault, ///< neither: the probe is not reading the block at all
+};
+
+struct HeatPulseThresholds {
+    int32_t move_adc_12bit; ///< a move of at least this, in either direction, is a real response
+};
+
+/// Classify the heat-pulse phase.
+///
+/// Two-sided: heating drives an NTC down and a PT1000 up. A dead probe does not move, which is
+/// what separates it from a cold PT1000.
+constexpr HeatPulseVerdict classify_heat_pulse(int32_t delta_adc_12bit, HeatPulseThresholds t) {
+    if (delta_adc_12bit <= -t.move_adc_12bit) {
+        return HeatPulseVerdict::stock_ntc;
+    }
+    if (delta_adc_12bit >= t.move_adc_12bit) {
+        return HeatPulseVerdict::high_temp_pt1000;
+    }
+    return HeatPulseVerdict::sensor_fault;
+}
+
 /// 10-bit ADC thresholds derived from the PT1000 temptable.
 /// Outside the [lower, upper] band → the reading is unambiguously NTC.
 /// Inside the band → ambiguous (could be a hot NTC or a cold-to-hot PT1000).
@@ -107,6 +132,15 @@ constexpr Outputs detect_impl(Inputs in, Thresholds t) {
         return { false, false };
     }
     return { in.stored_is_high_temp, !in.stored_is_high_temp };
+}
+
+/// Length of the run of agreeing decisive readings ending at `current`, so that a single
+/// threshold crossing cannot conclude the coast.
+constexpr uint32_t confirm_heat_pulse_read(uint32_t run, HeatPulseVerdict previous, HeatPulseVerdict current) {
+    if (current == HeatPulseVerdict::sensor_fault) {
+        return 0;
+    }
+    return (run > 0 && current == previous) ? run + 1 : 1;
 }
 
 } // namespace hotend_detect

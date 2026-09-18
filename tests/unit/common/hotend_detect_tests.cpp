@@ -5,10 +5,14 @@
 #include <hotend_detect.hpp>
 
 using hotend_detect::classify_fan_probe;
+using hotend_detect::classify_heat_pulse;
+using hotend_detect::confirm_heat_pulse_read;
 using hotend_detect::detect_impl;
 using hotend_detect::FanProbeInputs;
 using hotend_detect::FanProbeThresholds;
 using hotend_detect::FanProbeVerdict;
+using hotend_detect::HeatPulseThresholds;
+using hotend_detect::HeatPulseVerdict;
 using hotend_detect::Thresholds;
 
 namespace {
@@ -144,4 +148,74 @@ TEST_CASE("fan probe: thresholds are inclusive") {
     CHECK(classify_fan_probe({ counts10(5), 400 }, fan_thresholds) == FanProbeVerdict::stock_ntc);
     CHECK(classify_fan_probe({ 0, 545 }, fan_thresholds) == FanProbeVerdict::warm_pt1000);
     CHECK(classify_fan_probe({ counts10(4), 544 }, fan_thresholds) == FanProbeVerdict::inconclusive);
+}
+
+// --- Phase 2, the heat pulse ------------------------------------------------------------
+//
+// Only reached when the fan phase found nothing, i.e. on a nozzle already proved cold. Unlike
+// phase 1 this is two-sided: heating drives an NTC down hard and a PT1000 up gently.
+
+namespace {
+constexpr HeatPulseThresholds pulse_thresholds = { .move_adc_12bit = 5 << 2 };
+} // namespace
+
+TEST_CASE("heat pulse: heating an NTC drives the reading down hard") {
+    // Tens of counts in 10-bit whatever the starting temperature: -60.8 to -65.9 measured across
+    // 128-163 degC starts. An order of magnitude past the threshold either way.
+    for (const int32_t fall : { 64, 65, 60 }) {
+        CHECK(classify_heat_pulse(counts10(-fall), pulse_thresholds) == HeatPulseVerdict::stock_ntc);
+    }
+}
+
+TEST_CASE("heat pulse: heating a cold PT1000 drives the reading up") {
+    // The weak side of the test, and the one the threshold is set by: the shipped pulse
+    // measures +33 counts in 12-bit at its worst admissible corner, just over +8 in 10-bit,
+    // against an NTC swing almost an order of magnitude larger.
+    for (const int32_t rise : { 9, 8 }) {
+        CHECK(classify_heat_pulse(counts10(rise), pulse_thresholds) == HeatPulseVerdict::high_temp_pt1000);
+    }
+}
+
+TEST_CASE("heat pulse: a dead sensor does not move at all") {
+    // The whole point of this phase: a cold PT1000 and a dead probe are identical to the fan
+    // phase, and only heat separates them. Zero movement is a fault, not an HT hotend.
+    CHECK(classify_heat_pulse(0, pulse_thresholds) == HeatPulseVerdict::sensor_fault);
+}
+
+TEST_CASE("heat pulse: sub-threshold movement in either direction is still a fault") {
+    CHECK(classify_heat_pulse(counts10(4), pulse_thresholds) == HeatPulseVerdict::sensor_fault);
+    CHECK(classify_heat_pulse(counts10(-4), pulse_thresholds) == HeatPulseVerdict::sensor_fault);
+}
+
+TEST_CASE("heat pulse: thresholds are inclusive and symmetric") {
+    CHECK(classify_heat_pulse(counts10(5), pulse_thresholds) == HeatPulseVerdict::high_temp_pt1000);
+    CHECK(classify_heat_pulse(counts10(-5), pulse_thresholds) == HeatPulseVerdict::stock_ntc);
+}
+
+// The coast concludes on a run of agreeing readings, never on a single crossing. `previous` is
+// ignored while the run is empty, so the first reading always opens a run of one.
+
+TEST_CASE("coast: agreeing decisive readings extend the run") {
+    uint32_t run = 0;
+    for (const uint32_t expected : { 1u, 2u, 3u }) {
+        run = confirm_heat_pulse_read(run, HeatPulseVerdict::high_temp_pt1000, HeatPulseVerdict::high_temp_pt1000);
+        CHECK(run == expected);
+    }
+}
+
+TEST_CASE("coast: a fault reading restarts the run") {
+    const uint32_t run = confirm_heat_pulse_read(2, HeatPulseVerdict::stock_ntc, HeatPulseVerdict::sensor_fault);
+    CHECK(run == 0);
+}
+
+TEST_CASE("coast: flipping between the two decisive verdicts restarts the run") {
+    // A run must agree on *which* sensor it saw. Counting only "decisive" would let noise
+    // alternating across both thresholds conclude the coast.
+    CHECK(confirm_heat_pulse_read(2, HeatPulseVerdict::stock_ntc, HeatPulseVerdict::high_temp_pt1000) == 1);
+    CHECK(confirm_heat_pulse_read(2, HeatPulseVerdict::high_temp_pt1000, HeatPulseVerdict::stock_ntc) == 1);
+}
+
+TEST_CASE("coast: the first reading opens a run whatever preceded it") {
+    CHECK(confirm_heat_pulse_read(0, HeatPulseVerdict::sensor_fault, HeatPulseVerdict::stock_ntc) == 1);
+    CHECK(confirm_heat_pulse_read(0, HeatPulseVerdict::high_temp_pt1000, HeatPulseVerdict::stock_ntc) == 1);
 }

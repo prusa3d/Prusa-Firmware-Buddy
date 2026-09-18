@@ -7,14 +7,9 @@
 #include <module/thermistor/thermistors.h>
 #include <hw_configuration.hpp>
 #include <hotend_detect.hpp>
-#include <hotend_type.hpp>
 #include <adc.hpp>
 #include <config_store/store_instance.hpp>
 #include <logging/log.hpp>
-#include <bsod/bsod.h>
-#include <fanctl.hpp>
-#include <freertos/timing.hpp>
-#include <buddy/bootstrap_state.hpp>
 
 #if HAS_HT_HOTEND()
     #include <atomic>
@@ -148,11 +143,95 @@ void set_print_fan_pwm(uint8_t pwm) {
     Fans::print(PhysicalToolIndex::from_raw(0)).set_pwm(pwm);
 }
 
-/// How often the probe repaints the boot progress bar.
+/// Progress repaint and watchdog feed interval.
 constexpr uint32_t progress_step_ms = 100;
 
 /// The fan phase's share of the boot progress bar.
 constexpr uint8_t progress_fan_end_pct = 50;
+
+constexpr uint8_t heat_pulse_pwm = 255;
+
+/// Heater on-time. The shortest that still resolves a warm HT hotend at the 65 degC interlock.
+constexpr uint32_t heat_pulse_ms = 6000;
+
+/// Upper bound on the post-pulse read; it ends as soon as the reading is decisive. Also stays
+/// short of the point where a PT1000's reading turns over.
+constexpr uint32_t coast_cap_ms = 8000;
+
+/// Where the heat pulse ends on the progress bar: pulse and coast share what the fan phase leaves,
+/// in proportion to their length.
+constexpr uint8_t progress_pulse_end_pct = progress_fan_end_pct + (100 - progress_fan_end_pct) * heat_pulse_ms / (heat_pulse_ms + coast_cap_ms);
+
+/// Wait, repainting the progress bar from `from_pct` to `to_pct` and feeding the IWDG.
+void wait_feeding_the_watchdog(uint32_t duration_ms, uint8_t from_pct, uint8_t to_pct) {
+    for (uint32_t elapsed = 0; elapsed < duration_ms; elapsed += progress_step_ms) {
+        buddy::bootstrap_state_set(
+            static_cast<uint8_t>(from_pct + (to_pct - from_pct) * elapsed / duration_ms),
+            buddy::BootstrapStage::detecting_hotend);
+        freertos::delay(progress_step_ms);
+        HAL_watchdog_refresh();
+    }
+}
+
+/// Consecutive agreeing reads (~0.6 s) needed to conclude the coast.
+constexpr uint32_t coast_confirm_reads = 3;
+
+/// Heat the nozzle briefly and see which way the reading moves.
+///
+/// The sensors lag the block by seconds, so the response is read after the heater is off.
+hotend_detect::HeatPulseVerdict run_heat_pulse() {
+    constexpr int32_t move_counts_10bit = 5;
+    constexpr hotend_detect::HeatPulseThresholds thresholds {
+        .move_adc_12bit = move_counts_10bit << AdcDma1::shift_bits,
+    };
+
+    const uint16_t start_12bit = sample_nozzle_avg_12bit();
+
+    // Open-loop: a hung task stops feeding the IWDG, and its reset switches the heater off.
+    hwio_nozzle_heater_write_pwm(heat_pulse_pwm);
+    wait_feeding_the_watchdog(heat_pulse_ms, progress_fan_end_pct, progress_pulse_end_pct);
+
+    hwio_nozzle_heater_write_pwm(0);
+
+    // Read only once the heater is off: early in the pulse a PT1000 briefly moves the wrong way.
+    // The print fan stays off, forced air would drain the heat before it reaches the sensor.
+    const uint32_t coast_started_ms = ticks_ms();
+    uint32_t coast_ms = 0;
+    uint16_t end_12bit = start_12bit;
+    int32_t delta = 0;
+    auto verdict = hotend_detect::HeatPulseVerdict::sensor_fault;
+    uint32_t confirmed_run = 0;
+
+    while (true) {
+        end_12bit = sample_nozzle_avg_12bit();
+        coast_ms = ticks_ms() - coast_started_ms;
+        HAL_watchdog_refresh();
+        buddy::bootstrap_state_set(
+            static_cast<uint8_t>(progress_pulse_end_pct + std::min(coast_ms, coast_cap_ms) * (100 - progress_pulse_end_pct) / coast_cap_ms),
+            buddy::BootstrapStage::detecting_hotend);
+
+        delta = static_cast<int32_t>(end_12bit) - static_cast<int32_t>(start_12bit);
+
+        const auto reading = hotend_detect::classify_heat_pulse(delta, thresholds);
+        confirmed_run = hotend_detect::confirm_heat_pulse_read(confirmed_run, verdict, reading);
+        verdict = reading;
+        if (confirmed_run >= coast_confirm_reads) {
+            break;
+        }
+        if (coast_ms >= coast_cap_ms) {
+            // An unconfirmed last reading must not become a verdict just because time ran out.
+            verdict = hotend_detect::HeatPulseVerdict::sensor_fault;
+            break;
+        }
+    }
+
+    log_info(HotendDetect, "pulse: %u -> %u, coast %lu ms -> %s",
+        start_12bit, end_12bit, static_cast<unsigned long>(coast_ms),
+        verdict == hotend_detect::HeatPulseVerdict::stock_ntc              ? "NTC"
+            : verdict == hotend_detect::HeatPulseVerdict::high_temp_pt1000 ? "HT"
+                                                                           : "fault");
+    return verdict;
+}
 
 /// Cool the nozzle and see whether the reading runs away upward.
 hotend_detect::FanProbeVerdict run_fan_probe() {
@@ -197,12 +276,19 @@ hotend_detect::FanProbeVerdict run_fan_probe() {
 /// a standard hotend comes back with its (mandatory) sock and HT without one.
 void settle(hotend_detect::Outputs result, DetectState state) {
     const bool stored_is_ht = (config_store().hotend_type.get(0) == HotendType::high_temp);
-    if (result.is_high_temp != stored_is_ht) {
+    const bool changed = (result.is_high_temp != stored_is_ht);
+    if (changed) {
         config_store().set_hotend_type_detected(PhysicalToolIndex::from_raw(0),
             result.is_high_temp ? HotendType::high_temp : HotendType::stock_with_sock);
     }
     settled_hotend_type = config_store().hotend_type.get(0);
     detect_state = state;
+
+    log_info(HotendDetect, "settled %s%s%s%s",
+        result.is_high_temp ? "HT" : "std",
+        state == DetectState::skipped ? " (no probe)" : "",
+        changed ? ", stored updated" : "",
+        result.dialog_pending ? ", ask" : "");
 }
 
 } // namespace
@@ -246,13 +332,27 @@ void hotend_detect::resolve() {
         result = { .is_high_temp = true, .dialog_pending = false };
         break;
     case hotend_detect::FanProbeVerdict::inconclusive:
-        // A cold PT1000 and a dead sensor look identical here; only a heat pulse separates
-        // them. Until that exists, keep the early verdict and let the dialog ask.
+        // Cannot be stopped once armed; Marlin's later watchdog_init() re-arms it identically.
+        watchdog_init();
+        switch (run_heat_pulse()) {
+        case hotend_detect::HeatPulseVerdict::stock_ntc:
+            result = { .is_high_temp = false, .dialog_pending = false };
+            break;
+        case hotend_detect::HeatPulseVerdict::high_temp_pt1000:
+            result = { .is_high_temp = true, .dialog_pending = false };
+            break;
+        case hotend_detect::HeatPulseVerdict::sensor_fault:
+            // Keep the stored type and ask; a dead sensor is reported by MINTEMP/MAXTEMP.
+            break;
+        }
         break;
     }
 
     hotend_detect_dialog_pending = result.dialog_pending;
     settle(result, DetectState::resolved);
+
+    // Hand the rest of setup() a full IWDG period; harmless when it is not armed.
+    HAL_watchdog_refresh();
 }
 #endif
 
