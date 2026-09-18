@@ -6,6 +6,16 @@
  */
 #pragma once
 
+#include <option/has_uneven_bed_prompt.h>
+
 namespace selftest {
-bool calib_Z(bool move_down_after, bool prevent_collision = false);
-}
+/// Z align calibration, after user was notified.
+void calib_Z(bool move_down_after);
+
+#if HAS_UNEVEN_BED_PROMPT()
+/// Z align calibration that can happen without notifying the user
+/// Checks for obstructions in Z axis
+/// @return true - Z aligned, false - unable to align
+bool auto_calib_Z(bool move_down_after);
+#endif // HAS_UNEVEN_BED_PROMPT()
+} // namespace selftest

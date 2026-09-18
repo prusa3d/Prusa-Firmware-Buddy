@@ -111,20 +111,14 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     config_store().selftest_result.set(result);
 }
 #else
-static constexpr float AFTER_Z_CALIB_Z_POS = 50;
+namespace {
+constexpr float AFTER_Z_CALIB_Z_POS = 50;
 
-static void safe_move_down() {
+void safe_move_down() {
     DEPLOY_PROBE();
 
     // Move to AFTER_Z_CALIB_Z_POS with Z endstop enabled
     float target_Z = AFTER_Z_CALIB_Z_POS - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
-
-    Subscriber cb { marlin_server::idle_publisher,
-        [&]() {
-            // FSMAndPhase(ClientFSM::Load_unload, pause.getPhaseIndex())
-            ProgressPercent progress = ProgressSpan { 0, 100 }.map(to_normalized_progress(current_position.z, target_Z, marlin_vars().native_pos[MARLIN_VAR_INDEX_Z]));
-            marlin_server::fsm_change(FSMAndPhase(ClientFSM::Selftest, GetPhaseIndex(PhasesSelftest::CalibZ)), { progress });
-        } };
 
     if (do_homing_move(AxisEnum::Z_AXIS, target_Z - current_position.z, HOMING_FEEDRATE_INVERTED_Z)) {
         // endstop triggered, raise the nozzle
@@ -137,7 +131,8 @@ static void safe_move_down() {
 /// @brief Align the Z axis by forcing motors past endstops
 /// @param move_down_after move back after aligning
 /// @param prevent_collision REQUIRES Z AXIS TO BE HOMED. Measures the axis to prevent aligning being done against
-bool selftest::calib_Z(bool move_down_after, bool prevent_collision) {
+/// @return true - Z aligned, false - Z align didn't finish
+bool calib_Z_no_fsm(bool move_down_after, bool prevent_collision) {
     // If we want to prevent collision, Z axis needs to be measured
     // prevent_collision => Z homed
     debug_assert(!prevent_collision || axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise));
@@ -151,7 +146,6 @@ bool selftest::calib_Z(bool move_down_after, bool prevent_collision) {
     Temporary_Reset_Motion_Parameters mp;
 
     // Z axis lift
-    marlin_server::fsm_change(PhasesSelftest::CalibZ);
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
     if (!do_homing_move(Z_AXIS, 1.5f * max_length(Z_AXIS), HOMING_FEEDRATE_INVERTED_Z, false, false)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
@@ -190,6 +184,21 @@ bool selftest::calib_Z(bool move_down_after, bool prevent_collision) {
 
     return !lift_blocked;
 }
+} // namespace
+
+void selftest::calib_Z(bool move_down_after) {
+    marlin_server::fsm_change(PhasesSelftest::CalibZ);
+    std::ignore = calib_Z_no_fsm(move_down_after, false);
+}
+
+    #if HAS_UNEVEN_BED_PROMPT()
+bool selftest::auto_calib_Z(bool move_down_after) {
+    // ensure Z axis is homed
+    GcodeSuite::G28_no_parser(false, false, true, { .only_if_needed = true, .precise = false });
+    return calib_Z_no_fsm(move_down_after, true);
+}
+    #endif // HAS_UNEVEN_BED_PROMPT()
+
 #endif
 
 /** \addtogroup G-Codes
