@@ -15,6 +15,7 @@
     #include <atomic>
     #include <bsod/bsod.h>
     #include <buddy/bootstrap_state.hpp>
+    #include <common/data_exchange.hpp>
     #include <fanctl.hpp>
     #include <freertos/timing.hpp>
     #include <hotend_type.hpp>
@@ -161,6 +162,9 @@ constexpr uint32_t coast_cap_ms = 8000;
 /// Where the heat pulse ends on the progress bar: pulse and coast share what the fan phase leaves,
 /// in proportion to their length.
 constexpr uint8_t progress_pulse_end_pct = progress_fan_end_pct + (100 - progress_fan_end_pct) * heat_pulse_ms / (heat_pulse_ms + coast_cap_ms);
+
+/// Zeroed every boot, so only the boot that set the guard may clear it.
+bool heat_pulse_started_this_boot = false;
 
 /// Wait, repainting the progress bar from `from_pct` to `to_pct` and feeding the IWDG.
 void wait_feeding_the_watchdog(uint32_t duration_ms, uint8_t from_pct, uint8_t to_pct) {
@@ -332,6 +336,13 @@ void hotend_detect::resolve() {
         result = { .is_high_temp = true, .dialog_pending = false };
         break;
     case hotend_detect::FanProbeVerdict::inconclusive:
+        if (data_exchange::is_heat_pulse_guard_set()) {
+            // A previous pulse never reached Marlin's watchdog. Keep the guard, skip the pulse.
+            log_warning(HotendDetect, "pulse skipped: previous one unfinished");
+            break;
+        }
+        data_exchange::set_heat_pulse_guard();
+        heat_pulse_started_this_boot = true;
         // Cannot be stopped once armed; Marlin's later watchdog_init() re-arms it identically.
         watchdog_init();
         switch (run_heat_pulse()) {
@@ -353,6 +364,12 @@ void hotend_detect::resolve() {
 
     // Hand the rest of setup() a full IWDG period; harmless when it is not armed.
     HAL_watchdog_refresh();
+}
+
+void hotend_detect::release_heat_pulse_guard() {
+    if (heat_pulse_started_this_boot) {
+        data_exchange::clear_heat_pulse_guard();
+    }
 }
 #endif
 

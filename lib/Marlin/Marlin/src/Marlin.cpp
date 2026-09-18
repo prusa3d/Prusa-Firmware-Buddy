@@ -546,6 +546,10 @@ void setup() {
     watchdog_init();          // Reinit watchdog after HAL_get_reset_source call
   #endif
 
+  #if HAS_HT_HOTEND()
+    hotend_detect::release_heat_pulse_guard();
+  #endif
+
   #ifdef STARTUP_COMMANDS
     // #error dead code found by automatic analyses (see BFW-5461)
     queue.inject_P(PSTR(STARTUP_COMMANDS));

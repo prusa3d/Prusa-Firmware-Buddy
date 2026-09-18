@@ -30,7 +30,8 @@ struct __attribute__((packed)) DataExchange {
     uint8_t fw_signature;
     uint8_t bootloader_valid; //< Initialized by preboot to false; bootloader sets it to true
     char bbf_sfn[13];
-    uint8_t reserved__[3]; // aligned to N*4B (20B), set to 0 - so value is defined, in case we need ot gor versioning etc.
+    uint8_t heat_pulse_guard; // see set_heat_pulse_guard(); the bootloader leaves it alone
+    uint8_t reserved__[2]; // aligned to N*4B (20B), set to 0 - so value is defined, in case we need ot gor versioning etc.
     OtpStatus xlcd_status; // 8B
     XlcdEeprom xlcd_eeprom; // 32B
     OtpStatus loveboard_status; // 8B
@@ -191,6 +192,26 @@ void set_reflash_bbf_sfn(const char *sfn) {
 bool has_apendix() {
     return ram_data_exchange.appendix_status & APPENDIX_FLAG_MASK;
 }
+
+#if HAS_HT_HOTEND()
+namespace {
+    // A magic rather than a flag: a cold power-up leaves the byte holding garbage. A false match
+    // only costs one skipped pulse and a dialog.
+    constexpr uint8_t heat_pulse_guard_magic = 0xA5;
+} // namespace
+
+bool is_heat_pulse_guard_set() {
+    return ram_data_exchange.heat_pulse_guard == heat_pulse_guard_magic;
+}
+
+void set_heat_pulse_guard() {
+    ram_data_exchange.heat_pulse_guard = heat_pulse_guard_magic;
+}
+
+void clear_heat_pulse_guard() {
+    ram_data_exchange.heat_pulse_guard = 0;
+}
+#endif
 } // namespace data_exchange
 
 bool running_in_tester_mode() {

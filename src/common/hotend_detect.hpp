@@ -36,6 +36,13 @@ void init_skipped();
 /// Call from Marlin setup before the first Hotend consumer.
 void resolve();
 
+/// Release the heat-pulse boot-loop guard. Call from Marlin setup right after watchdog_init().
+///
+/// The pulse arms the IWDG, so everything until Marlin feeds it (settings.first_load() included)
+/// must fit in one IWDG period. A reset in that stretch leaves the guard set and later boots
+/// skip the pulse until a power cycle. Only the boot that started a pulse releases it.
+void release_heat_pulse_guard();
+
 /// What the print-fan phase concluded.
 enum class FanProbeVerdict : uint8_t {
     stock_ntc, ///< the reading rose sharply: a hot NTC shedding heat
