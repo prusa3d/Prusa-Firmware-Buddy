@@ -12,6 +12,7 @@
 #include <option/has_xbuddy_extension.h>
 #include <option/has_indx_head.h>
 #include <option/has_xl_can.h>
+#include <option/has_ht_hotend.h>
 #include <option/resources.h>
 
 namespace buddy {
@@ -71,6 +72,10 @@ enum class BootstrapStage : uint8_t {
     flashing_xl_can,
     verifying_xl_can,
     #endif
+#endif
+#if HAS_HT_HOTEND()
+    /// Runs from Marlin setup, after the rest of the bootstrap.
+    detecting_hotend,
 #endif
 };
 

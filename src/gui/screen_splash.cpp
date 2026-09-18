@@ -3,6 +3,7 @@
 #include "display.hpp"
 #include <bsod.h>
 #include <buddy/bootstrap_state.hpp>
+#include <option/has_ht_hotend.h>
 #include <guiconfig/guiconfig.h>
 #include <option/bootloader_update.h>
 #include <option/has_ac_controller.h>
@@ -106,6 +107,9 @@ ScreenSplash::ScreenSplash()
                 { BootstrapStage::verifying_xl_can, 1 },
     #endif
 #endif
+#if HAS_HT_HOTEND()
+                { BootstrapStage::detecting_hotend, 5 },
+#endif
         }) };
 
     progress_mapper.setup(workflow);
@@ -197,6 +201,10 @@ static const char *message(BootstrapStage stage) {
     case BootstrapStage::verifying_xl_can:
         return "Verifying XL-CAN";
     #endif
+#endif
+#if HAS_HT_HOTEND()
+    case BootstrapStage::detecting_hotend:
+        return "Detecting hotend type";
 #endif
     }
     bsod_unreachable();
