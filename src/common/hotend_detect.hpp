@@ -8,11 +8,14 @@
 /// Hotend::max_nozzle_temp()) so it can gate a static_assert on the HT filament presets.
 inline constexpr int16_t ht_hotend_max_nozzle_temp = 415;
 
-/// Boot-time hotend detection may request a user confirmation dialog.
+/// Whether boot may still have to ask the user which hotend is installed.
 ///
-/// Thread sync: written by PhysicalTool::for_index() during early boot and read from the
-/// GUI task by ScreenSplash. std::atomic makes the cross-thread contract visible at the
-/// declaration per the project's 'shared variables are visibly atomic or guarded' rule.
+/// Set from the early reading, cleared once the type is settled. The GUI queues the dialog on the
+/// early value, so it must never be clear while a later step could still set it.
+///
+/// Thread sync: set during early boot, cleared when the type is settled, read on the GUI task.
+/// std::atomic makes the cross-thread contract visible at the declaration per the project's
+/// 'shared variables are visibly atomic or guarded' rule.
 /// Only used on printers with HT hotend support (COREONE, COREONEL).
 inline std::atomic<bool> hotend_detect_dialog_pending { false };
 

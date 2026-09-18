@@ -21,22 +21,22 @@ bool ScreenHotendTypeChanged::should_show() {
 ScreenHotendTypeChanged::ScreenHotendTypeChanged()
     : PseudoScreenCallback {
         [] {
-            // hotend_type is read from EEPROM: treat any non-HT value as the standard hotend
-            // (the safe, lower-temperature one) — a future-FW value or storage corruption
-            // must not soft-brick the printer (config-store enum policy).
+            if (!should_show()) {
+                return;
+            }
+
+            // Any non-HT value read from EEPROM counts as standard, the safe fallback.
             const bool is_high_temp = config_store().hotend_type.get(0) == HotendType::high_temp;
 
             const char *msg = is_high_temp
                 ? N_("Hotend change detected\n\nSelected hotend: High-temp\n\nIs this correct?")
                 : N_("Hotend change detected\n\nSelected hotend: Standard\n\nIs this correct?");
 
-            // No = switch to the other hotend and reboot. A standard hotend gets stock_with_sock
-            // (its sock is mandatory); HT clears it.
+            // No: switch to the other hotend (standard gets its mandatory sock) and reboot.
             if (MsgBoxWarning(_(msg), Responses_YesNo) == Response::No) {
                 config_store().set_hotend_type_detected(PhysicalToolIndex::from_raw(0),
                     is_high_temp ? HotendType::stock_with_sock : HotendType::high_temp);
-                sys_reset(); // Reboot with the new hotend config
+                sys_reset();
             }
-            // User confirmed the current hotend — continue booting
         },
     } {}
