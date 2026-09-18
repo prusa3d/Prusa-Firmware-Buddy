@@ -134,9 +134,7 @@ target_include_directories(
   )
 
 if(MCU MATCHES "STM32G0")
-  target_include_directories(
-    BuddyHeaders BEFORE INTERFACE include/stm32g0_hal include/device/stm32g0
-    )
+  # G0 boards carry their HAL/FreeRTOS config and device headers in src/puppy/<board>
   target_link_libraries(BuddyHeaders INTERFACE STM32G0::HAL STM32G0xx::CMSIS)
 elseif(MCU MATCHES "STM32F4")
   target_include_directories(
