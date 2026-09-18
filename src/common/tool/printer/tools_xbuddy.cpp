@@ -37,6 +37,7 @@ enum class EarlyReading : uint8_t {
     clear_ntc,
     ambiguous,
     open_or_shorted,
+    unstable, ///< the classification did not hold still; adc_10bit is only its first reading
 };
 
 /// The early classification, consumed when the type is settled.
@@ -59,6 +60,8 @@ const char *to_string(EarlyReading reading) {
         return "ambiguous";
     case EarlyReading::open_or_shorted:
         return "open/short";
+    case EarlyReading::unstable:
+        return "unstable";
     }
     bsod_unreachable();
 }
@@ -73,6 +76,11 @@ void log_early_classification() {
 }
 
 } // namespace
+
+/// The early classification must hold still across 10 x 50 ms before it is trusted; a transient
+/// disturbance then routes to the probe instead of being believed.
+constexpr uint32_t early_sample_count = 10;
+constexpr uint32_t early_sample_interval_ms = 50;
 
 /// Read the ADC, derive the thresholds from the temptables and classify via detect_impl.
 static EarlyClassification detect_hotend(bool stored_is_high_temp) {
@@ -96,14 +104,30 @@ static EarlyClassification detect_hotend(bool stored_is_high_temp) {
         .open_min = static_cast<uint16_t>(ntc_range.raw_min / OVERSAMPLENR),
     };
 
+    auto result = hotend_detect::detect_impl({ adc, stored_is_high_temp }, thresholds);
+
+    // Compare verdicts, not counts: noise moves the counts all the time and decides nothing.
+    bool disagreed = false;
+    for (uint32_t i = 1; i < early_sample_count; ++i) {
+        freertos::delay(early_sample_interval_ms);
+        if (hotend_detect::detect_impl({ AdcGet::nozzle(), stored_is_high_temp }, thresholds) != result) {
+            disagreed = true;
+            break;
+        }
+    }
+    if (disagreed) {
+        result = hotend_detect::unresolved(stored_is_high_temp);
+    }
+
     const bool open_or_shorted = adc <= thresholds.shorted_max || adc >= thresholds.open_min;
     const bool in_band = adc >= thresholds.clear_ntc_lower && adc <= thresholds.clear_ntc_upper;
     return {
-        .result = hotend_detect::detect_impl({ adc, stored_is_high_temp }, thresholds),
+        .result = result,
         .adc_10bit = adc,
-        .reading = open_or_shorted ? EarlyReading::open_or_shorted
-            : in_band              ? EarlyReading::ambiguous
-                                   : EarlyReading::clear_ntc,
+        .reading = disagreed  ? EarlyReading::unstable
+            : open_or_shorted ? EarlyReading::open_or_shorted
+            : in_band         ? EarlyReading::ambiguous
+                              : EarlyReading::clear_ntc,
         .stored_is_high_temp = stored_is_high_temp,
     };
 }

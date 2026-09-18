@@ -21,8 +21,10 @@ inline std::atomic<bool> hotend_detect_dialog_pending { false };
 
 namespace hotend_detect {
 
-/// Classify one nozzle-ADC sample and publish hotend_detect_dialog_pending, without settling
-/// the type. Call before the GUI builds its screen stack.
+/// Classify the nozzle ADC and publish hotend_detect_dialog_pending, without settling the type.
+///
+/// Call before the GUI builds its screen stack. Blocks for ~0.5 s while the reading has to hold
+/// still.
 void classify_early();
 
 /// Settle the hotend type from the early classification alone, without probing.
@@ -120,7 +122,15 @@ struct Inputs {
 struct Outputs {
     bool is_high_temp; ///< the detected/selected hotend is the HT (PT1000) one
     bool dialog_pending; ///< boot must ask the user to confirm the hotend
+
+    bool operator==(const Outputs &) const = default;
 };
+
+/// Result for a reading that decides nothing (ambiguous, or unstable): keep the persisted type
+/// and ask unless it is already HT.
+constexpr Outputs unresolved(bool stored_is_high_temp) {
+    return { stored_is_high_temp, !stored_is_high_temp };
+}
 
 /// Pure hotend-sensor classification — testable without firmware dependencies.
 /// A clear-NTC reading is authoritative (select standard, no dialog); an ambiguous one (a hot
@@ -138,7 +148,7 @@ constexpr Outputs detect_impl(Inputs in, Thresholds t) {
     if (clear_ntc) {
         return { false, false };
     }
-    return { in.stored_is_high_temp, !in.stored_is_high_temp };
+    return unresolved(in.stored_is_high_temp);
 }
 
 /// Length of the run of agreeing decisive readings ending at `current`, so that a single

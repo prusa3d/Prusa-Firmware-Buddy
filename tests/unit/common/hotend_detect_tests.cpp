@@ -58,6 +58,16 @@ TEST_CASE("ambiguous, stored high_temp: stay high_temp, no dialog") {
     CHECK_FALSE(out.dialog_pending);
 }
 
+TEST_CASE("an unstable reading is treated exactly like an ambiguous one") {
+    // The boot-time sampler falls back to unresolved() when the classification will not hold
+    // still, so the two must stay indistinguishable downstream: both keep the persisted type
+    // and both hand the decision to the probe (BFW-9331).
+    for (const bool stored_is_high_temp : { false, true }) {
+        CHECK(hotend_detect::unresolved(stored_is_high_temp)
+            == detect_impl({ 660, stored_is_high_temp }, thresholds));
+    }
+}
+
 // An open or shorted probe is a sensor fault, not evidence about the hotend class.
 
 TEST_CASE("shorted probe, stored high_temp: keep high_temp, no dialog") {
