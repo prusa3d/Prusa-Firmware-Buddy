@@ -33,7 +33,7 @@ IMI_AnySensor::IMI_AnySensor(uint8_t sensor_index, bool is_side)
     set_is_hidden(!(tool.has_value() && tool->is_enabled()));
 
     const TranslatableString label = is_side ? side_sensor_label : extruder_sensor_label;
-    if constexpr (toolhead_count > 1) {
+    if constexpr (PhysicalToolIndex::count > 1) {
         SetLabel(string_view_utf8(label).formatted(label_params_, sensor_index + 1));
     } else {
         SetLabel(label);

@@ -20,7 +20,6 @@ namespace screen_toolhead_settings {
 
 using Toolhead = std::variant<PhysicalToolIndex, AllTools>;
 
-static constexpr auto toolhead_count = PhysicalToolIndex::count;
 static constexpr Toolhead default_toolhead = PhysicalToolIndex::from_raw(0);
 static constexpr Toolhead all_toolheads = AllTools {};
 

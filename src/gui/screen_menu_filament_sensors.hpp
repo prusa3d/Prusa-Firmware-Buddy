@@ -10,8 +10,6 @@
 
 namespace NScreenMenuFilamentSensors {
 
-static constexpr size_t toolhead_count = HOTENDS;
-
 class MI_RestoreDefaults final : public IWindowMenuItem {
     static constexpr const char *label = N_("Restore Defaults");
 
@@ -71,7 +69,7 @@ struct MenuBase_<std::index_sequence<i...>> {
         MI_RestoreDefaults>;
 };
 
-using MenuBase = MenuBase_<std::make_index_sequence<toolhead_count>>::T;
+using MenuBase = MenuBase_<std::make_index_sequence<PhysicalToolIndex::count>>::T;
 
 } // namespace NScreenMenuFilamentSensors
 

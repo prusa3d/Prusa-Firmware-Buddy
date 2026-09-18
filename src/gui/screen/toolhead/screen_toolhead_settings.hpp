@@ -203,7 +203,7 @@ struct ScreenToolheadSettingsList_<std::index_sequence<i...>> {
     using T = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, WithConstructorArgs<MI_TOOLHEAD, i>..., WithConstructorArgs<MI_TOOLHEAD, AllTools {}>>;
 };
 
-class ScreenToolheadSettingsList : public ScreenToolheadSettingsList_<std::make_index_sequence<toolhead_count>>::T {
+class ScreenToolheadSettingsList : public ScreenToolheadSettingsList_<std::make_index_sequence<PhysicalToolIndex::count>>::T {
 public:
     ScreenToolheadSettingsList();
 };
