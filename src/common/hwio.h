@@ -20,6 +20,9 @@ extern void hwio_beeper_notone(void);
 // cycle 1ms
 extern void hwio_update_1ms(void);
 
+/// Drive the nozzle heater PWM directly, 0 = off.
+void hwio_nozzle_heater_write_pwm(uint8_t pwm);
+
 #if HAS_LOCAL_BED()
 void analogWrite_HEATER_BED(uint32_t);
 uint32_t analogRead_TEMP_BED();

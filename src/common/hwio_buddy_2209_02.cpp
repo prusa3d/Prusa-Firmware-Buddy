@@ -312,15 +312,14 @@ uint32_t analogRead_TEMP_BED() {
 
 #endif
 
+void hwio_nozzle_heater_write_pwm(uint8_t pwm) {
+    static_assert(TIM3_default_Period == _pwm_analogWrite_max);
+    hwio_pwm_set_val(&htim3, TIM_CHANNEL_4, pwm);
+}
+
 static void analogWrite_HEATER_0(int new_value) {
     thermalManager.nozzle_pwm = new_value;
-
-    static int old_value = 0;
-    if (old_value != new_value) {
-        static_assert(TIM3_default_Period == _pwm_analogWrite_max);
-        hwio_pwm_set_val(&htim3, TIM_CHANNEL_4, new_value);
-        old_value = new_value;
-    }
+    hwio_nozzle_heater_write_pwm(new_value);
 }
 
 /**
