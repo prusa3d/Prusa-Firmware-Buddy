@@ -36,6 +36,38 @@ void init_skipped();
 /// Call from Marlin setup before the first Hotend consumer.
 void resolve();
 
+/// What the print-fan phase concluded.
+enum class FanProbeVerdict : uint8_t {
+    stock_ntc, ///< the reading rose sharply: a hot NTC shedding heat
+    warm_pt1000, ///< the nozzle is already warm, so a PT1000 -- do not heat it
+    inconclusive, ///< nothing moved: a cold PT1000 or a dead sensor
+};
+
+struct FanProbeInputs {
+    int32_t delta_adc_12bit; ///< end minus start, from averaged 12-bit samples
+    uint16_t end_adc_10bit; ///< the end reading, for the absolute warm-nozzle interlock
+};
+
+struct FanProbeThresholds {
+    int32_t rise_adc_12bit; ///< at or above this rise: a hot NTC
+    uint16_t warm_nozzle_adc_10bit; ///< at or above this: warm PT1000, unsafe to add heat to
+};
+
+/// Classify the print-fan phase.
+///
+/// One-sided: cooling moves a hot NTC by tens of counts, a PT1000 by a few in either direction.
+/// The warm-nozzle check is an absolute safety interlock (never heat a warm nozzle) and comes
+/// second, so a hot NTC is caught by the rise first.
+constexpr FanProbeVerdict classify_fan_probe(FanProbeInputs in, FanProbeThresholds t) {
+    if (in.delta_adc_12bit >= t.rise_adc_12bit) {
+        return FanProbeVerdict::stock_ntc;
+    }
+    if (in.end_adc_10bit >= t.warm_nozzle_adc_10bit) {
+        return FanProbeVerdict::warm_pt1000;
+    }
+    return FanProbeVerdict::inconclusive;
+}
+
 /// 10-bit ADC thresholds derived from the PT1000 temptable.
 /// Outside the [lower, upper] band → the reading is unambiguously NTC.
 /// Inside the band → ambiguous (could be a hot NTC or a cold-to-hot PT1000).

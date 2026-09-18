@@ -12,6 +12,9 @@
 #include <config_store/store_instance.hpp>
 #include <logging/log.hpp>
 #include <bsod/bsod.h>
+#include <fanctl.hpp>
+#include <freertos/timing.hpp>
+#include <buddy/bootstrap_state.hpp>
 
 #if HAS_HT_HOTEND()
     #include <atomic>
@@ -123,6 +126,71 @@ enum class DetectState : uint8_t {
 std::atomic<DetectState> detect_state { DetectState::not_initialised };
 std::atomic<HotendType> settled_hotend_type { HotendType::stock };
 
+/// Above this the nozzle holds real heat and must not be pulsed. Erring low is safe: "warm"
+/// yields high_temp, and an NTC read through the PT1000 table over-reads rather than runs away.
+constexpr int16_t warm_nozzle_c = 65;
+
+/// Average the nozzle channel over ~200 ms, at full 12-bit resolution: the fan phase decides on
+/// a few 10-bit counts.
+uint16_t sample_nozzle_avg_12bit() {
+    constexpr uint32_t sample_count = 64;
+    constexpr uint32_t sample_interval_ms = 3; // ~200 ms in total
+    uint32_t accumulator = 0;
+    for (uint32_t i = 0; i < sample_count; ++i) {
+        accumulator += adcDma1.get_channel(AdcChannel::hotend_T);
+        freertos::delay(sample_interval_ms);
+    }
+    return static_cast<uint16_t>(accumulator / sample_count);
+}
+
+/// Raw PWM, no RPM regulation: the probe only wants maximum airflow.
+void set_print_fan_pwm(uint8_t pwm) {
+    Fans::print(PhysicalToolIndex::from_raw(0)).set_pwm(pwm);
+}
+
+/// How often the probe repaints the boot progress bar.
+constexpr uint32_t progress_step_ms = 100;
+
+/// The fan phase's share of the boot progress bar.
+constexpr uint8_t progress_fan_end_pct = 50;
+
+/// Cool the nozzle and see whether the reading runs away upward.
+hotend_detect::FanProbeVerdict run_fan_probe() {
+    // Long enough for the lagging sensor to show a hot NTC's rise even with a dead print fan.
+    constexpr uint32_t fan_phase_ms = 8000;
+    constexpr uint8_t fan_probe_pwm = 255;
+
+    // Unguarded: a hang here can only leave the print fan running.
+    const uint16_t start_12bit = sample_nozzle_avg_12bit();
+    set_print_fan_pwm(fan_probe_pwm);
+    for (uint32_t elapsed = 0; elapsed < fan_phase_ms; elapsed += progress_step_ms) {
+        buddy::bootstrap_state_set(static_cast<uint8_t>(progress_fan_end_pct * elapsed / fan_phase_ms),
+            buddy::BootstrapStage::detecting_hotend);
+        freertos::delay(progress_step_ms);
+    }
+    const uint16_t end_12bit = sample_nozzle_avg_12bit();
+    set_print_fan_pwm(0);
+
+    constexpr int32_t rise_counts_10bit = 5;
+    const hotend_detect::FanProbeThresholds thresholds {
+        .rise_adc_12bit = rise_counts_10bit << AdcDma1::shift_bits,
+        .warm_nozzle_adc_10bit = static_cast<uint16_t>(
+            MarlinTemptableRawMinMax::compute(TT_NAME(1010), warm_nozzle_c, 400).raw_min / OVERSAMPLENR),
+    };
+
+    const int32_t delta = static_cast<int32_t>(end_12bit) - static_cast<int32_t>(start_12bit);
+    const auto verdict = hotend_detect::classify_fan_probe(
+        { .delta_adc_12bit = delta, .end_adc_10bit = static_cast<uint16_t>(end_12bit >> AdcDma1::shift_bits) },
+        thresholds);
+
+    log_info(HotendDetect, "fan: %u -> %u -> %s",
+        start_12bit, end_12bit,
+        verdict == hotend_detect::FanProbeVerdict::stock_ntc         ? "NTC"
+            : verdict == hotend_detect::FanProbeVerdict::warm_pt1000 ? "warm"
+                                                                     : "none");
+    return verdict;
+}
+
 /// Reconcile a classification with the persisted type and publish the result.
 ///
 /// Only a class change touches the store: a merged HotendType cannot recall the sock choice, so
@@ -163,7 +231,28 @@ void hotend_detect::resolve() {
         return;
     }
 
-    settle(early.result, DetectState::resolved);
+    // dialog_pending is exactly the case a probe can decide.
+    if (!early.result.dialog_pending) {
+        settle(early.result, DetectState::resolved);
+        return;
+    }
+
+    auto result = early.result;
+    switch (run_fan_probe()) {
+    case hotend_detect::FanProbeVerdict::stock_ntc:
+        result = { .is_high_temp = false, .dialog_pending = false };
+        break;
+    case hotend_detect::FanProbeVerdict::warm_pt1000:
+        result = { .is_high_temp = true, .dialog_pending = false };
+        break;
+    case hotend_detect::FanProbeVerdict::inconclusive:
+        // A cold PT1000 and a dead sensor look identical here; only a heat pulse separates
+        // them. Until that exists, keep the early verdict and let the dialog ask.
+        break;
+    }
+
+    hotend_detect_dialog_pending = result.dialog_pending;
+    settle(result, DetectState::resolved);
 }
 #endif
 
