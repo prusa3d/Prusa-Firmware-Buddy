@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <string_view>
@@ -32,6 +33,23 @@ bgcode::core::BlockHeader identity_header(uint32_t uncompressed_size) {
         std::to_underlying(bgcode::core::ECompressionType::None),
         uncompressed_size);
 }
+
+// Positions the file where read_and_verify_identity_block resumes (the
+// identity block content), returning its BlockHeader.
+bgcode::core::BlockHeader find_identity_block(FILE *file) {
+    bgcode::core::FileHeader file_header;
+    REQUIRE(bgcode::core::read_header(*file, file_header, nullptr) == bgcode::core::EResult::Success);
+    bgcode::core::BlockHeader block_header;
+    REQUIRE(bgcode::core::read_next_block_header(*file, file_header, block_header, bgcode::core::EBlockType::IdentityBlock) == bgcode::core::EResult::Success);
+    return block_header;
+}
+
+struct IdentityBlockFixture {
+    const char *filename;
+    const char *expected_name;
+    bool expected_one_time;
+    std::array<uint8_t, e2ee::HASH_SIZE> expected_key_block_hash;
+};
 
 // Runs the parser over payload with the given block_size and returns the
 // resulting error text (nullptr on success).
@@ -93,6 +111,38 @@ TEST_CASE("read_and_verify_identity_block accepts block_size at the cap") {
     const char *err = parse_identity_block({}, MAX_LEGAL_BLOCK_SIZE);
     REQUIRE(err != nullptr);
     CHECK(std::string_view(err) == e2ee::file_error);
+}
+
+// Parses real fixtures produced by the reference tool (utils/e2ee/encrypt_bgcode.py),
+// checking compatibility of field extraction against an independent implementation.
+// The fixtures are shared with the gcode/reader tests; the golden key_block_hash
+// values were extracted from them by that tool, not hand-typed.
+TEST_CASE("read_and_verify_identity_block accepts a real identity block") {
+    const IdentityBlockFixture fixture = GENERATE(
+        IdentityBlockFixture {
+            "./box_new_enc.bgcode", "slicer", false,
+            { 0x1b, 0x74, 0x24, 0xef, 0x94, 0x25, 0x3f, 0x81,
+                0x8d, 0x94, 0xd7, 0xfa, 0x5e, 0x7f, 0xc9, 0x88,
+                0x03, 0x50, 0xab, 0x9a, 0xe5, 0x2f, 0xfe, 0x7a,
+                0x4e, 0x83, 0x24, 0xe8, 0xbb, 0x59, 0x97, 0xff } },
+        IdentityBlockFixture {
+            "./box_new_enc_multiple.bgcode", "slicer", false,
+            { 0xc8, 0x39, 0x61, 0x8a, 0x9e, 0x34, 0x69, 0x01,
+                0xa3, 0xfd, 0x48, 0x26, 0x77, 0x35, 0x88, 0x4c,
+                0x18, 0x87, 0xeb, 0xcd, 0xd9, 0x8f, 0x52, 0x05,
+                0x75, 0xb4, 0x3c, 0x60, 0x01, 0xb4, 0xa5, 0x3d } });
+    CAPTURE(fixture.filename);
+
+    unique_file_ptr file(fopen(fixture.filename, "rb"));
+    REQUIRE(file.get() != nullptr);
+    const bgcode::core::BlockHeader block_header = find_identity_block(file.get());
+
+    e2ee::IdentityBlockInfo info;
+    const char *err = e2ee::read_and_verify_identity_block(file.get(), block_header, nullptr, info, false);
+    REQUIRE(err == nullptr);
+    CHECK(std::string_view(info.identity_name.data()) == fixture.expected_name);
+    CHECK(info.one_time_identity == fixture.expected_one_time);
+    CHECK(info.key_block_hash == fixture.expected_key_block_hash);
 }
 
 TEST_CASE("read_and_verify_identity_block rejects an oversized name_len") {
