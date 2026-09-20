@@ -3,6 +3,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <deque>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <cstring>
@@ -104,6 +105,26 @@ protected:
     }
 };
 
+class NonFiniteFloatsJson final : public LowLevelJsonRenderer {
+protected:
+    virtual JsonResult content(size_t resume_point, JsonOutput &output) override {
+        JSON_START;
+        JSON_OBJ_START;
+        JSON_FIELD_FFIXED("finite", 215.3, 1);
+        JSON_COMMA;
+        JSON_FIELD_FFIXED("nan", std::numeric_limits<double>::quiet_NaN(), 1);
+        JSON_COMMA;
+        JSON_FIELD_FFIXED("inf", std::numeric_limits<double>::infinity(), 1);
+        JSON_COMMA;
+        JSON_FIELD_FFIXED("neg_inf", -std::numeric_limits<double>::infinity(), 1);
+        JSON_COMMA;
+        JSON_FIELD_FFIXED("negative", -0.5, 2);
+        JSON_OBJ_END;
+        JSON_END;
+    }
+};
+
+const constexpr char *const EXPECTED_NON_FINITE = "{\"finite\":215.3,\"nan\":null,\"inf\":null,\"neg_inf\":null,\"negative\":-0.50}";
 const constexpr char *const EXPECTED = "{\"hello\":true,\"world\":\"stuff\\\"escaped\",\"sub-something\":{\"answer\":42},\"list\":[{\"value\":0},{\"value\":1},{\"value\":2},{\"value\":3}]}";
 const constexpr char *const EXPECTED_WITH_INNER = "{\"hello\":\"hello world\"}";
 
@@ -216,4 +237,33 @@ TEST_CASE("Seq Renderer") {
     string exp = EXPECTED;
     exp += EXPECTED;
     REQUIRE(string_view(reinterpret_cast<const char *>(buffer), written) == exp);
+}
+
+// JSON cannot express an infinity or a NaN, and printf's "inf"/"nan" would
+// make the whole document unparseable. They are rendered as null.
+TEST_CASE("Json non-finite floats are null") {
+    NonFiniteFloatsJson renderer;
+    size_t increment;
+
+    SECTION("No split") {
+        increment = 1024;
+    }
+
+    SECTION("Split between the fields") {
+        increment = 20;
+    }
+
+    string response;
+    auto result = JsonResult::Incomplete;
+
+    while (result != JsonResult::Complete) {
+        uint8_t buffer[increment];
+        const auto [result_partial, written] = renderer.render(buffer, increment);
+        REQUIRE(written <= increment);
+        REQUIRE(written > 0);
+        response += string_view(reinterpret_cast<char *>(buffer), written);
+        result = result_partial;
+    }
+
+    REQUIRE(response == EXPECTED_NON_FINITE);
 }

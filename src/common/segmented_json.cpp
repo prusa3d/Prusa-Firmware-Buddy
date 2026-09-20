@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cinttypes>
+#include <cmath>
 #include <cstring>
 #include <bsod/bsod.h>
 
@@ -106,6 +107,12 @@ JsonResult JsonOutput::output_field_int(size_t resume_point, const char *name, i
 }
 
 JsonResult JsonOutput::output_field_float_fixed(size_t resume_point, const char *name, double value, int precision) {
+    if (!std::isfinite(value)) {
+        // JSON has no way to write an infinity or a NaN. printf would give
+        // us "inf" or "nan", which no parser accepts, so a single such value
+        // would cost the receiver the whole document.
+        return output(resume_point, "\"%s\":null", name);
+    }
     return output(resume_point, "\"%s\":%.*f", name, precision, value);
 }
 
