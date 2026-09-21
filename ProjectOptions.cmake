@@ -648,18 +648,23 @@ set_feature_for_printers(
   "iX"
   "XL"
   ) # TODO: When INDX gets fixed, also try enabling HAS_ANFC
-set_feature_for_printers_master_board(
-  HAS_E2EE_SUPPORT
-  "MK4"
-  "MK3.5"
-  "iX"
-  "COREONE"
-  "COREONE_INDX"
-  "COREONEL"
-  "COREONEL_INDX"
-  "XL"
-  "UNITTESTS"
-  )
+# Developer builds default to on; MINI is left out as E2EE does not fit its flash.
+if(DEVELOPMENT_ITEMS_ENABLED)
+  set_feature_for_printers_master_board(
+    HAS_E2EE_SUPPORT
+    "MK4"
+    "MK3.5"
+    "iX"
+    "COREONE"
+    "COREONE_INDX"
+    "COREONEL"
+    "COREONEL_INDX"
+    "XL"
+    "UNITTESTS"
+    )
+else()
+  set_feature_for_printers_master_board(HAS_E2EE_SUPPORT "UNITTESTS")
+endif()
 
 # Printers that support any form of backwards gcode compatibility modes XL: needed for XL-on-XLS
 # compat mode (xl_compatibility_mode in M106 fan scaling)
