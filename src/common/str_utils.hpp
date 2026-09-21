@@ -12,7 +12,7 @@
 
 /// Result of from_chars_light
 struct from_chars_light_result {
-    const char *ptr; // pointer to last character processed
+    const char *ptr; // pointer to the character immediately following the last character processed
     std::errc ec; // error code
 };
 

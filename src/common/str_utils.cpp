@@ -110,13 +110,15 @@ from_chars_light_result from_chars_light_common(const char *first, const char *l
     }
     std::copy(first, last, buffer.begin());
     buffer[len] = '\0'; // make sure there is ending zero, to avoid strtoi reading beyond the buffer
-    char *out_end = nullptr;
+    char *out_end_buf = nullptr;
     errno = 0;
-    auto value_res = strtox_func(buffer.data(), &out_end, base);
+    auto value_res = strtox_func(buffer.data(), &out_end_buf, base);
+
+    const char *out_end = first + (out_end_buf - buffer.begin());
     if (errno != 0) {
         return { out_end, std::errc::result_out_of_range };
     }
-    if (out_end == buffer.data()) {
+    if (out_end == first) {
         return { out_end, std::errc::invalid_argument };
     }
     if (value_res < std::numeric_limits<T>::min() || value_res > std::numeric_limits<T>::max()) {
@@ -196,9 +198,12 @@ from_chars_light_result from_chars_light(const char *first, const char *last, fl
     }
     std::copy(first, last, buffer.begin());
     buffer[len] = '\0'; // make sure there is ending zero, to avoid strtoi reading beyond the buffer
-    char *out_end = nullptr;
-    value = std::strtof(buffer.data(), &out_end);
-    if (out_end == buffer.data()) {
+    char *out_end_buf = nullptr;
+    value = std::strtof(buffer.data(), &out_end_buf);
+
+    const char *out_end = first + (out_end_buf - buffer.begin());
+
+    if (out_end == first) {
         return { first, std::errc::invalid_argument };
     }
     return { out_end, std::errc {} };

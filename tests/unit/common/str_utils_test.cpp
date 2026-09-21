@@ -20,6 +20,7 @@ void test_from_chars_light() {
         std::string str = "123";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val, 10);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + str.size());
         CHECK(val == 123);
     }
 
@@ -27,6 +28,7 @@ void test_from_chars_light() {
         std::string str = " 123 ";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val, 10);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + 4);
         CHECK(val == 123);
     }
 
@@ -34,6 +36,7 @@ void test_from_chars_light() {
         std::string str = "5F";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val, 16);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + str.size());
         CHECK(val == 0x5F);
     }
 
@@ -41,12 +44,14 @@ void test_from_chars_light() {
         std::string str = "XX";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val, 10);
         CHECK(res.ec == std::errc::invalid_argument);
+        CHECK(res.ptr == str.c_str());
     }
 
     SECTION("Text bounds") {
         std::string str = " 123456789 ";
         res = from_chars_light(str.c_str(), str.c_str() + 3, val, 10);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + 3);
         CHECK(val == 12);
     }
 
@@ -125,6 +130,7 @@ TEST_CASE("from_chars_light:float") {
         std::string str = "123.123";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + str.size());
         CHECK(std::abs(val - 123.123f) < 0.0001);
     }
 
@@ -132,6 +138,7 @@ TEST_CASE("from_chars_light:float") {
         std::string str = " 123.123 ";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + 8);
         CHECK(std::abs(val - 123.123f) < 0.0001);
     }
 
@@ -139,12 +146,14 @@ TEST_CASE("from_chars_light:float") {
         std::string str = "XX";
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val);
         CHECK(res.ec == std::errc::invalid_argument);
+        CHECK(res.ptr == str.c_str());
     }
 
     SECTION("Text bounds") {
         std::string str = " 123456789 ";
         res = from_chars_light(str.c_str(), str.c_str() + 3, val);
         CHECK(res.ec == std::errc {});
+        CHECK(res.ptr == str.c_str() + 3);
         CHECK(val == 12);
     }
 }
