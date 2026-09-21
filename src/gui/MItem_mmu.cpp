@@ -112,7 +112,9 @@ void MI_MMU_LOAD_TO_NOZZLE_I::printExtension(Rect16 extension_rect, Color color_
 
 void MI_MMU_LOAD_TO_NOZZLE_I::click(IWindowMenu &) {
     ArrayStringBuilder<MAX_CMD_SIZE> gcode;
-    gcode.append_printf("M701 S\"%s\" W2 P%i", filament_type_.parameters().name.data(), slot_i_);
+    gcode.append_string("M701 S\"");
+    filament_type_.build_encoded_gcode_param(gcode);
+    gcode.append_printf("\" W2 P%i", slot_i_);
     gui_try_gcode_with_msg(gcode.str());
 }
 

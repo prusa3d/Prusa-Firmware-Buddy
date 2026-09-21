@@ -239,6 +239,7 @@ public:
     static const FilamentType none;
     static const FilamentType pending_adhoc;
 
+    static constexpr const char encoded_gcode_code_prefix = '#';
     static constexpr const char *adhoc_pending_gcode_code = "#";
 
 public:
@@ -283,6 +284,10 @@ public:
     /// !!! Prefer using "loaded_filament.matches(b_name)" over "loaded_filament == FilamentType::from_name(b_name)" where it makes sense.
     /// !!! This is because "loaded_filament" could be an ad-hoc filament, which is never returned from FilamentType::from_name.
     bool matches(const std::string_view &name) const;
+
+    /// Builds a string to be passed as gcode parameter that identifies the filament type
+    /// The format is internally encoded (so no issues with adhoc filaments and such)
+    void build_encoded_gcode_param(StringBuilder &builder) const;
 
     /// Appends name of the filament to the builder
     /// If the filament type is non-preset, it visually distincts it (for example by appending PLA (Custom))

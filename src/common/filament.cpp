@@ -16,6 +16,7 @@
 #include <freertos/mutex.hpp>
 #include <inc/MarlinConfig.h>
 #include <bsod/bsod.h>
+#include <str_utils.hpp>
 
 #if HAS_ANFC()
     #include <feature/openprinttag/tool_tag.hpp>
@@ -62,12 +63,31 @@ MutexAtomic<FilamentTypeParameters, freertos::Mutex> pending_adhoc_filament_para
 };
 
 std::optional<FilamentType> FilamentType::from_gcode_param(const std::string_view &value) {
-    if (const FilamentType r = from_name(value); r != FilamentType::none) {
-        return r;
+    if (value.length() == 0) {
+        return std::nullopt;
+    }
+
+    if (value.length() > 1 && value[0] == '#') {
+        uint8_t encoded;
+        const auto conv_r = from_chars_light(value.begin() + 1, value.end(), encoded);
+        if (conv_r.ec != std::errc {} || conv_r.ptr != value.end()) {
+            return std::nullopt;
+        }
+
+        const auto result = EncodedFilamentType::from_data(encoded).decode();
+        if (result == FilamentType::none) {
+            return std::nullopt;
+        }
+
+        return result;
     }
 
     if (value == adhoc_pending_gcode_code) {
         return PendingAdHocFilamentType {};
+    }
+
+    if (const FilamentType r = from_name(value); r != FilamentType::none) {
+        return r;
     }
 
     return std::nullopt;
@@ -84,6 +104,10 @@ BuildFilamentNameWithInfoParams::BuildFilamentNameWithInfoParams(FilamentType ty
     , opt_assigned { params.openprinttag_uid_hash != buddy::openprinttag::ToolTag::no_tag_hash }
 #endif
 {
+}
+
+void FilamentType::build_encoded_gcode_param(StringBuilder &builder) const {
+    builder.append_printf("%c%i", encoded_gcode_code_prefix, EncodedFilamentType(*this).data);
 }
 
 void FilamentType::build_name_with_info(const BuildFilamentNameWithInfoParams &params, StringBuilder &builder) {
