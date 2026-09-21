@@ -547,7 +547,8 @@ bool calibrate_xy_offset(PhysicalToolIndex tool, const tool_offset::ProbingConfi
     log_info(ToolOffsetCalib, "XY offset measurement");
     const auto result = tool_offset::measure_current_tool_offset(config, offset_for_measurement);
     if (!result.has_value()) {
-        log_error(ToolOffsetCalib, "Measurement failed: %s", result.error());
+        // The measurement logs what went wrong; here we only care that it did.
+        log_error(ToolOffsetCalib, "XY offset measurement failed for tool %u", tool.to_raw());
         // Leave the offsets as they were, so a retry measures under the same conditions
         hotend_offset[tool] = xyz_pos_t { current_ho.x, current_ho.y, current_ho.z };
         hotend_currently_applied_offset = applied_before;

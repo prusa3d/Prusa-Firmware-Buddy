@@ -60,6 +60,7 @@
 #include <array>
 #include <cmath>
 #include <concepts>
+#include <optional>
 #include <sfl/segmented_vector.hpp>
 #include <option/has_indx_head.h>
 #include <option/tool_offset_sensor_geometry.h>
@@ -639,6 +640,7 @@ concept FsmDriver = requires(D drv, const D const_drv, FsmState target, bool alo
     { drv.retry_scan(target, axis) } -> std::same_as<FsmState>;
     { drv.hunt_step_y(target) } -> std::same_as<FsmState>;
     { const_drv.check_health() } -> std::same_as<bool>;
+    { const_drv.sensor_error_seen() } -> std::same_as<bool>;
     { drv.om_x } -> std::same_as<FsmScanOutcome &>;
     { drv.om_y } -> std::same_as<FsmScanOutcome &>;
     { D::max_iterations } -> std::convertible_to<unsigned>;
@@ -650,19 +652,31 @@ concept FsmDriver = requires(D drv, const D const_drv, FsmState target, bool alo
 // errors from the scan are logged at the source and surfaced as
 // FsmEvent::measurement_failed; the dispatcher just retries (or eventually
 // hits the iteration cap).
-// Returns nullptr on success, or an error string on failure.
+// Returns nullopt on success, or the reason to report on.
 template <FsmDriver Driver>
-const char *dispatch_fsm(Driver &drv) {
+std::optional<tool_offset::FailureReason> dispatch_fsm(Driver &drv) {
+    // Giving up says nothing on its own about why: a sensor that stopped
+    // answering and a nozzle the sweeps never found both end here. The driver
+    // remembers whether any sweep failed on the sensor itself, which separates
+    // "clean it and retry" from "the sensor needs service".
+    const auto gave_up = [&drv](const char *detail) {
+        log_error(ContactlessOffset, "%s", detail);
+        return drv.sensor_error_seen()
+            ? tool_offset::FailureReason::sensor_failure
+            : tool_offset::FailureReason::not_measured;
+    };
+
     FsmState state = FsmState::offset_measurement_x;
     for (unsigned i = 0; i < Driver::max_iterations; ++i) {
         if (state == FsmState::finished && drv.om_x.confidence > high_confidence_threshold && drv.om_y.confidence > high_confidence_threshold) {
-            return nullptr;
+            return std::nullopt;
         } else if (state == FsmState::finished) {
-            return "Tool offset FSM finished without high confidence in both axes";
+            return gave_up("Tool offset FSM finished without high confidence in both axes");
         }
 
         if (!drv.check_health()) {
-            return "Tool offset FSM aborted: hardware failure";
+            log_error(ContactlessOffset, "Tool offset FSM aborted: hardware failure");
+            return tool_offset::FailureReason::sensor_failure;
         }
 
         FsmScanOutcome outcome {};
@@ -681,7 +695,7 @@ const char *dispatch_fsm(Driver &drv) {
 
         state = next_state(state, outcome.event, drv);
     }
-    return "Tool offset FSM exceeded iteration limit";
+    return gave_up("Tool offset FSM exceeded iteration limit");
 }
 
 #if TOOL_OFFSET_SENSOR_GEOMETRY_IS_SINGLE_COIL()
@@ -705,6 +719,7 @@ struct SingleCoilDriver {
     xy_pos_t offset_for_measurement {};
     uint8_t generic_retry_count {};
     uint8_t scan_count_y {};
+    bool sensor_error_seen_ {};
     FsmScanOutcome om_x {};
     FsmScanOutcome om_y {};
 
@@ -726,6 +741,10 @@ struct SingleCoilDriver {
         const auto r = sweep_axis(config, sensor, sweep);
         if (!r.has_value()) {
             log_error(ContactlessOffset, "scan '%s' failed: %s", sweep_name(along_x), r.error().message);
+            if (r.error().kind == ScanError::Kind::sweep_failed
+                && sensor.get_last_error() != tool_offset::Sensor::Error::NONE) {
+                sensor_error_seen_ = true;
+            }
             outcome = {
                 ScanResult {},
                 r.error().kind == ScanError::Kind::out_of_range
@@ -788,12 +807,15 @@ struct SingleCoilDriver {
     #endif
         return true;
     }
+
+    /// Whether a sweep failed on the sensor rather than on the analysis.
+    bool sensor_error_seen() const { return sensor_error_seen_; }
 };
 
 // Run the XY-scan FSM. Assumes the carriage is already positioned at the
 // sensor XY at the desired probing Z. Returns the measured (x, y) offset in
 // the caller's frame (i.e. relative to the configured coil position).
-std::expected<xy_pos_t, const char *> measure_xy_via_fsm(
+std::expected<xy_pos_t, tool_offset::FailureReason> measure_xy_via_fsm(
     const tool_offset::ProbingConfig &config,
     tool_offset::Sensor &sensor,
     const tool_offset::ToolOffset &initial_measurement_offset) {
@@ -843,8 +865,8 @@ std::expected<xy_pos_t, const char *> measure_xy_via_fsm(
         } } },
     };
 
-    if (const char *err = dispatch_fsm(drv); err != nullptr) {
-        return std::unexpected(err);
+    if (const auto reason = dispatch_fsm(drv)) {
+        return std::unexpected(*reason);
     }
 
     // Undo the scan_center shift so the result is the true offset between the
@@ -915,7 +937,7 @@ public:
 // Probe down at `z_probe_pos` to find the sensor's true Z, leaving the carriage
 // at the probed Z. The caller picks the spot: it must be clear of the coil
 // area, because the inductive coil mustn't be touched.
-std::expected<float, const char *> probe_sensor_z(const tool_offset::ProbingConfig &config, const xyz_pos_t &z_probe_pos) {
+std::expected<float, tool_offset::FailureReason> probe_sensor_z(const tool_offset::ProbingConfig &config, const xyz_pos_t &z_probe_pos) {
     // Travel to the sensor at travel_z_height; only descend to safe_z_height right above it.
     do_z_clearance(z_probe_pos.z + config.travel_z_height);
     do_blocking_move_to_xy(z_probe_pos);
@@ -923,7 +945,8 @@ std::expected<float, const char *> probe_sensor_z(const tool_offset::ProbingConf
 
     const float sensor_z = measure_sensor_true_z(z_probe_pos);
     if (std::isnan(sensor_z)) {
-        return std::unexpected("Initial probing failed, sensor Z is NaN");
+        log_error(ContactlessOffset, "Initial probing failed, sensor Z is NaN");
+        return std::unexpected(tool_offset::FailureReason::sensor_not_found);
     }
     return sensor_z;
 }
@@ -978,6 +1001,7 @@ struct DualCoilDriver {
     xy_pos_t offset_for_measurement {};
     uint8_t generic_retry_count {};
     unsigned hunt_step_count {};
+    bool sensor_error_seen_ {};
     FsmScanOutcome om_x {};
     FsmScanOutcome om_y {};
 
@@ -1014,9 +1038,14 @@ struct DualCoilDriver {
                     : xy_pos_t { .x = sweep.cross_pos, .y = sweep.center - sweep.half_width });
             do_blocking_move_to_z(sweep_z);
 
-            const auto r = sweep_axis(config, along_x ? sensor_x : sensor_y, sweep);
+            tool_offset::Sensor &swept_sensor = along_x ? sensor_x : sensor_y;
+            const auto r = sweep_axis(config, swept_sensor, sweep);
             if (!r.has_value()) {
                 log_error(ContactlessOffset, "scan '%s' failed: %s", sweep_name(along_x), r.error().message);
+                if (r.error().kind == ScanError::Kind::sweep_failed
+                    && swept_sensor.get_last_error() != tool_offset::Sensor::Error::NONE) {
+                    sensor_error_seen_ = true;
+                }
                 outcome = {
                     ScanResult {},
                     r.error().kind == ScanError::Kind::out_of_range
@@ -1082,13 +1111,16 @@ struct DualCoilDriver {
     bool check_health() const {
         return true;
     }
+
+    /// Whether a sweep failed on the sensor rather than on the analysis.
+    bool sensor_error_seen() const { return sensor_error_seen_; }
 };
 
 #endif // TOOL_OFFSET_SENSOR_GEOMETRY_IS_DUAL_COIL()
 
 } // namespace
 
-std::expected<tool_offset::ToolOffset, const char *> tool_offset::measure_current_tool_offset(
+std::expected<tool_offset::ToolOffset, tool_offset::FailureReason> tool_offset::measure_current_tool_offset(
     const tool_offset::ProbingConfig &config,
     const tool_offset::ToolOffset &initial_measurement_offset) {
 
@@ -1097,14 +1129,17 @@ std::expected<tool_offset::ToolOffset, const char *> tool_offset::measure_curren
     // Check nozzle temperature before probing
     const auto current_temp = hotend.nozzle_temp();
     if (!current_temp.has_value()) {
-        return std::unexpected("Nozzle has no valid temperature");
+        log_error(ContactlessOffset, "Nozzle has no valid temperature");
+        return std::unexpected(FailureReason::nozzle_too_hot);
     }
     if (current_temp.value() > config.max_safe_temp) {
-        return std::unexpected("Nozzle too hot for probing");
+        log_error(ContactlessOffset, "Nozzle too hot for probing");
+        return std::unexpected(FailureReason::nozzle_too_hot);
     }
 
     if (!GcodeSuite::G28_no_parser(true, true, true, G28Flags { .only_if_needed = true })) {
-        return std::unexpected("Homing failed");
+        log_error(ContactlessOffset, "Homing failed");
+        return std::unexpected(FailureReason::homing_failed);
     }
 
     // Sensor may be below soft endstop limits — disable them for the whole measurement
@@ -1161,7 +1196,8 @@ std::expected<tool_offset::ToolOffset, const char *> tool_offset::measure_curren
     // Detachable sensor: a trigger well below the expected surface means the
     // probe fell past an absent sensor onto the bed/frame.
     if (*sensor_z < config.z_probe_position.z - sensor_presence_z_margin) {
-        return std::unexpected("Tool offset sensor not detected (Z probe too deep)");
+        log_error(ContactlessOffset, "Tool offset sensor not detected (Z probe too deep)");
+        return std::unexpected(FailureReason::sensor_not_found);
     }
     debug_report_probed_z(*sensor_z, *sensor_z - config.z_probe_position.z);
 
@@ -1181,8 +1217,8 @@ std::expected<tool_offset::ToolOffset, const char *> tool_offset::measure_curren
         .offset_for_measurement = { { { initial_measurement_offset.x, initial_measurement_offset.y } } },
     };
 
-    if (const char *err = dispatch_fsm(drv); err != nullptr) {
-        return std::unexpected(err);
+    if (const auto reason = dispatch_fsm(drv)) {
+        return std::unexpected(*reason);
     }
 
     // Tool Z offset relative to the probed sensor surface. Only informational,
