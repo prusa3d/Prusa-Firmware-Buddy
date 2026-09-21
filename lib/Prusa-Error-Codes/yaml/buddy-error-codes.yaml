@@ -342,7 +342,7 @@ Errors:
   - code: "XX134"
     printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Unsafe Sensor Position"
-    text: "The tool offset sensor position exceeds the safe limit. Make sure the nozzle and the sensor are clean.\nCaution: the nozzle may be hot."
+    text: "The measured sensor position exceeds the safe limit. The sensor may have been knocked out of position."
     id: "TOOL_OFFSET_UNSAFE_SENSOR_XY"
     gui_layout: "warning_dialog"
     approved: true
@@ -372,7 +372,7 @@ Errors:
     approved: true
 
   - code: "XX138"
-    printers: [COREONE_INDX, COREONEL_INDX]
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Tool pickup failed"
     text: "The tool was not detected after pickup. Motors are disabled. Make sure the tool is in its dock, then press Retry."
     id: "NOZZLE_MISMATCH_PICKUP_FAILED"
@@ -422,6 +422,22 @@ Errors:
     type: WARNING
     gui_layout: "warning_dialog"
     approved: true
+
+  - code: "XX144"
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
+    title: "Sensor Not Found"
+    text: "The tool offset sensor was not detected at the expected height. Make sure it is installed and properly seated, then retry."
+    id: "TOOL_OFFSET_SENSOR_NOT_FOUND"
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX145"
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
+    title: "Sensor Failure"
+    text: "The tool offset sensor stopped responding during the measurement. Retry, and if this repeats the sensor or its cable needs service."
+    id: "TOOL_OFFSET_SENSOR_MEASUREMENT_FAILED"
+    gui_layout: "warning_dialog"
+    approved: false
 
   # TEMPERATURE    xx2xx
 
@@ -1112,12 +1128,7 @@ Errors:
     gui_layout: "warning_dialog"
     approved: true
 
-  - code: "XX404"
-    title: "OPENPRINTTAG ASSIGNED"
-    text: "OpenPrintTag has been linked with the filament. Filament usage data will be stored on the tag."
-    id: "OPENPRINTTAG_ASSIGNED"
-    gui_layout: "warning_dialog"
-    approved: true
+    # - code: "XX404" REMOVED
 
   - code: "XX405"
     title: "OPENPRINTTAG CANNOT TRACK"
@@ -1994,7 +2005,6 @@ Errors:
     approved: true
 
   - code: "XX848"
-    printers: [iX, MK4, MK3.5, XL, COREONE, COREONE_INDX, COREONEL, COREONEL_INDX]
     title: "UNTRUSTED IDENTITY"
     text: "G-Code signed by an identity not trusted by this printer. Do you want to save identity as trusted?\n\nIdentity name: %s\nIdentity key hash: %s"
     id: "UNTRUSTED_IDENTITY"

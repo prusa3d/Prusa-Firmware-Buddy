@@ -16,7 +16,7 @@ from prusaerrors.shared.codes import (Category, Code, Codes, Printer,
 
 BUDDY = [
     'MINI', 'MK4', 'IX', 'XL', 'MK3.5', 'MK4S', 'MK3.9', 'MK3.9S', 'MK3.5S',
-    'COREONE', 'COREONEL',
+    'COREONE', 'COREONEL', 'XLP', 'COREONE_OAK',
 ]
 
 
@@ -79,8 +79,12 @@ def yaml_codes(src_path: Path):
                 if printers := entry.get("printers"):
                     if 'MK4' in printers:
                         printers.extend(('MK4S', 'MK3.9', 'MK3.9S'))
-                    elif 'MK3.5' in printers:
+                    if 'MK3.5' in printers:
                         printers.append('MK3.5S')
+                    if 'XL' in printers:
+                        printers.append('XLP')
+                    if 'COREONE' in printers:
+                        printers.append('COREONE_OAK')
                 else:  # if no printers specified code is valid for all buddy
                     printers = BUDDY
 
