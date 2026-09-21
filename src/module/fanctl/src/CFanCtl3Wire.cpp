@@ -88,12 +88,12 @@ void CFanCtlPWM::safeState() {
 
 CFanCtlTach::CFanCtlTach(const ReadPinFunc &read_pin_func)
     : pin_read(read_pin_func) {
-    input_state = false;
     tick_count = 0;
     ticks_per_second = 1000;
     edges = 0;
     pwm_sum = 0;
     rpm = 0;
+    input_state = false;
     m_value_ready = false;
 }
 

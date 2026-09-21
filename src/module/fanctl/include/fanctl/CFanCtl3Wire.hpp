@@ -16,16 +16,12 @@ enum {
 // this structure contain variables for rpm measuement
 // used in class CFanCtlTach
 struct fanctl_tach_t {
-    union {
-        struct { // flags:
-            bool input_state : 1; //  last tacho input state (0/1)
-        };
-    };
     uint16_t tick_count; // tick counter
     uint16_t ticks_per_second; // tacho periode in ticks
     uint16_t edges; // number of edges in current cycle
     uint16_t pwm_sum; // sum of ticks with pwm=1 in current cycle
     uint16_t rpm; // calculated RPM value (filtered)
+    bool input_state; //  last tacho input state (0/1)
     bool m_value_ready; // measure RPM done
 };
 
