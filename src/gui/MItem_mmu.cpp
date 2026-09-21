@@ -90,17 +90,19 @@ void MI_MMU_ISSUE_GCODE_SLOT_FMT::click(IWindowMenu &) {
 // MI_MMU_LOAD_TO_NOZZLE_I
 MI_MMU_LOAD_TO_NOZZLE_I::MI_MMU_LOAD_TO_NOZZLE_I(VirtualToolIndex tool)
     : MI_MMU_ITEM_WITH_SLOT(tool.to_raw(), N_("Load Filament %i")) {
-    const FilamentType filament_type = FilamentType::for_tool(tool);
+    filament_type_ = FilamentType::for_tool(tool);
 
     StringBuilder info_sb { info_buffer_ };
-    filament_type.build_name_with_info(info_sb);
+    filament_type_.build_name_with_info(info_sb);
 
     extension_ = MenuItemColorSwatchExtension {
         .text = string_view_utf8::MakeRAM(info_buffer_.data()),
-        .color = filament_type.parameters().color,
+        .color = filament_type_.parameters().color,
         .show_null_color = false,
     };
     extension_width = extension_.compute_width();
+
+    set_enabled(filament_type_ != FilamentType::none);
 }
 
 void MI_MMU_LOAD_TO_NOZZLE_I::printExtension(Rect16 extension_rect, Color color_text, Color color_back, ropfn raster_op) const {
@@ -109,18 +111,9 @@ void MI_MMU_LOAD_TO_NOZZLE_I::printExtension(Rect16 extension_rect, Color color_
 }
 
 void MI_MMU_LOAD_TO_NOZZLE_I::click(IWindowMenu &) {
-    std::array<char, MAX_CMD_SIZE> gcode;
-    FilamentType f = FilamentType::for_tool(VirtualToolIndex::from_raw(slot_i_));
-
-    if (f == FilamentType::none) {
-        // if, for some reason, no filament type is known on a specific slot, we shall omit the S parameter from the M701 gcode
-        // Also, un-preloaded filament slots shall be grayed-out to prevent the user from getting into these edge-cases
-        snprintf(gcode.data(), gcode.size(), "M701 W2 P%i", slot_i_);
-    } else {
-        snprintf(gcode.data(), gcode.size(), "M701 S\"%s\" W2 P%i", f.parameters().name.data(), slot_i_);
-    }
-
-    gui_try_gcode_with_msg(gcode.data());
+    ArrayStringBuilder<MAX_CMD_SIZE> gcode;
+    gcode.append_printf("M701 S\"%s\" W2 P%i", filament_type_.parameters().name.data(), slot_i_);
+    gui_try_gcode_with_msg(gcode.str());
 }
 
 /**********************************************************************************************/

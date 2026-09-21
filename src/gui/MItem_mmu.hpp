@@ -96,6 +96,7 @@ protected:
 private:
     std::array<char, 32> info_buffer_;
     MenuItemColorSwatchExtension extension_;
+    FilamentType filament_type_;
 };
 
 using MI_MMU_LOAD_TO_NOZZLE = MenuItemVirtualSubmenu<N_("Load To Nozzle"), MI_MMU_LOAD_TO_NOZZLE_I, VirtualToolIndex::count, VirtualToolIndex::from_raw>;
