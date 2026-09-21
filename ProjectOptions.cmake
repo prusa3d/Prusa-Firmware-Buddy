@@ -648,10 +648,10 @@ set_feature_for_printers(
   "iX"
   "XL"
   ) # TODO: When INDX gets fixed, also try enabling HAS_ANFC
-# Developer builds default to on; MINI is left out as E2EE does not fit its flash.
 if(DEVELOPMENT_ITEMS_ENABLED)
   set_feature_for_printers_master_board(
     HAS_E2EE_SUPPORT
+    "MINI"
     "MK4"
     "MK3.5"
     "iX"

@@ -64,6 +64,7 @@ ok_16x16.png
 ok_44x33.png
 ok_color_16x16.png
 ok_color_18x18.png
+padlock_16x16.png
 pause_64x64_disabled.png
 pause_64x64_focused.png
 pause_64x64.png
