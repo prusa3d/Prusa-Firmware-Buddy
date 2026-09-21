@@ -736,10 +736,9 @@ void run() {
             first_run = false;
             log_info(Puppies, "Puppies are ready");
 
-            TaskDeps::wait(TaskDeps::Tasks::puppy_run);
-
 #if HAS_DWARF()
             // write current Marlin's state of the E TMC
+            TaskDeps::wait(TaskDeps::make(TaskDeps::Dependency::default_task_ready));
             stepperE0.push();
 #endif
 

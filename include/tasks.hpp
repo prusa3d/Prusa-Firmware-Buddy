@@ -54,7 +54,6 @@ namespace Tasks {
 #endif
     );
     inline constexpr dependency_t marlin_client = make(Dependency::default_task_ready);
-    inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t bootstrap_done = make(
 #if HAS_ESP()
         Dependency::esp_flashed,
