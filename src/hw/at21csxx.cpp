@@ -197,23 +197,19 @@ int AT21CSxx::find_device() {
  * @return negative number if error occurred, data on address otherwise
  */
 int AT21CSxx::read(uint8_t data_addr) {
-    int data;
-    {
-        freertos::CriticalSection critical_section;
-        int res = load_address(data_addr); // Load data address into Address Pointer.
-        if (res < 0) {
-            return res - 5;
-        }
-        stop_con();
-        uint8_t device_addr_byte = compose_device_address_byte(CODE_EEPROM_ACCESS, dev_addr, 1);
-        if (!write_byte(device_addr_byte)) { // Address device, return if device didn't ack
-            return -5;
-        }
-        data = (int)read_byte(); // Ready byte from bus
-        nack();
-        stop_con();
+    freertos::CriticalSection critical_section;
+    int res = load_address(data_addr); // Load data address into Address Pointer.
+    if (res < 0) {
+        return res - 5;
     }
-    HAL_Delay(1); // Give EEPROM some extra time. Reduces errors.
+    stop_con();
+    uint8_t device_addr_byte = compose_device_address_byte(CODE_EEPROM_ACCESS, dev_addr, 1);
+    if (!write_byte(device_addr_byte)) { // Address device, return if device didn't ack
+        return -5;
+    }
+    int data = (int)read_byte(); // Ready byte from bus
+    nack();
+    stop_con();
     return data;
 }
 
