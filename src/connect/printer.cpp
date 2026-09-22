@@ -82,6 +82,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         // Report only about once every 10mm of filament
         .add(int(filament_used / 10))
         .add(int(target_nozzle))
+        .add(int(target_bed))
         .add(int(temp_bed))
 #if PRINTER_IS_PRUSA_iX()
         .add(int(temp_psu))
@@ -94,6 +95,9 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
 #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
         .add(int(chamber_info.fan_1_rpm / 500))
         .add(int(chamber_info.fan_2_rpm / 500))
+        .add(chamber_info.target_temp)
+        .add(chamber_info.fan_pwm_target)
+        .add(chamber_info.led_intensity)
 #endif
         .done();
 }

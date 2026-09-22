@@ -643,6 +643,25 @@ TEST_CASE("Command Set value - nozzle out-of-range tool index rejected") {
     test.planner.action_done(ActionResult::Ok);
 }
 
+// Regression test: a chamber value changed via SET_VALUE must be reported
+// promptly, not only at the next periodic full telemetry.
+TEST_CASE("Chamber change forces full telemetry") {
+    Test test;
+
+    test.consume_telemetry();
+    test.consume_sleep();
+    // Well below TELEMETRY_INTERVAL_FULL (5 minutes), so a Full telemetry
+    // here can only come from change detection, not the periodic timer.
+    advance_time_s(120);
+
+    test.params.chamber_info.led_intensity = 42;
+
+    const Action action = test.planner.next_action(buffer, nullptr);
+    const auto *telemetry = get_if<SendTelemetry>(&action);
+    REQUIRE(telemetry != nullptr);
+    REQUIRE(telemetry->mode == SendTelemetry::Mode::Full);
+}
+
 TEST_CASE("Connect duplicates command") {
     Test test;
 
