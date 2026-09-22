@@ -53,8 +53,9 @@ target_link_libraries(
   )
 
 add_executable(
-  gcode_reader_test gcode_buffer_parse_metadata_test.cpp gcode_reader.cpp
-                    gcode_reader_binary_compression_test.cpp is_valid_binary_gcode_test.cpp
+  gcode_reader_test
+  gcode_buffer_parse_metadata_test.cpp gcode_reader.cpp gcode_reader_binary_compression_test.cpp
+  is_valid_binary_gcode_test.cpp thumbnail_scan_test.cpp
   )
 target_link_libraries(gcode_reader_test gcode_reader_test_base)
 add_catch_test(gcode_reader_test)
