@@ -9,7 +9,6 @@
 #include <guiconfig/wizard_config.hpp>
 #include <i18n.h>
 #include <img_resources.hpp>
-#include <option/has_indx.h>
 #include <standard_frame/frame_extensions/with_footer.hpp>
 #include <standard_frame/frame_progress_prompt.hpp>
 #include <standard_frame/frame_prompt.hpp>
@@ -67,7 +66,7 @@ private:
 };
 
 // %u placeholder is filled with the 1-based tool the failure is attributed to.
-constexpr auto txt_failed_tool = N_("Tool %u");
+constexpr auto txt_failed_tool = N_("Affected tool %u");
 
 class FrameToolFailure : public FrameQRPrompt {
 public:
@@ -116,11 +115,11 @@ using Frames = FrameDefinitionList<ScreenToolOffsetWizard::FrameStorage,
     FrameDefinition<PhaseToolOffsetsCalibration::moving_away, FrameWait, txt_moving_away>,
     FrameDefinition<PhaseToolOffsetsCalibration::homing, FrameWait, txt_homing>,
     FrameDefinition<PhaseToolOffsetsCalibration::picking_tool, FrameWait, txt_picking_tool>,
-#if HAS_INDX()
     FrameDefinition<PhaseToolOffsetsCalibration::pickup_failed, FrameQRPrompt, PhaseToolOffsetsCalibration::pickup_failed, tool_offsets_calibration_phase_error_code_mapper>,
-#endif
     FrameDefinition<PhaseToolOffsetsCalibration::calibrating, FrameCalibratingProgress, PhaseToolOffsetsCalibration::calibrating, txt_title, txt_calibrating_progress>,
     FrameDefinition<PhaseToolOffsetsCalibration::tool_failed, FrameToolFailure, PhaseToolOffsetsCalibration::tool_failed>,
+    FrameDefinition<PhaseToolOffsetsCalibration::sensor_not_found, FrameQRPrompt, PhaseToolOffsetsCalibration::sensor_not_found, tool_offsets_calibration_phase_error_code_mapper>,
+    FrameDefinition<PhaseToolOffsetsCalibration::sensor_failure, FrameQRPrompt, PhaseToolOffsetsCalibration::sensor_failure, tool_offsets_calibration_phase_error_code_mapper>,
     FrameDefinition<PhaseToolOffsetsCalibration::unsafe_xy_offset, FrameToolFailure, PhaseToolOffsetsCalibration::unsafe_xy_offset>,
     FrameDefinition<PhaseToolOffsetsCalibration::unsafe_z_offset, FrameToolFailure, PhaseToolOffsetsCalibration::unsafe_z_offset>,
     FrameDefinition<PhaseToolOffsetsCalibration::unsafe_sensor_position, FrameQRPrompt, PhaseToolOffsetsCalibration::unsafe_sensor_position, tool_offsets_calibration_phase_error_code_mapper>,

@@ -2,6 +2,7 @@
 /// @brief Tool offset calibration (Z-offset via probing + XY-offset with tool_offset board)
 #pragma once
 
+#include <expected>
 #include <functional>
 
 #include <feature/contactless_offset/contactless_offset.hpp>
@@ -48,8 +49,7 @@ bool run(uint8_t r_param, uint8_t probe_count, Context context = Context::Print,
 /// Does not prompt the user; on failure the tool's offset is left as it was.
 /// @param tool The tool to calibrate
 /// @param config The probing configuration to use
-/// @return true if calibration was successful
-bool calibrate_xy_offset(PhysicalToolIndex tool, const tool_offset::ProbingConfig &config);
+std::expected<void, tool_offset::FailureReason> calibrate_xy_offset(PhysicalToolIndex tool, const tool_offset::ProbingConfig &config);
 
 #if TOOL_OFFSET_SENSOR_GEOMETRY_IS_SINGLE_COIL()
 /// Overwrite the sensor position in `config` with the calibrated value from the
