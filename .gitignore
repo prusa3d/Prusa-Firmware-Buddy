@@ -2,7 +2,7 @@
 *.egg-info/
 .DS_Store
 .benchmarks
-.cache/clangd
+.cache
 .ccls-cache
 .cproject
 .dependencies
