@@ -132,7 +132,11 @@ private:
     static void cannot_track_finish_cb(const AsyncJobFinishCallbackArgs &args);
 
     /// Finish callback when something failed, but retrying might help
-    static void retry_finish_cb(const AsyncJobFinishCallbackArgs &args);
+    static void retry_finish_cb_impl(ToolData &tool_data);
+
+    static void retry_finish_cb(const AsyncJobFinishCallbackArgs &args) {
+        retry_finish_cb_impl(args.tool_data);
+    }
 
     static AsyncJobFinishCallback tool_init_async(AsyncJobExecutionControl &ctrl, ToolTag tag);
 

@@ -136,7 +136,7 @@ void FilamentUsageTracker::step() {
 
     if (ToolTag::for_tool_ephemeral(current_tool_) != tool_tag) {
         // Tag is not present, no point in trying to read/write anything
-        return;
+        return retry_finish_cb_impl(tool_data);
     }
 
     if (tool_data.init_pending) {
@@ -171,9 +171,7 @@ void FilamentUsageTracker::cannot_track_finish_cb(const AsyncJobFinishCallbackAr
     marlin_server::set_warning(WarningType::OpenPrintTagCannotTrack);
 }
 
-void FilamentUsageTracker::retry_finish_cb(const AsyncJobFinishCallbackArgs &args) {
-    auto &tool_data = args.tool_data;
-
+void FilamentUsageTracker::retry_finish_cb_impl(ToolData &tool_data) {
     // Show the warning even if this is not a write. If we fail init before write, it's also not good.
     if (tool_data.warn_if_next_write_fails) {
         marlin_server::set_warning(WarningType::OpenPrintTagUsageWriteFailed);
