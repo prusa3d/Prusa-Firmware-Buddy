@@ -267,6 +267,36 @@ class SensitivityCalibration {
         return false;
     }
 
+    /// Picks the middle of the range of levels accepted by \p accept that
+    /// share the smallest average probe offset.
+    auto select_sensitivity(bool (*accept)(const AvgData &)) {
+        auto it_last = std::ranges::find_if(avgs, accept);
+
+        // make it_last point to the last smallest average in the array
+        for (auto it = avgs.begin(); it < avgs.end(); ++it) {
+            if (accept(*it) && it->probe_offset_avg <= it_last->probe_offset_avg) {
+                it_last = it;
+            }
+        }
+
+        // make it_first point to the first smallest average in the
+        // array (in a continuous range from it_last)
+        auto it_first = it_last;
+        while (it_first > avgs.begin()) {
+            if (accept(*(it_first - 1)) && (it_first - 1)->probe_offset_avg == it_last->probe_offset_avg) {
+                --it_first;
+            } else {
+                break;
+            }
+        }
+
+        // move it_last forward so that it points behind the last smallest average
+        ++it_last;
+
+        // select the sensitivity in the middle of the range, rounding up
+        return it_first + (it_last - it_first) / 2;
+    }
+
 public:
     SensitivityCalibration(AxisEnum axis, bool force_recalibration = false)
         : axis(axis) {
@@ -299,31 +329,7 @@ public:
                 SERIAL_ECHO_START();
                 SERIAL_ECHOLNPAIR("Homing sensitivity: calibrating at sensitivity ", current_sensitivity);
             } else {
-                auto it_last = std::ranges::find_if(avgs, [](const AvgData &d) { return d.is_valid(); });
-
-                // make it_last point to the last smallest average in the array
-                for (auto it = avgs.begin(); it < avgs.end(); ++it) {
-                    if (it->is_valid() && it->probe_offset_avg <= it_last->probe_offset_avg) {
-                        it_last = it;
-                    }
-                }
-
-                // make it_first point to the first smallest average in the
-                // array (in a continuous range from it_last)
-                auto it_first = it_last;
-                while (it_first > avgs.begin()) {
-                    if ((it_first - 1)->is_valid() && (it_first - 1)->probe_offset_avg == it_last->probe_offset_avg) {
-                        --it_first;
-                    } else {
-                        break;
-                    }
-                }
-
-                // move it_last forward so that it points behind the last smallest average
-                ++it_last;
-
-                // select the sensitivity in the middle of the range, rounding up
-                auto it_selected = it_first + (it_last - it_first) / 2;
+                auto it_selected = select_sensitivity([](const AvgData &d) { return d.is_valid(); });
 
                 current_sensitivity = i2s(it_selected - avgs.begin());
                 crash_s.home_sensitivity[axis] = current_sensitivity;
