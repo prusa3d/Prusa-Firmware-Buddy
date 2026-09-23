@@ -13,7 +13,7 @@
 #include <option/has_ht_hotend.h>
 #include <option/has_human_interactions.h>
 #include <option/has_precise_homing_corexy.h>
-#include <option/has_uneven_bed_prompt.h>
+#include <option/has_uneven_bed_detection.h>
 #include <option/xl_enclosure_support.h>
 
 constexpr PhasesWarning warning_type_phase_constexpr(WarningType warning) {
@@ -37,7 +37,7 @@ constexpr PhasesWarning warning_type_phase_constexpr(WarningType warning) {
         return PhasesWarning::FilamentSensorStuckHelpMMU;
 #endif
 
-#if HAS_UNEVEN_BED_PROMPT()
+#if HAS_UNEVEN_BED_DETECTION()
     case WarningType::BedUnevenAlignmentPrompt:
         return PhasesWarning::BedUnevenAlignmentPrompt;
 #endif

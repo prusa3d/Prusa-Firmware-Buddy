@@ -24,7 +24,7 @@
 #include <option/has_ceiling_clearance.h>
 #include <option/has_chamber_api.h>
 #include <option/has_emergency_stop.h>
-#include <option/has_uneven_bed_prompt.h>
+#include <option/has_uneven_bed_detection.h>
 #include <option/xl_enclosure_support.h>
 
 enum class WarningType : uint32_t {
@@ -98,7 +98,7 @@ enum class WarningType : uint32_t {
     OpenChamberVents,
     CloseChamberVents,
 #endif
-#if HAS_UNEVEN_BED_PROMPT()
+#if HAS_UNEVEN_BED_DETECTION()
     BedUnevenAlignmentPrompt,
 #endif
 #if HAS_CHAMBER_API()

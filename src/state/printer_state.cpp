@@ -24,7 +24,7 @@
 #include <option/has_input_shaper_calibration.h>
 #include <option/has_phase_stepping_calibration.h>
 #include <option/xl_enclosure_support.h>
-#include <option/has_uneven_bed_prompt.h>
+#include <option/has_uneven_bed_detection.h>
 #include <config_store/store_instance.hpp>
 #include <option/has_remote_bed.h>
 #include <option/has_chamber_filtration_api.h>
@@ -754,7 +754,7 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
         return ErrCode::ERR_TEMPERATURE_CHAMBER_FAILED_TO_REACH_TEMP;
 #endif
 
-#if HAS_UNEVEN_BED_PROMPT()
+#if HAS_UNEVEN_BED_DETECTION()
     case WarningType::BedUnevenAlignmentPrompt:
         return ErrCode::ERR_MECHANICAL_UNEVEN_BED_ALIGN_PROMPT;
 #endif

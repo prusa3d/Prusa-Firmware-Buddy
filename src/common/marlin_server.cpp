@@ -120,7 +120,7 @@
 #include <option/xbuddy_extension_variant.h>
 #include <option/has_emergency_stop.h>
 #include <option/has_ht_hotend.h>
-#include <option/has_uneven_bed_prompt.h>
+#include <option/has_uneven_bed_detection.h>
 #include <option/has_nextruder.h>
 #include <option/has_human_interactions.h>
 #include <option/has_chamber_vents.h>

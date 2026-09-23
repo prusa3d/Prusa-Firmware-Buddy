@@ -194,7 +194,7 @@ void selftest::calib_Z(bool move_down_after) {
     std::ignore = calib_Z_no_fsm(move_down_after, false);
 }
 
-    #if HAS_UNEVEN_BED_PROMPT()
+    #if HAS_UNEVEN_BED_DETECTION()
 bool selftest::auto_calib_Z(bool move_down_after) {
     // ensure Z axis is homed
 
@@ -204,7 +204,7 @@ bool selftest::auto_calib_Z(bool move_down_after) {
     GcodeSuite::G28_no_parser(false, false, true, { .only_if_needed = true, .precise = false });
     return calib_Z_no_fsm(move_down_after, true);
 }
-    #endif // HAS_UNEVEN_BED_PROMPT()
+    #endif // HAS_UNEVEN_BED_DETECTION()
 
 #endif
 

@@ -35,7 +35,7 @@
 #include <option/has_chamber_api.h>
 #include <option/has_chamber_filtration_api.h>
 #include <option/has_xbuddy_extension.h>
-#include <option/has_uneven_bed_prompt.h>
+#include <option/has_uneven_bed_detection.h>
 #include <option/has_ceiling_clearance.h>
 #include <option/has_door_sensor_calibration.h>
 #include <option/has_auto_retract.h>
@@ -361,7 +361,7 @@ enum class PhasesWarning : PhaseUnderlyingType {
     FailedToReachChamberTemperature,
 #endif
 
-#if HAS_UNEVEN_BED_PROMPT()
+#if HAS_UNEVEN_BED_DETECTION()
     /// A prompt offering Z align calibration when uneven bed is detected
     BedUnevenAlignmentPrompt,
 #endif
@@ -745,7 +745,7 @@ inline constexpr EnumArray<PhasesWarning, PhaseResponses, CountPhases<PhasesWarn
 #if HAS_CHAMBER_API()
         { PhasesWarning::FailedToReachChamberTemperature, { Response::Ok, Response::Skip } },
 #endif
-#if HAS_UNEVEN_BED_PROMPT()
+#if HAS_UNEVEN_BED_DETECTION()
         { PhasesWarning::BedUnevenAlignmentPrompt, { Response::Yes, Response::No } },
 #endif
 #if HAS_CEILING_CLEARANCE()
