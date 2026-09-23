@@ -161,6 +161,7 @@ void iwdg_warning_cb(void);
 /// Keep task control blocks together and away from stacks.
 struct TaskControlBlock {
     StaticTask_t marlin;
+    StaticTask_t usb_device;
 #if HAS_POWER_PANIC()
     StaticTask_t acfault;
 #endif
@@ -185,6 +186,7 @@ static TaskControlBlock task_control_block;
 /// Keep task stacks together and in the CCMRAM.
 struct TaskStack {
     uint32_t marlin[1360];
+    uint32_t usb_device[640];
 #if HAS_POWER_PANIC()
     uint32_t acfault[80];
 #endif
@@ -559,7 +561,7 @@ extern "C" void main_cpp(void) {
     }
 #endif
 
-    usb_device_init();
+    create_task("usb_device", usb_device_task_run, TASK_PRIORITY_USB_DEVICE, task_stack.usb_device, task_control_block.usb_device);
 
 #if ENABLED(RESOURCES())
     resources_update();

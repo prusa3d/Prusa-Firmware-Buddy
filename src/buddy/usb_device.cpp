@@ -1,13 +1,12 @@
-#include "cmsis_os.h"
+/// @file
+#include <buddy/usb_device.hpp>
+
 #include "stm32f4xx_hal.h"
 #include "tusb.h"
 #include <device/peripherals.hpp>
-#include <buddy/usb_device.hpp>
 #include <logging/log.hpp>
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
-#include <buddy/ccm_thread.hpp>
-#include <config_store/store_instance.hpp>
 #include <tasks.hpp>
 #include <timing.h>
 #include <atomic>
@@ -26,10 +25,6 @@ LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 #define USBD_VBUS_CHECK_INTERVAL_MS 1000
 
 #define USB_SIZ_BOS_DESC 0x0C
-
-#define USBD_STACK_SIZE (128 * 5)
-
-static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
 
@@ -98,13 +93,6 @@ static void check_usb_connection() {
 #endif
 }
 
-osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
-static osThreadId usb_device_task;
-
-void usb_device_init() {
-    usb_device_task = osThreadCreate(osThread(usb_device_task), NULL);
-}
-
 // The descriptor of this USB device
 static tusb_desc_device_t desc_device = {
     .bLength = sizeof(tusb_desc_device_t),
@@ -130,7 +118,7 @@ static tusb_desc_device_t desc_device = {
     .bNumConfigurations = 0x01
 };
 
-static void usb_device_task_run(const void *) {
+void usb_device_task_run() {
 #ifdef FUSB302B_INTERPOSER
     buddy::hw::FUSB302B::InitChip();
 #endif
