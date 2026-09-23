@@ -32,7 +32,6 @@ public:
     void SetRetractLength(const std::optional<float> &len);
     void SetParkPoint(const mapi::ParkingPosition &park_point);
     void SetResumePoint(const xyze_pos_t &resume_point);
-    void SetMmuFilamentToLoad(uint8_t index);
     void SetResumeNozzleTemperature(int16_t temperature);
     inline void SetExtruder(VirtualToolIndex target) { virtual_tool_ = target; }
 
@@ -59,7 +58,6 @@ private:
     mapi::ParkingPosition park_point; // requested parking position, resolved against the live position at park time
     xyze_pos_t resume_pos;
 
-    uint8_t mmu_filament_to_load = 0;
     VirtualToolIndex virtual_tool_ = VirtualToolIndex::from_raw(0);
 
     // Target to restore after loading drops it to the new filament's default; empty = leave as-is.

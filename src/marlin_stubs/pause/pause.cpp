@@ -908,22 +908,17 @@ void Pause::color_correct_ask_process(Response response) {
 
 void Pause::mmu_load_start_process([[maybe_unused]] Response response) {
     if (load_type == LoadType::load) {
-        if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
+        if (!MMU2::mmu2.load_filament_to_nozzle(settings.virtual_tool().to_raw())) {
             // TODO tell user that he has already loaded filament if he really wants to continue
             // TODO check fsensor .. how should I behave if filament is not detected ???
             // some error?
             set(LoadState::load_finalize);
             return;
         }
-        config_store().set_filament_type(VirtualToolIndex::from_raw(settings.mmu_filament_to_load), filament::get_type_to_load());
+        config_store().set_filament_type(settings.virtual_tool(), filament::get_type_to_load());
 
         set(LoadState::color_correct_ask);
     } else if (load_type == LoadType::filament_change) {
-        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-            set(LoadState::load_finalize);
-            return;
-        }
-
         setPhase(PhasesLoadUnload::LoadFilamentIntoMMU);
         set(LoadState::mmu_load_ask);
     }
@@ -938,13 +933,8 @@ void Pause::mmu_load_ask_process(Response response) {
 }
 
 void Pause::mmu_load_process([[maybe_unused]] Response response) {
-    if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
-        set(LoadState::load_finalize);
-        return;
-    }
-
-    MMU2::mmu2.load_filament(settings.mmu_filament_to_load);
-    MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load);
+    MMU2::mmu2.load_filament(settings.virtual_tool().to_raw());
+    MMU2::mmu2.load_filament_to_nozzle(settings.virtual_tool().to_raw());
 
     set(LoadState::color_correct_ask);
 }
@@ -953,17 +943,20 @@ void Pause::mmu_unload_start_process([[maybe_unused]] Response response) {
     if (load_type == LoadType::unload) {
         MMU2::mmu2.unload();
         set(LoadState::_finished);
+
     } else if (load_type == LoadType::filament_change) {
-        settings.mmu_filament_to_load = MMU2::mmu2.get_current_tool();
+        const auto virtual_tool = VirtualToolIndex::currently_selected_opt();
 
         // No filament loaded in MMU, we can't continue, as we don't know what slot to load
-        if (settings.mmu_filament_to_load == MMU2::FILAMENT_UNKNOWN) {
+        if (!virtual_tool.has_value()) {
             set(LoadState::unload_finish_or_change);
             return;
         }
 
+        settings.virtual_tool_ = *virtual_tool;
+
         MMU2::mmu2.unload();
-        MMU2::mmu2.eject_filament(settings.mmu_filament_to_load);
+        MMU2::mmu2.eject_filament(virtual_tool->to_raw());
         set(LoadState::unload_finish_or_change);
     }
 

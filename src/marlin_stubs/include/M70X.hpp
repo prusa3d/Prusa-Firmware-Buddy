@@ -68,9 +68,6 @@ struct M701LoadArgs {
     /// tool to load into
     VirtualToolIndex virtual_tool;
 
-    /// MMU slot to load; -1 if not applicable
-    CompactOptional<int8_t, -1> mmu_slot = std::nullopt;
-
     /// color to load; nullopt if unknown
     CompactOptional<Color, COLOR_NONE> color_to_be_loaded = std::nullopt;
 

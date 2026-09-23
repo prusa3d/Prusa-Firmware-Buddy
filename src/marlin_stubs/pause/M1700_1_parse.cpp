@@ -140,7 +140,6 @@ void PrusaGcodeSuite::M1701() {
             .z_min_pos = z_min_pos,
             .op_preheat = RetAndCool_t::Return,
             .virtual_tool = *virtual_tool,
-            .mmu_slot = 0,
 #if HAS_ANFC()
             .openprinttag_uid_hash = tool_tag_hash,
 #endif

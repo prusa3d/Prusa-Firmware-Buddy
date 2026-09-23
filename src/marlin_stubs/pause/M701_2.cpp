@@ -100,7 +100,6 @@ void filament_gcodes::M701_load(const M701LoadArgs &args) {
     settings.SetExtruder(virtual_tool);
     settings.SetFastLoadLength(args.fast_load_length);
     settings.SetRetractLength(0.f);
-    settings.SetMmuFilamentToLoad(args.mmu_slot.value_or(-1));
 
     mapi::ParkingPosition park_position = mapi::get_parking_position(do_purge_only ? mapi::ParkPosition::purge : mapi::ParkPosition::load);
     park_position.z = mapi::ParkingPosition::AtLeast { .above_print = Z_NOZZLE_PARK_RISE, .absolute = args.z_min_pos };

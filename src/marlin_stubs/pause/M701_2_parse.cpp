@@ -92,7 +92,6 @@ void GcodeSuite::M701() {
         .z_min_pos = p.option<float>('Z').value_or(Z_AXIS_LOAD_POS),
         .op_preheat = p.option<RetAndCool_t>('W', std::to_underlying(RetAndCool_t::last_) + 1),
         .virtual_tool = *virtual_tool,
-        .mmu_slot = mmu_slot,
         .color_to_be_loaded = p.option<Color>('O'),
         .resume_print_request = p.option<bool>('R').value_or(false),
 #if HAS_ANFC()

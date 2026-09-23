@@ -71,10 +71,6 @@ void Settings::SetResumePoint(const xyze_pos_t &resume_point) {
     resume_pos = resume_point; // TODO check limits
 }
 
-void Settings::SetMmuFilamentToLoad(uint8_t index) {
-    mmu_filament_to_load = index;
-}
-
 void Settings::SetResumeNozzleTemperature(int16_t temperature) {
     resume_nozzle_temperature = temperature;
 }
