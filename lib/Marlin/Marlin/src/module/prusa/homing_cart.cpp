@@ -269,8 +269,12 @@ class SensitivityCalibration {
 
     /// Picks the middle of the range of levels accepted by \p accept that
     /// share the smallest average probe offset.
+    /// \returns avgs.end() when no level is accepted
     auto select_sensitivity(bool (*accept)(const AvgData &)) {
         auto it_last = std::ranges::find_if(avgs, accept);
+        if (it_last == avgs.end()) {
+            return it_last;
+        }
 
         // make it_last point to the last smallest average in the array
         for (auto it = avgs.begin(); it < avgs.end(); ++it) {
@@ -330,13 +334,19 @@ public:
                 SERIAL_ECHOLNPAIR("Homing sensitivity: calibrating at sensitivity ", current_sensitivity);
             } else {
                 auto it_selected = select_sensitivity([](const AvgData &d) { return d.is_valid(); });
+                if (it_selected == avgs.end()) {
+                    // nothing probed well, settle for the least bad level that homed
+                    it_selected = select_sensitivity([](const AvgData &d) { return d.n > 0 && !isnan(d.probe_offset_avg); });
+                }
 
-                current_sensitivity = i2s(it_selected - avgs.begin());
+                const bool have_usable_level = it_selected != avgs.end();
+                current_sensitivity = have_usable_level ? i2s(it_selected - avgs.begin()) : MIDDLE_SENSITIVITY;
+                const float selected_avg = have_usable_level ? it_selected->probe_offset_avg : NAN;
                 crash_s.home_sensitivity[axis] = current_sensitivity;
 
                 SERIAL_ECHO_START();
                 SERIAL_ECHOPAIR("Homing sensitivity: calibrated to ", current_sensitivity);
-                SERIAL_ECHOLNPAIR(" of probe offset avg: ", it_selected->probe_offset_avg);
+                SERIAL_ECHOLNPAIR(" of probe offset avg: ", selected_avg);
                 store_homing_sensitivity(axis, current_sensitivity);
                 calibrated = true;
             }
