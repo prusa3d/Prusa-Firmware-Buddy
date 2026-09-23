@@ -235,7 +235,7 @@ FilamentType CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
     return loaded_filament_type.get(index);
 }
 
-void CurrentStore::set_filament_type(VirtualToolIndex virtual_tool, FilamentType value) {
+FilamentType CurrentStore::set_filament_type(VirtualToolIndex virtual_tool, FilamentType value) {
     if (value == PendingAdHocFilamentType {}) {
         const FilamentType new_value = AdHocFilamentType { virtual_tool };
         new_value.set_parameters(value.parameters());
@@ -265,6 +265,8 @@ void CurrentStore::set_filament_type(VirtualToolIndex virtual_tool, FilamentType
             item.set(virtual_tool.to_raw(), false);
         });
     }
+
+    return value;
 }
 
 FilamentType CurrentStore::get_previous_filament_type(VirtualToolIndex tool) {

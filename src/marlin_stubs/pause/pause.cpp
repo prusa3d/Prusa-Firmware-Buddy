@@ -418,6 +418,16 @@ void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
     }
 }
 
+void Pause::mark_filament_as_loaded() {
+    // set_filament_type possibly modifies the filament type from PendingAdHoc to AdHoc
+    // and invalidates the PendingAdHoc data.
+    //
+    // Propagate the new filament back to type_to_load so that this function is idempotent
+    // PD-9393
+    const auto filament = config_store().set_filament_type(settings.virtual_tool(), filament::get_type_to_load());
+    filament::set_type_to_load(filament);
+}
+
 void Pause::start_process([[maybe_unused]] Response response) {
     setup_progress_mapper();
 
@@ -767,7 +777,9 @@ void Pause::purge_process([[maybe_unused]] Response response) {
 
     planner.synchronize(); // Finish any pending moves before starting the purge
 
-    config_store().set_filament_type(settings.virtual_tool(), filament::get_type_to_load());
+    // Warning: purge_process can get called multiple times during a load thanks to PURGE MORE
+    // mark_filament_as_loaded must be idempotent
+    mark_filament_as_loaded();
 
 #if HAS_NOZZLE_CLEANER()
     const bool purge_ok = nozzle_cleaner_purge_sequence();
@@ -915,7 +927,7 @@ void Pause::mmu_load_start_process([[maybe_unused]] Response response) {
             set(LoadState::load_finalize);
             return;
         }
-        config_store().set_filament_type(settings.virtual_tool(), filament::get_type_to_load());
+        mark_filament_as_loaded();
 
         set(LoadState::color_correct_ask);
     } else if (load_type == LoadType::filament_change) {

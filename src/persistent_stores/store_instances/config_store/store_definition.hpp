@@ -554,7 +554,8 @@ struct CurrentStore
         return get_filament_type(tool.to_raw());
     }
 
-    void set_filament_type(VirtualToolIndex tool, FilamentType value);
+    /// @returns FilamentType that was actually set. PendingAdHocFilamentType gets changed to AdHocFilamentType
+    FilamentType set_filament_type(VirtualToolIndex tool, FilamentType value);
 
     FilamentType get_previous_filament_type(VirtualToolIndex tool);
 

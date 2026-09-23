@@ -329,6 +329,9 @@ private:
     /// Extrudes \p length .
     void plan_e_move(const float &length, const feedRate_t &fr_mm_s);
 
+    /// Applies filament_to_load to the config store
+    void mark_filament_as_loaded();
+
     bool ensureSafeTemperatureNotifyProgress();
 
     /// Generally a bit mask of conditions which are checked in wait_for_motion_finish_stoppable.
