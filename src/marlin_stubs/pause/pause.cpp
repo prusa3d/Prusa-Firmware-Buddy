@@ -767,7 +767,6 @@ void Pause::purge_process([[maybe_unused]] Response response) {
 
     planner.synchronize(); // Finish any pending moves before starting the purge
 
-    const auto old_filament = config_store().get_filament_type(settings.virtual_tool());
     config_store().set_filament_type(settings.virtual_tool(), filament::get_type_to_load());
 
 #if HAS_NOZZLE_CLEANER()
@@ -776,7 +775,6 @@ void Pause::purge_process([[maybe_unused]] Response response) {
     const bool purge_ok = standard_purge_sequence();
 #endif
     if (!purge_ok) {
-        config_store().set_filament_type(settings.virtual_tool(), old_filament);
         return;
     }
 
