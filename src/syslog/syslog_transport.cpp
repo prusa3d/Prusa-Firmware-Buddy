@@ -74,7 +74,7 @@ void SyslogTransport::reopen(const char *host, uint16_t port) {
     tcpip_callback_nofail([](void *arg) {
         Msg *msg = static_cast<Msg *>(arg);
 
-        strlcpy(msg->me->remote_host, msg->host, sizeof(msg->me->remote_host));
+        strlcpy(msg->me->remote_host, msg->host ? msg->host : "", sizeof(msg->me->remote_host));
         msg->me->remote_port = msg->port;
 
         msg->me->close();
@@ -129,7 +129,7 @@ void SyslogTransport::send(const char *message, int message_len) {
 }
 
 void SyslogTransport::do_send(pbuf *message) {
-    if (remote_port == 0) {
+    if (remote_port == 0 || remote_host[0] == '\0') {
         // Transport disabled
         return;
     }

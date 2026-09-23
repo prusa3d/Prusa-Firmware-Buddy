@@ -38,6 +38,9 @@ public:
     /**
      * Reconfigure the instance and reopen connection.
      *
+     * Passing @p port of 0 or empty or null @p host disables the transport
+     * - messages are then dropped in send() and no host lookup is attempted.
+     *
      * May block and may fail to reopen connection.
      */
     void reopen(const char *host, uint16_t port);
