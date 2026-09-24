@@ -180,19 +180,9 @@ int __attribute__((format(__printf__, 1, 2)))
 usb_device_log(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    static char buffer[128];
-    int length = vsnprintf(buffer, sizeof(buffer), fmt, args);
+    logging::_log_event_valist(logging::Severity::info, &LOG_COMPONENT(USBDevice), fmt, &args);
     va_end(args);
-
-    length = std::min<int>(length, sizeof(buffer) - 1);
-    if (length < 0) {
-        log_error(USBDevice, "log encoding issue");
-    } else if (length >= 1) {
-        buffer[length - 1] = 0; // remove newline (or last character if the print was clipped, but that's acceptable)
-        log_info(USBDevice, "%s", buffer);
-    }
-
-    return length;
+    return 0; // tinyusb ignores the result
 }
 
 // Invoked when received GET DEVICE DESCRIPTOR
