@@ -11,6 +11,7 @@
 #include <metric.h>
 #include <module/motion.h>
 #include <module/planner.h>
+#include <module/stepper/indirection.h>
 #include <module/prusa/toolchanger.h>
 #include <raii/scope_guard.hpp>
 #include <selftest/selftest_invocation.hpp>
@@ -36,6 +37,16 @@ namespace {
 
     /// Extra travel past the nominal dock depth so the homing move surely stalls [mm]
     constexpr float PROBE_OVERTRAVEL_MM = 6.0f;
+
+    /// How far to back away from the docks, so the user has room to handle the nozzles [mm]
+    constexpr float DOCK_CLEARANCE_Y_MM = 50.0f;
+
+    /// Back away from the docks so the user can reach the nozzles
+    void back_away_from_docks() {
+        const MachinePosXYZE pos = current_machine_position();
+        line_to_machine_pos(pos.with_y(pos.y + DOCK_CLEARANCE_Y_MM), PrusaToolChanger::SLOW_MOVE_MM_S);
+        planner.synchronize();
+    }
 
     struct Measurement {
         bool hit;
@@ -67,6 +78,8 @@ namespace {
 
     /// Park the picked tool - it may belong to a dock the user is about to empty.
     bool prepare() {
+        const bool tool_picked = PhysicalToolIndex::currently_selected_opt().has_value();
+
         const mapi::CalibrationPreamble preamble {
             .tool_policy = mapi::CalibrationPreamble::ToolPolicy::ensure_parked,
             .on_step = [](mapi::CalibrationPreamble::Step) {},
@@ -74,6 +87,11 @@ namespace {
         if (!preamble.run()) {
             log_error(GantrySquareness, "Parking failed");
             return false;
+        }
+
+        // Parking leaves the head right in front of the dock
+        if (tool_picked) {
+            back_away_from_docks();
         }
         return true;
     }
@@ -91,6 +109,11 @@ namespace {
 
         const Measurement left = measure_dock(left_dock);
         const Measurement right = measure_dock(right_dock);
+
+        // Back away and release the motors, so the user can move the gantry
+        // by hand while reinserting the nozzles
+        back_away_from_docks();
+        disable_XY();
 
         if (!left.hit || !right.hit) {
             log_error(GantrySquareness, "Dock %u did not stall", (left.hit ? right_dock : left_dock).display_index());
