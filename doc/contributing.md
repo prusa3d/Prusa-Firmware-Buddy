@@ -15,7 +15,7 @@ Every commit should be buildable and follow the rules in this document.
 
 ### Commit: Message
 
-- Commit message comprises a subject and a body (separated by an empty line).
+- Commit message comprises a subject and an optional body (separated by an empty line).
 - Commit message is written in English.
 - Subject uses the imperative mood.
 - Subject starts with a capital letter and does not end with a period.
