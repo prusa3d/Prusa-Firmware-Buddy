@@ -14,17 +14,10 @@
 
 LOG_COMPONENT_DEF(USBDevice, logging::Severity::info);
 
-#define stringify(a)  _stringify(a)
-#define _stringify(a) #a
-
 #define USBD_VID 0x2C99 /// Prusa Research Vendor ID
 
-#define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
-#define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 #define USBD_VBUS_CHECK_INTERVAL_MS 1000
-
-#define USB_SIZ_BOS_DESC 0x0C
 
 static serial_nr_t serial_nr;
 
