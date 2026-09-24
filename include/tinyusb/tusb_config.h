@@ -67,8 +67,13 @@ extern "C" {
     #define CFG_TUSB_OS OPT_OS_FREERTOS
 #endif
 
-// CFG_TUSB_DEBUG is defined by compiler in DEBUG build
-#define CFG_TUSB_DEBUG 1
+#ifndef CFG_TUSB_DEBUG
+    #ifdef NDEBUG
+        #define CFG_TUSB_DEBUG 0
+    #else
+        #define CFG_TUSB_DEBUG 1
+    #endif
+#endif
 
 #define CFG_TUSB_DEBUG_PRINTF usb_device_log
 
