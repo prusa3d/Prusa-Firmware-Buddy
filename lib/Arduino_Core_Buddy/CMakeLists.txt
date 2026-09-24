@@ -14,6 +14,7 @@ target_link_libraries(CoreBuddy PUBLIC FreeRTOS::FreeRTOS FreeRTOS::CMSIS BuddyH
 if(${HAS_USB_DEVICE})
   target_sources(CoreBuddy PRIVATE cores/arduino/USBSerial.cpp)
   target_link_libraries(CoreBuddy PUBLIC STM32::USBHost tinyusb::tinyusb)
+  target_link_libraries(CoreBuddy PRIVATE log_interface)
 endif()
 
 add_library(Arduino::CoreBuddy ALIAS CoreBuddy)

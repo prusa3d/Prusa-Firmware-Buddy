@@ -2,6 +2,9 @@
 #include "tusb.h"
 #include <task.h>
 #include <timing.h>
+#include <logging/log.hpp>
+
+LOG_COMPONENT_REF(USBDevice);
 
 void USBSerial::enable() {
     enabled = true;
@@ -14,7 +17,7 @@ void USBSerial::disable() {
 }
 
 void USBSerial::write_timeout(int32_t us) {
-    usb_device_log("CDC write timeout, unlocking after %dms\n", us / 1000);
+    log_info(USBDevice, "CDC write timeout, unlocking after %dms", (int)(us / 1000));
     cdcd_set_tx_ovr(TUD_OPT_RHPORT, true);
 }
 

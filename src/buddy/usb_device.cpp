@@ -73,7 +73,7 @@ static void check_usb_connection() {
 
         bool vbus_status = buddy::hw::FUSB302B::ReadVBUSState();
         usb_vbus_state.store(vbus_status);
-        usb_device_log("FUSB302B VBUS state change: %d\n", (int)vbus_status);
+        log_info(USBDevice, "FUSB302B VBUS state change: %d", (int)vbus_status);
 
         if (!vbus_status) {
             if (dcd_connected(TUD_OPT_RHPORT)) {
