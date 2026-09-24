@@ -18,6 +18,7 @@ target_sources(
           run.cpp
           sleep.cpp
           status.cpp
+          tools.cpp
   )
 
 add_subdirectory(tls)
