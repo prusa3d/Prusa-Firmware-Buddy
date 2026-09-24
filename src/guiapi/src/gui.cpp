@@ -182,6 +182,7 @@ void gui_reset_loop_timer() {
 void gui_bare_loop() {
     ++guiloop_nesting;
 
+    lcd::bare_communication_check();
     gui_handle_jogwheel();
 
     gui_redraw();

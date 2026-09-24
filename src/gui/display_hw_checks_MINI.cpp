@@ -22,7 +22,7 @@ void check_lcd() {
 }
 } // anonymous namespace
 
-void lcd::communication_check() {
+void lcd::bare_communication_check() {
     const uint32_t min_check_period_ms = 2048;
     static uint32_t last_touch_check_ms = ticks_ms();
 
@@ -31,4 +31,8 @@ void lcd::communication_check() {
         last_touch_check_ms = now;
         check_lcd();
     }
+}
+
+void lcd::communication_check() {
+    bare_communication_check();
 }

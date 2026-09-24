@@ -19,10 +19,32 @@ LOG_COMPONENT_REF(GUI);
     #include <utils/timing/combo_counter.hpp>
 #endif
 
-void lcd::communication_check() {
+static bool check_rate_limit(uint32_t now) {
     static RateLimiter<uint32_t> check_limiter { 2048 };
+    return check_limiter.check(now);
+}
+
+static void reinit_lcd_and_redraw() {
+    display::complete_reinit();
+    display::init();
+    if (auto *screen = Screens::Access()->Get()) {
+        screen->Invalidate();
+    }
+}
+
+void lcd::bare_communication_check() {
+    if (!check_rate_limit(ticks_ms())) {
+        return;
+    }
+
+    if (display::is_reset_required()) {
+        reinit_lcd_and_redraw();
+    }
+}
+
+void lcd::communication_check() {
     const auto now = ticks_ms();
-    if (!check_limiter.check(now)) {
+    if (!check_rate_limit(now)) {
         return;
     }
 
@@ -58,9 +80,5 @@ void lcd::communication_check() {
     }
 #endif
 
-    display::complete_reinit();
-    display::init();
-    if (auto *screen = Screens::Access()->Get()) {
-        screen->Invalidate();
-    }
+    reinit_lcd_and_redraw();
 }
