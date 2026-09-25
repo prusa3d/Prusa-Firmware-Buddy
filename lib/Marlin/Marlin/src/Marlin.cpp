@@ -57,6 +57,7 @@
 
 #include "module/probe.h"
 #include "module/temperature.h"
+#include <tool/hotend/hotend.hpp>
 #include "module/configuration_store.h"
 #include "module/printcounter.h"
 
@@ -465,6 +466,11 @@ void setup() {
   #if ENABLED(EXTENSIBLE_UI)
     ui.reset_status();
   #endif
+
+  // Construct the hotend here, before its first consumer (MarlinSettings::reset() in first_load())
+  // and before thermalManager.init() arms the temperature ISR, which must never be what constructs
+  // it (BFW-8126, BFW-8271).
+  Hotend::for_tool(PhysicalToolIndex::from_raw(0));
 
   // Load data from EEPROM if available (or use defaults)
   // This also updates variables in the planner, elsewhere

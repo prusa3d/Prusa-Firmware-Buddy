@@ -67,6 +67,7 @@
 #include <option/has_i2c_expander.h>
 #include <option/has_local_accelerometer.h>
 #include <option/has_cpu_fan.h>
+#include <option/has_ht_hotend.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -268,8 +269,8 @@ static void resources_update() {
 }
 
 // Initializes static variables of singletons which are accessed from ISRs (requires locking a mutex)
-// Note: Hotend/Tool initialization is NOT done here — it is deferred to after ADC init
-// to allow hotend model detection from ADC readings.
+// Note: Hotend/Tool initialization is NOT done here — Marlin setup() does it (HT builds construct
+// it earlier, see main_cpp()).
 static void init_isr_statics() {
     (void)otp_get_bom_id(); // Parses the OTP into a static
     EMotorStallDetector::Instance();
@@ -331,13 +332,11 @@ extern "C" void main_cpp(void) {
     create_task("rtt_metrics", rtt_metrics_task, TASK_PRIORITY_RTT_METRICS_TASK, task_stack.rtt_metrics, task_control_block.rtt_metrics);
 #endif
 
-    // Initialize tool/hotend AFTER the ADC is ready — on HT-capable builds the
-    // LocalHotend ctor reads the ADC to detect the NTC vs PT1000 hotend.
-    // ISR ordering (BFW-8126): Hotend is accessed from the Marlin temperature ISR, so
-    // it must be constructed before that ISR is armed — it is, the temperature timer is
-    // started in Temperature::init() on the marlin task (created below). The ADC IRQ
-    // enabled just above never touches Hotend (it only fills the DMA buffer the ISR reads).
+#if HAS_HT_HOTEND()
+    // Constructing the hotend detects its type from the ADC, and the GUI needs the result before
+    // it builds its screen stack.
     Hotend::for_tool(PhysicalToolIndex::from_raw(0));
+#endif
 
 #if PRINTER_IS_PRUSA_XL()
     // Read Sandwich hw revision
