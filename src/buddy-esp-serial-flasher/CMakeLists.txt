@@ -4,7 +4,6 @@ add_library(
   buddy-esp-serial-flasher OBJECT
   ${ESP_SERIAL_FLASHER_SOURCE_DIR}/src/esp_loader.c
   ${ESP_SERIAL_FLASHER_SOURCE_DIR}/src/esp_targets.c
-  ${ESP_SERIAL_FLASHER_SOURCE_DIR}/src/md5_hash.c
   ${ESP_SERIAL_FLASHER_SOURCE_DIR}/src/protocol_common.c
   ${ESP_SERIAL_FLASHER_SOURCE_DIR}/src/protocol_uart.c
   ${ESP_SERIAL_FLASHER_SOURCE_DIR}/src/slip.c
@@ -27,7 +26,7 @@ target_include_directories(
 
 target_compile_definitions(
   buddy-esp-serial-flasher PRIVATE SERIAL_FLASHER_INTERFACE_UART
-                                   SERIAL_FLASHER_WRITE_BLOCK_RETRIES=3 MD5_ENABLED=1
+                                   SERIAL_FLASHER_WRITE_BLOCK_RETRIES=3 MD5_ENABLED=0
   )
 
 target_include_directories(buddy-esp-serial-flasher PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
