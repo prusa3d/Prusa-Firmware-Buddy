@@ -272,8 +272,8 @@ static void resources_update() {
 }
 
 // Initializes static variables of singletons which are accessed from ISRs (requires locking a mutex)
-// Note: Hotend/Tool initialization is NOT done here — Marlin setup() does it (HT builds construct
-// it earlier, see main_cpp()).
+// Note: Hotend/Tool initialization is NOT done here — Marlin setup() does it, once the hotend
+// type is settled.
 static void init_isr_statics() {
     (void)otp_get_bom_id(); // Parses the OTP into a static
     EMotorStallDetector::Instance();
@@ -336,9 +336,8 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if HAS_HT_HOTEND()
-    // Constructing the hotend detects its type from the ADC, and the GUI needs the result before
-    // it builds its screen stack.
-    Hotend::for_tool(PhysicalToolIndex::from_raw(0));
+    // The type is settled later by hotend_detect::resolve() in Marlin setup.
+    hotend_detect::classify_early();
 #endif
 
 #if PRINTER_IS_PRUSA_XL()
@@ -395,6 +394,9 @@ extern "C" void main_cpp(void) {
         const auto &error = find_error(ErrCode::WARNING_DIFFERENT_FW_REQUIRED);
         crash_dump::force_save_message_without_dump(crash_dump::MsgType::FATAL_WARNING, static_cast<uint16_t>(error.err_code), error.err_text, error.err_title);
         hwio_safe_state();
+    #if HAS_HT_HOTEND()
+        hotend_detect::init_skipped();
+    #endif
         init_error_screen();
         return;
     }
@@ -428,6 +430,9 @@ extern "C" void main_cpp(void) {
      */
     if (want_error_screen) {
         hwio_safe_state();
+#if HAS_HT_HOTEND()
+        hotend_detect::init_skipped();
+#endif
         init_error_screen();
 
 #if BUDDY_ENABLE_WUI() && BUDDY_ENABLE_CONNECT()
@@ -566,10 +571,6 @@ extern "C" void main_cpp(void) {
 #endif
 
     create_task("usb_device", usb_device_task_run, TASK_PRIORITY_USB_DEVICE, task_stack.usb_device, task_control_block.usb_device);
-
-#if HAS_HT_HOTEND()
-    log_hotend_detect_boot_result();
-#endif
 
 #if ENABLED(RESOURCES())
     resources_update();

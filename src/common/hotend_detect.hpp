@@ -19,10 +19,22 @@ inline constexpr int16_t ht_hotend_max_nozzle_temp = 415;
 /// Only used on printers with HT hotend support (COREONE, COREONEL).
 inline std::atomic<bool> hotend_detect_dialog_pending { false };
 
-/// Log the boot-time classification, kept until a log destination can take it.
-void log_hotend_detect_boot_result();
-
 namespace hotend_detect {
+
+/// Classify one nozzle-ADC sample and publish hotend_detect_dialog_pending, without settling
+/// the type. Call before the GUI builds its screen stack.
+void classify_early();
+
+/// Settle the hotend type from the early classification alone, without probing.
+///
+/// For boot paths that stop at an error screen: they never heat, and probing there could turn a
+/// hard fault into a boot loop.
+void init_skipped();
+
+/// Settle the hotend type, probing the nozzle first when the early reading was ambiguous.
+///
+/// Call from Marlin setup before the first Hotend consumer.
+void resolve();
 
 /// 10-bit ADC thresholds derived from the PT1000 temptable.
 /// Outside the [lower, upper] band → the reading is unambiguously NTC.

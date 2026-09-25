@@ -31,6 +31,10 @@
 #include "Marlin.h"
 
 #include <option/has_phase_stepping.h>
+#include <option/has_ht_hotend.h>
+#if HAS_HT_HOTEND()
+  #include <hotend_detect.hpp>
+#endif
 #if HAS_PHASE_STEPPING()
   #include "feature/phase_stepping/phase_stepping.hpp"
 #endif
@@ -465,6 +469,12 @@ void setup() {
 
   #if ENABLED(EXTENSIBLE_UI)
     ui.reset_status();
+  #endif
+
+  #if HAS_HT_HOTEND()
+    // Before settings.first_load(), the first Hotend consumer. As late as that allows, to keep
+    // the stretch from the heat pulse to watchdog_init() short.
+    hotend_detect::resolve();
   #endif
 
   // Construct the hotend here, before its first consumer (MarlinSettings::reset() in first_load())

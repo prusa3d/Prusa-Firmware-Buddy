@@ -7,9 +7,11 @@
 #include <module/thermistor/thermistors.h>
 #include <hw_configuration.hpp>
 #include <hotend_detect.hpp>
+#include <hotend_type.hpp>
 #include <adc.hpp>
 #include <config_store/store_instance.hpp>
 #include <logging/log.hpp>
+#include <bsod/bsod.h>
 
 #if HAS_HT_HOTEND()
     #include <bsod/bsod.h>
@@ -25,8 +27,7 @@ enum class EarlyReading : uint8_t {
     open_or_shorted,
 };
 
-/// The boot-time classification. Kept until it can be logged: USB CDC logging only opens once a
-/// host has attached, which is later than the detection runs.
+/// The early classification, consumed when the type is settled.
 struct EarlyClassification {
     hotend_detect::Outputs result;
     uint16_t adc_10bit;
@@ -34,7 +35,8 @@ struct EarlyClassification {
     bool stored_is_high_temp;
 };
 
-/// Written and read on the startup task.
+/// Written by classify_early() before the marlin task is created, read on that task by resolve()
+/// (task creation orders the two) or on the startup task by init_skipped().
 EarlyClassification early {};
 
 const char *to_string(EarlyReading reading) {
@@ -47,6 +49,15 @@ const char *to_string(EarlyReading reading) {
         return "open/short";
     }
     bsod_unreachable();
+}
+
+void log_early_classification() {
+    log_info(HotendDetect, "early: adc %u %s, stored %s -> %s%s",
+        early.adc_10bit,
+        to_string(early.reading),
+        early.stored_is_high_temp ? "HT" : "std",
+        early.result.is_high_temp ? "HT" : "std",
+        early.result.dialog_pending ? ", ask" : "");
 }
 
 } // namespace
@@ -85,13 +96,52 @@ static EarlyClassification detect_hotend(bool stored_is_high_temp) {
     };
 }
 
-void log_hotend_detect_boot_result() {
-    log_info(HotendDetect, "early: adc %u %s, stored %s -> %s%s",
-        early.adc_10bit,
-        to_string(early.reading),
-        early.stored_is_high_temp ? "HT" : "std",
-        early.result.is_high_temp ? "HT" : "std",
-        early.result.dialog_pending ? ", ask" : "");
+namespace {
+
+/// Lets PhysicalTool::for_index() catch a caller that arrives before the type is settled.
+enum class DetectState : uint8_t {
+    not_initialised,
+    skipped, ///< settled from the early classification alone, without probing
+    resolved, ///< settled by hotend_detect::resolve()
+};
+
+/// Thread sync: written once by settle(), read by PhysicalTool::for_index() (reached from the
+/// temperature ISR). The write precedes every read in program order; atomic for visibility.
+std::atomic<DetectState> detect_state { DetectState::not_initialised };
+std::atomic<HotendType> settled_hotend_type { HotendType::stock };
+
+/// Reconcile a classification with the persisted type and publish the result.
+///
+/// Only a class change touches the store: a merged HotendType cannot recall the sock choice, so
+/// a standard hotend comes back with its (mandatory) sock and HT without one.
+void settle(hotend_detect::Outputs result, DetectState state) {
+    const bool stored_is_ht = (config_store().hotend_type.get(0) == HotendType::high_temp);
+    if (result.is_high_temp != stored_is_ht) {
+        config_store().set_hotend_type_detected(PhysicalToolIndex::from_raw(0),
+            result.is_high_temp ? HotendType::high_temp : HotendType::stock_with_sock);
+    }
+    settled_hotend_type = config_store().hotend_type.get(0);
+    detect_state = state;
+}
+
+} // namespace
+
+void hotend_detect::classify_early() {
+    const bool stored_is_ht = (config_store().hotend_type.get(0) == HotendType::high_temp);
+    early = detect_hotend(stored_is_ht);
+
+    hotend_detect_dialog_pending = early.result.dialog_pending;
+}
+
+void hotend_detect::init_skipped() {
+    settle(early.result, DetectState::skipped);
+}
+
+void hotend_detect::resolve() {
+    // Logged here, not at the early reading: USB CDC logging only opens once a host has attached.
+    log_early_classification();
+
+    settle(early.result, DetectState::resolved);
 }
 #endif
 
@@ -107,28 +157,11 @@ static MarlinTempTable heatbreak_temptable() {
 
 PhysicalTool &PhysicalTool::for_index(PhysicalToolIndex) {
 #if HAS_HT_HOTEND()
-    // Detect the sensor once and reconcile it with the persisted HotendType. See
-    // hotend_detect.hpp for the classification; the force-on-transition policy lives here.
-    static const HotendType hotend_type = [] {
-        const auto tool = PhysicalToolIndex::from_raw(0);
-        const bool stored_is_ht = (config_store().hotend_type.get(0) == HotendType::high_temp);
-
-        early = detect_hotend(stored_is_ht);
-        const auto result = early.result;
-
-        // ScreenSplash reads this on the GUI task after the scheduler starts.
-        hotend_detect_dialog_pending = result.dialog_pending;
-
-        // Force the sock only on a class change (NTC <-> PT1000): a merged HotendType can't recall
-        // the prior sock choice, so switching to HT clears it and switching back to a standard
-        // hotend forces it on (a CoreONE needs one). No class change -> keep the stored choice.
-        if (result.is_high_temp != stored_is_ht) {
-            config_store().set_hotend_type_detected(tool,
-                result.is_high_temp ? HotendType::high_temp : HotendType::stock_with_sock);
-        }
-
-        return config_store().hotend_type.get(0);
-    }();
+    // The type is baked into the Hotend config here, so it must already be settled.
+    if (detect_state == DetectState::not_initialised) {
+        bsod_unreachable();
+    }
+    const HotendType hotend_type = settled_hotend_type;
 
     // Standard hotend config (NTC thermistor) — same limits as the non-HT xbuddy build.
     static const LocalHotend::Config ntc_config {
