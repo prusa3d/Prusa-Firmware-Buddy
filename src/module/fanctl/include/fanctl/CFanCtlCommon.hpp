@@ -33,7 +33,8 @@ public:
     // Accepts uint16_t only because Puppies use (uint16_t)-1 as an "auto-fan" signal. PWM is still 0-255.
     virtual bool set_pwm(uint16_t pwm) = 0;
 
-    inline bool is_selftest() { return selftest_mode; }
+    inline bool is_selftest() const { return selftest_mode; }
+    inline bool is_autocontrol_enabled() const { return autocontrol_enabled; }
     constexpr void disable_autocontrol() { autocontrol_enabled = false; }
     constexpr void enable_autocontrol() { autocontrol_enabled = true; }
     virtual void enter_selftest_mode() = 0;

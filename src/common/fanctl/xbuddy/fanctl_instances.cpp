@@ -108,11 +108,13 @@ void Fans::tick() {
     CFanCtl3Wire &heatbreak_fan = static_cast<CFanCtl3Wire &>(Fans::heat_break(PhysicalToolIndex::from_raw(0)));
     CFanCtl3Wire &print_fan = static_cast<CFanCtl3Wire &>(Fans::print(PhysicalToolIndex::from_raw(0)));
 
-    if (heatbreak_fan.getSkipTacho() != skip_tacho_t::yes && heatbreak_fan.get_rpm_measured()) {
+    // heatbreak_fan and print_fan share the same pin for measuring rpm.
+    // if we are done measuring / we are skipping measuring given fan, switch to the other one
+    if (heatbreak_fan.getSkipTacho() != skip_tacho_t::yes && (heatbreak_fan.get_rpm_measured() || !heatbreak_fan.is_autocontrol_enabled())) {
         buddy::hw::tachoSelectPrintFan.write(buddy::hw::Pin::State::high);
         print_fan.setSkipTacho(skip_tacho_t::no);
         heatbreak_fan.setSkipTacho(skip_tacho_t::yes);
-    } else if (print_fan.getSkipTacho() != skip_tacho_t::yes && print_fan.get_rpm_measured()) {
+    } else if (print_fan.getSkipTacho() != skip_tacho_t::yes && (print_fan.get_rpm_measured() || !print_fan.is_autocontrol_enabled())) {
         buddy::hw::tachoSelectPrintFan.write(buddy::hw::Pin::State::low);
         heatbreak_fan.setSkipTacho(skip_tacho_t::no);
         print_fan.setSkipTacho(skip_tacho_t::yes);
