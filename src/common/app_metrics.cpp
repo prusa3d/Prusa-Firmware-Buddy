@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include "app_metrics.h"
 #include "metric.h"
+#include <bsod/bsod.h>
 #include <logging/log.hpp>
 #include <common/sensor_data.hpp>
 #include <version/version.hpp>
@@ -82,21 +83,18 @@ void RecordRuntimeStats() {
         static TaskStatus_t task_statuses[17] = {};
 
         int count = uxTaskGetSystemState(task_statuses, std::size(task_statuses), NULL);
-        if (count == 0) {
-            log_error(Metrics, "Failed to record stack metrics. The task_statuses array might be too small.");
-        } else {
-            for (int idx = 0; idx < count; idx++) {
-                const char *task_name = task_statuses[idx].pcTaskName;
+        release_assert(count); // increase task_statuses size if this fails
+        for (int idx = 0; idx < count; idx++) {
+            const char *task_name = task_statuses[idx].pcTaskName;
 
-                // Report stack usage
-                const char *stack_base = (char *)task_statuses[idx].pxStackBase;
-                size_t s = 0;
-                /* We can only report free stack space for heap-allocated stack frames. */
-                if (mem_is_heap_allocated(stack_base)) {
-                    s = malloc_usable_size((void *)stack_base);
-                }
-                metric_record_custom(&stack, ",n=%.7s t=%i,m=%hu", task_name, s, task_statuses[idx].usStackHighWaterMark);
+            // Report stack usage
+            const char *stack_base = (char *)task_statuses[idx].pxStackBase;
+            size_t s = 0;
+            /* We can only report free stack space for heap-allocated stack frames. */
+            if (mem_is_heap_allocated(stack_base)) {
+                s = malloc_usable_size((void *)stack_base);
             }
+            metric_record_custom(&stack, ",n=%.7s t=%i,m=%hu", task_name, s, task_statuses[idx].usStackHighWaterMark);
         }
     }
 
