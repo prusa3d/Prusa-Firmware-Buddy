@@ -158,7 +158,7 @@ static time_t get_posix_time(DWORD fdate, DWORD ftime) {
     tm.tm_mday = FF_VALUE(fdate, FF_DAY);
     tm.tm_hour = FF_VALUE(ftime, FF_HOUR);
     tm.tm_min = FF_VALUE(ftime, FF_MINUTE);
-    tm.tm_sec = FF_VALUE(ftime, FF_SECOND);
+    tm.tm_sec = FF_VALUE(ftime, FF_SECOND) * 2; // FAT stores seconds in two-second units
 
     return mktime(&tm);
 }
