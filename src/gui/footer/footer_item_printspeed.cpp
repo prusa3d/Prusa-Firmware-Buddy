@@ -5,6 +5,7 @@
 #include "footer_item_printspeed.hpp"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "i18n.h"
 #include <algorithm>
 

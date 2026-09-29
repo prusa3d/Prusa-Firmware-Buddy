@@ -8,6 +8,7 @@
 #include <option/signature_oak.h>
 
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "screen_filebrowser.hpp"
 #include "print_utils.hpp"
 #include "filename_type.hpp"

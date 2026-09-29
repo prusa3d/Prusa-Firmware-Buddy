@@ -7,7 +7,7 @@
 #include <config_store/store_instance.hpp>
 #include <gcode/gcode_info.hpp>
 #include <marlin_server.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <warning_type.hpp>
 #include <client_response.hpp>
 #include <fsm/wastebin_emptying_phases.hpp>

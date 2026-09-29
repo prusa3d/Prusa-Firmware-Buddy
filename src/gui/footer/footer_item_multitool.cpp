@@ -1,6 +1,7 @@
 /// @file
 #include "footer_item_multitool.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "img_resources.hpp"
 #include "i18n.h"
 #include <device/board.h>

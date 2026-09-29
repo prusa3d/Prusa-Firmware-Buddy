@@ -7,6 +7,7 @@
 #include <img_resources.hpp>
 #include <timing.h>
 #include <config_store/store_instance.hpp>
+#include <common/marlin_vars.hpp>
 #include <utils/string_builder.hpp>
 #include <gui/menu_item/menu_item_utils.hpp>
 

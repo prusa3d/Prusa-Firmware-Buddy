@@ -1,4 +1,4 @@
-// marlin_vars.h
+/// @file
 #pragma once
 
 #include "marlin_server_shared.h"

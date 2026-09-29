@@ -39,6 +39,7 @@ static_assert(HAS_PAUSE());
 #include "Marlin/src/module/temperature.h"
 #include "Marlin/src/feature/prusa/e-stall_detector.h"
 #include "marlin_server.hpp"
+#include <common/marlin_vars.hpp>
 #include "pause_stubbed.hpp"
 #include <algorithm>
 #include <cmath>

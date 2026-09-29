@@ -7,6 +7,7 @@
 #include <filament_gui.hpp>
 #include <config_store/store_instance.hpp>
 #include <marlin_client.hpp>
+#include <common/marlin_vars.hpp>
 #include <window_dlg_wait.hpp>
 #include <multi_filament_change.hpp>
 

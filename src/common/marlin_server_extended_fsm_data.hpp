@@ -2,7 +2,7 @@
 
 #include <common/fsm_base_types.hpp>
 #include <logging/log.hpp>
-#include "marlin_vars.hpp"
+#include <common/marlin_vars.hpp>
 #include <common/no_rtti_type_id.hpp>
 #include "marlin_server_extended_fsm_types.hpp"
 #include <bsod/bsod.h>

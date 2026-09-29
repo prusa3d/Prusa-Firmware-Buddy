@@ -14,7 +14,7 @@
 #include <module/temperature/temp_defines.hpp>
 #include <option/has_modular_bed.h>
 #include <sensor_data.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <display.hpp>
 
 #if HAS_MODULAR_BED()

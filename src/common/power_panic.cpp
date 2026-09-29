@@ -74,7 +74,7 @@
 #include <common/sys.hpp>
 #include "timing.h"
 #include "odometer.hpp"
-#include "marlin_vars.hpp"
+#include <common/marlin_vars.hpp>
 #include <mapi/motion.hpp>
 #include <mapi/feedrates/standard_feedrates.hpp>
 

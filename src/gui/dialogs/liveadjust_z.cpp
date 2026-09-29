@@ -7,6 +7,7 @@
 #include <ScreenFactory.hpp>
 #include <guiconfig/GuiDefaults.hpp>
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "display.hpp"
 #include "display_helper.h"
 #include "img_resources.hpp"

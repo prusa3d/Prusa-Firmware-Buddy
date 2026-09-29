@@ -1,6 +1,7 @@
 // screen_printing.cpp
 #include "screen_printing.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include <marlin_stubs/skippable_gcode.hpp>
 #include "print_utils.hpp"
 #include <buddy/ffconf.h>

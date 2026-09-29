@@ -11,7 +11,7 @@
 #include "transfers/monitor.hpp"
 #include <config_store/store_instance.hpp>
 #include <guiconfig/guiconfig.h>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include "timing.h"
 
 #include <option/has_esp.h>

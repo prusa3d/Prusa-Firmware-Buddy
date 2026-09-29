@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <marlin_client.hpp>
+#include <common/marlin_vars.hpp>
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()

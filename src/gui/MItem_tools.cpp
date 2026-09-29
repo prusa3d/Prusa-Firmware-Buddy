@@ -1,6 +1,7 @@
 #include "MItem_tools.hpp"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "marlin_server.hpp"
 #include "gui.hpp"
 #include "time_helper.hpp"

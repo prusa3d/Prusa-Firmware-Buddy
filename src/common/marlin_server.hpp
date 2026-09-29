@@ -3,7 +3,6 @@
 
 #include <optional>
 #include <atomic>
-#include "marlin_vars.hpp"
 
 #include "encoded_fsm_response.hpp"
 #include <warning_type.hpp>

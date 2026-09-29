@@ -6,7 +6,7 @@
 #include "../../lang/string_view_utf8.hpp"
 #include "client_response.hpp"
 #include "img_resources.hpp"
-#include "marlin_vars.hpp"
+#include <common/marlin_vars.hpp>
 #include "marlin_server_shared.h"
 #include <buddy/filename_defs.hpp>
 #include <find_error.hpp>

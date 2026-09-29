@@ -1,6 +1,7 @@
 #include "safety_timer.hpp"
 
 #include <marlin_server.hpp>
+#include <common/marlin_vars.hpp>
 #include <option/has_human_interactions.h>
 #include <raii/auto_restore.hpp>
 #include <bsod/bsod.h>

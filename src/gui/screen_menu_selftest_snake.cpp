@@ -2,6 +2,7 @@
 #include <config_store/store_instance.hpp>
 #include <img_resources.hpp>
 #include <marlin_client.hpp>
+#include <common/marlin_vars.hpp>
 #include <ScreenHandler.hpp>
 #include <selftest_types.hpp>
 #include <option/has_phase_stepping_selftest.h>

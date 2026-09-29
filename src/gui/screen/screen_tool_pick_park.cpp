@@ -4,7 +4,7 @@
 #include <screen_menu.hpp>
 #include <window_menu_virtual.hpp>
 #include <dynamic_index_mapping.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <utils/variant_utils.hpp>
 #include <img_resources.hpp>
 #include <string_builder.hpp>

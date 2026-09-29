@@ -1,7 +1,7 @@
 /// @file
 #include "menu_item_utils.hpp"
 
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <img_resources.hpp>
 
 void loop_gcode_inject_menu_item(IWindowMenuItem &item, LoopGCodeInjectMenuItemArgs args) {

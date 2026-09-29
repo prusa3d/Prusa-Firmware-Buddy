@@ -2,7 +2,7 @@
 #include "filament.hpp"
 
 #include <gcode_info.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 
 FilamentType FilamentType::for_tool(std::variant<VirtualToolIndex, NoTool> tool) {
     return match(

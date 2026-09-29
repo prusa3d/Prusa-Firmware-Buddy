@@ -1,6 +1,6 @@
 #include "screen_cancel_objects.hpp"
 
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <marlin_client.hpp>
 #include <feature/cancel_object/cancel_object.hpp>
 #include <screen_menu.hpp>

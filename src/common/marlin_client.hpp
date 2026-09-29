@@ -4,7 +4,6 @@
 #include "marlin_server_types/client_fsm_types.hpp"
 #include "encoded_fsm_response.hpp"
 #include <warning_type.hpp>
-#include "marlin_vars.hpp"
 #include "client_response.hpp"
 #include <option/has_cancel_object.h>
 #include <option/has_selftest.h>

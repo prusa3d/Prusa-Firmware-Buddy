@@ -4,7 +4,6 @@
 
 #include <common/shared_buffer.hpp>
 #include <marlin_client.hpp>
-#include <marlin_vars.hpp>
 
 namespace connect_client {
 

@@ -6,6 +6,7 @@
 #include <espif.h>
 #include <fsm_handler.hpp>
 #include <common/marlin_server.hpp>
+#include <common/marlin_vars.hpp>
 #include <sys/stat.h>
 #include <option/has_nfc.h>
 

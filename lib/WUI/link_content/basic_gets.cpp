@@ -1,6 +1,7 @@
 #include "basic_gets.h"
 #include "filament.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include <lwip/init.h>
 #include "netdev.h"
 #include <config_store/store_instance.hpp>

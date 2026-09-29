@@ -2,7 +2,6 @@
  * @file
  */
 #include "PrusaGcodeSuite.hpp"
-#include <marlin_vars.hpp>
 #include <Marlin/src/gcode/parser.h>
 #include <gcode/gcode.h>
 

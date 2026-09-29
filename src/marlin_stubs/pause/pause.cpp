@@ -38,6 +38,7 @@ static_assert(HAS_PAUSE());
 #include "Marlin/src/feature/pause.h"
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include "marlin_server.hpp"
+#include <common/marlin_vars.hpp>
 #include "fs_event_autolock.hpp"
 #include "filament.hpp"
 #include "client_response.hpp"

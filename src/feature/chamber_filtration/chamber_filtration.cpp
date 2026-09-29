@@ -1,6 +1,6 @@
 #include "chamber_filtration.hpp"
 
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <marlin_server.hpp>
 #include <gcode_info.hpp>
 #include <tools_mapping.hpp>

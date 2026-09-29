@@ -13,7 +13,7 @@
 #include <common/encoded_fsm_response.hpp>
 #include <img_resources.hpp>
 #include <marlin_client.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <module/prusa/toolchanger.h>
 #include <string_view_utf8.hpp>
 

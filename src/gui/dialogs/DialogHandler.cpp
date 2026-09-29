@@ -9,6 +9,7 @@
 #include "window_dlg_quickpause.hpp"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_warning.hpp"
+#include <common/marlin_vars.hpp>
 #include <option/has_crash_detection.h>
 #include <option/has_gearbox_alignment.h>
 #include <option/has_phase_stepping_calibration.h>

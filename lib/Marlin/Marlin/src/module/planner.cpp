@@ -135,7 +135,6 @@
 #include <freertos/critical_section.hpp>
 #include <feature/gcode_exception/gcode_exception.hpp>
 
-#include <marlin_vars.hpp>
 #include "configuration_store.h"
 #include <raii/auto_restore.hpp>
 #include <utils/variant_utils.hpp>

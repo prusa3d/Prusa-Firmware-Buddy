@@ -1,4 +1,5 @@
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 
 #include "marlin_client_queue.hpp"
 #include "marlin_server_request.hpp"

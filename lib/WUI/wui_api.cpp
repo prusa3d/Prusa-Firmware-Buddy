@@ -14,6 +14,7 @@
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 
 #include <lfn.h>
 #include <buddy/filename_defs.hpp>

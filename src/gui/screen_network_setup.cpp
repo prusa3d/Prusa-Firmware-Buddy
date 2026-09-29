@@ -13,6 +13,7 @@
 #include <fsm_menu_item.hpp>
 #include <fsm_network_setup.hpp>
 #include <logging/log.hpp>
+#include <common/marlin_vars.hpp>
 #include "timing.h"
 #include <DialogConnectReg.hpp>
 #include <gui/standard_frame/frame_prompt.hpp>

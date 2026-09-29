@@ -1,7 +1,7 @@
 #include "status_renderer.h"
 
 #include "marlin_client.hpp"
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <state/printer_state.hpp>
 #include <transfers/monitor.hpp>
 #include <segmented_json_macros.h>

@@ -2,6 +2,7 @@
 
 #include <img_resources.hpp>
 #include <marlin_client.hpp>
+#include <common/marlin_vars.hpp>
 #include <ScreenHandler.hpp>
 #include <ScreenFactory.hpp>
 #include <menu_vars.h>

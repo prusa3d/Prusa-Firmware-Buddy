@@ -6,7 +6,6 @@
 #include <module/planner.h>
 #include <gcode/queue.h>
 #include <raii/scope_guard.hpp>
-#include <marlin_vars.hpp>
 
 #include <option/has_auto_retract.h>
 #if HAS_AUTO_RETRACT()

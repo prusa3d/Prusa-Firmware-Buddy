@@ -6,6 +6,7 @@
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
 
 #include "marlin_server.hpp"
+#include <common/marlin_vars.hpp>
 #include "pause_stubbed.hpp"
 #include <atomic>
 #include <functional> // std::invoke

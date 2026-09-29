@@ -8,6 +8,7 @@
 #include "ifooter_item.hpp"
 #include "menu_vars.h"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 
 // XYZE position
 template <size_t AXIS>

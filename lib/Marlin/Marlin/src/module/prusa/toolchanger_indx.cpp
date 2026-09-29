@@ -19,7 +19,7 @@
 #include "timing.h"
 #include "fanctl.hpp"
 #include <marlin_server.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <fsm/nozzle_mismatch_phases.hpp>
 #include <cmath_ext.h>
 #include <odometer.hpp>

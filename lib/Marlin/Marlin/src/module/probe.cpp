@@ -104,7 +104,6 @@ LOG_COMPONENT_DEF(Probe, logging::Severity::info);
 #include <mapi/motion.hpp>
 #include <gcode/temperature/M104_M109.hpp>
 #include <config_store/store_instance.hpp>
-#include <marlin_vars.hpp>
 #include <numbers>
 #include <filament.hpp>
 #include "printers.h"

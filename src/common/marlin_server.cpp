@@ -1,4 +1,5 @@
 #include "marlin_server.hpp"
+#include <common/marlin_vars.hpp>
 
 #include <option/has_crash_detection.h>
 #include <option/has_pause.h>

@@ -3,6 +3,7 @@
 #include "format_print_will_end.hpp"
 #include <ctime>
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "print_time_module.hpp"
 #include "time_tools.hpp"
 #include "time_helper.hpp"

@@ -72,7 +72,7 @@ GcodeSuite gcode;
 #include <option/has_pause.h>
 #include <option/has_phase_stepping.h>
 #include <option/has_phase_stepping_calibration.h>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <utils/serial_logging_disabler.hpp>
 #include <feature/safety_timer/safety_timer.hpp>
 

@@ -1,6 +1,6 @@
 #include "screen_printing_end_result.hpp"
 
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <gcode_info.hpp>
 #include <format_print_will_end.hpp>
 #include <img_resources.hpp>

@@ -29,7 +29,7 @@
 #include "otp.hpp"
 #include <array>
 #include "filament.hpp"
-#include "marlin_vars.hpp"
+#include <common/marlin_vars.hpp>
 #include "marlin_server.hpp"
 #include "config_features.h"
 #include <option/has_mmu2.h>

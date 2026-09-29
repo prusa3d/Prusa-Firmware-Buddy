@@ -1,6 +1,5 @@
 #include "auto_retract.hpp"
 
-#include <marlin_vars.hpp>
 #include <config_store/store_instance.hpp>
 #include <feature/ramming/standard_ramming_sequence.hpp>
 #include <module/planner.h>

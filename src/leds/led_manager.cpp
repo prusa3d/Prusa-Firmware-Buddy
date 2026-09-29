@@ -3,7 +3,7 @@
 #include "led_lcd_cs_selector.hpp"
 
 #include <leds/status_leds_handler.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include "neopixel.hpp"
 #include <option/has_side_leds.h>
 #include <device/peripherals.hpp>

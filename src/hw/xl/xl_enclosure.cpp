@@ -11,6 +11,7 @@
 #include <ctime>
 #include <tools_mapping.hpp>
 #include <marlin_server.hpp>
+#include <common/marlin_vars.hpp>
 #include <bsod/bsod.h>
 #include <option/xl_enclosure_support.h>
 #include <option/has_chamber_filtration_api.h>

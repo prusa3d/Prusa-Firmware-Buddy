@@ -5,7 +5,7 @@
 
 #include "M73_PE.h"
 #include "../Marlin/src/libs/stopwatch.h"
-#include "marlin_vars.hpp"
+#include <common/marlin_vars.hpp>
 #include "config_store/store_instance.hpp"
 
 extern Stopwatch print_job_timer;

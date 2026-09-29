@@ -25,7 +25,7 @@
 #include <src/gcode/gcode.h>
 #include <feature/cancel_object/cancel_object.hpp>
 
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 
 using namespace buddy;
 

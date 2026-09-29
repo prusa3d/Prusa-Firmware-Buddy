@@ -1,5 +1,5 @@
-#include "marlin_vars.hpp"
-#include <random/random.h>
+/// @file
+#include <common/marlin_vars.hpp>
 
 void marlin_vars_t::lock() {
     mutex.lock();

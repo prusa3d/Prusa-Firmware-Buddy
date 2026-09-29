@@ -1,5 +1,6 @@
 #include "MItem_print.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "common/conversions.hpp"
 #include "menu_vars.h"
 #include "WindowMenuSpin.hpp"

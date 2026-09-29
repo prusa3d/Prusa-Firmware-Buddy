@@ -1,7 +1,7 @@
 #include "leds/ac_controller_leds_handler.hpp"
 
 #include <marlin_server_state.h>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <puppies/ac_controller.hpp>
 #include <ac_controller/types.hpp>
 #include <option/has_tool_crash_recovery.h>

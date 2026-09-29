@@ -1,6 +1,7 @@
 #include "job_command.h"
 
 #include "../../../src/common/marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 
 #include <state/printer_state.hpp>
 #include <option/has_tool_crash_recovery.h>

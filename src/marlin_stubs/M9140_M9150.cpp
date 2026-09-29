@@ -1,6 +1,5 @@
 #include "PrusaGcodeSuite.hpp"
 
-#include <marlin_vars.hpp>
 #include <module/planner.h>
 
 /** \addtogroup G-Codes

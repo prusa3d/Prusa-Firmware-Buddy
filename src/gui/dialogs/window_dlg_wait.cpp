@@ -3,7 +3,7 @@
 #include "ScreenHandler.hpp"
 #include <DialogHandler.hpp>
 #include <client_response.hpp>
-#include <marlin_vars.hpp>
+#include <common/marlin_vars.hpp>
 #include <feature/print_status_message/print_status_message_mgr.hpp>
 #include <feature/print_status_message/print_status_message_formatter_buddy.hpp>
 #include <utils/string_builder.hpp>

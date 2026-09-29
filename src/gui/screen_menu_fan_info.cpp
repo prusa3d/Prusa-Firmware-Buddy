@@ -4,6 +4,7 @@
 #include <common/printer_model.hpp>
 #include <fanctl.hpp>
 #include <img_resources.hpp>
+#include <common/marlin_vars.hpp>
 
 #if HAS_XL_CAN()
     #include <puppies/xl_can.hpp>

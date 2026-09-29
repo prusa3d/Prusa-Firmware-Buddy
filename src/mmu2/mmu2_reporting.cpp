@@ -4,6 +4,7 @@
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/buttons.h"
 #include "../common/marlin_server.hpp"
+#include <common/marlin_vars.hpp>
 #include "../common/sound.hpp"
 #include "mmu2_error_converter.h"
 #include "mmu2_fsm.hpp"

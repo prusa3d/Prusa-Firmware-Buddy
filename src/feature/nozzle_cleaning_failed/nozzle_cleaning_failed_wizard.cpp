@@ -7,6 +7,7 @@
 
 #include <Marlin/src/Marlin.h>
 #include <common/marlin_server.hpp>
+#include <common/marlin_vars.hpp>
 #include <gcode/gcode.h>
 #include <raii/auto_restore.hpp>
 #include <tool/hotend/hotend.hpp>

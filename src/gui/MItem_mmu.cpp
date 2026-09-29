@@ -2,6 +2,7 @@
 #include "ScreenHandler.hpp"
 #include "screen_messages.hpp"
 #include "marlin_client.hpp"
+#include <common/marlin_vars.hpp>
 #include "WindowMenuSpin.hpp"
 #include "window_msgbox.hpp"
 #include <feature/filament_sensor/filament_sensors_handler.hpp>

@@ -16,6 +16,7 @@
 #include <odometer.hpp>
 #include <netdev.h>
 #include <print_utils.hpp>
+#include <common/marlin_vars.hpp>
 #include <wui_api.h>
 #include <wui.h>
 #include <filament.hpp>

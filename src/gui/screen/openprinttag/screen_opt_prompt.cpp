@@ -2,6 +2,7 @@
 #include "screen_opt_prompt.hpp"
 
 #include <gui/ScreenHandler.hpp>
+#include <common/marlin_vars.hpp>
 
 namespace buddy::openprinttag {
 

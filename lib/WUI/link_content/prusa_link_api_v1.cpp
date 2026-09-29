@@ -12,6 +12,7 @@
 
 #include <buddy/filename_defs.hpp>
 #include <marlin_client.hpp>
+#include <common/marlin_vars.hpp>
 #include <common/path_utils.h>
 #include <transfers/monitor.hpp>
 #include <transfers/changed_path.hpp>

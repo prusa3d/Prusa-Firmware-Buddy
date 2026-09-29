@@ -9,6 +9,7 @@
 #include <tasks.hpp>
 #include <logging/log.hpp>
 #include <marlin_server.hpp>
+#include <common/marlin_vars.hpp>
 #include <bsod/bsod.h>
 #include <option/has_selftest.h>
 

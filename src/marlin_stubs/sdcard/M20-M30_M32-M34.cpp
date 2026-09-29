@@ -4,7 +4,7 @@
 #include "../src/common/print_utils.hpp"
 #include "marlin_server.hpp"
 #include <usb_host.h>
-#include "marlin_vars.hpp"
+#include <common/marlin_vars.hpp>
 #include <common/directory.hpp>
 #include <utils/string_builder.hpp>
 #include <buddy/filename_defs.hpp>
