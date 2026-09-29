@@ -3547,25 +3547,18 @@ int32_t get_knob_position() {
 //-----------------------------------------------------------------------------
 // private functions
 
-// send event notification to client (called from server thread)
-static bool _send_notify_event_to_client(ClientQueue &queue, EventMask evt_msk) {
-    return queue.try_send(evt_msk, 0);
-}
-
 // send event notification to client - multiple events (called from server thread)
 // returns mask of successfully sent events
 static EventMask _send_notify_events_to_client(ClientQueue &queue, EventMask evt_msk) {
-    return _send_notify_event_to_client(queue, evt_msk) ? evt_msk : 0;
+    return queue.try_send(evt_msk, 0) ? evt_msk : 0;
 }
 
-// send event notification to all clients (called from server thread)
-static void _send_notify_event(Event evt_id) {
+// schedule event notification to all clients (called from server thread)
+static void _schedule_notify_event(Event evt_id) {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         const EventMask evt_msk = make_mask(evt_id);
         if (server.notify_events[client_id] & evt_msk) {
-            if (!_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_msk)) {
-                server.client_events[client_id] |= evt_msk; // event not sent, set bit
-            }
+            server.client_events[client_id] |= evt_msk;
         }
     }
 }
@@ -3665,7 +3658,7 @@ static void _server_update_vars() {
 
     if (const bool media = usb_host::is_media_inserted(); marlin_vars().media_inserted != media) {
         marlin_vars().media_inserted = media;
-        _send_notify_event(media ? Event::MediaInserted : Event::MediaRemoved);
+        _schedule_notify_event(media ? Event::MediaInserted : Event::MediaRemoved);
     }
 
     const auto duration = marlin_vars().print_duration.get();
@@ -3875,11 +3868,7 @@ static bool _process_server_request(const Request &request) {
     _server_update_vars();
 
     if (request.response_required) {
-        const EventMask evt_msk = make_mask(processed ? Event::Acknowledge : Event::NotAcknowledge);
-        if (!_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_msk)) {
-            // FIXME: Take care of resending process elsewhere.
-            server.client_events[client_id] |= evt_msk; // set bit if notification not sent
-        }
+        server.client_events[client_id] |= make_mask(processed ? Event::Acknowledge : Event::NotAcknowledge);
     }
     return processed;
 }
@@ -4111,5 +4100,5 @@ alignas(std::max_align_t) uint8_t FSMExtendedDataManager::extended_data_buffer[F
 size_t FSMExtendedDataManager::identifier = { 0 };
 
 void marlin_server::request_calibrations_screen() {
-    _send_notify_event(marlin_server::Event::RequestCalibrationsScreen);
+    _schedule_notify_event(marlin_server::Event::RequestCalibrationsScreen);
 }
