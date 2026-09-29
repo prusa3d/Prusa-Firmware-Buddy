@@ -740,7 +740,7 @@ static bool is_cycle_running = false;
 // forward declarations of private functions
 
 static void _server_print_loop(void);
-static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue, uint64_t evt_msk);
+static uint64_t _send_notify_events_to_client(ClientQueue &queue, uint64_t evt_msk);
 static void _server_update_vars();
 static bool _process_server_request(const Request &);
 static void _server_set_var(const Request &);
@@ -885,7 +885,7 @@ void send_notifications_to_clients() {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         ClientQueue &queue = marlin_client::marlin_client_queue[client_id];
         if (const uint64_t msk = server.client_events[client_id]) {
-            server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+            server.client_events[client_id] &= ~_send_notify_events_to_client(queue, msk);
         }
     }
 }
@@ -3548,15 +3548,13 @@ int32_t get_knob_position() {
 // private functions
 
 // send event notification to client (called from server thread)
-static bool _send_notify_event_to_client([[maybe_unused]] int client_id, ClientQueue &queue, Event evt_id, uint32_t usr32, uint16_t usr16) {
-    (void)usr32;
-    (void)usr16;
+static bool _send_notify_event_to_client(ClientQueue &queue, Event evt_id) {
     return queue.try_send(evt_id, 0);
 }
 
 // send event notification to client - multiple events (called from server thread)
 // returns mask of successfully sent events
-static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue, uint64_t evt_msk) {
+static uint64_t _send_notify_events_to_client(ClientQueue &queue, uint64_t evt_msk) {
     if (evt_msk == 0) {
         return 0;
     }
@@ -3572,13 +3570,13 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
             case Event::MediaError:
             case Event::MediaRemoved:
             case Event::RequestCalibrationsScreen:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0)) {
+                if (_send_notify_event_to_client(queue, evt_id)) {
                     sent |= msk; // event sent, set bit
                 }
                 break;
             case Event::NotAcknowledge:
             case Event::Acknowledge:
-                if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0)) {
+                if (_send_notify_event_to_client(queue, evt_id)) {
                     sent |= msk; // event sent, set bit
                 }
                 break;
@@ -3597,10 +3595,10 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
 }
 
 // send event notification to all clients (called from server thread)
-static void _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) {
+static void _send_notify_event(Event evt_id) {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         if (server.notify_events[client_id] & ((uint64_t)1 << std::to_underlying(evt_id))) {
-            if (_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
+            if (_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_id) == 0) {
                 server.client_events[client_id] |= ((uint64_t)1 << std::to_underlying(evt_id)); // event not sent, set bit
             }
         }
@@ -3702,7 +3700,7 @@ static void _server_update_vars() {
 
     if (const bool media = usb_host::is_media_inserted(); marlin_vars().media_inserted != media) {
         marlin_vars().media_inserted = media;
-        _send_notify_event(media ? Event::MediaInserted : Event::MediaRemoved, 0, 0);
+        _send_notify_event(media ? Event::MediaInserted : Event::MediaRemoved);
     }
 
     const auto duration = marlin_vars().print_duration.get();
@@ -3913,7 +3911,7 @@ static bool _process_server_request(const Request &request) {
 
     if (request.response_required) {
         Event evt_result = processed ? Event::Acknowledge : Event::NotAcknowledge;
-        if (!_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_result, 0, 0)) {
+        if (!_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_result)) {
             // FIXME: Take care of resending process elsewhere.
             server.client_events[client_id] |= make_mask(evt_result); // set bit if notification not sent
         }
@@ -4148,5 +4146,5 @@ alignas(std::max_align_t) uint8_t FSMExtendedDataManager::extended_data_buffer[F
 size_t FSMExtendedDataManager::identifier = { 0 };
 
 void marlin_server::request_calibrations_screen() {
-    _send_notify_event(marlin_server::Event::RequestCalibrationsScreen, 0, 0);
+    _send_notify_event(marlin_server::Event::RequestCalibrationsScreen);
 }
