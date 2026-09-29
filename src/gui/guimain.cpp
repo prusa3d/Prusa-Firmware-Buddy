@@ -239,7 +239,6 @@ void gui_run(void) {
     }
 
     marlin_client::init();
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
 
     // Close bootstrap screen, open home screen
     Screens::Access()->close_screen();

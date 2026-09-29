@@ -24,9 +24,6 @@ namespace marlin_client {
 // initialize client side
 void init();
 
-// sets event notification mask
-void set_event_notify(marlin_server::EventMask notify_events);
-
 // enqueue gcode - thread-safe version
 //
 // A gcode that doesn't fit into the request buffer is a programmer error and sends a warning to marlin server.

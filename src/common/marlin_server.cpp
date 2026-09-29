@@ -301,7 +301,6 @@ static MutexAtomic<EncodedFSMResponse, freertos::Mutex> fsm_response = empty_enc
 namespace {
 
     struct server_t {
-        EventMask notify_events[MARLIN_MAX_CLIENTS]; // event notification mask - message filter
         State print_state; // printing state (printing, paused, ...)
         bool print_is_serial = false; //< When true, current print is not from USB, but sent via gcode commands.
 #if HAS_CRASH_DETECTION() //
@@ -744,12 +743,8 @@ static void settings_load();
 // server side functions
 
 void init(void) {
-    int i;
     server = server_t();
     server.flags = 0;
-    for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
-        server.notify_events[i] = make_mask(Event::Acknowledge); // by default only ack
-    }
     server_task = osThreadGetId();
 
     // Random at boot, to avoid chance of reusing the same (0/1) dialog ID
@@ -807,6 +802,9 @@ void init(void) {
     }
 
 #endif
+
+    // Clients may read the variables as soon as the server is initialized
+    _server_update_vars();
 }
 
 void print_fan_spd() {
@@ -3526,10 +3524,7 @@ int32_t get_knob_position() {
 // send event notification to all clients (called from server thread)
 static void _send_notify_event(Event evt_id) {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
-        const EventMask evt_msk = make_mask(evt_id);
-        if (server.notify_events[client_id] & evt_msk) {
-            marlin_client::marlin_client_events[client_id].set(evt_msk);
-        }
+        marlin_client::marlin_client_events[client_id].set(make_mask(evt_id));
     }
 }
 
@@ -3695,7 +3690,7 @@ static void _server_update_vars() {
     marlin_vars().media_size_estimate = prefetch_metrics.stream_size_estimate;
 }
 
-bool _process_server_valid_request(const Request &request, int client_id) {
+static bool _process_server_valid_request(const Request &request) {
     switch (request.type) {
     case Request::Type::Gcode:
         //@TODO return value depending on success of enqueueing gcode
@@ -3727,9 +3722,6 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         return true;
     case Request::Type::SetWarning:
         set_warning(request.warning_type);
-        return true;
-    case Request::Type::EventMask:
-        server.notify_events[client_id] = request.event_mask;
         return true;
 #if HAS_SELFTEST()
     case Request::Type::TestStart:
@@ -3822,7 +3814,7 @@ static bool _process_server_request(const Request &request) {
         return true;
     }
 
-    const bool processed = _process_server_valid_request(request, client_id);
+    const bool processed = _process_server_valid_request(request);
 
     // force update of marlin variables after proecssing request -> to ensure client can read latest variables after request completion
     _server_update_vars();

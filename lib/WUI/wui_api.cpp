@@ -39,8 +39,6 @@ static bool sntp_time_init = false;
 
 void wui_marlin_client_init(void) {
     marlin_client::init(); // init the client
-    // force update variables when starts
-    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
 }
 
 struct ini_load_def {

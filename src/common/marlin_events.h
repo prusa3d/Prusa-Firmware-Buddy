@@ -2,7 +2,6 @@
 #pragma once
 
 #include <cstdint>
-#include <limits>
 #include <utils/utility_extensions.hpp>
 
 namespace marlin_server {
@@ -24,9 +23,6 @@ static_assert(std::to_underlying(Event::_count) <= 24);
 constexpr EventMask make_mask(Event id) {
     return static_cast<EventMask>(1) << std::to_underlying(id);
 }
-
-inline constexpr EventMask EVENT_MSK_ALL = std::numeric_limits<EventMask>::max();
-inline constexpr EventMask EVENT_MSK_DEF = EVENT_MSK_ALL;
 
 // commands
 enum class Cmd : uint32_t {

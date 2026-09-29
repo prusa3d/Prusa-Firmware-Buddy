@@ -122,13 +122,6 @@ static void _send_request_to_server_noreply(Request &request) {
     request_queue.send(request);
 }
 
-void set_event_notify(EventMask event_mask) {
-    Request request;
-    request.type = Request::Type::EventMask;
-    request.event_mask = event_mask;
-    _send_request_to_server_and_wait(request);
-}
-
 void _send_request_flag_to_server(const RequestFlag type) {
     marlin_server::send_request_flag(type);
 }
