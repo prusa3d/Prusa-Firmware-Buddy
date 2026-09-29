@@ -21,11 +21,8 @@ namespace marlin_client {
 //-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
 
-// initialize client side, returns pointer to client structure
+// initialize client side
 void init();
-
-// client loop - must be called periodically in client thread
-void loop();
 
 // sets event notification mask
 void set_event_notify(marlin_server::EventMask notify_events);

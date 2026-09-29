@@ -216,7 +216,6 @@ void gui_loop(void) {
     }
 
     gui_redraw();
-    marlin_client::loop();
     GuiMediaEventsHandler::Tick();
 
 #if HAS_SELFTEST()

@@ -9,7 +9,7 @@
 #include <marlin_stubs/skippable_gcode.hpp>
 #include <mapi/parking.hpp>
 #include <mapi/feedrates/standard_feedrates.hpp>
-#include "marlin_client_queue.hpp"
+#include "marlin_client_events.hpp"
 #include "marlin_server_request.hpp"
 #include <inttypes.h>
 #include <stdarg.h>
@@ -277,18 +277,9 @@ void record_fanctl_metrics();
 
 using namespace ExtUI;
 
-using ClientQueue = marlin_client::ClientQueue;
-
 extern osThreadId defaultTaskHandle;
 
 LOG_COMPONENT_DEF(MarlinServer, logging::Severity::info);
-
-//-----------------------------------------------------------------------------
-// external variables from marlin_client
-
-namespace marlin_client {
-extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
-} // namespace marlin_client
 
 namespace marlin_server {
 
@@ -311,7 +302,6 @@ namespace {
 
     struct server_t {
         EventMask notify_events[MARLIN_MAX_CLIENTS]; // event notification mask - message filter
-        EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
         State print_state; // printing state (printing, paused, ...)
         bool print_is_serial = false; //< When true, current print is not from USB, but sent via gcode commands.
 #if HAS_CRASH_DETECTION() //
@@ -738,7 +728,6 @@ static bool is_cycle_running = false;
 // forward declarations of private functions
 
 static void _server_print_loop(void);
-static EventMask _send_notify_events_to_client(ClientQueue &queue, EventMask evt_msk);
 static void _server_update_vars();
 static bool _process_server_request(const Request &);
 static void _server_set_var(const Request &);
@@ -875,15 +864,6 @@ void server_update_vars() {
     if ((tick - server.last_update) > MARLIN_UPDATE_PERIOD) {
         server.last_update = tick;
         _server_update_vars();
-    }
-}
-
-void send_notifications_to_clients() {
-    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
-        ClientQueue &queue = marlin_client::marlin_client_queue[client_id];
-        if (const EventMask evt_msk = server.client_events[client_id]) {
-            server.client_events[client_id] &= ~_send_notify_events_to_client(queue, evt_msk);
-        }
     }
 }
 
@@ -1057,7 +1037,6 @@ static void cycle() {
     }
 
     // update variables
-    send_notifications_to_clients();
     server_update_vars();
     commit_fsm_states();
 }
@@ -3544,18 +3523,12 @@ int32_t get_knob_position() {
 //-----------------------------------------------------------------------------
 // private functions
 
-// send event notification to client - multiple events (called from server thread)
-// returns mask of successfully sent events
-static EventMask _send_notify_events_to_client(ClientQueue &queue, EventMask evt_msk) {
-    return queue.try_send(evt_msk, 0) ? evt_msk : 0;
-}
-
-// schedule event notification to all clients (called from server thread)
-static void _schedule_notify_event(Event evt_id) {
+// send event notification to all clients (called from server thread)
+static void _send_notify_event(Event evt_id) {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         const EventMask evt_msk = make_mask(evt_id);
         if (server.notify_events[client_id] & evt_msk) {
-            server.client_events[client_id] |= evt_msk;
+            marlin_client::marlin_client_events[client_id].set(evt_msk);
         }
     }
 }
@@ -3855,7 +3828,7 @@ static bool _process_server_request(const Request &request) {
     _server_update_vars();
 
     if (request.response_required) {
-        server.client_events[client_id] |= make_mask(processed ? Event::Acknowledge : Event::NotAcknowledge);
+        marlin_client::marlin_client_events[client_id].set(make_mask(processed ? Event::Acknowledge : Event::NotAcknowledge));
     }
     return processed;
 }
@@ -4087,5 +4060,5 @@ alignas(std::max_align_t) uint8_t FSMExtendedDataManager::extended_data_buffer[F
 size_t FSMExtendedDataManager::identifier = { 0 };
 
 void marlin_server::request_calibrations_screen() {
-    _schedule_notify_event(marlin_server::Event::RequestCalibrationsScreen);
+    _send_notify_event(marlin_server::Event::RequestCalibrationsScreen);
 }

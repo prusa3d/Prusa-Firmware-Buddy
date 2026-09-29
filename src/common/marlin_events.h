@@ -12,13 +12,13 @@ enum class Event : uint8_t {
     Acknowledge,
     NotAcknowledge,
 
-    _last = NotAcknowledge,
-    _count
+    _count, // keep last
 };
 
-using EventMask = uint64_t;
+using EventMask = uint32_t;
 
-static_assert(sizeof(EventMask) * 8 > std::to_underlying(Event::_last));
+// Event group reserves the top 8 bits
+static_assert(std::to_underlying(Event::_count) <= 24);
 
 // event masks
 constexpr EventMask make_mask(Event id) {
