@@ -15,6 +15,8 @@ static constexpr size_t internal_storage_align = 4;
 static constexpr size_t internal_storage_size = FREERTOS_INTERNAL_STORAGE_SIZE;
 static constexpr size_t stream_buffer_storage_align = 4;
 static constexpr size_t stream_buffer_storage_size = 32;
+static constexpr size_t event_group_storage_align = 4;
+static constexpr size_t event_group_storage_size = 32;
 #endif
 
 // In current implementation of FreeRTOS all these are actually the same

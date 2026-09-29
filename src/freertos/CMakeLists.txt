@@ -35,3 +35,7 @@ if(BOARD STREQUAL "XBUDDY_EXTENSION"
 else()
   target_compile_definitions(freertos PUBLIC FREERTOS_INTERNAL_STORAGE_SIZE=80)
 endif()
+
+if(BOARD_IS_MASTER_BOARD)
+  target_sources(freertos PRIVATE event_group.cpp)
+endif()
