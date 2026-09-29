@@ -15,21 +15,35 @@
 
     #include <cstddef>
 
+    #include <option/has_internal_storage_flash.h>
+
 namespace filename_defs {
 
 /// Longest display file name (basename), e.g. "part.bgcode".
 inline constexpr size_t max_filename_length = MAX_FILENAME_LENGTH;
 inline constexpr size_t filename_buffer_size = max_filename_length + 1;
 
-/// Longest canonical path, including the mount point. The path is built from
-/// short segments (SFN on FAT), so long display names don't grow it.
-inline constexpr size_t max_path_length = 103;
+/// Longest canonical path on FAT, built from short (SFN) components - long
+/// display names don't grow it.
+inline constexpr size_t max_sfn_path_length = 103;
+
+    /// Longest canonical path, including the mount point.
+    #if HAS_INTERNAL_STORAGE_FLASH()
+// Internal (littlefs) storage: a path component is a full-length name, so the
+// budget must hold the mount point + a filename + (shallow) nesting.
+inline constexpr size_t max_path_length = 255;
+    #else
+inline constexpr size_t max_path_length = max_sfn_path_length;
+    #endif
 inline constexpr size_t path_buffer_size = max_path_length + 1;
 
 /// Longest path with an LFN last segment (SFN dir prefix + LFN basename), as
-/// produced when creating an entity that has no SFN yet. Upper bound.
-inline constexpr size_t max_hybrid_path_length = max_path_length + max_filename_length;
+/// produced when creating an entity that has no SFN yet. Upper bound. On
+/// single-name filesystems (littlefs) there is no extra LFN segment; the
+/// canonical budget fits within this bound (checked below).
+inline constexpr size_t max_hybrid_path_length = max_sfn_path_length + max_filename_length;
 inline constexpr size_t hybrid_path_buffer_size = max_hybrid_path_length + 1;
+static_assert(max_hybrid_path_length >= max_path_length);
 
 } // namespace filename_defs
 
