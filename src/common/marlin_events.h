@@ -8,14 +8,12 @@
 namespace marlin_server {
 
 enum class Event : uint8_t {
-    // Marlin events - UIAPI
-    MediaInserted, // onMediaInserted();
-    MediaError, // onMediaError();
-    MediaRemoved, // onMediaRemoved();
-    // Marlin events - other
-    RequestCalibrationsScreen, //
-    Acknowledge, // onAcknowledge - lowest priority
-    NotAcknowledge, // onNotAcknowledge - lowest priority
+    MediaInserted,
+    MediaError,
+    MediaRemoved,
+    RequestCalibrationsScreen,
+    Acknowledge,
+    NotAcknowledge,
 
     _last = NotAcknowledge,
     _count

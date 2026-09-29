@@ -5,6 +5,6 @@
 
 namespace marlin_client {
 
-using ClientQueue = freertos::Queue<marlin_server::Event, 16>;
+using ClientQueue = freertos::Queue<marlin_server::EventMask, 16>;
 
 } // namespace marlin_client

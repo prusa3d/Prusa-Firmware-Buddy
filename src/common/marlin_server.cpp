@@ -740,7 +740,7 @@ static bool is_cycle_running = false;
 // forward declarations of private functions
 
 static void _server_print_loop(void);
-static uint64_t _send_notify_events_to_client(ClientQueue &queue, uint64_t evt_msk);
+static EventMask _send_notify_events_to_client(ClientQueue &queue, EventMask evt_msk);
 static void _server_update_vars();
 static bool _process_server_request(const Request &);
 static void _server_set_var(const Request &);
@@ -884,8 +884,8 @@ void server_update_vars() {
 void send_notifications_to_clients() {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         ClientQueue &queue = marlin_client::marlin_client_queue[client_id];
-        if (const uint64_t msk = server.client_events[client_id]) {
-            server.client_events[client_id] &= ~_send_notify_events_to_client(queue, msk);
+        if (const EventMask evt_msk = server.client_events[client_id]) {
+            server.client_events[client_id] &= ~_send_notify_events_to_client(queue, evt_msk);
         }
     }
 }
@@ -3548,53 +3548,23 @@ int32_t get_knob_position() {
 // private functions
 
 // send event notification to client (called from server thread)
-static bool _send_notify_event_to_client(ClientQueue &queue, Event evt_id) {
-    return queue.try_send(evt_id, 0);
+static bool _send_notify_event_to_client(ClientQueue &queue, EventMask evt_msk) {
+    return queue.try_send(evt_msk, 0);
 }
 
 // send event notification to client - multiple events (called from server thread)
 // returns mask of successfully sent events
-static uint64_t _send_notify_events_to_client(ClientQueue &queue, uint64_t evt_msk) {
-    if (evt_msk == 0) {
-        return 0;
-    }
-    uint64_t sent = 0;
-    uint64_t msk = 1;
-    for (uint8_t evt_int = 0; evt_int <= std::to_underlying(Event::_last); evt_int++) {
-        Event evt_id = Event(evt_int);
-        if (msk & evt_msk) {
-            switch (Event(evt_id)) {
-                // TODO: send all these in a single message as a bitfield
-            case Event::MediaInserted:
-            case Event::MediaError:
-            case Event::MediaRemoved:
-            case Event::RequestCalibrationsScreen:
-            case Event::NotAcknowledge:
-            case Event::Acknowledge:
-                if (_send_notify_event_to_client(queue, evt_id)) {
-                    sent |= msk; // event sent, set bit
-                }
-                break;
-            // unused events
-            case Event::_count:
-                debug_assert(false);
-                break;
-            }
-            if ((sent & msk) == 0) {
-                break; // skip sending if queue is full
-            }
-        }
-        msk <<= 1;
-    }
-    return sent;
+static EventMask _send_notify_events_to_client(ClientQueue &queue, EventMask evt_msk) {
+    return _send_notify_event_to_client(queue, evt_msk) ? evt_msk : 0;
 }
 
 // send event notification to all clients (called from server thread)
 static void _send_notify_event(Event evt_id) {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
-        if (server.notify_events[client_id] & ((uint64_t)1 << std::to_underlying(evt_id))) {
-            if (_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_id) == 0) {
-                server.client_events[client_id] |= ((uint64_t)1 << std::to_underlying(evt_id)); // event not sent, set bit
+        const EventMask evt_msk = make_mask(evt_id);
+        if (server.notify_events[client_id] & evt_msk) {
+            if (!_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_msk)) {
+                server.client_events[client_id] |= evt_msk; // event not sent, set bit
             }
         }
     }
@@ -3905,10 +3875,10 @@ static bool _process_server_request(const Request &request) {
     _server_update_vars();
 
     if (request.response_required) {
-        Event evt_result = processed ? Event::Acknowledge : Event::NotAcknowledge;
-        if (!_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_result)) {
+        const EventMask evt_msk = make_mask(processed ? Event::Acknowledge : Event::NotAcknowledge);
+        if (!_send_notify_event_to_client(marlin_client::marlin_client_queue[client_id], evt_msk)) {
             // FIXME: Take care of resending process elsewhere.
-            server.client_events[client_id] |= make_mask(evt_result); // set bit if notification not sent
+            server.client_events[client_id] |= evt_msk; // set bit if notification not sent
         }
     }
     return processed;
