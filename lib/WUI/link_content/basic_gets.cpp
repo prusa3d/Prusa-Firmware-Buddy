@@ -348,8 +348,8 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
         has_job = true;
     }
 
-    char lfn_buffer[filename_defs::max_filename_length];
-    char sfn_buffer[filename_defs::max_path_length];
+    char lfn_buffer[filename_defs::filename_buffer_size];
+    char sfn_buffer[filename_defs::path_buffer_size];
     {
         auto lock = MarlinVarsLockGuard();
         marlin_vars().media_LFN.copy_to(lfn_buffer, sizeof(lfn_buffer), lock);
@@ -408,8 +408,8 @@ json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
         state = "ERROR";
         break;
     }
-    char filename[filename_defs::max_filename_length];
-    char sfn_path[filename_defs::max_path_length];
+    char filename[filename_defs::filename_buffer_size];
+    char sfn_path[filename_defs::path_buffer_size];
     {
         auto lock = MarlinVarsLockGuard();
         marlin_vars().media_LFN.copy_to(filename, sizeof(filename), lock);
