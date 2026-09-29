@@ -181,6 +181,7 @@ void M1981(); //< Filament sensors selftest
 void M1982(); //< INDX dock calibration
 void M1983(); //< INDX nozzle cleaner calibration
 void M1984(); //< Manually park a stuck nozzle into a dock
+void M1989(); //< INDX nozzle cleaning wizard
 #endif
 #if HAS_GANTRY_SQUARENESS_CHECK()
 void M1988(); //< Gantry squareness wizard (S = silent measurement)
