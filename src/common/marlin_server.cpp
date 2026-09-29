@@ -741,7 +741,6 @@ static bool is_cycle_running = false;
 
 static void _server_print_loop(void);
 static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue, uint64_t evt_msk);
-static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16);
 static void _server_update_vars();
 static bool _process_server_request(const Request &);
 static void _server_set_var(const Request &);
@@ -3602,20 +3601,14 @@ static uint64_t _send_notify_events_to_client(int client_id, ClientQueue &queue,
 }
 
 // send event notification to all clients (called from server thread)
-// returns bitmask - bit0 = notify for client0 successfully send, bit1 for client1...
-static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) {
-    uint8_t client_msk = 0;
+static void _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) {
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++) {
         if (server.notify_events[client_id] & ((uint64_t)1 << std::to_underlying(evt_id))) {
             if (_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
                 server.client_events[client_id] |= ((uint64_t)1 << std::to_underlying(evt_id)); // event not sent, set bit
-            } else {
-                // event sent, clear flag
-                client_msk |= (1 << client_id);
             }
         }
     }
-    return client_msk;
 }
 
 // update all server variables
