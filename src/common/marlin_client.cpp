@@ -443,20 +443,6 @@ static bool receive_and_process_client_message(marlin_client_t *client, size_t m
     }
 
     client->events |= make_mask(client_event.event);
-    switch (client_event.event) {
-    case Event::NotAcknowledge:
-    case Event::Acknowledge:
-        break;
-        // not handled events
-        // do not use default, i want all events listed here, so new event will generate warning, when not added
-    case Event::MediaInserted:
-    case Event::MediaError:
-    case Event::MediaRemoved:
-    case Event::RequestCalibrationsScreen:
-        break;
-    case Event::_count:
-        debug_assert(false);
-    }
     return true;
 }
 
