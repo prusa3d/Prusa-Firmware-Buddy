@@ -3564,16 +3564,11 @@ static uint64_t _send_notify_events_to_client(ClientQueue &queue, uint64_t evt_m
         Event evt_id = Event(evt_int);
         if (msk & evt_msk) {
             switch (Event(evt_id)) {
-                // Events without arguments
                 // TODO: send all these in a single message as a bitfield
             case Event::MediaInserted:
             case Event::MediaError:
             case Event::MediaRemoved:
             case Event::RequestCalibrationsScreen:
-                if (_send_notify_event_to_client(queue, evt_id)) {
-                    sent |= msk; // event sent, set bit
-                }
-                break;
             case Event::NotAcknowledge:
             case Event::Acknowledge:
                 if (_send_notify_event_to_client(queue, evt_id)) {
