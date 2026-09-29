@@ -6,6 +6,7 @@
 #include <warning_type.hpp>
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
+#include <option/has_cancel_object.h>
 #include <option/has_selftest.h>
 #include "Marlin/src/core/types.h"
 #include <option/has_selftest.h>
