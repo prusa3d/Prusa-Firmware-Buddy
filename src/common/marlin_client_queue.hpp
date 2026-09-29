@@ -5,15 +5,6 @@
 
 namespace marlin_client {
 
-struct ClientEvent {
-    marlin_server::Event event;
-    uint8_t unused;
-    uint16_t usr16;
-    uint32_t usr32; // other events
-};
-static_assert(sizeof(ClientEvent) == 8);
-static_assert(std::is_trivial_v<ClientEvent>);
-
-using ClientQueue = freertos::Queue<ClientEvent, 16>;
+using ClientQueue = freertos::Queue<marlin_server::Event, 16>;
 
 } // namespace marlin_client

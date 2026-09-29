@@ -3549,13 +3549,9 @@ int32_t get_knob_position() {
 
 // send event notification to client (called from server thread)
 static bool _send_notify_event_to_client([[maybe_unused]] int client_id, ClientQueue &queue, Event evt_id, uint32_t usr32, uint16_t usr16) {
-    const marlin_client::ClientEvent client_message {
-        .event = evt_id,
-        .unused = 0,
-        .usr16 = usr16,
-        .usr32 = usr32,
-    };
-    return queue.try_send(client_message, 0);
+    (void)usr32;
+    (void)usr16;
+    return queue.try_send(evt_id, 0);
 }
 
 // send event notification to client - multiple events (called from server thread)

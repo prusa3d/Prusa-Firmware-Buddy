@@ -436,13 +436,13 @@ bool is_idle() {
 
 // process message on client side (set flags, update vars etc.)
 static bool receive_and_process_client_message(marlin_client_t *client, size_t milliseconds_to_wait) {
-    ClientEvent client_event;
+    marlin_server::Event event;
     ClientQueue &queue = marlin_client_queue[client->id];
-    if (!queue.try_receive(client_event, milliseconds_to_wait)) {
+    if (!queue.try_receive(event, milliseconds_to_wait)) {
         return false;
     }
 
-    client->events |= make_mask(client_event.event);
+    client->events |= make_mask(event);
     return true;
 }
 
