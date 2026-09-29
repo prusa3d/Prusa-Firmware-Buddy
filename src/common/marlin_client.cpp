@@ -39,8 +39,6 @@ static constexpr uint8_t max_retries = 5;
 // client
 typedef struct _marlin_client_t {
     EventMask events; // event mask
-
-    uint32_t ack; // cached ack value from last Acknowledge event
     uint8_t id; // client id (0..MARLIN_MAX_CLIENTS-1)
 } marlin_client_t;
 
@@ -448,7 +446,6 @@ static bool receive_and_process_client_message(marlin_client_t *client, size_t m
     switch (client_event.event) {
     case Event::NotAcknowledge:
     case Event::Acknowledge:
-        client->ack = client_event.usr32;
         break;
         // not handled events
         // do not use default, i want all events listed here, so new event will generate warning, when not added
