@@ -239,9 +239,6 @@ void gui_run(void) {
     }
 
     marlin_client::init();
-
-    DialogHandler::Access(); // to create class NOW, not at first call of one of callback
-
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF);
 
     // Close bootstrap screen, open home screen
