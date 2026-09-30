@@ -229,16 +229,6 @@ void gcode_interrupt(GCodeLiteral gcode) {
     _send_request_to_server_and_wait(request);
 }
 
-int event(Event evt_id) {
-    int ret = 0;
-    marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << std::to_underlying(evt_id);
-    if (client) {
-        ret = (client->events & msk) ? 1 : 0;
-    }
-    return ret;
-}
-
 int event_clr(Event evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();

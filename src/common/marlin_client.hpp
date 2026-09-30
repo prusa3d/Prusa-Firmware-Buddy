@@ -63,9 +63,6 @@ inline bool inject(ConstexprString gcode) { return inject(GCodeLiteral(gcode)); 
 /// !!! ONLY USE IF YOU 100% KNOW WHAT YOU'RE DOING
 void gcode_interrupt(GCodeLiteral gcode);
 
-// returns current event status for evt_id
-int event(marlin_server::Event evt_id);
-
 // returns current event status for evt_id and clear event
 int event_clr(marlin_server::Event evt_id);
 
