@@ -28,7 +28,7 @@ void init();
 void loop();
 
 // sets event notification mask
-void set_event_notify(uint64_t notify_events);
+void set_event_notify(marlin_server::EventMask notify_events);
 
 // enqueue gcode - thread-safe version
 //

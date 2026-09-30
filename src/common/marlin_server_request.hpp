@@ -31,7 +31,7 @@ struct Request {
     };
 
     union {
-        uint64_t event_mask = 0; // Type::EventMask
+        EventMask event_mask = 0; // Type::EventMask
         int cancel_object_id; // Type::CancelObjectID/Type::UncancelObjectID
         struct {
             uintptr_t variable;

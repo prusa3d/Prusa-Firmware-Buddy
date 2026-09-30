@@ -149,7 +149,7 @@ static void _send_request_to_server_noreply(Request &request) {
     request_queue.send(request);
 }
 
-void set_event_notify(uint64_t event_mask) {
+void set_event_notify(EventMask event_mask) {
     Request request;
     request.type = Request::Type::EventMask;
     request.event_mask = event_mask;
@@ -232,7 +232,7 @@ void gcode_interrupt(GCodeLiteral gcode) {
 int event_clr(Event evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << std::to_underlying(evt_id);
+    const EventMask msk = make_mask(evt_id);
     if (client) {
         ret = (client->events & msk) ? 1 : 0;
         client->events &= ~msk;
