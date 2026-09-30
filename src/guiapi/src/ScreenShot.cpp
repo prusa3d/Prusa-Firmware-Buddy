@@ -30,10 +30,14 @@ constexpr uint8_t buffer_rows = ILI9488_BUFF_ROWS;
 constexpr uint8_t read_start_offset = 0;
 
 void transform_pixel(Pixel &pixel) {
-    // The display has 6 bits per color component, so we have to shift it left by two bits
-    pixel[0] <<= 2;
-    pixel[1] <<= 2;
-    pixel[2] <<= 2;
+    for (uint8_t &c : pixel) {
+        // The display returns 6 bits per component, MSB-aligned.
+        // Now we don't care about the LSB bits too much,
+        // as long as they're 0 at 0 and 255 at 63 (6-bit max)
+        // So just copy the two highest bits to the two lowest bits
+        // 0bGHIJKL00 | 0b000000GH -> 0bGHIJKLGH
+        c |= c >> 6;
+    }
 }
 
 #elif HAS_ST7789_DISPLAY()

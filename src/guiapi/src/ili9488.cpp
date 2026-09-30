@@ -207,8 +207,9 @@ void ili9488_spi_wr_bytes(const uint8_t *pb, uint16_t size) {
 }
 
 void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
-    // reading is more reliable at 20MHz
-    SPIBaudRatePrescalerGuard guard { spi_handle_lcd, SPI_BAUDRATEPRESCALER_4 };
+    // The ILI9488 read cycle is specified at 150 ns (~6.7 MHz).
+    // At faster clocks the data arrives late and gets sampled shifted.
+    SPIBaudRatePrescalerGuard guard { spi_handle_lcd, SPI_BAUDRATEPRESCALER_16 };
 
     HAL_SPI_Receive(spi_handle_lcd, pb, size, HAL_MAX_DELAY);
 }
