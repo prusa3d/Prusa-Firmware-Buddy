@@ -1,12 +1,11 @@
 #pragma once
 
 #include "stm32f4xx_hal.h"
-#include "FreeRTOS.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <device/hal.h>
 #include <atomic>
-#include "cmsis_os.h"
+#include <freertos/event_group.hpp>
 
 #ifdef __cplusplus
 
@@ -74,7 +73,7 @@ namespace hw {
             DMA_HandleTypeDef *phdma;
 
             /// Event group used to synchronize reading the buffer with DMA/UART interrupts
-            EventGroupHandle_t event_group;
+            freertos::EventGroup event_group;
 
             /// Pointer to the buffer's memory itself
             uint8_t *buffer;
@@ -103,13 +102,13 @@ namespace hw {
         uartrxbuff_t rxBuf;
         CommunicationMode txMode;
         HalfDuplexSwitchCallback_t halfDuplexSwitchCallback;
-        EventGroupHandle_t eventGroup;
+        freertos::EventGroup eventGroup;
         bool pendingWrite;
 
         uint8_t *rxBufPool;
         size_t rxBufPoolSize;
 
-        enum class Event : EventBits_t {
+        enum class Event : freertos::EventGroup::Bits {
             WriteFinished = (1 << 0),
         };
 

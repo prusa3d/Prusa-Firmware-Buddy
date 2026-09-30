@@ -6,9 +6,7 @@
 #include <common/timing.h>
 #include <logging/log.hpp>
 #include <string.h>
-
-#include "FreeRTOS.h"
-#include "task.h"
+#include <utility>
 
 namespace buddy::hw {
 
@@ -27,19 +25,9 @@ enum {
     UARTRXBUFF_EVT_ALL = UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL | UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_FIRST_HALF | UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_SECOND_HALF | UARTRXBUFF_EVT_IDLE,
 };
 
-static void set_events_from_isr(EventGroupHandle_t event_group, EventBits_t events) {
-    BaseType_t higherPriorityTaskWoken = pdFALSE;
-    BaseType_t result = xEventGroupSetBitsFromISR(event_group, events, &higherPriorityTaskWoken);
-    if (result != pdFAIL) {
-        // Switch context after returning from ISR if we have just woken a higher-priority task
-        portYIELD_FROM_ISR(higherPriorityTaskWoken);
-    }
-}
-
 void uartrxbuff_reset(BufferedSerial::uartrxbuff_t *prxbuff) {
     // Clear all the event flags
-    xEventGroupClearBits(prxbuff->event_group,
-        UARTRXBUFF_EVT_ALL);
+    prxbuff->event_group.clear(UARTRXBUFF_EVT_ALL);
     // Reset the current buffer position to the one reported by the DMA peripheral
     prxbuff->buffer_pos
         = prxbuff->buffer_size - prxbuff->phdma->Instance->NDTR;
@@ -57,8 +45,8 @@ int uartrxbuff_getchar(BufferedSerial::uartrxbuff_t *prxbuff) {
     uint32_t ndtr = prxbuff->phdma->Instance->NDTR;
     uint8_t cnt = prxbuff->buffer_size - ndtr;
 
-    EventBits_t events = xEventGroupGetBits(prxbuff->event_group);
-    EventBits_t events_to_clear = UARTRXBUFF_EVT_IDLE;
+    const freertos::EventGroup::Bits events = prxbuff->event_group.get();
+    freertos::EventGroup::Bits events_to_clear = UARTRXBUFF_EVT_IDLE;
     bool first_half_full = events & UARTRXBUFF_EVT_FIRST_HALF_FULL;
     bool second_half_full = events & UARTRXBUFF_EVT_SECOND_HALF_FULL;
 
@@ -109,7 +97,7 @@ int uartrxbuff_getchar(BufferedSerial::uartrxbuff_t *prxbuff) {
     }
 
     if (events_to_clear) {
-        xEventGroupClearBits(prxbuff->event_group, events_to_clear);
+        prxbuff->event_group.clear(events_to_clear);
     }
 
     return retval;
@@ -129,7 +117,6 @@ BufferedSerial::BufferedSerial(
     , pendingWrite(false)
     , rxBufPool(rxBufPool)
     , rxBufPoolSize(rxBufPoolSize) {
-    eventGroup = xEventGroupCreate(); // Event group for writing (Event group for reading is in rxBuff)
 }
 
 BufferedSerial::~BufferedSerial() {
@@ -144,7 +131,6 @@ void BufferedSerial::Open() {
 
     debug_assert(rxBufPoolSize <= 256); // uint8_t is used
     rxBuf.phdma = uart->hdmarx;
-    rxBuf.event_group = xEventGroupCreate();
     rxBuf.buffer = rxBufPool;
     rxBuf.buffer_size = rxBufPoolSize;
     uartrxbuff_reset(&rxBuf);
@@ -167,8 +153,6 @@ void BufferedSerial::Close() {
 
     // Clear the buffer
     uartrxbuff_reset(&rxBuf);
-
-    vEventGroupDelete(rxBuf.event_group);
 
     isOpen = false;
 }
@@ -200,13 +184,11 @@ size_t BufferedSerial::Read(char *buf, size_t len, bool terminate_on_idle /* = f
                 break;
             }
 
-            TickType_t ticks = budgetMs / portTICK_PERIOD_MS;
-            xEventGroupWaitBits(rxBuf.event_group,
+            (void)rxBuf.event_group.try_wait_for_any(
                 UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL | UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_FIRST_HALF | UARTRXBUFF_EVT_IDLE,
-                /*xClearOnExit=*/pdFALSE,
-                /*xWaitForAllBits=*/pdFALSE,
-                /*xTicksToWait=*/ticks);
-            xEventGroupClearBits(rxBuf.event_group, UARTRXBUFF_EVT_IDLE);
+                /*clear_on_exit=*/false,
+                budgetMs);
+            rxBuf.event_group.clear(UARTRXBUFF_EVT_IDLE);
         }
     }
 
@@ -214,10 +196,8 @@ size_t BufferedSerial::Read(char *buf, size_t len, bool terminate_on_idle /* = f
 }
 
 size_t BufferedSerial::Write(const char *buf, size_t len) {
-    TickType_t timeout = writeTimeoutMs / portTICK_PERIOD_MS;
-
     // make sure there are no pending event flags
-    xEventGroupClearBits(eventGroup, static_cast<EventBits_t>(Event::WriteFinished));
+    eventGroup.clear(std::to_underlying(Event::WriteFinished));
 
     if (halfDuplexSwitchCallback) {
         halfDuplexSwitchCallback(true);
@@ -242,13 +222,12 @@ size_t BufferedSerial::Write(const char *buf, size_t len) {
     }
 
     // wait for the transfer to finish
-    auto caughtEvents = xEventGroupWaitBits(eventGroup, static_cast<EventBits_t>(Event::WriteFinished),
-        /*xClearOnExit=*/pdTRUE,
-        /*xWaitForAllBits=*/pdTRUE,
-        /*xTicksToWait=*/timeout);
+    const auto caughtEvents = eventGroup.try_wait_for_all(std::to_underlying(Event::WriteFinished),
+        /*clear_on_exit=*/true,
+        writeTimeoutMs);
     pendingWrite = false;
 
-    if (caughtEvents & static_cast<EventBits_t>(Event::WriteFinished)) {
+    if (caughtEvents & std::to_underlying(Event::WriteFinished)) {
         return len;
     } else {
         // if we did not see the WriteFinished event, make sure
@@ -276,18 +255,14 @@ void BufferedSerial::WriteFinishedISR() {
     __HAL_UART_CLEAR_FLAG(uart, UART_FLAG_TC);
 
     // Inform the Write() method about the event
-    BaseType_t higherPriorityTaskWoken = pdFALSE;
-    BaseType_t result = xEventGroupSetBitsFromISR(
-        eventGroup, static_cast<EventBits_t>(Event::WriteFinished), &higherPriorityTaskWoken);
-    if (result != pdFAIL) {
-        // Switch context after returning from ISR if we have just woken a higher-priority task
-        portYIELD_FROM_ISR(higherPriorityTaskWoken);
-    }
+    // TODO: Investigate possible event loss on full timer queue
+    (void)eventGroup.set_from_isr(std::to_underlying(Event::WriteFinished));
 }
 
 void BufferedSerial::IdleISR() {
     rxBuf.idle_at_NDTR = rxBuf.phdma->Instance->NDTR;
-    set_events_from_isr(rxBuf.event_group, UARTRXBUFF_EVT_IDLE);
+    // TODO: Investigate possible event loss on full timer queue
+    (void)rxBuf.event_group.set_from_isr(UARTRXBUFF_EVT_IDLE);
 }
 
 void BufferedSerial::FirstHalfReachedISR() {
@@ -329,10 +304,11 @@ void BufferedSerial::StartReceiving() {
 }
 
 void BufferedSerial::x_half_reached(int half) {
-    const auto &event_group = rxBuf.event_group;
-    BaseType_t higherPriorityTaskWoken = pdFALSE;
-    xEventGroupSetBitsFromISR(event_group, half, &higherPriorityTaskWoken);
-    EventBits_t events = xEventGroupGetBitsFromISR(event_group);
+    auto &event_group = rxBuf.event_group;
+    // TODO: Investigate possible event loss on full timer queue
+    (void)event_group.set_from_isr(half);
+    // TODO: Investigate reading stale value
+    const freertos::EventGroup::Bits events = event_group.get_from_isr();
     static constexpr auto both_full = (UARTRXBUFF_EVT_FIRST_HALF_FULL | UARTRXBUFF_EVT_SECOND_HALF_FULL);
     if ((events & both_full) == both_full) {
         // Why? If both those flags are set, it means we haven't finished reading one half of the buffer,
@@ -340,11 +316,12 @@ void BufferedSerial::x_half_reached(int half) {
         //  haven't finished reading). Therefore, an overflow can happen at any time without us
         //  being aware (or it happened already).
         if (half == UARTRXBUFF_EVT_FIRST_HALF_FULL) {
-            set_events_from_isr(event_group, UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_FIRST_HALF);
+            // TODO: Investigate possible event loss on full timer queue
+            (void)event_group.set_from_isr(UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_FIRST_HALF);
         } else {
-            set_events_from_isr(event_group, UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_SECOND_HALF);
+            // TODO: Investigate possible event loss on full timer queue
+            (void)event_group.set_from_isr(UARTRXBUFF_EVT_POSSIBLE_OVERFLOW_SECOND_HALF);
         }
-        portYIELD_FROM_ISR(higherPriorityTaskWoken);
     }
 }
 
