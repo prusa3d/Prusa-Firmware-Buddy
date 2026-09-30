@@ -45,7 +45,7 @@ typedef struct _marlin_client_t {
 //-----------------------------------------------------------------------------
 // variables
 
-osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
+static osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
 ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 marlin_client_t clients[MARLIN_MAX_CLIENTS]; // client structure

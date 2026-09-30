@@ -287,7 +287,6 @@ LOG_COMPONENT_DEF(MarlinServer, logging::Severity::info);
 // external variables from marlin_client
 
 namespace marlin_client {
-extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
 extern ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 } // namespace marlin_client
 
