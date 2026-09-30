@@ -49,7 +49,6 @@ osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
 ClientQueue marlin_client_queue[MARLIN_MAX_CLIENTS];
 
 marlin_client_t clients[MARLIN_MAX_CLIENTS]; // client structure
-uint8_t marlin_clients = 0; // number of connected clients
 
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
@@ -81,7 +80,6 @@ void init() {
         memset(client, 0, sizeof(marlin_client_t));
         client->id = client_id;
         client->events = 0;
-        marlin_clients++;
         marlin_client_task[client_id] = osThreadGetId();
     }
 }
