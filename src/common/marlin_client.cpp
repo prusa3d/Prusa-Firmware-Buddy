@@ -91,14 +91,6 @@ void loop() {
     }
 }
 
-int get_id() {
-    marlin_client_t *client = _client_ptr();
-    if (client) {
-        return client->id;
-    }
-    return 0;
-}
-
 static bool try_send(Request &request) {
     marlin_client_t *client = _client_ptr();
     if (client == nullptr) {

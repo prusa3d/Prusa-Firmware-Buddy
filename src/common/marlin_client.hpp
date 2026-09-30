@@ -27,9 +27,6 @@ void init();
 // client loop - must be called periodically in client thread
 void loop();
 
-// returns client_id for calling thread (-1 for unattached thread)
-int get_id();
-
 // sets event notification mask
 void set_event_notify(uint64_t notify_events);
 
