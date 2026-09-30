@@ -53,7 +53,6 @@ extern uint8_t st7789v_brightness_get(void);
 extern void st7789v_brightness_enable(void);
 extern void st7789v_brightness_disable(void);
 
-extern uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y);
 extern uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y);
 extern void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565);
 

@@ -508,16 +508,6 @@ uint8_t *ili9488_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, u
     return ili9488_buff;
 }
 
-uint32_t ili9488_get_pixel_colorFormat666(uint16_t point_x, uint16_t point_y) {
-    enum { buff_sz = 5 };
-    uint8_t buff[buff_sz];
-    ili9488_cmd_caset(point_x, point_x + 1);
-    ili9488_cmd_raset(point_y, point_y + 1);
-    ili9488_cmd_ramrd(buff, buff_sz);
-    uint32_t ret = ((buff[0] << 16) & 0xFC0000) + ((buff[1] << 8) & 0x00FC00) + (buff[2] & 0xFC);
-    return ret; // directColor;
-}
-
 static void ili9488_fill_rect_color_fast(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint8_t clr33) {
     // prepare buffer; we are writing two pixels per byte
     const uint32_t pixel_count = (uint32_t)rect_w * rect_h;

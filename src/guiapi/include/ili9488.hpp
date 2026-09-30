@@ -49,7 +49,6 @@ extern void ili9488_brightness_disable(void);
 
 extern uint8_t *ili9488_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y);
 
-extern uint32_t ili9488_get_pixel_colorFormat666(uint16_t point_x, uint16_t point_y);
 extern void ili9488_set_pixel(uint16_t point_x, uint16_t point_y, uint32_t clr666);
 
 /**

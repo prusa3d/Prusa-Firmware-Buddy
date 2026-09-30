@@ -343,24 +343,6 @@ bool st7789v_is_reset_required() {
     return false;
 }
 
-/*void st7789v_test_miso(void)
-{
-//	uint16_t data_out[8] = {CLR565_WHITE, CLR565_WHITE, CLR565_RED, CLR565_RED, CLR565_GREEN, CLR565_GREEN, CLR565_BLUE, CLR565_BLUE};
-    uint8_t data_out[16] = {0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint8_t data_in[32];
-    memset(data_in, 0, sizeof(data_in));
-    st7789v_clr_cs();
-    st7789v_cmd_caset(0, ST7789V_COLS - 1);
-    st7789v_cmd_raset(0, ST7789V_ROWS - 1);
-    st7789v_cmd_ramwr((uint8_t*)data_out, 16);
-    st7789v_set_cs();
-    st7789v_clr_cs();
-    st7789v_cmd_caset(0, ST7789V_COLS - 1);
-    st7789v_cmd_raset(0, ST7789V_ROWS - 1);
-    st7789v_cmd_ramrd(data_in, 32);
-    st7789v_set_cs();
-}*/
-
 void st7789v_init_ctl_pins(void) {
     st7789v_flg &= ~(FLG_CS | FLG_RS | FLG_RST);
     st7789v_set_rst();
@@ -411,7 +393,6 @@ void st7789v_clear(uint16_t clr565) {
         st7789v_wr(st7789v_buff, 2 * ST7789V_COLS * 16);
     }
     st7789v_set_cs();
-    //	st7789v_test_miso();
 }
 
 /// Turns the specified pixel to the specified color
@@ -419,47 +400,6 @@ void st7789v_set_pixel(uint16_t point_x, uint16_t point_y, uint16_t clr565) {
     st7789v_cmd_caset(point_x, 1);
     st7789v_cmd_raset(point_y, 1);
     st7789v_cmd_ramwr((uint8_t *)(&clr565), 2);
-}
-
-// 1 == 0000 0001, 5 == 0001 1111
-static uint16_t set_num_of_ones(uint8_t num_of_ones) {
-    return ~((uint16_t)(-1) << num_of_ones);
-}
-
-// BYTEs 0 and 1 are empty
-// bit0 -> bit5 BYTE2
-// bit1 -> bit6 BYTE2
-// bit2 -> bit7 BYTE2
-
-// bit3 -> bit3 BYTE4
-// bit4 -> bit4 BYTE4
-// bit5 -> bit5 BYTE4
-// bit6 -> bit6 BYTE4
-// bit7 -> bit7 BYTE4
-
-// bit8 -> bit3 BYTE3
-// bit9 -> bit4 BYTE3
-// bit10-> bit5 BYTE3
-// bit11-> bit6 BYTE3
-// bit12-> bit7 BYTE3
-
-// bit13-> bit2 BYTE3
-// bit14-> bit3 BYTE3
-// bit15-> bit4 BYTE2
-
-// since BYTE0 and BYTE1 are empty, buff[0] == BYTE2
-static uint16_t rd18bit_to_16bit(uint8_t *buff) {
-    return ((uint16_t)(buff[0] >> 5) & set_num_of_ones(3)) | (((uint16_t)(buff[2] >> 3) & set_num_of_ones(5)) << 3) | (((uint16_t)(buff[1] >> 3) & set_num_of_ones(5)) << 8) | (((uint16_t)(buff[0] >> 2) & set_num_of_ones(3)) << 13);
-}
-
-uint16_t st7789v_get_pixel_colorFormat565(uint16_t point_x, uint16_t point_y) {
-    enum { buff_sz = 5 };
-    uint8_t buff[buff_sz];
-    st7789v_cmd_caset(point_x, 1);
-    st7789v_cmd_raset(point_y, 1);
-    st7789v_cmd_ramrd(buff, buff_sz);
-    uint16_t ret = rd18bit_to_16bit(buff + 2);
-    return ret; // directColor;
 }
 
 uint8_t *st7789v_get_block(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
