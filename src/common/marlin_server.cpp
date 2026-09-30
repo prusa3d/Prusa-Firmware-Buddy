@@ -311,7 +311,6 @@ namespace {
 
     struct server_t {
         EventMask notify_events[MARLIN_MAX_CLIENTS]; // event notification mask - message filter
-        EventMask notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask - message filter
         EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
         State print_state; // printing state (printing, paused, ...)
         bool print_is_serial = false; //< When true, current print is not from USB, but sent via gcode commands.
@@ -761,7 +760,6 @@ void init(void) {
     server.flags = 0;
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
         server.notify_events[i] = make_mask(Event::Acknowledge); // by default only ack
-        server.notify_changes[i] = 0; // by default nothing
     }
     server_task = osThreadGetId();
 
