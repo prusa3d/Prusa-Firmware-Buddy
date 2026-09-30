@@ -446,7 +446,6 @@ extern "C" void main_cpp(void) {
         //
         // block esp in tester mode (redscreen probably shouldn't happen on tester, but better safe than sorry)
         if (!running_in_tester_mode() && config_store().connect_enabled.get()) {
-            TaskDeps::components_init();
             // Needed for SSL random data
             hw_rng_init();
 
@@ -466,7 +465,6 @@ extern "C" void main_cpp(void) {
     bsod_mark_shown(); // BSOD would be shown, allow new BSOD dump
 
     buddy::logging_init();
-    TaskDeps::components_init();
 
 #if BOARD_IS_BUDDY() || BOARD_IS_XBUDDY()
     hw_tim3_init();

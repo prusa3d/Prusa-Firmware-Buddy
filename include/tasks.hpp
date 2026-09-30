@@ -2,8 +2,7 @@
 
 #include <concepts>
 #include <cstdint>
-#include <FreeRTOS.h>
-#include <event_groups.h>
+#include <freertos/event_group.hpp>
 #include <stdint.h>
 #include <option/has_puppies.h>
 #include "utility_extensions.hpp"
@@ -18,7 +17,7 @@ namespace TaskDeps {
  * Provided tools enable definition of dependency masks, waiting for dependencies being satisfied and marking dependencies as provided.
  */
 
-using dependency_t = EventBits_t;
+using dependency_t = freertos::EventGroup::Bits;
 
 /// Definition of different dependencies
 enum class Dependency : size_t {
@@ -36,8 +35,8 @@ enum class Dependency : size_t {
     _count
 };
 
-// Check dependency mask fits into the dependency_t integer
-static_assert(std::to_underlying(Dependency::_count) <= sizeof(dependency_t) * 8);
+// Check dependency mask fits into the usable event group bits
+static_assert(std::to_underlying(Dependency::_count) <= 24);
 
 // Create dependency mask from the dependencies enum
 constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
@@ -81,16 +80,13 @@ namespace Tasks {
 } // namespace Tasks
 
 // Needed for inline methods being embedded to different compilation modules
-extern EventGroupHandle_t components_ready;
-
-/// Initialize component dependency resolution
-void components_init();
+extern freertos::EventGroup components_ready;
 
 /**
  * Check whether all dependencies are fulfilled already
  */
 inline bool check(dependency_t dependencies) {
-    return (xEventGroupGetBits(components_ready) & dependencies) == dependencies;
+    return (components_ready.get() & dependencies) == dependencies;
 }
 
 /**
@@ -105,7 +101,7 @@ inline bool check(Dependency dependency) {
  */
 inline void wait(dependency_t dependencies) {
     if (dependencies) {
-        xEventGroupWaitBits(components_ready, dependencies, pdFALSE, pdTRUE, portMAX_DELAY);
+        (void)components_ready.wait_for_all(dependencies, false);
     }
 }
 
@@ -113,7 +109,7 @@ inline void wait(dependency_t dependencies) {
  * Mark particular dependency as satisfied
  */
 inline void provide(Dependency dependency) {
-    xEventGroupSetBits(components_ready, 1 << std::to_underlying(dependency));
+    components_ready.set(make(dependency));
 }
 
 } // namespace TaskDeps
