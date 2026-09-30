@@ -69,9 +69,6 @@ int event(marlin_server::Event evt_id);
 // returns current event status for evt_id and clear event
 int event_clr(marlin_server::Event evt_id);
 
-// returns current event status for all events as 64bit mask
-uint64_t events();
-
 // returns number of commands in gcode queue
 uint8_t get_gqueue();
 

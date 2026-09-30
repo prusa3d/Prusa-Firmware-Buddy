@@ -250,11 +250,6 @@ int event_clr(Event evt_id) {
     return ret;
 }
 
-uint64_t events() {
-    marlin_client_t *client = _client_ptr();
-    return (client) ? client->events : 0;
-}
-
 void do_babysteps_Z(float offs) {
     Request request;
     request.type = Request::Type::Babystep;
