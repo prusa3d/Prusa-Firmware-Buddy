@@ -421,6 +421,14 @@
             }
         },
         {
+            "name": "xl-htcontroller",
+            "description": "Firmware for HT controller for XL",
+            "cacheVariables": {
+                "PRINTER": "XL",
+                "BOARD": "HTCONTROLLER"
+            }
+        },
+        {
             "name": "coreone_indx-indx_head",
             "description": "Firmware for INDX head",
             "cacheVariables": {

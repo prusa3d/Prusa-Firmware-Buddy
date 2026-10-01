@@ -32,6 +32,7 @@ set(BOARD_VALID_OPTS
     "ANFC"
     "TOOL_OFFSET_SENSOR"
     "INDX_HEAD"
+    "HTCONTROLLER"
     )
 set(MCU_VALID_OPTS
     "<default>"
@@ -188,6 +189,8 @@ if(${MCU} STREQUAL "<default>")
     set(MCU "STM32C092KCUX")
   elseif(${BOARD} STREQUAL "INDX_HEAD")
     set(MCU "STM32C092KCUX")
+  elseif(${BOARD} STREQUAL "HTCONTROLLER")
+    set(MCU "STM32G070RBT6")
   else()
     message(FATAL_ERROR "Don't know what MCU to set as default for this board/version")
   endif()
@@ -204,6 +207,7 @@ if(${BOARD} STREQUAL "DWARF"
    OR ${BOARD} STREQUAL "INDX_HEAD"
    OR ${BOARD} STREQUAL "XL_DEV_KIT_XLB"
    OR ${BOARD} STREQUAL "TOOL_OFFSET_SENSOR"
+   OR ${BOARD} STREQUAL "HTCONTROLLER"
    )
   set(CONNECT
       "NO"
@@ -814,6 +818,8 @@ else()
 endif()
 set_feature_for_printers(HAS_HEATBED_SCREWS_DURING_TRANSPORT "COREONEL" "COREONEL_INDX")
 
+set_feature_for_printers(HAS_HTCONTROLLER "XL")
+
 # Use websocket to talk to Connect instead of many http requests.
 #
 # iX can't have websockets yet because of AFS version of Connect, all other printers should have it
@@ -1040,6 +1046,7 @@ if(HAS_DWARF
    OR HAS_TOOL_OFFSET_SENSOR
    OR HAS_INDX_HEAD
    OR HAS_XL_CAN
+   OR HAS_HTCONTROLLER
    )
   set(HAS_PUPPIES YES)
 else()
@@ -1130,6 +1137,12 @@ if(ENABLE_PUPPY_BOOTLOAD)
       CACHE
         PATH
         "Where to get the XLS XL-CAN's binary from. If set, the project won't try to build anything."
+      )
+  set(HTCONTROLLER_BINARY_PATH
+      ""
+      CACHE
+        PATH
+        "Where to get the HT controller's binary from. If set, the project won't try to build anything."
       )
 endif()
 

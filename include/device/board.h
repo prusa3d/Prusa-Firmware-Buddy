@@ -40,6 +40,7 @@
 #define BOARD_XBUDDY_EXTENSION()   7
 #define BOARD_ANFC()               8
 #define BOARD_TOOL_OFFSET_SENSOR() 9
+#define BOARD_HTCONTROLLER()       10
 
 #if !defined(BOARD)
     #error Please define the BOARD macro
@@ -62,6 +63,8 @@
     #define BOARD_IS_ANFC() 1
 #elif BOARD() == BOARD_TOOL_OFFSET_SENSOR()
     #define BOARD_IS_TOOL_OFFSET_SENSOR() 1
+#elif BOARD() == BOARD_HTCONTROLLER()
+    #define BOARD_IS_HTCONTROLLER() 1
 #else
     #error BOARD is something weird
 #endif
@@ -100,4 +103,8 @@
 
 #ifndef BOARD_IS_TOOL_OFFSET_SENSOR
     #define BOARD_IS_TOOL_OFFSET_SENSOR() 0
+#endif
+
+#ifndef BOARD_IS_HTCONTROLLER
+    #define BOARD_IS_HTCONTROLLER() 0
 #endif

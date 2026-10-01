@@ -133,6 +133,10 @@ elseif(BOARD STREQUAL "INDX_HEAD")
   add_subdirectory(freertos)
   add_subdirectory(puppy/indx_head)
 
+elseif(BOARD STREQUAL "HTCONTROLLER")
+  add_subdirectory(freertos)
+  add_subdirectory(puppy/htcontroller)
+
 elseif(BOARD STREQUAL "XL_DEV_KIT_XLB")
   target_include_directories(firmware PRIVATE .)
 

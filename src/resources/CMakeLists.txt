@@ -96,6 +96,9 @@ if(PUPPY_FLASH_FW)
   if(HAS_INDX_HEAD)
     add_resource("${INDX_HEAD_BINARY_PATH}" "/puppies/fw-indx_head.bin")
   endif()
+  if(HAS_HTCONTROLLER)
+    add_resource("${HTCONTROLLER_BINARY_PATH}" "/puppies/fw-htcontroller.bin")
+  endif()
 endif()
 
 # /web directory
