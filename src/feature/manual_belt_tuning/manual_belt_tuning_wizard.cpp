@@ -56,11 +56,14 @@ public:
     }
 
     Result run_from_gantry() {
+#if !HAS_GANTRY_SQUARENESS_CHECK()
+        // With the squareness check, the gantry has already been measured (selftest dependency)
         disable_all_steppers();
         fsm_change(PhaseManualBeltTuning::check_x_gantry);
         if (!wait_for_continue(PhaseManualBeltTuning::check_x_gantry)) {
             return Result::abort;
         }
+#endif
 
         fsm_change(PhaseManualBeltTuning::homing_wait);
         enable_all_steppers();
@@ -131,6 +134,12 @@ public:
                 fsm_change(PhaseManualBeltTuning::alignment_issue);
                 switch (wait_for_response(PhaseManualBeltTuning::alignment_issue)) {
                 case Response::Retry:
+#if HAS_GANTRY_SQUARENESS_CHECK()
+                    microstep_restorer.reset();
+                    if (indx_gantry_squareness::run_wizard() == indx_gantry_squareness::WizardResult::aborted) {
+                        return Result::abort;
+                    }
+#endif
                     return Result::retry;
                 case Response::Abort:
                     return Result::abort;
@@ -186,7 +195,14 @@ public:
 
         // The tensioner adjustment can move the belts on the pulleys - verify
         // again, with the squareness wizard FSM popping up over this one
-        indx_gantry_squareness::run_wizard();
+        switch (indx_gantry_squareness::run_wizard()) {
+        case indx_gantry_squareness::WizardResult::passed:
+            break;
+        case indx_gantry_squareness::WizardResult::realigned:
+            return Result::retry;
+        case indx_gantry_squareness::WizardResult::aborted:
+            return Result::abort;
+        }
 #endif
 
         fsm_change(PhaseManualBeltTuning::finished);

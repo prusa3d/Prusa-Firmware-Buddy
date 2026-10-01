@@ -22,11 +22,7 @@ constexpr const char *txt_desc_begin = N_("Before we begin, scan the QR code for
 // Checking if X-axis gantry is correctly lined up PHASE: check_x_gantry
 constexpr const char link_belt_calib_gantry[] = "prusa.io/core-belt-calibration";
 constexpr const char *txt_title_gantry = N_("Check the gantry squareness");
-#if HAS_INDX()
-constexpr const char *txt_desc_gantry = N_("Move printhead to the back. Check there's no gap between gantry and tensioner on both ends. If there is, follow the guide.");
-#else
 constexpr const char *txt_desc_gantry = N_("Move printhead to the front. Check there's no gap between gantry and tensioner on both ends. If there is, follow the guide.");
-#endif
 // Waiting for homing and moving to wizard position
 constexpr auto txt_wait = N_("Printer is homing, please wait.");
 // Prepare for measuring actual frequencies, QR, prerequisites PHASE: intro_measure
