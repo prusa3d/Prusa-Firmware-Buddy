@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inplace_function.hpp>
+#include <mapi/parking.hpp>
 
 #include <option/has_toolchanger.h>
 
@@ -17,6 +18,10 @@ struct CalibrationPreamble {
 #endif
     };
 
+    /// Where the moving_away step lowers the bed. Z only: XY may be unhomed at that point.
+    /// The default trades hand clearance for travel time.
+    ParkingPosition moving_away_position { .z = ParkingPosition::AtLeast { .absolute = 100 } };
+
 #if HAS_TOOLCHANGER()
     enum class ToolPolicy : uint8_t {
         keep_as_is, ///< only home XY
@@ -29,7 +34,7 @@ struct CalibrationPreamble {
     const stdext::inplace_function<void(Step)> on_step;
 
     /// Makes subsequent XY moves safe regardless of a possibly unhomed/stale Z:
-    /// - lowers the bed
+    /// - lowers the bed to moving_away_position
     /// - homes XY (precisely when a toolchange is about to follow)
     /// - picks/parks a tool per tool_policy.
     /// The on_step callback fires before each motion step so wizards can report their FSM phase.

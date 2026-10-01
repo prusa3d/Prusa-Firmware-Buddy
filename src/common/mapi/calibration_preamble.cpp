@@ -17,9 +17,7 @@ bool CalibrationPreamble::run() const {
     {
         // Make sure we have enough clearance above the bed
         on_step(Step::moving_away);
-
-        // 10 cm leaves room for a hand and a wrench
-        if (!park(ParkingPosition { .z = ParkingPosition::AtLeast { .absolute = 100 } })) {
+        if (!park(moving_away_position)) {
             return false;
         }
     }
