@@ -8,6 +8,8 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 
+#include "ticks.hpp"
+
 namespace freertos {
 
 BinarySemaphore::BinarySemaphore() {
@@ -60,7 +62,7 @@ void BinarySemaphore::acquire() {
 }
 
 bool BinarySemaphore::try_acquire_for(uint32_t ms) {
-    return xSemaphoreTake(SemaphoreHandle_t(handle), pdMS_TO_TICKS(ms)) == pdTRUE;
+    return xSemaphoreTake(SemaphoreHandle_t(handle), ms_to_ticks(ms)) == pdTRUE;
 }
 
 } // namespace freertos

@@ -7,6 +7,8 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 
+#include "ticks.hpp"
+
 namespace freertos {
 
 QueueBase::QueueBase(size_t item_count, size_t item_size, uint8_t *item_storage)
@@ -50,11 +52,11 @@ void QueueBase::receive(void *payload) {
 }
 
 bool QueueBase::try_send(const void *payload, size_t milliseconds_to_wait) {
-    return xQueueSend(queue_handle, payload, pdMS_TO_TICKS(milliseconds_to_wait)) == pdTRUE;
+    return xQueueSend(queue_handle, payload, ms_to_ticks(milliseconds_to_wait)) == pdTRUE;
 }
 
 bool QueueBase::try_receive(void *payload, size_t milliseconds_to_wait) {
-    return xQueueReceive(queue_handle, payload, pdMS_TO_TICKS(milliseconds_to_wait)) == pdTRUE;
+    return xQueueReceive(queue_handle, payload, ms_to_ticks(milliseconds_to_wait)) == pdTRUE;
 }
 
 } // namespace freertos

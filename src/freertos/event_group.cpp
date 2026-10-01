@@ -5,6 +5,8 @@
 #include <FreeRTOS.h>
 #include <event_groups.h>
 
+#include "ticks.hpp"
+
 #include <type_traits>
 
 namespace freertos {
@@ -54,11 +56,11 @@ EventGroup::Bits EventGroup::wait_for_any(Bits bits, bool clear_on_exit) {
 }
 
 EventGroup::Bits EventGroup::try_wait_for_all(Bits bits, bool clear_on_exit, uint32_t timeout_ms) {
-    return xEventGroupWaitBits(EventGroupHandle_t(handle), bits, clear_on_exit, pdTRUE, pdMS_TO_TICKS(timeout_ms));
+    return xEventGroupWaitBits(EventGroupHandle_t(handle), bits, clear_on_exit, pdTRUE, ms_to_ticks(timeout_ms));
 }
 
 EventGroup::Bits EventGroup::try_wait_for_any(Bits bits, bool clear_on_exit, uint32_t timeout_ms) {
-    return xEventGroupWaitBits(EventGroupHandle_t(handle), bits, clear_on_exit, pdFALSE, pdMS_TO_TICKS(timeout_ms));
+    return xEventGroupWaitBits(EventGroupHandle_t(handle), bits, clear_on_exit, pdFALSE, ms_to_ticks(timeout_ms));
 }
 
 } // namespace freertos

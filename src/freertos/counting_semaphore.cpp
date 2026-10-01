@@ -6,6 +6,8 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 
+#include "ticks.hpp"
+
 namespace freertos {
 
 CountingSemaphore::CountingSemaphore(size_t max_count, size_t initial_count) {
@@ -36,7 +38,7 @@ void CountingSemaphore::acquire() {
 }
 
 bool CountingSemaphore::try_acquire_for(size_t duration_ms) {
-    return xSemaphoreTake(SemaphoreHandle_t(handle), pdMS_TO_TICKS(duration_ms)) == pdTRUE;
+    return xSemaphoreTake(SemaphoreHandle_t(handle), ms_to_ticks(duration_ms)) == pdTRUE;
 }
 
 } // namespace freertos
