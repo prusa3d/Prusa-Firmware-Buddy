@@ -8,8 +8,6 @@
 namespace marlin_server {
 
 enum class Event : uint8_t {
-    MediaInserted,
-    MediaRemoved,
     RequestCalibrationsScreen,
     Acknowledge,
     NotAcknowledge,

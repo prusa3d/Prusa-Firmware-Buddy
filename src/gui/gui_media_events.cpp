@@ -5,8 +5,7 @@
  */
 
 #include "gui_media_events.hpp"
-#include "marlin_client.hpp"
-#include "marlin_events.h"
+#include "marlin_vars.hpp"
 #include "usb_host/usb_host.h"
 
 GuiMediaEventsHandler &GuiMediaEventsHandler::Instance() {
@@ -26,11 +25,12 @@ void GuiMediaEventsHandler::Tick() {
 
 void GuiMediaEventsHandler::tick() {
     MediaState_t actual_state = MediaState_t::unknown;
+    const bool media_inserted = marlin_vars().media_inserted;
 
-    if (marlin_client::event_clr(marlin_server::Event::MediaInserted)) {
+    if (media_inserted && media_state != MediaState_t::inserted) {
         actual_state = MediaState_t::inserted;
     }
-    if (marlin_client::event_clr(marlin_server::Event::MediaRemoved)) {
+    if (!media_inserted && media_state != MediaState_t::removed) {
         actual_state = MediaState_t::removed;
     }
 

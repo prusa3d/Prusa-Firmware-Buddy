@@ -457,7 +457,7 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
                 TaskDeps::check(TaskDeps::Dependency::autostart_done) && !power_panic::is_power_panic_resuming() &&
     #endif
                 GuiMediaEventsHandler::ConsumeOneClickPrinting() && !usbh_power_cycle::block_one_click_print()) {
-                // TODO this should be done in main thread before Event::MediaInserted is generated
+                // TODO this should be done in main thread before media is reported as inserted
                 // if it is not the latest gcode might not be selected
 
                 std::array<char, filename_defs::path_buffer_size> filepath;

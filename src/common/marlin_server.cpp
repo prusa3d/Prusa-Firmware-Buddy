@@ -3656,10 +3656,7 @@ static void _server_update_vars() {
         }
     }();
 
-    if (const bool media = usb_host::is_media_inserted(); marlin_vars().media_inserted != media) {
-        marlin_vars().media_inserted = media;
-        _schedule_notify_event(media ? Event::MediaInserted : Event::MediaRemoved);
-    }
+    marlin_vars().media_inserted = usb_host::is_media_inserted();
 
     const auto duration = marlin_vars().print_duration.get();
     const auto print_speed = marlin_vars().print_speed.get();
@@ -3763,13 +3760,6 @@ bool _process_server_valid_request(const Request &request, int client_id) {
         return true;
     case Request::Type::EventMask:
         server.notify_events[client_id] = request.event_mask;
-        // Send Event::MediaInserted event if media currently inserted
-        // This is temporary solution, Event::MediaInserted and Event::MediaRemoved events are replaced
-        // with variable media_inserted, but some parts of application still using the events.
-        // We need this workaround for app startup.
-        if ((server.notify_events[client_id] & make_mask(Event::MediaInserted)) && marlin_vars().media_inserted) {
-            server.client_events[client_id] |= make_mask(Event::MediaInserted);
-        }
         return true;
 #if HAS_SELFTEST()
     case Request::Type::TestStart:
