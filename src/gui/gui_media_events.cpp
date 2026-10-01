@@ -24,32 +24,18 @@ void GuiMediaEventsHandler::Tick() {
 }
 
 void GuiMediaEventsHandler::tick() {
-    MediaState_t actual_state = MediaState_t::unknown;
-    const bool media_inserted = marlin_vars().media_inserted;
-
-    if (media_inserted && media_state != MediaState_t::inserted) {
-        actual_state = MediaState_t::inserted;
-    }
-    if (!media_inserted && media_state != MediaState_t::removed) {
-        actual_state = MediaState_t::removed;
+    const MediaState_t new_state = marlin_vars().media_inserted ? MediaState_t::inserted : MediaState_t::removed;
+    if (new_state == media_state) {
+        return;
     }
 
-    switch (actual_state) {
-    case MediaState_t::inserted:
-        if (!usb_host::is_media_inserted_since_startup()) {
-            one_click_printing = true;
-        }
-        state_sent = false;
-        break; // update after break
-    case MediaState_t::removed:
+    if (new_state == MediaState_t::removed) {
         one_click_printing = false;
-        state_sent = false;
-        break; // update after break
-    default:
-        return; // nothing happened, nothing to do .. just return
+    } else if (!usb_host::is_media_inserted_since_startup()) {
+        one_click_printing = true;
     }
-
-    media_state = actual_state; // update
+    state_sent = false;
+    media_state = new_state;
 }
 
 bool GuiMediaEventsHandler::ConsumeOneClickPrinting() {
