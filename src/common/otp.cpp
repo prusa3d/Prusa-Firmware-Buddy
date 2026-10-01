@@ -80,12 +80,13 @@ inline std::optional<board_revision_t> extract_board_revision(const otp::helpers
     });
 }
 
-inline std::optional<MAC_addr> extract_mac_address(const otp::helpers::AnyOTP &otp_str) {
-    return match(otp_str, []<typename T>([[maybe_unused]] const T &otp) -> std::optional<MAC_addr> {
+/// The returned pointer refers into `otp_str`.
+inline const MAC_addr *extract_mac_address(const otp::helpers::AnyOTP &otp_str) {
+    return match(otp_str, []<typename T>([[maybe_unused]] const T &otp) -> const MAC_addr * {
         if constexpr (requires { T::mac_address; }) {
-            return otp.mac_address;
+            return &otp.mac_address;
         } else {
-            return std::nullopt;
+            return nullptr;
         }
     });
 }
@@ -153,20 +154,30 @@ std::optional<datamatrix_t> otp_serial_nr_to_datamatrix(const serial_nr_t &sn) {
     return otp::decode_datamatrix(std::span<const uint8_t, std::tuple_size_v<DatamatrixRaw>> { reinterpret_cast<const uint8_t *>(sn.begin()), sn.size() - 1 });
 }
 
-std::optional<MAC_addr> otp_get_mac_address() {
-    return board_otp().and_then(extract_mac_address);
+const MAC_addr *otp_get_mac_address() {
+    const auto &otp = board_otp();
+    if (!otp.has_value()) {
+        return nullptr;
+    }
+    return extract_mac_address(*otp);
 }
 
 std::optional<MAC_addr> otp_parse_mac_address(const Bytes memory) {
-    return otp::helpers::parse_otp(memory).and_then(extract_mac_address);
+    return otp::helpers::parse_otp(memory).and_then([](const otp::helpers::AnyOTP &otp) -> std::optional<MAC_addr> {
+        const MAC_addr *mac = extract_mac_address(otp);
+        if (mac == nullptr) {
+            return std::nullopt;
+        }
+        return *mac;
+    });
 }
 
 MAC_str otp_get_mac_address_str() {
     MAC_str mac_address_str;
     mac_address_str.fill(0);
 
-    const auto mac = otp_get_mac_address();
-    if (mac.has_value()) {
+    const MAC_addr *mac = otp_get_mac_address();
+    if (mac != nullptr) {
         snprintf(mac_address_str.begin(), mac_address_str.size(),
             "%02x:%02x:%02x:%02x:%02x:%02x",
             mac->mac[0], mac->mac[1], mac->mac[2], mac->mac[3], mac->mac[4], mac->mac[5]);

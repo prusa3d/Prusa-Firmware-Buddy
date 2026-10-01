@@ -24,8 +24,8 @@ uint32_t otp_get_timestamp();
 /// @returns unique identifier of the STM32 CPU - 96bits
 const STM32_UUID *otp_get_STM32_UUID();
 
-/// @returns MAC address - valid for all OTP data structures
-std::optional<MAC_addr> otp_get_mac_address();
+/// @returns MAC address, valid for the program lifetime; nullptr when the OTP holds no MAC address
+const MAC_addr *otp_get_mac_address();
 
 /// @returns MAC address formatted as "XX:XX:XX:XX:XX:XX" string
 MAC_str otp_get_mac_address_str();
@@ -87,8 +87,7 @@ std::optional<uint32_t> otp_parse_timestamp(const Bytes memory);
 /**
  * @brief Parse MAC address from external OTP memory.
  * @param memory parse from this memory
- * @param len span of valid memory in bytes
- * @returns pointer to memory where MAC address is, or NULL if not parsed correctly
+ * @returns MAC address, or std::nullopt if not parsed correctly or the OTP holds no MAC address
  */
 std::optional<MAC_addr> otp_parse_mac_address(const Bytes memory);
 
