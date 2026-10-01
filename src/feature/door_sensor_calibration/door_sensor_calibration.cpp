@@ -175,7 +175,7 @@ private:
             continue_abort_phases(buddy::DoorSensor::State::door_open, PhaseDoorSensorCalibration::done, PhaseDoorSensorCalibration::loosen_screw_quarter);
             break;
         case PhaseDoorSensorCalibration::loosen_screw_quarter:
-            continue_abort_phases(buddy::DoorSensor::State::door_closed, PhaseDoorSensorCalibration::done, PhaseDoorSensorCalibration::repeat);
+            continue_abort_phases(buddy::DoorSensor::State::door_open, PhaseDoorSensorCalibration::done, PhaseDoorSensorCalibration::repeat);
             break;
         case PhaseDoorSensorCalibration::ask_enable_safety_features:
             ask_enable_safety_features();
