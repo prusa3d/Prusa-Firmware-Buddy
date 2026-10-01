@@ -1,4 +1,5 @@
 #include "hal.hpp"
+#include "logging.hpp"
 
 #include <cstddef>
 #include <cstdlib>
@@ -7,6 +8,9 @@
 #include <task.h>
 #include <freertos/timing.hpp>
 #include <bsod/bsod.h>
+#include <logging/log.hpp>
+
+LOG_COMPONENT_DEF(HTController, logging::Severity::info);
 
 // This magical incantation is required for fw_descriptor integration in cmake to work.
 [[maybe_unused]] __attribute__((section(".fw_descriptor"), used)) const std::byte fw_descriptor[48] {};
@@ -16,6 +20,7 @@ namespace {
 void main_task_code(void *) {
     while (true) {
         freertos::delay(1000);
+        log_info(HTController, "1s tick alive");
     }
 }
 
@@ -27,6 +32,8 @@ StaticTask_t main_task_control_block;
 
 extern "C" int main() {
     hal::init();
+    htcontroller::logging_init();
+    log_info(HTController, "Starting");
 
     [[maybe_unused]] TaskHandle_t main_task_handle = xTaskCreateStatic(
         main_task_code,

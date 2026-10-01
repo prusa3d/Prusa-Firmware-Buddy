@@ -22,8 +22,12 @@ add_library(STM32G0_HAL_Config ALIAS HAL_Config)
 
 target_sources(
   firmware
-  PRIVATE "${CMAKE_SOURCE_DIR}/src/device/multi_watchdog.cpp"
+  PRIVATE "${CMAKE_SOURCE_DIR}/src/logging/log.cpp"
+          "${CMAKE_SOURCE_DIR}/src/logging/log_dest_rtt.cpp"
+          "${CMAKE_SOURCE_DIR}/src/logging/log_dest_shared.cpp"
+          "${CMAKE_SOURCE_DIR}/src/logging/log_puppy.cpp"
           src/hal.cpp
+          src/logging.cpp
           src/main.cpp
           src/startup.s
           src/stdlib.cpp
@@ -31,8 +35,10 @@ target_sources(
           src/timing.cpp
   )
 
+# The shared logging sources include <printf/printf.h> relative to lib
 target_include_directories(
-  firmware PRIVATE . ${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src
+  firmware PRIVATE . ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/lib
+                   ${CMAKE_SOURCE_DIR}/src/logging/include ${CMAKE_CURRENT_SOURCE_DIR}/src
   )
 
 target_link_libraries(
@@ -45,7 +51,12 @@ target_link_libraries(
           freertos
           BuddyHeaders
           cortex-m0-atomic
+          Segger
   )
+
+# Keep the RTT control block a global symbol so the debugger can locate it LTO would otherwise
+# remove it
+target_link_options(firmware PRIVATE -Wl,--undefined=_SEGGER_RTT)
 
 # TODO For now, we need to also explicitly depend on `FreeRTOS::FreeRTOS` because we are using
 # functions that are not wrapped by `freertos`.

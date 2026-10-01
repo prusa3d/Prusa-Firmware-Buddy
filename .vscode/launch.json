@@ -619,6 +619,23 @@
                 "enabled": true,
             },
             "preLaunchTask": "Wait 1", // this is needed when starting all puppies at once, because there is some issue when all of them start at once
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console",
+                        "logfile": "${command:cmake.buildDirectory}/rtt_log.txt"
+                    }
+                ]
+            },
         },
         {
             "name": "Launch Simulator Scripted",

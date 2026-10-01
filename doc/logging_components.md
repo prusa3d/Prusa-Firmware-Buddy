@@ -24,6 +24,7 @@ This file is generated automatically so don't edit it directly
 - Fsm: logging::Severity::debug, src/common/fsm_states.cpp
 - GUI: logging::Severity::debug, src/gui/logger.cpp
 - GantrySquareness: logging::Severity::info, src/feature/indx_gantry_squareness/indx_gantry_squareness.cpp
+- HTController: logging::Severity::info, src/puppy/htcontroller/src/main.cpp
 - HotendDetect: logging::Severity::info, src/common/tool/printer/tools_xbuddy.cpp
 - INDX: logging::Severity::info, src/puppies/INDX.cpp
 - LDC1612: logging::Severity::warning, src/puppy/tool_offset_sensor/src/ldc1612.cpp
