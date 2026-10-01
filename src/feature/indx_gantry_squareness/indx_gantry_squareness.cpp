@@ -81,6 +81,7 @@ namespace {
         const bool tool_picked = PhysicalToolIndex::currently_selected_opt().has_value();
 
         const mapi::CalibrationPreamble preamble {
+            .moving_away_position = { .z = mapi::ParkingPosition::AtLeast { .absolute = Z_HAND_ACCESS_POS } },
             .tool_policy = mapi::CalibrationPreamble::ToolPolicy::ensure_parked,
             .on_step = [](mapi::CalibrationPreamble::Step) {},
         };

@@ -188,6 +188,7 @@ private:
         }
 
         const mapi::CalibrationPreamble preamble {
+            .moving_away_position = { .z = mapi::ParkingPosition::AtLeast { .absolute = Z_HAND_ACCESS_POS } },
             .tool_policy = mapi::CalibrationPreamble::ToolPolicy::ensure_parked,
             .on_step = [&](mapi::CalibrationPreamble::Step step) {
                 switch (step) {
@@ -340,7 +341,7 @@ private:
                 planner.synchronize();
             }
 
-            // Home XY (z_raise=0: Z is at the bottom, no need for Z clearance)
+            // Home XY (z_raise=0: the bed is lowered, no need for Z clearance)
             GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = true });
 
             // Record stepper positions after homing
