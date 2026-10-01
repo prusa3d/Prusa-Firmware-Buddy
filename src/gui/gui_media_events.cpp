@@ -33,9 +33,6 @@ void GuiMediaEventsHandler::tick() {
     if (marlin_client::event_clr(marlin_server::Event::MediaRemoved)) {
         actual_state = MediaState_t::removed;
     }
-    if (marlin_client::event_clr(marlin_server::Event::MediaError)) {
-        actual_state = MediaState_t::error;
-    }
 
     if (media_state == MediaState_t::error) {
         return; // error must be cleared manually
