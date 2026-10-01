@@ -7,6 +7,8 @@ constinit const EnumArray<PhaseGantrySquareness, PhaseResponses, PhaseGantrySqua
     { PhaseGantrySquareness::remove_nozzles, { Response::Continue, Response::Abort } },
     { PhaseGantrySquareness::measuring, {} },
     { PhaseGantrySquareness::result_ok, { Response::Continue } },
+    { PhaseGantrySquareness::result_skewed, { Response::Continue, Response::Abort } },
+    { PhaseGantrySquareness::align_gantry, { Response::Continue, Response::Abort } },
     { PhaseGantrySquareness::result_failed, { Response::Retry, Response::Abort } },
     { PhaseGantrySquareness::reinsert_nozzles, { Response::Continue } },
 };

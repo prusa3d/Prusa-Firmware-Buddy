@@ -138,17 +138,18 @@ void run_silent() {
     }
 }
 
-void run_wizard() {
+WizardResult run_wizard() {
     marlin_server::FSM_Holder holder { PhaseGantrySquareness::intro };
 
     // Every exit is an abort, except passing the check
     ScopeGuard abort_guard = [] { selftest_invocation::mark_aborted(); };
 
     if (marlin_server::wait_for_response(PhaseGantrySquareness::intro) != Response::Continue) {
-        return;
+        return WizardResult::aborted;
     }
 
     bool docks_emptied = false;
+    bool realigned = false;
 
     // Once the user empties the docks, ask to refill them on every exit path
     ScopeGuard reinsert_guard = [&docks_emptied] {
@@ -159,12 +160,11 @@ void run_wizard() {
     };
     while (true) {
         marlin_server::fsm_change(PhaseGantrySquareness::preparing);
-        SquarenessData data {};
         if (prepare()) {
             if (!docks_emptied) {
                 marlin_server::fsm_change(PhaseGantrySquareness::remove_nozzles);
                 if (marlin_server::wait_for_response(PhaseGantrySquareness::remove_nozzles) != Response::Continue) {
-                    return;
+                    return WizardResult::aborted;
                 }
                 docks_emptied = true;
             }
@@ -176,22 +176,35 @@ void run_wizard() {
             const bool passed = dy.has_value() && std::abs(*dy) <= dy_limit_mm;
             config_store().selftest_result_gantry_squareness.set(passed ? TestResult::passed : TestResult::failed);
 
-            data = SquarenessData {
-                .dy_um = static_cast<int16_t>(std::lroundf(dy.value_or(0.f) * 1000.f)),
-                .valid = dy.has_value(),
-            };
-            if (passed) {
-                marlin_server::fsm_change(PhaseGantrySquareness::result_ok, fsm::serialize_data(data));
-                marlin_server::wait_for_response(PhaseGantrySquareness::result_ok);
-                abort_guard.disarm();
-                return;
+            if (dy.has_value()) {
+                const SquarenessData data { .dy_um = static_cast<int16_t>(std::lroundf(*dy * 1000.f)) };
+                if (passed) {
+                    marlin_server::fsm_change(PhaseGantrySquareness::result_ok, fsm::serialize_data(data));
+                    marlin_server::wait_for_response(PhaseGantrySquareness::result_ok);
+                    abort_guard.disarm();
+                    return realigned ? WizardResult::realigned : WizardResult::passed;
+                }
+
+                marlin_server::fsm_change(PhaseGantrySquareness::result_skewed, fsm::serialize_data(data));
+                if (marlin_server::wait_for_response(PhaseGantrySquareness::result_skewed) != Response::Continue) {
+                    return WizardResult::aborted;
+                }
+
+                // XY is already disabled by the measurement, the user can move the gantry
+                marlin_server::fsm_change(PhaseGantrySquareness::align_gantry);
+                if (marlin_server::wait_for_response(PhaseGantrySquareness::align_gantry) != Response::Continue) {
+                    return WizardResult::aborted;
+                }
+
+                realigned = true;
+                continue;
             }
         }
 
-        // Parking failure lands here too (valid == false, stored result untouched)
-        marlin_server::fsm_change(PhaseGantrySquareness::result_failed, fsm::serialize_data(data));
+        // Parking failure lands here too (stored result untouched)
+        marlin_server::fsm_change(PhaseGantrySquareness::result_failed);
         if (marlin_server::wait_for_response(PhaseGantrySquareness::result_failed) != Response::Retry) {
-            return;
+            return WizardResult::aborted;
         }
     }
 }

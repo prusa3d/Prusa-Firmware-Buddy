@@ -6,7 +6,6 @@
 
 struct SquarenessData {
     int16_t dy_um = 0; ///< Gantry skew (right minus left dock stop) [um]
-    bool valid = false; ///< The measurement succeeded
 };
 
 enum class PhaseGantrySquareness : PhaseUnderlyingType {
@@ -25,7 +24,13 @@ enum class PhaseGantrySquareness : PhaseUnderlyingType {
     /// The measured skew is within the limit
     result_ok,
 
-    /// The measured skew exceeds the limit, or the measurement failed
+    /// The measured skew exceeds the limit
+    result_skewed,
+
+    /// Guide the user through aligning the gantry, motors disabled
+    align_gantry,
+
+    /// The measurement failed
     result_failed,
 
     /// Ask the user to put the nozzles back into the outermost docks

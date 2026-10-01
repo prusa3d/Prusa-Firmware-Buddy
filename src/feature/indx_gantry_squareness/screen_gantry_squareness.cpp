@@ -51,8 +51,11 @@ private:
 };
 constexpr auto txt_measuring = N_("Measuring the gantry squareness, please wait.");
 constexpr auto txt_result_ok = N_("Measured skew: %0.2f mm (limit %0.2f mm)\n\nThe gantry is square.");
-constexpr auto txt_result_skewed = N_("Measured skew: %0.2f mm (limit %0.2f mm)\n\nThe gantry is not square. Align it following the guide, then measure again.");
+constexpr auto txt_result_skewed = N_("Measured skew: %0.2f mm (limit %0.2f mm)\n\nThe gantry is not square. Continue to align it.");
+constexpr auto txt_align_gantry = N_("Move printhead to the back. Check there's no gap between gantry and tensioner on both ends. If there is, follow the guide.");
 constexpr auto txt_result_error = N_("The measurement failed. Check that the outermost docks are empty, then retry.");
+
+constexpr const char *qr_belt_calibration = "core-belt-calibration";
 
 class FrameResultOk : public FramePrompt {
 public:
@@ -68,22 +71,30 @@ private:
     StringViewUtf8Parameters<16> params;
 };
 
-class FrameResultFailed : public FrameQRPrompt {
+class FrameResultSkewed : public FrameQRPrompt {
 public:
-    FrameResultFailed(window_frame_t *parent, FSMAndPhase fsm_phase)
-        : FrameQRPrompt(parent, fsm_phase, string_view_utf8::MakeNULLSTR(), "core-belt-calibration") {}
+    FrameResultSkewed(window_frame_t *parent, FSMAndPhase fsm_phase)
+        : FrameQRPrompt(parent, fsm_phase, string_view_utf8::MakeNULLSTR(), qr_belt_calibration) {}
 
     void update(fsm::PhaseData data) {
         const auto result = fsm::deserialize_data<SquarenessData>(data);
-        if (!result.valid) {
-            set_info_text(_(txt_result_error));
-            return;
-        }
         set_info_text(_(txt_result_skewed).formatted(params, static_cast<double>(result.dy_um / 1000.f), static_cast<double>(indx_gantry_squareness::dy_limit_mm)));
     }
 
 private:
     StringViewUtf8Parameters<16> params;
+};
+
+class FrameAlignGantry : public FrameQRPrompt {
+public:
+    FrameAlignGantry(window_frame_t *parent, FSMAndPhase fsm_phase)
+        : FrameQRPrompt(parent, fsm_phase, _(txt_align_gantry), qr_belt_calibration) {}
+};
+
+class FrameResultFailed : public FrameQRPrompt {
+public:
+    FrameResultFailed(window_frame_t *parent, FSMAndPhase fsm_phase)
+        : FrameQRPrompt(parent, fsm_phase, _(txt_result_error), qr_belt_calibration) {}
 };
 
 using Frames = FrameDefinitionList<ScreenGantrySquareness::FrameStorage,
@@ -93,6 +104,8 @@ using Frames = FrameDefinitionList<ScreenGantrySquareness::FrameStorage,
     FrameDefinition<PhaseGantrySquareness::measuring, FrameWait, txt_measuring>,
     FrameDefinition<PhaseGantrySquareness::reinsert_nozzles, FrameNozzleImagePrompt, PhaseGantrySquareness::reinsert_nozzles, txt_title, txt_reinsert_nozzles, img_reinsert_nozzles>,
     FrameDefinition<PhaseGantrySquareness::result_ok, FrameResultOk, PhaseGantrySquareness::result_ok>,
+    FrameDefinition<PhaseGantrySquareness::result_skewed, FrameResultSkewed, PhaseGantrySquareness::result_skewed>,
+    FrameDefinition<PhaseGantrySquareness::align_gantry, FrameAlignGantry, PhaseGantrySquareness::align_gantry>,
     FrameDefinition<PhaseGantrySquareness::result_failed, FrameResultFailed, PhaseGantrySquareness::result_failed>>;
 
 } // namespace
