@@ -422,7 +422,6 @@ void screen_home_data_t::windowEvent(window_t *sender, GUI_event_t event, void *
             }
             break;
         case MediaState_t::removed:
-        case MediaState_t::error:
             if (usbInserted) {
                 usbInserted = false;
                 printBtnDis();

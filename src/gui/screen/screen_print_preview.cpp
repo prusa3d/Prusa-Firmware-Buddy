@@ -198,7 +198,7 @@ void ScreenPrintPreview::windowEvent([[maybe_unused]] window_t *sender, GUI_even
     // Catch event when USB is removed
     case GUI_event_t::MEDIA: {
         const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));
-        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
+        if (media_state == MediaState_t::removed) {
             marlin_client::print_abort(); // Abort print from marlin_server and close printing screens
         }
         break;

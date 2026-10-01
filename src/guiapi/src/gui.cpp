@@ -208,7 +208,6 @@ void gui_loop(void) {
         switch (media_state) {
         case MediaState_t::inserted:
         case MediaState_t::removed:
-        case MediaState_t::error:
             Screens::Access()->ScreenEvent(nullptr, GUI_event_t::MEDIA, (void *)int(media_state));
             break;
         default:

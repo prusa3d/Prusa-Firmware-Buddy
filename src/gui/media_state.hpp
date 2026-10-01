@@ -11,5 +11,4 @@ enum class MediaState_t {
     unknown,
     inserted,
     removed,
-    error
 };

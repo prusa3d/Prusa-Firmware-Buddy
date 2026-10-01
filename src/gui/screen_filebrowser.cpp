@@ -55,7 +55,7 @@ void screen_filebrowser_data_t::windowEvent([[maybe_unused]] window_t *sender, G
 }
 
 void screen_filebrowser_data_t::checkMissingMedia(MediaState_t media_state) {
-    if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
+    if (media_state == MediaState_t::removed) {
         browser().clear_first_visible_canonical();
         close_screen();
     }

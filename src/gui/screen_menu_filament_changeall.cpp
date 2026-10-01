@@ -221,7 +221,7 @@ void MenuMultiFilamentChange::windowEvent(window_t *sender, GUI_event_t event, v
 
     case GUI_event_t::MEDIA: {
         const MediaState_t media_state = MediaState_t(reinterpret_cast<int>(param));
-        if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {
+        if (media_state == MediaState_t::removed) {
             // USB was removed
             if (close_screen_on_media_disconnect_) {
                 Screens::Access()->close_screen();

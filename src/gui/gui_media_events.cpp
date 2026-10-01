@@ -34,10 +34,6 @@ void GuiMediaEventsHandler::tick() {
         actual_state = MediaState_t::removed;
     }
 
-    if (media_state == MediaState_t::error) {
-        return; // error must be cleared manually
-    }
-
     switch (actual_state) {
     case MediaState_t::inserted:
         if (!usb_host::is_media_inserted_since_startup()) {
@@ -46,7 +42,6 @@ void GuiMediaEventsHandler::tick() {
         state_sent = false;
         break; // update after break
     case MediaState_t::removed:
-    case MediaState_t::error:
         one_click_printing = false;
         state_sent = false;
         break; // update after break
@@ -67,9 +62,7 @@ bool GuiMediaEventsHandler::ConsumeSent(MediaState_t &ret) {
     Tick(); // first update
     ret = Instance().media_state; // remember
     bool sent = Instance().state_sent;
-    if (ret != MediaState_t::error) {
-        Instance().state_sent = true; // set sent
-    }
+    Instance().state_sent = true;
     return !sent;
 }
 
