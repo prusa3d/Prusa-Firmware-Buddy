@@ -20,7 +20,7 @@ static constexpr EnumArray<Extruder, feedRate_t, Extruder::_count> base_e_feedra
 } // namespace
 
 feedRate_t buddy::adjust_feedrate_for_filament(feedRate_t base, const FilamentTypeParameters &filament) {
-    constexpr feedRate_t flex_feedrate_factor = 1.f / 6.f;
+    constexpr feedRate_t flex_feedrate_factor = 1.f / 2.f;
     return filament.is_flexible ? base * flex_feedrate_factor : base;
 }
 
