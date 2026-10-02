@@ -718,12 +718,14 @@ void Server::stop() {
 void Server::TransferSlot::release() {
     if (transfer != nullptr) {
         // Just make sure each file gets closed and transfer gets done.
-        transfer->result = splice::Result::Timeout;
-        transfer->file()->set_written_callback(nullptr, nullptr);
-        if (expected_data != 0 && transfer->result == splice::Result::Ok) {
-            transfer->result = splice::Result::ClosedByClient;
+        // It should be done during happy path. Check if it is the case and clean up if it wasn't.
+        if (transfer->file()) {
+            transfer->file()->set_written_callback(nullptr, nullptr);
+            // Timeout is set here as NOK for done() functionality
+            // It gets reset to OK in release()
+            transfer->result = splice::Result::Timeout;
+            transfer->done();
         }
-        transfer->done();
         transfer->release();
     }
     expected_data = 0;
@@ -951,8 +953,6 @@ void Server::TransferSlot::make_response(ConnectionSlot *slot) {
         server->activity(conn, active_slot);
         altcp_setprio(conn, ACTIVE_PRIO);
         conn = nullptr;
-        // Do this before release, we've already called done.
-        transfer->file()->set_written_callback(nullptr, nullptr);
         transfer->release();
         transfer = nullptr;
         release();
