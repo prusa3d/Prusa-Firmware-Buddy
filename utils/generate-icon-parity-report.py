@@ -4,7 +4,8 @@
 Signature Oak is a limited-edition Core One variant with a brass UI theme.
 Brass icons in src/gui/res/png_brass/ are OVERRIDES of standard icons whose
 orange pixels are replaced with brass. Only standard icons that contain
-orange pixels need a brass counterpart.
+orange pixels need a brass counterpart, and only those actually packed into
+the Signature Oak firmware (it is always a COREONE build).
 
 This script lists standard icons that have orange pixels but no brass
 override. The output is informational; the script never fails the pipeline.
@@ -20,16 +21,7 @@ COLOR_TOLERANCE = 30
 
 PNG_DIR = Path('src/gui/res/png')
 BRASS_DIR = Path('src/gui/res/png_brass')
-
-# Icons that intentionally do not require a brass variant, even if they contain
-# orange pixels in the standard theme. Add filenames here to exclude them from
-# the parity check.
-NO_BRASS_REQUIRED: set[str] = {
-    'cleaner_calibration_x.png',
-    'cleaner_calibration_y.png',
-    'cleaner_calibration_z.png',
-    'indx_dock_calibration_tightening.png',
-}
+USED_IMGS = Path('src/gui/res/COREONE_used_imgs.txt')
 
 
 def is_orange(r, g, b):
@@ -49,21 +41,21 @@ def png_has_orange(path):
 
 
 def main():
-    standard_icons = sorted(p.name for p in PNG_DIR.glob('*.png'))
+    used_icons = sorted(
+        set(line.strip()
+            for line in USED_IMGS.read_text().splitlines()) - {''})
     brass_icons = set(p.name for p in BRASS_DIR.glob('*.png'))
 
     missing = [
-        icon for icon in standard_icons if png_has_orange(PNG_DIR / icon)
-        and icon not in brass_icons and icon not in NO_BRASS_REQUIRED
+        icon for icon in used_icons
+        if icon not in brass_icons and png_has_orange(PNG_DIR / icon)
     ]
 
     if missing:
         print(f'\ufeffSignature Oak icon parity: {len(missing)} icon(s) '
               f'with orange pixels but no brass override in png_brass/ 🙏')
-        print('For each icon below, either request a brass variant from the '
-              'designer, or add the filename to the NO_BRASS_REQUIRED set in '
-              'utils/generate-icon-parity-report.py if the icon will not '
-              'appear on Signature Oak:')
+        print('Please request a brass variant from the designer for each '
+              'icon below:')
         for icon in missing:
             print(f'* `{icon}`')
     else:
