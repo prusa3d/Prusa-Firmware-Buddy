@@ -35,23 +35,26 @@ void MenuScrollbar::unconditionalDraw() {
     }
 }
 
+void MenuScrollbar::update() {
+    const State new_state {
+        .max_items_on_screen = menu.max_items_on_screen_count(),
+        .item_count = menu.item_count(),
+        .scroll_offset = menu.scroll_offset(),
+    };
+    if (state != new_state) {
+        state = new_state;
+        Invalidate();
+    }
+
+    set_visible(state.item_count > state.max_items_on_screen);
+}
+
 void MenuScrollbar::windowEvent([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
 
-    case GUI_event_t::LOOP: {
-        const State new_state {
-            .max_items_on_screen = menu.max_items_on_screen_count(),
-            .item_count = menu.item_count(),
-            .scroll_offset = menu.scroll_offset(),
-        };
-        if (state != new_state) {
-            state = new_state;
-            Invalidate();
-        }
-
-        set_visible(state.item_count > state.max_items_on_screen);
+    case GUI_event_t::LOOP:
+        update();
         break;
-    }
 
     default:
         // discard other events

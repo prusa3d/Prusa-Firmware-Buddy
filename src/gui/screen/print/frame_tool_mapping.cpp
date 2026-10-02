@@ -949,8 +949,7 @@ void FrameToolMapping::update_scroll() {
     virtual_tools_menu_.set_scroll_offset(scroll_offset);
     gcode_tools_menu_.set_scroll_offset(scroll_offset);
 
-    // Update the scrollbar with everything else, don't wait for the loop
-    scrollbar_.WindowEvent(nullptr, GUI_event_t::LOOP, nullptr);
+    scrollbar_.update();
 
     // Routing board needs to be redrawn when scroll changes
     routing_board_.Invalidate();

@@ -12,6 +12,9 @@ class MenuScrollbar : public window_t {
 public:
     MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu);
 
+    /// Sync with the menu right away instead of waiting for the next LOOP
+    void update();
+
 protected:
     virtual void unconditionalDraw() override;
     virtual void windowEvent(window_t *sender, GUI_event_t event, void *param) override;
