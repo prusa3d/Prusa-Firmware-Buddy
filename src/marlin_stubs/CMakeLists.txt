@@ -103,7 +103,7 @@ if(HAS_DOOR_SENSOR_CALIBRATION)
 endif()
 
 if(HAS_INDX)
-  target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp)
+  target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp M1988.cpp)
 endif()
 
 if(HAS_WASTEBIN_FILL_TRACKING)

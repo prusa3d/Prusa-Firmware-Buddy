@@ -69,6 +69,7 @@ enum class ClientFSM : uint8_t {
     NozzleMismatch,
     DockCalibration,
     NozzleCleanerCalibration,
+    NozzleCleaning,
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
     ToolOffsetsCalibration,

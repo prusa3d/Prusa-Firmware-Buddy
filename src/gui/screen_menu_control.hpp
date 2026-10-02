@@ -43,6 +43,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On,
 #endif
 #if HAS_INDX()
     MI_FIX_STUCK_NOZZLE,
+    MI_INDX_NOZZLE_CLEANING,
 #endif
     MI_LIVE_ADJUST_Z,
 #if XL_ENCLOSURE_SUPPORT()

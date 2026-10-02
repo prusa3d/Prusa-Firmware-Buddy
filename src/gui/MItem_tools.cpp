@@ -66,6 +66,8 @@
 
 #if HAS_INDX()
     #include <puppies/INDX.hpp>
+    #include <feature/indx_nozzle_cleaning/screen_indx_nozzle_cleaning_tools.hpp>
+    #include <test_result.hpp>
 #endif
 
 #if HAS_LEDS()
@@ -938,6 +940,30 @@ void MI_PICK_PARK_TOOL::click(IWindowMenu & /*window_menu*/) {
     }
     #endif
     Screens::Access()->Open(screen_tool_pick_park_creator());
+}
+#endif
+
+#if HAS_INDX()
+MI_INDX_NOZZLE_CLEANING::MI_INDX_NOZZLE_CLEANING()
+    : IWindowMenuItem(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes, expands_t::yes) {
+}
+
+void MI_INDX_NOZZLE_CLEANING::click(IWindowMenu & /*window_menu*/) {
+    // The cleaning needs toolchanges and the nozzle cleaner
+    const auto ask_calibrate = [](const char *text, const char *gcode) {
+        if (MsgBoxWarning(_(text), { Response::Calibrate, Response::Back }) == Response::Calibrate) {
+            marlin_client::gcode(gcode);
+        }
+    };
+    if (config_store().indx_dock_calibrated_mask.get().none()) {
+        ask_calibrate(N_("Please calibrate the docks first."), "M1982");
+        return;
+    }
+    if (config_store().selftest_result_nozzle_cleaner_calibration.get() != TestResult::passed) {
+        ask_calibrate(N_("Please calibrate the nozzle cleaner first."), "M1983");
+        return;
+    }
+    Screens::Access()->Open(screen_indx_nozzle_cleaning_tools_creator());
 }
 #endif
 

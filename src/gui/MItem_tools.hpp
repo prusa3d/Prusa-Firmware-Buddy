@@ -579,6 +579,16 @@ protected:
 
 #if HAS_INDX()
 using MI_FIX_STUCK_NOZZLE = WithConstructorArgs<MenuItemGcodeAction, N_("Release Stuck Nozzle"), "M1984"_tstr>;
+
+class MI_INDX_NOZZLE_CLEANING : public IWindowMenuItem {
+    static constexpr const char *const label = N_("Nozzle Cleaning");
+
+public:
+    MI_INDX_NOZZLE_CLEANING();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
 #endif
 
 #if HAS_ILI9488_DISPLAY()

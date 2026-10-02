@@ -75,6 +75,9 @@ static constexpr uint32_t score(ClientFSM fsm_type) {
 #if HAS_LOADCELL()
     case ClientFSM::NozzleCleaningFailed:
 #endif
+#if HAS_INDX()
+    case ClientFSM::NozzleCleaning:
+#endif
         return 2;
 #if HAS_INDX()
     case ClientFSM::NozzleMismatch:

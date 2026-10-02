@@ -81,6 +81,7 @@ constinit const EnumArray<ClientFSM, std::span<const PhaseResponses>, ClientFSM:
         { ClientFSM::NozzleMismatch, nozzle_mismatch_responses },
         { ClientFSM::DockCalibration, dock_calibration_responses },
         { ClientFSM::NozzleCleanerCalibration, nozzle_cleaner_calibration_responses },
+        { ClientFSM::NozzleCleaning, nozzle_cleaning_wizard_responses },
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
         { ClientFSM::ToolOffsetsCalibration, tool_offsets_calibration_responses },

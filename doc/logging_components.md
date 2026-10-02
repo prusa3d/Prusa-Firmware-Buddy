@@ -25,6 +25,7 @@ This file is generated automatically so don't edit it directly
 - GUI: logging::Severity::debug, src/gui/logger.cpp
 - HotendDetect: logging::Severity::info, src/common/tool/printer/tools_xbuddy.cpp
 - INDX: logging::Severity::info, src/puppies/INDX.cpp
+- IndxNozzleCleaning: logging::Severity::info, src/feature/indx_nozzle_cleaning/indx_nozzle_cleaning.cpp
 - LDC1612: logging::Severity::warning, src/puppy/tool_offset_sensor/src/ldc1612.cpp
 - Loadcell: logging::Severity::info, src/common/loadcell.cpp
 - MMU2: logging::Severity::info, src/common/appmain.cpp

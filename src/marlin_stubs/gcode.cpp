@@ -338,6 +338,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1984:
             PrusaGcodeSuite::M1984();
             break;
+        case 1988:
+            PrusaGcodeSuite::M1988();
+            break;
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
         case 1985:
