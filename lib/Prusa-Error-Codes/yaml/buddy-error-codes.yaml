@@ -429,13 +429,21 @@ Errors:
     text: "The tool offset sensor was not detected at the expected height. Make sure it is installed and properly seated, then retry."
     id: "TOOL_OFFSET_SENSOR_NOT_FOUND"
     gui_layout: "warning_dialog"
-    approved: false
+    approved: true
 
   - code: "XX145"
     printers: [COREONE_INDX, COREONEL_INDX, XL]
     title: "Sensor Failure"
     text: "The tool offset sensor stopped responding during the measurement. Retry, and if this repeats the sensor or its cable needs service."
     id: "TOOL_OFFSET_SENSOR_MEASUREMENT_FAILED"
+    gui_layout: "warning_dialog"
+    approved: true
+
+  - code: "XX146"
+    printers: [COREONE_INDX, COREONEL_INDX, XL]
+    title: "Tool Not Picked"
+    text: "The tool is not picked up. Make sure it is seated in its dock, then retry."
+    id: "TOOL_NOT_PICKED_RETRY"
     gui_layout: "warning_dialog"
     approved: false
 
