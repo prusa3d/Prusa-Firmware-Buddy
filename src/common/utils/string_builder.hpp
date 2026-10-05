@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 
 #include <string_view_utf8.hpp>

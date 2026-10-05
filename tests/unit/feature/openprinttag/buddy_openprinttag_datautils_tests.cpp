@@ -3,6 +3,7 @@
 
 #include <feature/openprinttag/data_utils.hpp>
 #include <utils/byte_utils.hpp>
+#include <uuid/uuid_constexpr.hpp>
 
 using namespace buddy::openprinttag;
 
@@ -451,4 +452,24 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         CHECK(info.parameters.base_preset == PresetFilamentType::PLA);
         CHECK_FALSE(info.parameters.color.has_value());
     }
+}
+
+TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
+
+    stub_data = StubData {
+        stub_field<MainField::brand_name>("Prusament"),
+        stub_field<MainField::material_name>("PLA Prusa Galaxy Black"),
+        stub_field<MainField::gtin>(1234),
+    };
+
+    static constexpr TagUID uid { { 0xBC, 0x6F, 0x2F, 0x66, 0x08, 0x01, 0x04, 0xE0 } };
+
+    MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
+    req.issue();
+
+    UUIDInfo info { req, uid };
+    CHECK(info.brand_uuid == "ae5ff34e-298e-50c9-8f77-92a97fb30b09"_uuid);
+    CHECK(info.material_uuid == "1aaca54a-431f-5601-adf5-85dd018f487f"_uuid);
+    CHECK(info.package_uuid == "7ed3ce83-764d-56de-bdcd-dc5226a0efd1"_uuid);
+    CHECK(info.instance_uuid == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"_uuid);
 }

@@ -1,11 +1,13 @@
 #include "string_builder.hpp"
 
 #include <cstdarg>
+#include <cstdio>
 #include <cmath>
 #include <cinttypes>
 #include <algorithm>
 
 #include <bsod.h>
+#include <string_view_utf8.hpp>
 
 void StringBuilder::init(char *buffer, size_t buffer_size) {
     debug_assert(buffer_size != 0);

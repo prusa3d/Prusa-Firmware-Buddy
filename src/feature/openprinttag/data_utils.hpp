@@ -12,6 +12,7 @@
 #include <option/has_chamber_api.h>
 #include <utils/compact_optional.hpp>
 #include <utils/string_builder.hpp>
+#include <uuid/uuid.hpp>
 
 namespace buddy::openprinttag {
 
@@ -90,6 +91,29 @@ struct AbbreviationInfo {
 
     /// Buffer used for storing @p abbreviation
     FieldTraits<MainField::material_abbreviation>::Buffer abbreviation_buffer;
+};
+
+/// Utility for determining UUIDs
+struct UUIDInfo {
+    using Requirements = ValuePack<
+        MainField::brand_uuid,
+        MainField::instance_uuid,
+        MainField::package_uuid,
+        MainField::material_uuid,
+        MainField::brand_name,
+        MainField::material_name,
+        MainField::gtin>;
+
+    using RequestRef = Requirements::ApplyOn<MultiReadFieldRequestRef>;
+
+    explicit UUIDInfo(const RequestRef &req, const TagUID &tag_uid);
+
+    using OptionalUUID = CompactOptional<UUID, UUID::nil()>;
+
+    OptionalUUID brand_uuid;
+    OptionalUUID material_uuid;
+    OptionalUUID package_uuid;
+    OptionalUUID instance_uuid;
 };
 
 /// Utility for determining filament parameters

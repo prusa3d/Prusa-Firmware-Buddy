@@ -27,6 +27,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/filament_common.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filament_list.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filament_presets.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/utils/string_builder.cpp
   ${OPT_SRC}/data_utils.cpp
   ${OPT_SRC}/detail/requests_multi_base.cpp
   ${OPT_SRC}/tool_tag.cpp
@@ -46,6 +47,7 @@ target_link_libraries(
   freertos_tests
   logging-mock
   uuid
+  mbedTLS
   )
 add_catch_test(buddy_openprinttag_datautils_tests)
 
@@ -54,6 +56,7 @@ add_executable(
   filament_usage_tracker_tests
   ${CMAKE_SOURCE_DIR}/tests/stubs/async_job/async_job.cpp
   ${OPT_SRC}/filament_usage_tracker/filament_usage_tracker.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/utils/string_builder.cpp
   ${OPT_SRC}/detail/requests_multi_base.cpp
   ${OPT_SRC}/tool_tag.cpp
   ${OPT_SRC}/data_utils.cpp
@@ -79,5 +82,6 @@ target_link_libraries(
   freertos-mock
   anfc
   uuid
+  mbedTLS
   )
 add_catch_test(filament_usage_tracker_tests)

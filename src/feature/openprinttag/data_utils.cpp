@@ -1,6 +1,11 @@
 #include "data_utils.hpp"
 
 #include <numbers>
+#include <cinttypes>
+#include <algorithm>
+
+#include <uuid/uuid_constexpr.hpp>
+#include <mbedtls/sha1.h>
 
 #include <option/has_chamber_filtration_api.h>
 
@@ -97,6 +102,65 @@ AbbreviationInfo::AbbreviationInfo(const RequestRef &req) {
 
     } else if (const auto type = req.result<MainField::material_type>()) {
         abbreviation = ::openprinttag::enum_item_name(*type);
+    }
+}
+
+UUIDInfo::UUIDInfo(const RequestRef &req, const TagUID &tag_uid) {
+    if (!req.are_results_valid()) {
+        // Cannot reliably process data - failing to read a specific fields might yield unwanted results
+        return;
+    }
+
+    static constexpr auto make_uuid = [](const UUID &namespace_, std::span<const std::byte> a, std::span<const std::byte> b = {}) {
+        mbedtls_sha1_context ctx {};
+        mbedtls_sha1_init(&ctx);
+        mbedtls_sha1_starts_ret(&ctx);
+        mbedtls_sha1_update_ret(&ctx, (const uint8_t *)namespace_.bytes.data(), namespace_.bytes.size());
+        mbedtls_sha1_update_ret(&ctx, (const uint8_t *)a.data(), a.size());
+        mbedtls_sha1_update_ret(&ctx, (const uint8_t *)b.data(), b.size());
+
+        std::array<std::byte, 20> sha1;
+        mbedtls_sha1_finish_ret(&ctx, (uint8_t *)sha1.data());
+        mbedtls_sha1_free(&ctx);
+
+        return UUID::make_v5_from_sha1(sha1);
+    };
+
+    static constexpr auto str_as_bytes = [](std::string_view str) {
+        return std::as_bytes(std::span { str });
+    };
+
+    if (auto val = req.result<MainField::brand_uuid>()) {
+        brand_uuid = OptionalUUID { *val, OptionalUUID::NulloptCheck::no };
+
+    } else if (auto val = req.result<MainField::brand_name>()) {
+        brand_uuid = make_uuid("5269dfb7-1559-440a-85be-aba5f3eff2d2"_uuid, str_as_bytes(*val));
+    }
+
+    if (auto val = req.result<MainField::material_uuid>()) {
+        material_uuid = OptionalUUID { *val, OptionalUUID::NulloptCheck::no };
+
+    } else if (auto val = req.result<MainField::material_name>(); val.has_value() && brand_uuid.has_value()) {
+        material_uuid = make_uuid("616fc86d-7d99-4953-96c7-46d2836b9be9"_uuid, brand_uuid->bytes, str_as_bytes(*val));
+    }
+
+    if (auto val = req.result<MainField::package_uuid>()) {
+        package_uuid = OptionalUUID { *val, OptionalUUID::NulloptCheck::no };
+
+    } else if (auto val = req.result<MainField::gtin>(); val.has_value() && brand_uuid.has_value()) {
+        ArrayStringBuilder<24> gtin_str;
+        gtin_str.append_printf("%" PRIi64, *val);
+        package_uuid = make_uuid("6f7d485e-db8d-4979-904e-a231cd6602b2"_uuid, brand_uuid->bytes, str_as_bytes(gtin_str.string_view()));
+    }
+
+    if (auto val = req.result<MainField::instance_uuid>()) {
+        instance_uuid = OptionalUUID { *val, OptionalUUID::NulloptCheck::no };
+
+    } else {
+        // The spec hashes the UID MSB-first, TagUID is LSB-first
+        decltype(tag_uid.data) uid_msb_first;
+        std::ranges::reverse_copy(tag_uid.data, uid_msb_first.begin());
+        instance_uuid = make_uuid("31062f81-b5bd-4f86-a5f8-46367e841508"_uuid, std::as_bytes(std::span { uid_msb_first }));
     }
 }
 
