@@ -47,12 +47,6 @@ public:
     /// You may call this even if Request was not registered with the manager.
     void remove_request(Badge<Request>, Request &);
 
-    struct TagUID {
-        std::uint8_t data[8];
-
-        ToolTag::UIDHash hash() const;
-    };
-
     /// Return TagUID detected on given tool, if any.
     std::optional<TagUID> get_tag_uid_for_tool(VirtualToolIndex) const;
 

@@ -51,14 +51,6 @@ static void serialize_accept_event(uint16_t event_id, anfc::modbus::AcceptEvent 
 
 namespace buddy::openprinttag {
 
-ToolTag::UIDHash Manager::TagUID::hash() const {
-    uint16_t h = (data[0] << 8 | data[1])
-        ^ (data[2] << 8 | data[3])
-        ^ (data[4] << 8 | data[5])
-        ^ (data[6] << 8 | data[7]);
-    return h | 1; // make sure to never return no_tag_hash
-}
-
 Manager::Manager() {
     for (auto &device : devices) {
         device.manager = this;
@@ -317,7 +309,7 @@ std::optional<uint16_t> Manager::DeviceState::handle_event(const anfc::modbus::E
             const TagID tag_id = tag_detected.tag.value;
             TagUID tag_uid = {};
             static_assert(sizeof(tag_uid.data) == sizeof(tag_detected.uid));
-            std::memcpy(tag_uid.data, tag_detected.uid, sizeof(tag_uid.data));
+            std::memcpy(tag_uid.data.data(), tag_detected.uid, tag_uid.data.size());
 
             // handle the event
             return on_tag_detected(tag_id, tag_uid);
@@ -390,7 +382,7 @@ void Manager::check_timeouts() {
     }
 }
 
-std::optional<Manager::TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex tool) const {
+std::optional<TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex tool) const {
     std::shared_lock lock { mutex };
 
     const auto &device = devices[tool];

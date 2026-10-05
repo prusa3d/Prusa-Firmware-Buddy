@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <optional>
 #include <atomic>
+#include <array>
 
 #include <tool_index.hpp>
 #include <bsod/bsod.h>
@@ -18,6 +19,14 @@ inline bool has_tool_openprinttag_reader([[maybe_unused]] VirtualToolIndex tool)
     return true;
 }
 
+struct TagUID {
+    /// UID in the NFC-V wire order: LSB first (0xE0 is the last byte)
+    std::array<uint8_t, 8> data;
+
+    using Hash = uint16_t;
+    Hash hash() const;
+};
+
 struct ToolTagField;
 
 /// Class representing a specific tag associated with a specific tool
@@ -25,7 +34,7 @@ struct ToolTagField;
 class ToolTag {
 
 public:
-    using UIDHash = uint16_t;
+    using UIDHash = TagUID::Hash;
 
     /// Used in config store
     static constexpr UIDHash no_tag_hash = 0;
