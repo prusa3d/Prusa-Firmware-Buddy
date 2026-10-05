@@ -553,6 +553,7 @@ enum class PhaseToolOffsetsCalibration : PhaseUnderlyingType {
     pickup_failed, ///< no tool could be picked; the toolchanger has no prompt of its own outside a print
     calibrating,
     tool_failed, ///< a tool could not be cleaned, probed or scanned
+    tool_not_picked, ///< the tool to calibrate is not the one in the head
     sensor_not_found, ///< the sensor was not where it should be, or is missing
     sensor_failure, ///< the sensor stopped answering during the measurement
     unsafe_xy_offset, ///< XY spread between the tools over the limit
@@ -904,6 +905,7 @@ inline constexpr EnumArray<PhaseToolOffsetsCalibration, PhaseResponses, CountPha
         { PhaseToolOffsetsCalibration::pickup_failed, { Response::Retry, Response::Abort } },
         { PhaseToolOffsetsCalibration::calibrating, { Response::Abort } },
         { PhaseToolOffsetsCalibration::tool_failed, { Response::Retry, Response::Abort } },
+        { PhaseToolOffsetsCalibration::tool_not_picked, { Response::Retry, Response::Abort } },
         { PhaseToolOffsetsCalibration::sensor_not_found, { Response::Retry, Response::Abort } },
         { PhaseToolOffsetsCalibration::sensor_failure, { Response::Retry, Response::Abort } },
         { PhaseToolOffsetsCalibration::unsafe_xy_offset, { Response::Retry, Response::Abort } },

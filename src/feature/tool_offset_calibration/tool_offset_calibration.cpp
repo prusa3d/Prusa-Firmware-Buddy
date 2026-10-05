@@ -285,7 +285,7 @@ Response prompt_retry(PhaseToolOffsetsCalibration phase, std::optional<PhysicalT
 PhaseToolOffsetsCalibration phase_for(tool_offset::FailureReason reason) {
     switch (reason) {
     case tool_offset::FailureReason::tool_not_picked:
-        return PhaseToolOffsetsCalibration::pickup_failed;
+        return PhaseToolOffsetsCalibration::tool_not_picked;
 
     case tool_offset::FailureReason::sensor_not_found:
         return PhaseToolOffsetsCalibration::sensor_not_found;

@@ -13,6 +13,8 @@ constexpr std::optional<ErrCode> tool_offsets_calibration_phase_error_code_mappe
     switch (static_cast<PhaseToolOffsetsCalibration>(fsm_phase.phase)) {
     case PhaseToolOffsetsCalibration::pickup_failed:
         return ErrCode::ERR_MECHANICAL_NOZZLE_MISMATCH_PICKUP_FAILED;
+    case PhaseToolOffsetsCalibration::tool_not_picked:
+        return ErrCode::ERR_MECHANICAL_TOOL_NOT_PICKED_RETRY;
     case PhaseToolOffsetsCalibration::sensor_not_found:
         return ErrCode::ERR_MECHANICAL_TOOL_OFFSET_SENSOR_NOT_FOUND;
     case PhaseToolOffsetsCalibration::sensor_failure:
