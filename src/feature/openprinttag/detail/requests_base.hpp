@@ -101,7 +101,10 @@ protected:
 
     ~Request();
 
-    void set_finished(std::expected<std::monostate, Error> result);
+    using FinishedResult = std::expected<std::monostate, Error>;
+    static constexpr FinishedResult finished_ok = {};
+
+    void set_finished(FinishedResult result);
 
 private:
     friend class Manager;

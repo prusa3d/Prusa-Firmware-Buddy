@@ -69,27 +69,7 @@ FilamentUsageTrackerTester tester;
 
 } // namespace buddy::openprinttag
 
-Request::~Request() {}
-
-void Request::set_finished(std::expected<std::monostate, Error> result) {
-    assert(!finished_);
-    finished_ = true;
-    error_ = result.error_or(Error::_cnt);
-}
-
 void Request::issue() {
-}
-
-void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadInt64FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void WriteFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-
-void ReadFloatFieldRequest::complete(Bytes) {}
-void ReadInt64FieldRequest::complete(Bytes) {}
-void WriteFloatFieldRequest::complete(Bytes) {}
-
-Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
-    return std::nullopt;
 }
 
 std::optional<ToolTag> ToolTag::for_tool_assigned(VirtualToolIndex tool) {

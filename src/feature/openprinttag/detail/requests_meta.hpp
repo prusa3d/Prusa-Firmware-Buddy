@@ -48,4 +48,10 @@ struct FieldTypeTraits<FieldType::color_rgba> {
     template <auto field>
     using ReadFieldRequest = ReadColorFieldRequest;
 };
+
+template <>
+struct FieldTypeTraits<FieldType::uuid> {
+    template <auto field>
+    using ReadFieldRequest = ReadUUIDFieldRequest;
+};
 }; // namespace buddy::openprinttag

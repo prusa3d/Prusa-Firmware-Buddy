@@ -10,6 +10,7 @@
 #include <bsod/bsod.h>
 #include <utils/byte_utils.hpp>
 #include <utils/color.hpp>
+#include <uuid/uuid.hpp>
 
 namespace buddy::openprinttag {
 
@@ -189,6 +190,16 @@ class ReadColorFieldRequest : public ReadRequestMixin<Color> {
 public:
     // Inherit constructor
     using ReadRequestMixin<Color>::ReadRequestMixin;
+
+    void serialize(RequestID, TagID, anfc::modbus::Request &) final;
+    void complete(Bytes event_data) final;
+};
+
+class ReadUUIDFieldRequest : public ReadRequestMixin<UUID> {
+
+public:
+    // Inherit constructor
+    using ReadRequestMixin<UUID>::ReadRequestMixin;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &) final;
     void complete(Bytes event_data) final;

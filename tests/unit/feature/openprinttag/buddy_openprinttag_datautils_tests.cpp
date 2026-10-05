@@ -1,8 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <vector>
-
 #include <feature/openprinttag/data_utils.hpp>
 #include <utils/byte_utils.hpp>
 
@@ -17,32 +15,6 @@ template <CField auto field>
 auto stub_field(typename ReadFieldRequest<field>::Value val) {
     return std::pair { tool_tag.field(field), val };
 }
-
-Request::~Request() {}
-
-void Request::set_finished(std::expected<std::monostate, Error> result) {
-    assert(!finished_);
-    finished_ = true;
-    error_ = result.error_or(Error::_cnt);
-}
-
-void ReadEnumArrayRequestBase::complete(Bytes event_data) {}
-void ReadEnumFieldRequestBase::complete(Bytes event_data) {}
-void ReadFloatFieldRequest::complete(Bytes event_data) {}
-void ReadInt64FieldRequest::complete(Bytes event_data) {}
-void ReadStringRequestBase::complete(Bytes event_data) {}
-void ReadColorFieldRequest::complete(Bytes event_data) {}
-
-Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, RequestID request_id, anfc::modbus::Request &request) {
-    return std::nullopt;
-}
-
-void ReadEnumArrayRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadEnumFieldRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadInt64FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadStringRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadColorFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 
 std::optional<ToolTag> ToolTag::for_tool_ephemeral(VirtualToolIndex tool) {
     return std::nullopt;
