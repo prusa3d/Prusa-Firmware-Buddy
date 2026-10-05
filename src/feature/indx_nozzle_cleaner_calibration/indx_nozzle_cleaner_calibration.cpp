@@ -255,10 +255,10 @@ private:
             return Result::aborted;
         }
 
-        // The Z screw step disabled XY, so re-home before the loadcell touches (they work in machine
-        // coordinates and need a homed machine).
+        // The Z screw step disabled XY, so re-home before the loadcell touches. Precise homing: the
+        // stored offsets are applied after a regular (precise) G28, so measure in the same frame.
         fsm_change(PhaseNozzleCleanerCalibration::homing);
-        GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = false });
+        GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = true });
 
         // X (cleaner wall) first: the Y touch needs the measured wall middle and nozzle radius.
         {
@@ -803,7 +803,7 @@ private:
         }
 
         // Home XY (z_raise=0: the bed is lowered, no need for Z clearance).
-        GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = false });
+        GcodeSuite::G28_no_parser(true, true, false, { .z_raise = 0, .precise = true });
 
         const ab_steps_t position_after = { { {
             .x = stepper.position_from_startup(AxisEnum::A_AXIS),
