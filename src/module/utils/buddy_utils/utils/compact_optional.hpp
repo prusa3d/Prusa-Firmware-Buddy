@@ -43,6 +43,11 @@ struct CompactOptional {
 public:
     static constexpr T nullopt_value = nullopt_value_;
 
+    enum class NulloptCheck : bool {
+        no,
+        yes
+    };
+
     constexpr CompactOptional()
         : value_(nullopt_value) {}
 
@@ -52,18 +57,25 @@ public:
     constexpr CompactOptional(const CompactOptional &) = default;
     constexpr CompactOptional(CompactOptional &&) = default;
 
-    constexpr CompactOptional(const T &value)
+    constexpr CompactOptional(const T &value, NulloptCheck nullopt_check = NulloptCheck::yes)
         : value_(value) {
-        enforce_has_value();
+        if (bool(nullopt_check)) {
+            enforce_has_value();
+        }
     }
 
-    explicit constexpr CompactOptional(T &&value)
+    explicit constexpr CompactOptional(T &&value, NulloptCheck nullopt_check = NulloptCheck::yes)
         : value_(std::move(value)) {
-        enforce_has_value();
+        if (bool(nullopt_check)) {
+            enforce_has_value();
+        }
     }
 
-    constexpr CompactOptional(const std::optional<T> &o)
+    constexpr CompactOptional(const std::optional<T> &o, NulloptCheck nullopt_check = NulloptCheck::yes)
         : value_(o.value_or(nullopt_value)) {
+        if (bool(nullopt_check) && o.has_value()) {
+            enforce_has_value();
+        }
     }
 
     constexpr bool has_value() const {
