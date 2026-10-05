@@ -56,11 +56,11 @@ protected:
     Value result_;
 };
 
-class ReadInt32FieldRequest : public ReadRequestMixin<int32_t> {
+class ReadInt64FieldRequest : public ReadRequestMixin<int64_t> {
 
 public:
     // Inherit constructor
-    using ReadRequestMixin<int32_t>::ReadRequestMixin;
+    using ReadRequestMixin<int64_t>::ReadRequestMixin;
 
     void serialize(RequestID, TagID, anfc::modbus::Request &) final;
     void complete(Bytes event_data) final;

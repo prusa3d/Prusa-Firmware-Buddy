@@ -73,22 +73,22 @@ static void serialize_read_field(RequestID request_id, TagID tag_id, ToolTagFiel
     }
 }
 
-void ReadInt32FieldRequest::serialize(RequestID request_id, TagID tag_id, anfc::modbus::Request &request) {
+void ReadInt64FieldRequest::serialize(RequestID request_id, TagID tag_id, anfc::modbus::Request &request) {
     serialize_read_field(
         request_id,
         tag_id,
         tag_field(),
-        prusa3d_nfc_util_ValueType_1_0_INT32_,
+        prusa3d_nfc_util_ValueType_1_0_INT64_,
         request);
 }
 
-void ReadInt32FieldRequest::complete(Bytes event_data) {
+void ReadInt64FieldRequest::complete(Bytes event_data) {
     prusa3d_nfc_event_Event_1_0 event;
-    const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_int32__);
+    const auto value_or_error = deserialize_read_field_value(event_data, event, prusa3d_nfc_util_Value_1_0_is_int64__);
     if (!value_or_error) {
         return set_finished(std::unexpected(value_or_error.error()));
     }
-    result_ = value_or_error.value()->int32_;
+    result_ = value_or_error.value()->int64_;
     set_finished({});
 }
 

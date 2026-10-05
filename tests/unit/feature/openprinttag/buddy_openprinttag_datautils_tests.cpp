@@ -29,7 +29,7 @@ void Request::set_finished(std::expected<std::monostate, Error> result) {
 void ReadEnumArrayRequestBase::complete(Bytes event_data) {}
 void ReadEnumFieldRequestBase::complete(Bytes event_data) {}
 void ReadFloatFieldRequest::complete(Bytes event_data) {}
-void ReadInt32FieldRequest::complete(Bytes event_data) {}
+void ReadInt64FieldRequest::complete(Bytes event_data) {}
 void ReadStringRequestBase::complete(Bytes event_data) {}
 void ReadColorFieldRequest::complete(Bytes event_data) {}
 
@@ -40,7 +40,7 @@ Request::SerializeResult TagRequest::serialize(ManagerNoLockBadge badge, Request
 void ReadEnumArrayRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadEnumFieldRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadFloatFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
-void ReadInt32FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
+void ReadInt64FieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadStringRequestBase::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 void ReadColorFieldRequest::serialize(RequestID, TagID, anfc::modbus::Request &) {}
 

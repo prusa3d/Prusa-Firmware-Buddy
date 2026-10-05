@@ -28,7 +28,7 @@ struct FieldTypeTraits<FieldType::number> {
 template <>
 struct FieldTypeTraits<FieldType::int_> {
     template <auto field>
-    using ReadFieldRequest = ReadInt32FieldRequest;
+    using ReadFieldRequest = ReadInt64FieldRequest;
 };
 
 template <>
