@@ -246,8 +246,7 @@ public:
      * @brief Periodically verify the picked tool's nozzle is still present during print.
      *
      * Compares the in-RAM active tool against the nozzle presence sensor. On mismatch,
-     * pauses the print and opens the NozzleMismatch FSM. EEPROM is intentionally not
-     * consulted here — it is invalidated during prints.
+     * when tool fell off, it triggers crash recovery if possible, or fatal error if not.
      *
      * Self-throttled to PRINT_NOZZLE_CHECK_PERIOD_MS; safe to call every cycle.
      * @warning Must be called from the main (default) thread, with block_tool_check clear.
