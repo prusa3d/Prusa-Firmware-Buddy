@@ -22,73 +22,32 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
             return false;
         }
 
-        bool aux_region_corrupt = false;
-
-        auto tag_corrupt_error = [] {
+        const auto report = multirequest.report();
+        if (report.any_unrecoverable_error) {
+            // TODO offer formatting AUX region
             MsgBoxError(_("Data on the OpenPrintTag are corrupt. Operation failed."), Responses_Ok);
-        };
+            return false;
 
-        for (Request *req : multirequest.requests()) {
-            if (!req->has_error()) {
-                continue;
-            }
+        } else if (report.any_recoverable_error) {
+            const auto r = MsgBoxError(_("Failed to read data from the tag."), { Response::Abort, Response::Retry });
+            switch (r) {
 
-            using Error = Request::Error;
-            switch (req->error()) {
-
-            case Error::data_too_big:
-            case Error::wrong_field_type:
-            case Error::field_not_present:
-                // Standard errors that will be handled further down the line, can't do much about them
-                break;
-
-            case Error::other:
-            case Error::field_collision: {
-                const auto r = MsgBoxError(_("Failed to read data from the tag."), { Response::Abort, Response::Retry });
-                switch (r) {
-
-                case Response::Abort:
-                case Response::_none: // Can happen by closing the dialog through close_dialog() without response
-                    return false;
-
-                case Response::Retry:
-                    goto continue_issue_loop;
-
-                default:
-                    bsod_unreachable();
-                }
-                break;
-            }
-
-            case Error::region_corrupt:
-                if (req->region() == Region::auxiliary) {
-                    aux_region_corrupt = true;
-                    break;
-                } else {
-                    tag_corrupt_error();
-                    return false;
-                }
-
-            case Error::write_protected:
-            case Error::tag_invalid:
-                tag_corrupt_error();
+            case Response::Abort:
+            case Response::_none: // Can happen by closing the dialog through close_dialog() without response
                 return false;
 
-            case Error::not_implemented:
-            case Error::radio_disabled:
-            case Error::_cnt:
+            case Response::Retry:
+                continue;
+
+            default:
                 bsod_unreachable();
             }
-        }
 
-        if (aux_region_corrupt) {
-            // TODO offer formatting AUX region
-            tag_corrupt_error();
-            return false;
+        } else if (report.any_field_specific_error) {
+            // Standard errors that will be handled further down the line, can't do much about them here
         }
 
         return true;
-    continue_issue_loop: // Just makes the main loop continue and retry
     }
 }
 
