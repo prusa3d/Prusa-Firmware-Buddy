@@ -211,6 +211,10 @@ static void lower_bed_for_pickup() {
 }
 
 void PrusaToolChanger::check_nozzle_presence_vs_eeprom() {
+    if (nozzle_check_disabled) {
+        return;
+    }
+
 #if HAS_POWER_PANIC()
     // Stored panic data + autostart not yet done = resume decision pending.
     // EEPROM is intentionally stale during prints, so this check would false-fire here.
@@ -223,13 +227,6 @@ void PrusaToolChanger::check_nozzle_presence_vs_eeprom() {
     const auto maybe_nozzle = buddy::puppies::indx.get_nozzle_present();
     if (!maybe_nozzle.has_value()) {
         return; // No debounced value yet (boot or after invalidation)
-    }
-
-    // Don't open the nozzle mismatch dialog if another FSM (e.g. calibration) is already active
-    const bool any_fsm_active = marlin_vars().peek_fsm_states(
-        [](const auto &states) { return states.get_top().has_value(); });
-    if (any_fsm_active) {
-        return;
     }
 
     const bool nozzle_present = maybe_nozzle.value();
@@ -347,13 +344,9 @@ void PrusaToolChanger::loop(bool printing, bool paused) {
         return;
     }
 
-    if (!nozzle_check_disabled) {
-        if (printing && !paused) {
-            // EEPROM is invalidated during prints, so use the in-RAM active tool instead.
-            check_nozzle_presence_during_print();
-        } else {
-            check_nozzle_presence_vs_eeprom();
-        }
+    if (!nozzle_check_disabled && printing && !paused) {
+        // EEPROM is invalidated during prints, so use the in-RAM active tool instead.
+        check_nozzle_presence_during_print();
     }
 
     // set_active_extruder() owns the applied offset on every tool change. While idle, also re-derive it
@@ -441,8 +434,7 @@ bool PrusaToolChanger::manual_tool_park(std::optional<PhysicalToolIndex> tool) {
         return true;
     };
 
-    // Prevent re-entry: wait_for_response() runs the idle loop, which calls
-    // loop() -> check_nozzle_presence_vs_eeprom() again
+    // Prevent re-entry
     block_tool_check = true;
     ScopeGuard guard = [this] { block_tool_check = false; };
 

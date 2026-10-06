@@ -239,6 +239,8 @@ public:
      * - EEPROM says tool picked but no nozzle detected -> auto-correct to no tool
      *
      * @warning Must be called from the main (default) thread after puppies are ready.
+     * @warning Must not be called from marlin_server::cycle() because it potentially
+     *          deadlocks (creates FSM and blocks waiting for GUI response)
      */
     void check_nozzle_presence_vs_eeprom();
 
