@@ -579,11 +579,7 @@ bool PrusaToolChanger::park_procedure(PhysicalToolIndex tool) {
     buddy::puppies::indx.invalidate_nozzle_data();
 
     // Verify nozzle is gone (successfully released)
-    if (!verify_nozzle_state(tool, false)) {
-        return false;
-    }
-
-    return true;
+    return verify_nozzle_state(tool, false);
 }
 
 void PrusaToolChanger::commit_park(PhysicalToolIndex previous_tool) {
