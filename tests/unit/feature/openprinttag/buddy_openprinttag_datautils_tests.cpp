@@ -132,7 +132,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
             stub_field<MainField::nominal_netto_full_weight>(1000.0f),
             stub_field<AuxField::consumed_weight>(200.0f),
             stub_field<MainField::density>(1.24f), // g/cm³
-            stub_field<MainField::filament_diameter_v2>(1750), // µm
+            stub_field<MainField::filament_diameter>(1.75f), // mm
             // No full length present -> fall back to density/diameter
         };
 
@@ -164,11 +164,11 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
         constexpr float full_weight = 1000.0f;
         constexpr float consumed = 200.0f;
         constexpr float density = 1.24f; // g/cm³
-        constexpr int diameter_um = 1750; // µm
+        constexpr float diameter_mm = 1.75f;
 
         // The length such a spool physically has, matching density+geometry.
         const float density_mm = density / 1000;
-        const float r_mm = diameter_um * 0.001 * 0.5;
+        const float r_mm = diameter_mm * 0.5f;
         const float lin_density = density_mm * std::numbers::pi_v<float> * r_mm * r_mm;
         const float consistent_full_length = full_weight / lin_density;
 
@@ -178,7 +178,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
             stub_field<AuxField::consumed_weight>(consumed),
             stub_field<MainField::nominal_full_length>(consistent_full_length),
             stub_field<MainField::density>(density),
-            stub_field<MainField::filament_diameter_v2>(diameter_um),
+            stub_field<MainField::filament_diameter>(diameter_mm),
         };
         MultiReadFieldRequest<AmountsInfo::Requirements {}> req_ratio { tool_tag };
         req_ratio.issue();
@@ -189,7 +189,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
             stub_field<MainField::nominal_netto_full_weight>(full_weight),
             stub_field<AuxField::consumed_weight>(consumed),
             stub_field<MainField::density>(density),
-            stub_field<MainField::filament_diameter_v2>(diameter_um),
+            stub_field<MainField::filament_diameter>(diameter_mm),
         };
         MultiReadFieldRequest<AmountsInfo::Requirements {}> req_density { tool_tag };
         req_density.issue();
@@ -205,12 +205,12 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
 
     SECTION("Malicious data does not break the density fallback") {
         // Zero / negative density or diameter must not produce inf/NaN or a division by zero.
-        const auto build = [](float density, int diameter_um) {
+        const auto build = [](float density, float diameter_mm) {
             stub_data = StubData {
                 stub_field<MainField::nominal_netto_full_weight>(1000.0f),
                 stub_field<AuxField::consumed_weight>(100.0f),
                 stub_field<MainField::density>(density),
-                stub_field<MainField::filament_diameter_v2>(diameter_um),
+                stub_field<MainField::filament_diameter>(diameter_mm),
             };
             MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
             req.issue();
@@ -219,10 +219,10 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
 
         // Weight is still valid, so those are populated; length must simply be absent.
         for (const auto &info : {
-                 build(0.0f, 1750), // zero density
+                 build(0.0f, 1.75f), // zero density
                  build(1.24f, 0), // zero diameter
-                 build(-1.24f, 1750), // negative density
-                 build(1.24f, -1750), // negative diameter
+                 build(-1.24f, 1.75f), // negative density
+                 build(1.24f, -1.75f), // negative diameter
              }) {
             CHECK(info.full_weight_g == 1000.0f);
             CHECK(info.remaining_weight_g == 900.0f);
@@ -238,7 +238,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
             stub_field<AuxField::consumed_weight>(200.0f),
             stub_field<MainField::nominal_full_length>(330000.0f),
             stub_field<MainField::density>(1.24f),
-            stub_field<MainField::filament_diameter_v2>(1750),
+            stub_field<MainField::filament_diameter>(1.75f),
         };
         MultiReadFieldRequest<AmountsInfo::Requirements {}> req { tool_tag };
         req.issue();
@@ -258,7 +258,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
                 data.insert(stub_field<MainField::density>(1.24f));
             }
             if (with_diameter) {
-                data.insert(stub_field<MainField::filament_diameter_v2>(1750));
+                data.insert(stub_field<MainField::filament_diameter>(1.75f));
             }
             stub_data = data;
 

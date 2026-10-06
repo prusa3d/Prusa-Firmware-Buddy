@@ -23,7 +23,7 @@ struct AmountsInfo {
         MainField::nominal_full_length,
         MainField::actual_full_length,
         MainField::density,
-        MainField::filament_diameter_v2,
+        MainField::filament_diameter,
         AuxField::consumed_weight>;
 
     using RequestRef = Requirements::ApplyOn<MultiReadFieldRequestRef>;

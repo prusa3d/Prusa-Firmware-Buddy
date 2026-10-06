@@ -41,18 +41,18 @@ AmountsInfo::AmountsInfo(const RequestRef &req) {
 
         remaining_weight_g = std::max<float>(*full_weight_g - consumed_weight.value_or(0), 0);
 
-        const auto filament_diameter_um = req.result<MainField::filament_diameter_v2>();
+        const auto filament_diameter_mm = req.result<MainField::filament_diameter>();
         const auto density_g_cm3 = req.result<MainField::density>();
 
         if (full_length_mm.has_value()) {
             remaining_length_mm = *full_length_mm / *full_weight_g * *remaining_weight_g;
         } else if (density_g_cm3.has_value() && *density_g_cm3 > 0.f
-            && filament_diameter_um.has_value() && *filament_diameter_um > 0) {
+            && filament_diameter_mm.has_value() && *filament_diameter_mm > 0) {
             // fallback when full_length is not available
 
-            // 10^-3 (g/cm3 to g/mm3) * (0.001 * 0.5)^2 (um to radius mm) * pi
-            constexpr float k_factor = 2.5e-10f * std::numbers::pi_v<float>;
-            const float diameter = *filament_diameter_um;
+            // 10^-3 (g/cm3 to g/mm3) * 0.5^2 (diameter to radius mm) * pi
+            constexpr float k_factor = 2.5e-4f * std::numbers::pi_v<float>;
+            const float diameter = *filament_diameter_mm;
             const float lin_density = *density_g_cm3 * diameter * diameter * k_factor;
 
             if (lin_density > 0) {
