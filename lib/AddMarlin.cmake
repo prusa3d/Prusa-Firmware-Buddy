@@ -270,6 +270,7 @@ target_link_libraries(
          raii
          otp # burst_stepper
          accelerometer
+         uuid
   )
 target_link_libraries(Marlin PRIVATE CppStdExtensions logging freertos)
 

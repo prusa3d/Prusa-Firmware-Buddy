@@ -166,6 +166,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/lang/string_view_utf8.cpp
   ${CMAKE_SOURCE_DIR}/src/persistent_stores/store_instances/config_store/filament_variant_decode.cpp
   )
+target_link_libraries(encoded_filament_tests uuid)
 target_include_directories(
   encoded_filament_tests
   PUBLIC # Stubs must come first to shadow headers with heavy dependencies (e.g. tool_index.hpp →

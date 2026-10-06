@@ -76,7 +76,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src ${CMAKE_SOURCE_DIR}/src/lang
          ${CMAKE_SOURCE_DIR}/src/common
   )
-target_link_libraries(gcode_info_test gcode_reader_test_base version)
+target_link_libraries(gcode_info_test gcode_reader_test_base version uuid)
 add_catch_test(gcode_info_test)
 
 file(

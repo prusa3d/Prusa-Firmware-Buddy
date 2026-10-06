@@ -133,6 +133,7 @@ target_link_libraries(
   random
   random_sw
   base64
+  uuid
   )
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
@@ -257,7 +258,15 @@ target_include_directories(
   )
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
-target_link_libraries(connect_planner_tests raii xbuddy_extension otp random random_sw)
+target_link_libraries(
+  connect_planner_tests
+  raii
+  xbuddy_extension
+  otp
+  random
+  random_sw
+  uuid
+  )
 
 if(NOT WEBSOCKET)
   target_sources(connect_planner_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp)
@@ -358,7 +367,15 @@ target_include_directories(
   )
 add_dependencies(connect_registration_tests generate-httpc-automata-tests-connect)
 
-target_link_libraries(connect_registration_tests raii xbuddy_extension otp random random_sw)
+target_link_libraries(
+  connect_registration_tests
+  raii
+  xbuddy_extension
+  otp
+  random
+  random_sw
+  uuid
+  )
 
 if(NOT WEBSOCKET)
   target_sources(connect_registration_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp)

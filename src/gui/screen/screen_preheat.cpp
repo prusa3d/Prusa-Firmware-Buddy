@@ -279,6 +279,9 @@ void WindowMenuPreheat::setup_item(ItemVariant &variant, int index) {
             FilamentType { PendingAdHocFilamentType {} }.modify_parameters([](FilamentTypeParameters &p) {
                 // Clear OPT link that might have been left over in the data
                 p.openprinttag_uid_hash = buddy::openprinttag::ToolTag::no_tag_hash;
+                p.package_uuid = std::nullopt;
+                p.material_uuid = std::nullopt;
+                p.instance_uuid = std::nullopt;
             });
 #endif
 

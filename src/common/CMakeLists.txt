@@ -1,6 +1,6 @@
 target_include_directories(firmware PRIVATE . include)
 
-target_link_libraries(firmware PRIVATE buddy_utils bsod random random_sw fanctl)
+target_link_libraries(firmware PRIVATE buddy_utils bsod random random_sw fanctl uuid)
 
 # Provides the FreeRTOS tick/idle hooks. Must be built wherever cpu_utils.cpp is (every board that
 # enters this directory), as the hooks dispatch into it.

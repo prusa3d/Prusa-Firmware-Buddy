@@ -210,7 +210,7 @@ FilamentTypeParameters FilamentType::parameters() const {
                     + HAS_CHAMBER_API() * 3
                     + HAS_CHAMBER_FILTRATION_API() * 1
                     + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
-                    + HAS_ANFC() * 1
+                    + HAS_ANFC() * 4 // TODO UUIDs
                     + HAS_HT_HOTEND() * 1
             //
             ,
@@ -280,7 +280,7 @@ void FilamentType::set_parameters(const FilamentTypeParameters &set) const {
                 + HAS_CHAMBER_API() * 3
                 + HAS_CHAMBER_FILTRATION_API() * 1
                 + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
-                + HAS_ANFC() * 1
+                + HAS_ANFC() * 4 // TODO UUIDs
                 + HAS_HT_HOTEND() * 1
         //
         ,

@@ -16,6 +16,7 @@
 #include <utils/algorithm_extensions.hpp>
 #include <utils/variant_utils.hpp>
 #include <tool_index.hpp>
+#include <uuid/uuid.hpp>
 
 #include <option/has_chamber_api.h>
 #include <option/has_chamber_filtration_api.h>
@@ -96,6 +97,20 @@ public:
     /// OpenPrintTag linked to the filament
     /// Note: not using ToolTag::UIDHash here to avoid dependency hell, static_asserted match in the cpp
     uint16_t openprinttag_uid_hash = 0;
+
+    using OptionalUUID = CompactOptional<UUID, UUID::nil()>;
+
+    /// Material::uuid according to the OpenPrintTag architecture
+    /// Identifies the material (for example PLA Prusa Galaxy Black)
+    OptionalUUID material_uuid = std::nullopt;
+
+    /// MaterialPackage::uuid according to the OpenPrintTag architecture
+    /// Identifies the package (for example 1kg spool of PLA Prusa Galaxy Black)
+    OptionalUUID package_uuid = std::nullopt;
+
+    /// MaterialPackageInstance::uuid according to the OpenPrintTag architecture
+    /// Identifies the package instance (individual spools)
+    OptionalUUID instance_uuid = std::nullopt;
 #endif
 
 #if HAS_FILAMENT_BASE_PRESET_PARAM()

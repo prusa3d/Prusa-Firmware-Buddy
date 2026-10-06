@@ -198,7 +198,7 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
 
     static_assert(
         filament_type_parameter_count
-            == 8
+            == 11 // TODO UUIDs
                 + HAS_CHAMBER_API() * 4
                 + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                 + HAS_FILAMENT_BASE_PRESET_PARAM() * 1

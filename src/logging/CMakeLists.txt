@@ -38,6 +38,7 @@ target_link_libraries(
           bsod
           SG14 # config store 🤦
           buddy_utils # config store 🤦
+          uuid # config store 🤦
           otp
           raii
   PUBLIC log_interface

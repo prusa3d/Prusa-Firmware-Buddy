@@ -221,7 +221,7 @@ static_assert(
             + HAS_FILAMENT_HEATBREAK_PARAM() * 1
             + HAS_CHAMBER_API() * 4
             + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
-            + HAS_ANFC() * 1
+            + HAS_ANFC() * 4 // TODO UUIDs
             // requires_ht_idler_door - preset-only hack
             + HAS_HT_HOTEND() * 1
     //
