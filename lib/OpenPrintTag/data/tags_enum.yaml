@@ -105,6 +105,14 @@
     - The material has been modified to allow higher printing speeds (than material type baseline).
     - High speed materials have typically increased [Melt Flow Index](https://en.wikipedia.org/wiki/Melt_flow_index).
 
+- key: 73
+  name: uv_resistant
+  category: physical
+  display_name: UV resistant
+  description:
+    - Withstands ultraviolet (UV) radiation from sunlight or artificial sources without significant degradation of its mechanical properties or color change more than other materials.
+    - Suitable for outdoor use.
+
 # Electrical properties
 # ========================================
 
@@ -163,6 +171,12 @@
   category: chemical
   display_name: Limonene soluble
   description: Can be dissolved in limonene.
+
+- key: 74
+  name: acetone_soluble
+  category: chemical
+  display_name: Acetone soluble
+  description: Can be dissolved in acetone.
 
 - key: 64
   name: low_outgassing

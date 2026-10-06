@@ -32,7 +32,7 @@
 
 - key: 4
   name: gtin
-  type: number
+  type: int
   required: recommended
   description: Global Trade Item Number.
 
@@ -194,7 +194,7 @@
   description:
     - Primary color of the material in the RGB(A) format, intended for UI purposes.
     - The alpha channel can be left out, in which case the data should have 3 bytes instead of 4 and the color will be considered fully opaque.
-    - If a material doesn't have a single primary color (for example rainbow or coextruded filaments), this field can be null.
+    - If a material doesn't have a single primary color (for example rainbow or coextruded filaments), this field SHOULD be omitted.
 
 - key: 59
   name: primary_color_lab
@@ -286,19 +286,15 @@
   required: recommended
   description: Density of the material.
 
-# Removed 30 - filament_diameter, which expressed the diameter in mm.
-# Replaced by filament_diameter_v2 (key 61) using µm, to match the architecture
-
-- key: 61
-  name: filament_diameter_v2
-  type: int
-  unit: µm
-  example: 2850
+- key: 30
+  name: filament_diameter
+  type: number
+  unit: mm
+  example: 2.85
   category: fff
   description:
-    - Diameter of the filament, in µm.
-    - If not present, 1750 µm is assumed.
-    - "**Note:** Replaces the removed key 30 (`filament_diameter`), which was in mm."
+    - Diameter of the filament, in mm.
+    - If not present, 1.75 mm is assumed.
 
 # Removed 18
 
@@ -320,19 +316,15 @@
     - Hardness of the material on the Shore D hardness scale (suitable for harder materials).
     - "**Note:** There is no 1:1 mapping between A and D scales, different materials can have different values on one scale even though they are the same on the other."
 
-# Removed 33 - min_nozzle_diameter, which expressed the diameter in mm.
-# Replaced by min_nozzle_diameter_v2 (key 62) using µm, to match the architecture
-
-- key: 62
-  name: min_nozzle_diameter_v2
-  type: int
-  unit: µm
-  example: 400
+- key: 33
+  name: min_nozzle_diameter
+  type: number
+  example: 0.4
+  unit: mm
   category: fff
   description:
     - Filaments can contain particles that would clog smaller nozzles.
-    - This field specifies minimum nozzle diameter recommended for printing this material, in µm.
-    - "**Note:** Replaces the removed key 33 (`min_nozzle_diameter`), which was in mm."
+    - This field specifies minimum nozzle diameter recommended for printing this material.
 
 - key: 34
   name: min_print_temperature
@@ -513,5 +505,13 @@
   category: fff
   description:
     - Recommended drying time (at `drying_temperature`).
+
+# Reserved: former filament_diameter_v2 (µm), reverted to filament_diameter (key 30, mm). Do not reuse.
+- key: 61
+  deprecated: true
+
+# Reserved: former min_nozzle_diameter_v2 (µm), reverted to min_nozzle_diameter (key 33, mm). Do not reuse.
+- key: 62
+  deprecated: true
 
 # First unused key: 63

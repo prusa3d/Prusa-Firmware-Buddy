@@ -37,7 +37,7 @@
                     "$ref": "field_types.schema.json#/definitions/uuid"
                 },
                 "gtin": {
-                    "$ref": "field_types.schema.json#/definitions/number"
+                    "$ref": "field_types.schema.json#/definitions/int"
                 },
                 "brand_specific_instance_id": {
                     "$ref": "field_types.schema.json#/definitions/string"
@@ -126,8 +126,8 @@
                 "density": {
                     "$ref": "field_types.schema.json#/definitions/number"
                 },
-                "filament_diameter_v2": {
-                    "$ref": "field_types.schema.json#/definitions/int"
+                "filament_diameter": {
+                    "$ref": "field_types.schema.json#/definitions/number"
                 },
                 "hardness_shore_a": {
                     "$ref": "field_types.schema.json#/definitions/int"
@@ -135,8 +135,8 @@
                 "hardness_shore_d": {
                     "$ref": "field_types.schema.json#/definitions/int"
                 },
-                "min_nozzle_diameter_v2": {
-                    "$ref": "field_types.schema.json#/definitions/int"
+                "min_nozzle_diameter": {
+                    "$ref": "field_types.schema.json#/definitions/number"
                 },
                 "min_print_temperature": {
                     "$ref": "field_types.schema.json#/definitions/int"

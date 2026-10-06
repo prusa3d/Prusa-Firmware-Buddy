@@ -177,13 +177,6 @@ The main section contains material information that does not change during the p
 #### 5.1.1 Field list (FFF-specific)
 {{ fields_table("main_fields", "fff") }}
 
-##### 5.1.1.1 Removed fields (FFF-specific)
-
-|Name|Key|Removal reason|
-|:--|:--|:--|
-|`filament_diameter`|30|Unit change (`mm` → `µm`) to align with the OpenPrintTag Architecture.<br>Replaced with `filament_diameter_v2`.|
-|`min_nozzle_diameter`|33|Unit change (`mm` → `µm`) to align with the OpenPrintTag Architecture.<br>Replaced with `min_nozzle_diameter_v2`.|
-
 #### 5.1.2 Field list (SLA-specific)
 {{ fields_table("main_fields", "sla") }}
 

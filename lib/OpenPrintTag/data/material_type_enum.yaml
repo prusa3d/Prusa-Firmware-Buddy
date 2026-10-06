@@ -50,7 +50,7 @@
     max_chamber_temperature: 40
     drying_temperature: 60
     drying_time: 360
-    min_nozzle_diameter: 400
+    min_nozzle_diameter: 0.4
 
 - key: 3
   abbreviation: ABS
@@ -115,6 +115,19 @@
   abbreviation: PP
   name: Polypropylene
   description: Lightweight, chemically resistant, and flexible. Used for creating living hinges and durable containers.
+  default_properties:
+    density: 0.90
+    min_print_temperature: 220
+    max_print_temperature: 250
+    preheat_temperature: 150
+    min_bed_temperature: 80
+    max_bed_temperature: 100
+    heatbreak_temperature: 50
+    chamber_temperature: 50
+    min_chamber_temperature: 30
+    max_chamber_temperature: 70
+    drying_temperature: 60
+    drying_time: 120
 
 - key: 8
   abbreviation: PA6
@@ -155,6 +168,19 @@
   abbreviation: HIPS
   name: High Impact Polystyrene
   description: A lightweight material often used as a dissolvable support material for ABS prints (dissolves in Limonene).
+  default_properties:
+    density: 1.04
+    min_print_temperature: 220
+    max_print_temperature: 250
+    preheat_temperature: 170
+    min_bed_temperature: 80
+    max_bed_temperature: 100
+    heatbreak_temperature: 65
+    chamber_temperature: 45
+    min_chamber_temperature: 35
+    max_chamber_temperature: 75
+    drying_temperature: 70
+    drying_time: 240
 
 - key: 15
   abbreviation: PHA

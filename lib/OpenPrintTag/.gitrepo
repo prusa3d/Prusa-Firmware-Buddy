@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:OpenPrintTag/openprinttag-specification.git
 	branch = main
-	commit = 67996e653397927278e8fc2171d9ec5aec99592a
-	parent = d6c15af9c23f7051f7068df975ed818d620c1441
+	commit = 2f64e19166e33bee0845d757cd03bcf06b86b292
+	parent = fcccaa10c62d0e399210bc7aabb14c868e3c5a33
 	method = merge
 	cmdver = 0.4.9
