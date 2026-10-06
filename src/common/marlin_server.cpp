@@ -2406,10 +2406,6 @@ static void _server_print_loop(void) {
         buddy::reenable_ceiling_clearance_warning();
 #endif
 
-#if HAS_INDX()
-        prusa_toolchanger.set_nozzle_check_disabled(false);
-#endif
-
 #if HAS_CANCEL_OBJECT()
         buddy::cancel_object().reset();
         for (auto &cancel_object_name : marlin_vars().cancel_object_names) {

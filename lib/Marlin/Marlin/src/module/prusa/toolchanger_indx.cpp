@@ -211,10 +211,6 @@ static void lower_bed_for_pickup() {
 }
 
 void PrusaToolChanger::check_nozzle_presence_vs_eeprom() {
-    if (nozzle_check_disabled) {
-        return;
-    }
-
 #if HAS_POWER_PANIC()
     // Stored panic data + autostart not yet done = resume decision pending.
     // EEPROM is intentionally stale during prints, so this check would false-fire here.
@@ -344,7 +340,7 @@ void PrusaToolChanger::loop(bool printing, bool paused) {
         return;
     }
 
-    if (!nozzle_check_disabled && printing && !paused) {
+    if (printing && !paused) {
         // EEPROM is invalidated during prints, so use the in-RAM active tool instead.
         check_nozzle_presence_during_print();
     }
@@ -583,7 +579,7 @@ bool PrusaToolChanger::park_procedure(PhysicalToolIndex tool) {
     buddy::puppies::indx.invalidate_nozzle_data();
 
     // Verify nozzle is gone (successfully released)
-    if (!nozzle_check_disabled && !verify_nozzle_state(tool, false)) {
+    if (!verify_nozzle_state(tool, false)) {
         return false;
     }
 
@@ -605,7 +601,7 @@ bool PrusaToolChanger::park(PhysicalToolIndex tool) {
     ScopeGuard committer = [&] {
         // bail_on_power_panic - the presence analysis must settle even after a user Stop.
         // Power-panic still short-circuits inside wait() so we don't drain PSU caps.
-        if (!nozzle_check_disabled && verify_nozzle_state(tool, false, WaitMode::bail_on_power_panic)) {
+        if (verify_nozzle_state(tool, false, WaitMode::bail_on_power_panic)) {
             commit_park(tool);
         }
     };
@@ -772,7 +768,7 @@ bool PrusaToolChanger::pickup_procedure(PhysicalToolIndex tool) {
     planner.synchronize();
 
     buddy::puppies::indx.invalidate_nozzle_data();
-    if (!nozzle_check_disabled && !verify_nozzle_state(tool, true)) {
+    if (!verify_nozzle_state(tool, true)) {
         return false;
     }
 
@@ -984,7 +980,7 @@ bool PrusaToolChanger::finish_pickup_after_lock(const ToolchangeReturnData &rd) 
     }
 
     buddy::puppies::indx.invalidate_nozzle_data();
-    if (!nozzle_check_disabled && !verify_nozzle_state(tool, true)) {
+    if (!verify_nozzle_state(tool, true)) {
         return false;
     }
 
