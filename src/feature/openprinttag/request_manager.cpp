@@ -392,6 +392,15 @@ std::optional<TagUID> Manager::get_tag_uid_for_tool(VirtualToolIndex tool) const
     return std::nullopt;
 }
 
+std::optional<TagUID> Manager::get_tag_uid(ToolTag tool_tag) const {
+    const auto uid = get_tag_uid_for_tool(tool_tag.tool());
+    if (uid.has_value() && uid->hash() == tool_tag.uid_hash()) {
+        return uid;
+    } else {
+        return std::nullopt;
+    }
+}
+
 std::optional<Manager::TagDeviceInfo> Manager::get_tag_device_info(ToolTag tool_tag) const {
     std::shared_lock lock { mutex };
     return get_tag_device_info_nolock({}, tool_tag);
@@ -414,4 +423,5 @@ Manager &manager() {
     static Manager instance;
     return instance;
 }
+
 } // namespace buddy::openprinttag

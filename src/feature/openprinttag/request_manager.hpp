@@ -50,6 +50,9 @@ public:
     /// Return TagUID detected on given tool, if any.
     std::optional<TagUID> get_tag_uid_for_tool(VirtualToolIndex) const;
 
+    /// @returns TagUID linked to the provided ToolTag (if in memory)
+    std::optional<TagUID> get_tag_uid(ToolTag) const;
+
     struct TagDeviceInfo {
         anfc::Device device;
         TagID tag_id;
