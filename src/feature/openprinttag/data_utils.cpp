@@ -164,7 +164,7 @@ UUIDInfo::UUIDInfo(const RequestRef &req, const TagUID &tag_uid) {
     }
 }
 
-FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
+FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req, const TagUID &tag_uid) {
     using Params = FilamentTypeParameters;
 
     // Mark all parameters as missing, we will clear that as we get them
@@ -198,7 +198,7 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
 
     static_assert(
         filament_type_parameter_count
-            == 11 // TODO UUIDs
+            == 11
                 + HAS_CHAMBER_API() * 4
                 + HAS_FILAMENT_HEATBREAK_PARAM() * 1
                 + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
@@ -248,7 +248,18 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
     }
 
     // Grab tag UID from any request
-    set.operator()<&Params::openprinttag_uid_hash>(req.request<MainField::material_type>().tool_tag().uid_hash());
+    set.operator()<&Params::openprinttag_uid_hash>(tag_uid.hash());
+
+    // UUIDs
+    {
+        const UUIDInfo uuids { req, tag_uid };
+
+        // Note: set also sets the parameters as not missing
+        // That is fine, the user should never be asked to fill in the UUIDs
+        set.operator()<&Params::material_uuid>(uuids.material_uuid);
+        set.operator()<&Params::package_uuid>(uuids.package_uuid);
+        set.operator()<&Params::instance_uuid>(uuids.instance_uuid);
+    }
 
     // Color
     load_to.operator()<MainField::primary_color, &Params::color>();

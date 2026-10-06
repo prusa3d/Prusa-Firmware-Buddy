@@ -33,6 +33,7 @@
     #include <feature/openprinttag/tool_tag.hpp>
     #include <feature/openprinttag/data_utils.hpp>
     #include <feature/openprinttag/requests_read_multi.hpp>
+    #include <feature/openprinttag/request_manager.hpp>
 #endif
 
 #if HAS_ANFC()
@@ -157,6 +158,7 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
         if (load_tag) {
             fsm.change(PhasesPreheat::loading_openprinttag, serialized_data);
 
+            const auto tag_uid = buddy::openprinttag::manager().get_tag_uid(*tag);
             opt::MultiReadFieldRequest<opt::FilamentParametersInfo::Requirements {}> req { *tag };
             req.issue();
 
@@ -168,7 +170,7 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
                 idle(true);
             }
 
-            opt::FilamentParametersInfo params { req };
+            opt::FilamentParametersInfo params { req, tag_uid.value_or(buddy::openprinttag::TagUID {}) };
 
             const auto compatibility_level = [&] {
                 buddy::filament_compatibility::CompatibilityReport compat_report;
@@ -180,7 +182,10 @@ static FSMResponseVariant determine_filament_for_operation(const filament_gcodes
                 return compat_report.compatibility_level();
             };
 
-            if (params.data_safe_to_use && compatibility_level() == buddy::compatibility_checks::CompatibilityLevel::fully_compatible) {
+            if (tag_uid.has_value()
+                && params.data_safe_to_use
+                && compatibility_level() == buddy::compatibility_checks::CompatibilityLevel::fully_compatible //
+            ) {
                 // Everything derived perfectly from the tag -> apply the parameters and be happy
                 const FilamentType ft = PendingAdHocFilamentType {};
                 ft.set_parameters(params.parameters);

@@ -10,7 +10,8 @@ using namespace buddy::openprinttag;
 void Request::issue() {
 }
 
-const ToolTag tool_tag { VirtualToolIndex::from_raw(0), 10 };
+static constexpr TagUID tag_uid { { 0xBC, 0x6F, 0x2F, 0x66, 0x08, 0x01, 0x04, 0xE0 } };
+const ToolTag tool_tag { VirtualToolIndex::from_raw(0), tag_uid.hash() };
 
 template <CField auto field>
 auto stub_field(typename ReadFieldRequest<field>::Value val) {
@@ -288,7 +289,7 @@ TEST_CASE("buddy::openprinttag::data_utils::AbbreviationInfo") {
 
 TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
     // If the requirements change, we probably want to update the tests
-    static_assert(FilamentParametersInfo::Requirements::size == 14);
+    static_assert(FilamentParametersInfo::Requirements::size == 21);
 
     SECTION("Temperature Averaging") {
         // The logic averages Min and Max to find the target print temperature
@@ -303,7 +304,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.name == "PETG");
         CHECK(info.parameters.nozzle_temperature == 240); // (230+250)/2
@@ -325,7 +326,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.name == "TPU");
         CHECK(info.parameters.is_flexible == true);
@@ -346,7 +347,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.is_abrasive);
         CHECK_FALSE(info.is_missing<&FilamentTypeParameters::is_abrasive>());
@@ -365,7 +366,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.nozzle_preheat_temperature == 170);
         CHECK(info.parameters.nozzle_temperature == 215);
@@ -381,7 +382,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.color == Color::from_rgb(0x12, 0x34, 0x56));
         CHECK_FALSE(info.is_missing<&FilamentTypeParameters::color>());
@@ -402,7 +403,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.name == "ASA");
         CHECK(info.parameters.chamber_target_temperature == 50);
@@ -421,7 +422,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.parameters.name == "ASA");
         CHECK(info.parameters.requires_filtration);
@@ -447,7 +448,7 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
         MultiReadFieldRequest<FilamentParametersInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        FilamentParametersInfo info { req };
+        FilamentParametersInfo info { req, tag_uid };
 
         CHECK(info.missing_parameters.to_ulong() == 0);
 
@@ -461,8 +462,6 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
 }
 
 TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
-    static constexpr TagUID uid { { 0xBC, 0x6F, 0x2F, 0x66, 0x08, 0x01, 0x04, 0xE0 } };
-
     SECTION("Spec example") {
         stub_data = StubData {
             stub_field<MainField::brand_name>("Prusament"),
@@ -473,7 +472,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK(info.brand_uuid == "ae5ff34e-298e-50c9-8f77-92a97fb30b09"_uuid);
         CHECK(info.material_uuid == "1aaca54a-431f-5601-adf5-85dd018f487f"_uuid);
         CHECK(info.package_uuid == "7ed3ce83-764d-56de-bdcd-dc5226a0efd1"_uuid);
@@ -490,7 +489,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK(info.brand_uuid == "43b8849f-e146-50f8-a36e-42c1c485b732"_uuid);
         CHECK(info.material_uuid == "683f8740-62f3-5a8f-aa6d-894611ff19a8"_uuid);
     }
@@ -505,7 +504,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK(info.package_uuid == "77ab0489-8e18-5136-a3c5-b89f837a6822"_uuid);
     }
 
@@ -528,7 +527,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK(info.brand_uuid == brand_uuid);
         CHECK(info.material_uuid == material_uuid);
         CHECK(info.package_uuid == package_uuid);
@@ -547,7 +546,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK(info.brand_uuid == "ae5ff34e-298e-50c9-8f77-92a97fb30b09"_uuid);
         CHECK(info.material_uuid == "1aaca54a-431f-5601-adf5-85dd018f487f"_uuid);
         CHECK(info.package_uuid == "7ed3ce83-764d-56de-bdcd-dc5226a0efd1"_uuid);
@@ -564,7 +563,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
         req.issue();
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK(info.brand_uuid.has_value());
     }
 
@@ -583,7 +582,7 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
 
         CHECK(req.result<MainField::brand_name>() == std::unexpected { Request::Error::data_too_big });
 
-        UUIDInfo info { req, uid };
+        UUIDInfo info { req, tag_uid };
         CHECK_FALSE(info.brand_uuid.has_value());
         CHECK_FALSE(info.material_uuid.has_value());
         CHECK_FALSE(info.package_uuid.has_value());

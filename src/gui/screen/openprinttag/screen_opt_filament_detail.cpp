@@ -2,6 +2,7 @@
 #include "screen_opt_filament_detail_private.hpp"
 
 #include <feature/openprinttag/requests_read_multi.hpp>
+#include <feature/openprinttag/request_manager.hpp>
 #include <feature/openprinttag/data_utils.hpp>
 #include <gui/screen/openprinttag/opt_request_wizard.hpp>
 
@@ -50,13 +51,14 @@ bool ScreenOPTFilamentDetail::scan() {
     using MultiRequest = MultiReadFieldRequest<FilamentParametersInfo::Requirements {}>;
 
     MultiRequest req { tag_ };
+    const auto tag_uid = manager().get_tag_uid(tag_);
 
-    if (!multirequest_with_troubleshooting(req)) {
+    if (!tag_uid.has_value() || !multirequest_with_troubleshooting(req)) {
         close_screen();
         return false;
     }
 
-    FilamentParametersInfo params { req };
+    FilamentParametersInfo params { req, *tag_uid };
 
     FilamentType filament_type = preheat_mode_ ? FilamentType { FilamentType::pending_adhoc } : FilamentType { FilamentType::none };
     setup(filament_type, params.parameters, SetupArgs {});

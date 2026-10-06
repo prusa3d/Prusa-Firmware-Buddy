@@ -136,12 +136,16 @@ struct FilamentParametersInfo {
         MainField::tags,
         MainField::material_type>;
 
-    using Requirements = BaseRequirements::Concatenate<AbbreviationInfo::Requirements>::Unique<>;
+    using Requirements = BaseRequirements //
+        ::Concatenate<AbbreviationInfo::Requirements> //
+        ::Concatenate<UUIDInfo::Requirements> //
+        ::Unique<>;
+
     using RequestRef = Requirements::ApplyOn<MultiReadFieldRequestRef>;
 
     using MissingParameters = std::bitset<filament_type_parameter_count>;
 
-    explicit FilamentParametersInfo(const RequestRef &req);
+    explicit FilamentParametersInfo(const RequestRef &req, const TagUID &tag_uid);
 
     /// @returns whether the information is missing the specified parameter
     template <auto FilamentTypeParameters::*mem_ptr>
