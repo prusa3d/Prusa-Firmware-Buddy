@@ -19,6 +19,7 @@
 #include <option/has_anfc.h>
 #if HAS_ANFC()
     #include <feature/openprinttag/tool_tag.hpp>
+    #include <gui/menu_item/menu_item_uuid.hpp>
 #endif
 
 namespace screen_filament_detail {
@@ -161,6 +162,33 @@ protected:
 private:
     Value original_uid_hash_ = no_tag_hash;
 };
+
+class MI_FILAMENT_MATERIAL_UUID final : public MenuItemUUID {
+public:
+    static constexpr auto parameter_ptr = &FilamentTypeParameters::material_uuid;
+    static constexpr bool is_adhoc_only = true;
+
+    MI_FILAMENT_MATERIAL_UUID()
+        : MenuItemUUID(_("Material UUID")) {}
+};
+
+class MI_FILAMENT_PACKAGE_UUID final : public MenuItemUUID {
+public:
+    static constexpr auto parameter_ptr = &FilamentTypeParameters::package_uuid;
+    static constexpr bool is_adhoc_only = true;
+
+    MI_FILAMENT_PACKAGE_UUID()
+        : MenuItemUUID(_("Package UUID")) {}
+};
+
+class MI_FILAMENT_INSTANCE_UUID final : public MenuItemUUID {
+public:
+    static constexpr auto parameter_ptr = &FilamentTypeParameters::instance_uuid;
+    static constexpr bool is_adhoc_only = true;
+
+    MI_FILAMENT_INSTANCE_UUID()
+        : MenuItemUUID(_("Instance UUID")) {}
+};
 #endif
 
 class MI_FILAMENT_IS_ABRASIVE final : public WI_ICON_SWITCH_OFF_ON_t {
@@ -211,6 +239,9 @@ using ScreenFilamentDetail_ = ScreenMenu<EFooter::Off,
 #endif
 #if HAS_ANFC()
     MI_FILAMENT_ASSIGNED_OPENPRINTTAG,
+    MI_FILAMENT_MATERIAL_UUID,
+    MI_FILAMENT_PACKAGE_UUID,
+    MI_FILAMENT_INSTANCE_UUID,
 #endif
     MI_CALLBACK //
     >;
@@ -221,7 +252,7 @@ static_assert(
             + HAS_FILAMENT_HEATBREAK_PARAM() * 1
             + HAS_CHAMBER_API() * 4
             + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
-            + HAS_ANFC() * 4 // TODO UUIDs
+            + HAS_ANFC() * 4
             // requires_ht_idler_door - preset-only hack
             + HAS_HT_HOTEND() * 1
     //
