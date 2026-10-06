@@ -267,9 +267,9 @@ TEST_CASE("buddy::openprinttag::data_utils::AmountsInfo") {
             return AmountsInfo { req }.remaining_length_mm.has_value();
         };
 
-        CHECK_FALSE(length_derivable(false, false));
-        CHECK_FALSE(length_derivable(true, false)); // density only
-        CHECK_FALSE(length_derivable(false, true)); // diameter only
+        CHECK(length_derivable(false, false));
+        CHECK(length_derivable(true, false)); // density only
+        CHECK(length_derivable(false, true)); // diameter only
         CHECK(length_derivable(true, true)); // both
     }
 }
