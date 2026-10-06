@@ -181,7 +181,7 @@ using PresetFilamentParametersT = EnumArray<
     T,
 
     // Sneaky half-hack:
-    // PresetFilamentParameters stores items indexed in the display order (by preset_filament_types)
+    // PresetFilamentParametersT stores items indexed in the display order (by preset_filament_types)
     // This allows us to only store parameters for presets the printer actually uses, in linear order
     // The index_f function maps PresetFilamentType enum to the reduced array through a linear search
     // Safety is ensured by the strong indexing and EnumArray checks
@@ -190,9 +190,7 @@ using PresetFilamentParametersT = EnumArray<
     preset_filament_type_list_index //
     >;
 
-using PresetFilamentParameters = PresetFilamentParametersT<FilamentTypeParameters>;
-
-extern constinit const PresetFilamentParameters preset_filament_parameters;
+FilamentTypeParameters preset_filament_parameters(PresetFilamentType type);
 
 /// User-configurable "presets" for filaments
 struct UserFilamentType {

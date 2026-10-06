@@ -12,8 +12,10 @@
     #include <inc/MarlinConfig.h>
 #endif
 
+namespace {
+
 // These temperatures correspond to slicer defaults for MBL.
-constexpr PresetFilamentParameters preset_filament_parameters_constexpr {
+constexpr PresetFilamentParametersT<FilamentTypeParameters> preset_filament_parameters_constexpr {
     {
         PresetFilamentType::PLA,
         FilamentTypeParameters {
@@ -286,7 +288,11 @@ constexpr PresetFilamentParameters preset_filament_parameters_constexpr {
         },
 };
 
-constinit const PresetFilamentParameters preset_filament_parameters = preset_filament_parameters_constexpr;
+} // namespace
+
+FilamentTypeParameters preset_filament_parameters(PresetFilamentType t) {
+    return preset_filament_parameters_constexpr[t];
+}
 
 #ifndef UNITTESTS
 

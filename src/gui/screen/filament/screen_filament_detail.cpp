@@ -100,11 +100,11 @@ int MI_FILAMENT_BASE_PRESET::item_count() const {
     return preset_filament_types.size() + 1; // + "None"
 }
 
-string_view_utf8 MI_FILAMENT_BASE_PRESET::build_item_text(int index, StringViewUtf8ParamBase &) const {
+string_view_utf8 MI_FILAMENT_BASE_PRESET::build_item_text(int index, StringViewUtf8ParamBase &params) const {
     if (index == 0) {
         return _("None");
     } else {
-        return string_view_utf8::MakeCPUFLASH(preset_filament_parameters[preset_filament_types[index - 1]].name);
+        return string_view_utf8::MakeCPUFLASH("%.*s").formatted(params, std::string_view(preset_filament_parameters(preset_filament_types[index - 1]).name));
     }
 }
 

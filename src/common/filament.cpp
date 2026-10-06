@@ -219,7 +219,7 @@ FilamentTypeParameters FilamentType::parameters() const {
 
     return std::visit([]<typename T>(const T &v) -> FilamentTypeParameters {
         if constexpr (std::is_same_v<T, PresetFilamentType>) {
-            return preset_filament_parameters[v];
+            return preset_filament_parameters(v);
 
         } else if constexpr (std::is_same_v<T, UserFilamentType>) {
             return build_eeprom(
