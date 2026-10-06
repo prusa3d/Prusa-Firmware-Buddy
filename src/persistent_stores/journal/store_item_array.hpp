@@ -11,12 +11,13 @@
 
 namespace journal {
 
-template <typename Child, StoreItemDataC DataT, auto default_val_, ItemFlags flags_, auto backend, uint8_t item_count>
+template <typename Child, StoreItemDataC DataT, auto default_val_, ItemFlags flags_, auto backend, uint8_t item_count_>
 struct JournalItemArrayBase {
 
 public:
     using DefaultVal = std::remove_cvref_t<decltype(default_val_)>;
     static constexpr DefaultVal default_val = default_val_;
+    static constexpr uint8_t item_count = item_count_;
 
     using ItemArray = std::array<DataT, item_count>;
     using BackendT = std::remove_cvref_t<std::invoke_result_t<decltype(backend)>>;

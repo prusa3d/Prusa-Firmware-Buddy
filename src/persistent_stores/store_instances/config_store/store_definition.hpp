@@ -525,23 +525,28 @@ struct CurrentStore
     StoreItemArray<FilamentTypeParameters_EEPROM4, FilamentTypeParameters_EEPROM4 {}, ItemFlag::user_presets, journal::hash("User Filament Parameters 4"), 32, user_filament_type_count> user_filament_parameters_4;
 #endif
     // EEPROM5 (color) is adhoc-only
+    // EEPROM6 (UUIDs) is adhoc-only
 
-    StoreItemArray<FilamentTypeParameters_EEPROM1, defaults::adhoc_filament_parameters, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters"), 16, adhoc_filament_type_count> adhoc_filament_parameters;
+    StoreItemArray<FilamentTypeParameters_EEPROM1, defaults::adhoc_filament_parameters, ItemFlag::printer_state, journal::hash("Adhoc Filament Parameters"), 16, adhoc_filament_type_count> adhoc_filament_parameters;
 #if HAS_CHAMBER_API()
-    StoreItemArray<FilamentTypeParameters_EEPROM2, FilamentTypeParameters_EEPROM2 {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 2"), 16, adhoc_filament_type_count> adhoc_filament_parameters_2;
+    StoreItemArray<FilamentTypeParameters_EEPROM2, FilamentTypeParameters_EEPROM2 {}, ItemFlag::printer_state, journal::hash("Adhoc Filament Parameters 2"), 16, adhoc_filament_type_count> adhoc_filament_parameters_2;
 #endif
 #if HAS_FILAMENT_HEATBREAK_PARAM()
-    StoreItemArray<FilamentTypeParameters_EEPROM3, FilamentTypeParameters_EEPROM3 {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 3"), 16, adhoc_filament_type_count> adhoc_filament_parameters_3;
+    StoreItemArray<FilamentTypeParameters_EEPROM3, FilamentTypeParameters_EEPROM3 {}, ItemFlag::printer_state, journal::hash("Adhoc Filament Parameters 3"), 16, adhoc_filament_type_count> adhoc_filament_parameters_3;
 #endif
 #if HAS_FILAMENT_BASE_PRESET_PARAM()
-    StoreItemArray<FilamentTypeParameters_EEPROM4, FilamentTypeParameters_EEPROM4 {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 4"), 16, adhoc_filament_type_count> adhoc_filament_parameters_4;
+    StoreItemArray<FilamentTypeParameters_EEPROM4, FilamentTypeParameters_EEPROM4 {}, ItemFlag::printer_state, journal::hash("Adhoc Filament Parameters 4"), 16, adhoc_filament_type_count> adhoc_filament_parameters_4;
 #endif
-    StoreItemArray<FilamentTypeParameters_EEPROM5, AnyDefaultConstructor {}, ItemFlag::user_presets, journal::hash("Adhoc Filament Parameters 5d"), 16, adhoc_filament_type_count> adhoc_filament_parameters_5;
+    StoreItemArray<FilamentTypeParameters_EEPROM5, AnyDefaultConstructor {}, ItemFlag::printer_state, journal::hash("Adhoc Filament Parameters 5d"), 16, adhoc_filament_type_count> adhoc_filament_parameters_5;
 
 #if HAS_ANFC()
     /// Tags assigned to specific tools. See ToolTag::for_tool_assigned
     /// Not using ToolTag::UIDHash here to avoid dependency hell. static_asserted inside tool_tag.cpp
     StoreItemArray<uint16_t, uint16_t(0), ItemFlag::printer_state, journal::hash("OpenPrintTag assigned tool"), 16, VirtualToolIndex::count> adhoc_filament_assigned_openprinttag;
+
+    /// !!! ONLY ONE SLOT SUPPORTED, We don't have big enough EEPROM :( Every record is 48 B.
+    StoreItemArray<FilamentTypeParameters_EEPROM6, AnyDefaultConstructor {}, ItemFlag::printer_state, journal::hash("Adhoc Filament Parameters 6"), 16, 1> adhoc_filament_parameters_6;
+    static_assert(HAS_MMU2() || VirtualToolIndex::count == 1, "Figure out where to store UUIDs for the other materials");
 #endif
 
     StoreItem<EncodedBitset<max_user_filament_type_count>, defaults::visible_user_filament_types, ItemFlag::user_presets, journal::hash("Visible User Filament Types")> visible_user_filament_types;
