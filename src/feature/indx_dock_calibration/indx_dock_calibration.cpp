@@ -14,6 +14,7 @@
 #include <module/prusa/toolchanger.h>
 #include <module/prusa/corexy_transform.hpp>
 #include <puppies/INDX.hpp>
+#include <raii/scope_guard.hpp>
 #include "dock_calibration_data.hpp"
 
 #include <bitset>
@@ -42,6 +43,22 @@ static constexpr float DOCK_BUMP_MM = 10;
 /// Back off before bumping [mm]
 /// Homing moves don't trigger if they're already at the end
 static constexpr float DOCK_BUMP_BACKOFF_MM = 2;
+
+/// XY motor current for pushing the head into the dock [mA], full current deflects the front plate
+static constexpr uint16_t DOCK_PUSH_CURRENT_MA = 350;
+
+static bool push_head_into_dock() {
+    const uint16_t orig_current_x = stepperX.rms_current();
+    const uint16_t orig_current_y = stepperY.rms_current();
+    stepperX.rms_current(DOCK_PUSH_CURRENT_MA);
+    stepperY.rms_current(DOCK_PUSH_CURRENT_MA);
+    ScopeGuard current_restorer = [&] {
+        stepperX.rms_current(orig_current_x);
+        stepperY.rms_current(orig_current_y);
+    };
+
+    return do_homing_move(Y_AXIS, -(DOCK_BUMP_MM + DOCK_BUMP_BACKOFF_MM), homing_feedrate(Y_AXIS));
+}
 
 /// Serialize dock index into PhaseData (4 bytes)
 static fsm::PhaseData serialize_dock_data(PhysicalToolIndex tool) {
@@ -304,7 +321,7 @@ private:
             // Bump further in the dock
             // The dock unlocking magnet pushes the head out of the docks when the motors are off,
             // so if the user stops pressing before the motors are engaged, we would get a wrong reading
-            const bool dock_bump_hit = do_homing_move(Y_AXIS, -(DOCK_BUMP_MM + DOCK_BUMP_BACKOFF_MM), homing_feedrate(Y_AXIS));
+            const bool dock_bump_hit = push_head_into_dock();
 
             // Wait a bit after the bump, the sudden move-forth-then-back might scare the user
             // Don't be afraid, users, we love you!
