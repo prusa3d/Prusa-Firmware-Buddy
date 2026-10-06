@@ -3,4 +3,8 @@ target_sources(
                    menu_item_toggle_switch.cpp menu_item_utils.cpp
   )
 
+if(HAS_ANFC)
+  target_sources(firmware PRIVATE menu_item_uuid.cpp)
+endif()
+
 add_subdirectory(specific)

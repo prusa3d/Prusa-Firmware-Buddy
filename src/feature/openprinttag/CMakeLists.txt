@@ -10,5 +10,5 @@ target_sources(
 target_sources(firmware PRIVATE usage_example.cpp)
 
 target_link_libraries(
-  firmware PUBLIC openprinttag openprinttag_fields anfc dsdl_uavcan dsdl_prusa3d
+  firmware PUBLIC openprinttag openprinttag_fields anfc dsdl_uavcan dsdl_prusa3d uuid
   )
