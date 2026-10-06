@@ -1288,6 +1288,13 @@ void loop() {
 
     cycle();
 
+#if HAS_INDX()
+    // Don't open the nozzle mismatch dialog if another FSM (e.g. calibration) is already active
+    if (printer_idle() && !fsm_states.get_top().has_value()) {
+        prusa_toolchanger.check_nozzle_presence_vs_eeprom();
+    }
+#endif
+
 #if HAS_NFC()
     if (printer_idle() && !fsm_states.get_top().has_value()) {
         handle_nfc();
