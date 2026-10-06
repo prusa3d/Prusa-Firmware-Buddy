@@ -244,18 +244,19 @@ FilamentParametersInfo::FilamentParametersInfo(const RequestRef &req) {
         }
     }
 
-    bool is_flexible = false;
+    // Flexibility
+    {
+        bool is_flexible = false;
+        if (auto val = req.result<MainField::hardness_shore_a>(); val.has_value() && *val < 95) {
+            is_flexible = true;
 
-    // Do not auto retract flexible materials
-    if (auto val = req.result<MainField::hardness_shore_a>(); val.has_value() && *val < 95) {
-        is_flexible = true;
+        } else if (auto val = req.result<MainField::hardness_shore_d>(); val.has_value() && *val < 50) {
+            is_flexible = true;
+        }
 
-    } else if (auto val = req.result<MainField::hardness_shore_d>(); val.has_value() && *val < 50) {
-        is_flexible = true;
-    }
-
-    if (is_flexible) {
-        set.operator()<&Params::is_flexible>(true);
+        if (is_flexible) {
+            set.operator()<&Params::is_flexible>(true);
+        }
     }
 
     const auto unset_missing = [&]<auto Params::*mem_ptr>() {
