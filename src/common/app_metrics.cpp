@@ -80,7 +80,7 @@ void RecordRuntimeStats() {
     constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000;
     static auto should_record_stack_runtime = RateLimiter<uint32_t>(STACK_RUNTIME_RECORD_INTERVAL_MS);
     if (should_record_stack_runtime.check(ticks_ms())) {
-        static TaskStatus_t task_statuses[17] = {};
+        static TaskStatus_t task_statuses[18] = {};
 
         int count = uxTaskGetSystemState(task_statuses, std::size(task_statuses), NULL);
         release_assert(count); // increase task_statuses size if this fails
