@@ -51,34 +51,34 @@ public:
     /**
      * @brief Save new movement.
      * @param axis for this axis
-     * @param value distance to add [meters]
+     * @param value distance to add [mm]
      */
     void add_axis(axis_t axis, float value);
 
     /**
      * @brief Get cumulative movements.
      * @param axis for this axis
-     * @return distance moved [meter]
+     * @return distance moved [mm]
      */
     float get_axis(axis_t axis);
 
     /**
      * @brief Add extruded length to count.
      * @param tool target tool
-     * @param value extruded length [meter]
+     * @param value extruded length [mm]
      */
     void add_extruded(PhysicalToolIndex tool, float value);
 
     /**
      * @brief Get extruded length for a particular tool.
      * @param tool target tool
-     * @return extruded length [meter]
+     * @return extruded length [mm]
      */
     float get_extruded(PhysicalToolIndex tool);
 
     /**
      * @brief Get extruded length for all extruders.
-     * @return extruded length [meter]
+     * @return extruded length [mm]
      */
     float get_extruded_all();
 
