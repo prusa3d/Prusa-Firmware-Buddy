@@ -342,7 +342,7 @@ void FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size,
         case FileType::Empty:
             // We are trying to list files in the root and it's not there -> USB is missing.
             // Special case it, we return empty list of files.
-            renderer = DirRenderer(api); // Produces empty file list
+            renderer = DirRenderer { this, Directory {}, api };
             break;
         case FileType::NotFound:
             out = Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors) };
