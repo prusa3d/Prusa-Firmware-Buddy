@@ -24,6 +24,16 @@ enum class Fan : uint8_t {
 static constexpr uint8_t fan_count = 3;
 static constexpr uint8_t ext_filament_sensor_count = 8;
 
+/// Represents compressed, parsed cyphal node name.
+/// No need to store and compare strings all the time.
+/// We wouldn't know what to do with unknown nodes anyway.
+enum class NodeName : uint8_t {
+    none = 0,
+    cz_prusa3d_honeybee_ac_controller,
+    cz_prusa3d_honeybee_nfc,
+    cz_prusa3d_honeybee_tool_offset_sensor,
+};
+
 /// High-level cyphal node state for reporting.
 enum class NodeState : uint8_t {
     unknown,

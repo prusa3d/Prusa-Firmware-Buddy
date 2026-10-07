@@ -21,15 +21,7 @@ namespace cyphal {
 
 using TimePoint = freertos::TimePoint;
 
-/// Represents compressed, parsed node name.
-/// No need to store and compare strings all the time.
-/// We wouldn't know what to do with unknown nodes anyway.
-enum class NodeName : uint8_t {
-    none = 0,
-    cz_prusa3d_honeybee_ac_controller,
-    cz_prusa3d_honeybee_nfc,
-    cz_prusa3d_honeybee_tool_offset_sensor,
-};
+using NodeName = xbuddy_extension::NodeName;
 
 /// Parse raw node name.
 NodeName parse_node_name(Bytes);
