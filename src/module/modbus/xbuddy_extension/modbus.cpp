@@ -8,6 +8,7 @@ static_assert(modbus::RegisterFile<xbuddy_extension::modbus::Config>);
 static_assert(modbus::RegisterFile<xbuddy_extension::modbus::Chunk>);
 static_assert(modbus::RegisterFile<xbuddy_extension::modbus::Digest>);
 static_assert(modbus::RegisterFile<xbuddy_extension::modbus::LogMessage>);
+static_assert(modbus::RegisterFile<xbuddy_extension::modbus::CyphalBridge>);
 
 // Chunk structure is optimized to transfer as much data as possible
 // in a single MODBUS transaction to improve throughput.
