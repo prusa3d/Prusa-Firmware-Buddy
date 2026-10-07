@@ -40,7 +40,7 @@ Printer::Params params_printing() {
     params.temp_bed = 65;
     params.physical_tools[PhysicalToolIndex::from_raw(0)].temp_nozzle = 200;
     params.target_bed = 70;
-    params.target_nozzle = 195;
+    params.physical_tools[PhysicalToolIndex::from_raw(0)].target_nozzle = 195;
     params.active_physical_tool = PhysicalToolIndex::from_raw(0);
     params.state = printer_state::DeviceState::Printing;
 
@@ -83,7 +83,6 @@ TEST_CASE("Render") {
             "\"progress\":12,"
             "\"temp_nozzle\":200.0,"
             "\"temp_bed\":65.0,"
-            "\"target_nozzle\":195.0,"
             "\"target_bed\":70.0,"
             "\"speed\":0,"
             "\"flow\":0,"
@@ -92,7 +91,7 @@ TEST_CASE("Render") {
             "\"fan_extruder\":0,"
             "\"fan_print\":0,"
             "\"filament\":0.0,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":200.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":200.0,\"nozzle_target_temp\":195,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"PRINTING\""
         "}";
         // clang-format on
@@ -105,7 +104,6 @@ TEST_CASE("Render") {
         expected = "{"
             "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
-            "\"target_nozzle\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
             "\"flow\":0,"
@@ -113,7 +111,7 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -130,7 +128,6 @@ TEST_CASE("Render") {
         expected = "{"
             "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
-            "\"target_nozzle\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
             "\"flow\":0,"
@@ -153,7 +150,6 @@ TEST_CASE("Render") {
         expected = "{"
             "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
-            "\"target_nozzle\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
             "\"flow\":0,"
@@ -161,7 +157,7 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":false,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":false,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -183,7 +179,6 @@ TEST_CASE("Render") {
             "\"transfer_progress\":0.0,"
             "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
-            "\"target_nozzle\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
             "\"flow\":0,"
@@ -191,7 +186,7 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -206,7 +201,6 @@ TEST_CASE("Render") {
         expected = "{"
             "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
-            "\"target_nozzle\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
             "\"flow\":0,"
@@ -214,7 +208,7 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"command_id\":13,"
             "\"state\":\"IDLE\""
         "}";

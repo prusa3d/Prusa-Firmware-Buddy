@@ -194,7 +194,6 @@ namespace {
                     JSON_FIELD_STR_G(remote_fs_state, "remote_fs_state", to_str(*remote_fs_state)) JSON_COMMA;
                 }
 #endif
-                JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                 JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
@@ -267,6 +266,11 @@ namespace {
                             JSON_FIELD_STR("type", "FFF_PRINT_HEAD") JSON_COMMA;
                             JSON_FIELD_BOOL("active", state.is_active(iter_physical_tool())) JSON_COMMA;
                             JSON_FIELD_FFIXED("nozzle_temp", iter_physical_tool_info().temp_nozzle, 1) JSON_COMMA;
+                            if (iter_physical_tool_info().target_nozzle != 0) {
+                                JSON_FIELD_INT("nozzle_target_temp", iter_physical_tool_info().target_nozzle) JSON_COMMA;
+                            } else {
+                                JSON_FIELD_NULL("nozzle_target_temp") JSON_COMMA;
+                            }
                             JSON_FIELD_INT("heatbreak_fan_rpm", iter_physical_tool_info().heatbreak_fan_rpm) JSON_COMMA;
                             JSON_FIELD_INT("print_fan_rpm", iter_physical_tool_info().print_fan_rpm) JSON_COMMA;
                             // The feeder mirrors the one in INFO. A head with a feeder leaves consumed_weight to its slots.

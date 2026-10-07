@@ -57,6 +57,8 @@ public:
 
     struct PhysicalToolInfo {
         float temp_nozzle = 0;
+        /// 0 when the heating is off
+        int16_t target_nozzle = 0;
 #if PRINTER_IS_PRUSA_iX()
         float temp_heatbreak = 0;
         std::optional<FilamentSensorState> extruder_fs_state;
@@ -149,7 +151,6 @@ public:
         float temp_psu = 0;
         float temp_ambient = 0;
 #endif
-        int16_t target_nozzle = 0;
         int16_t target_bed = 0;
         float pos[4] = { 0, 0, 0, 0 };
         float filament_used = 0;

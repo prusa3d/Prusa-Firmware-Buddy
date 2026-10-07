@@ -44,7 +44,7 @@ namespace connect_client {
 
 // The fingerprints pick the members one by one - a new member needs a decision there
 static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
-static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 6 + 3 * PRINTER_IS_PRUSA_iX());
+static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 7 + 3 * PRINTER_IS_PRUSA_iX());
 
 uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     // Note: keep in sync with the rendering of telemetry in render.cpp
@@ -67,6 +67,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         if (physical_tool_mask & (1 << pt.to_raw())) {
             const auto &physical_tool = physical_tools[pt];
             crc.add(int(physical_tool.temp_nozzle))
+                .add(physical_tool.target_nozzle)
 #if PRINTER_IS_PRUSA_iX()
                 .add(int(physical_tool.temp_heatbreak))
                 .add(physical_tool.extruder_fs_state ? std::to_underlying(*physical_tool.extruder_fs_state) : -1)
@@ -99,7 +100,6 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(flow_factor)
         // Report only about once every 10mm of filament
         .add(int(filament_used / 10))
-        .add(int(target_nozzle))
         .add(int(target_bed))
         .add(int(temp_bed))
 #if PRINTER_IS_PRUSA_iX()

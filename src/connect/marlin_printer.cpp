@@ -252,6 +252,7 @@ namespace {
 
             auto &physical_tool = params.physical_tools[pt];
             physical_tool.temp_nozzle = hotend.temp_nozzle;
+            physical_tool.target_nozzle = hotend.target_nozzle;
 #if PRINTER_IS_PRUSA_iX()
             physical_tool.temp_heatbreak = hotend.temp_heatbreak;
 
@@ -292,7 +293,6 @@ Printer::Params MarlinPrinter::params() const {
     params.temp_ambient = thermalManager.deg_ambient();
 #endif
     params.target_bed = marlin_vars().target_bed;
-    params.target_nozzle = marlin_vars().active_hotend().target_nozzle;
     params.pos[X_AXIS_POS] = marlin_vars().logical_pos[X_AXIS_POS];
     params.pos[Y_AXIS_POS] = marlin_vars().logical_pos[Y_AXIS_POS];
     params.pos[Z_AXIS_POS] = marlin_vars().logical_pos[Z_AXIS_POS];
