@@ -3,10 +3,13 @@
 #include <window_dlg_wait.hpp>
 #include <window_msgbox.hpp>
 #include <bsod/bsod.h>
+#include <timing.h>
 
 namespace buddy::openprinttag {
 
 bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &multirequest) {
+    const auto start_ms = ticks_ms();
+
     // TODO:
     // - Option to format the aux region if corrupt
     // - Workgroups support
@@ -29,6 +32,13 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
             return false;
 
         } else if (report.any_recoverable_error) {
+            if (ticks_diff(ticks_ms(), start_ms) < 5000) {
+                // Automatically retry if the user is not waiting too long
+                // This is to reduce the need for the user to interact,
+                // and also to give the system enough time to silently close the dialog if the tag was removed.
+                continue;
+            }
+
             const auto r = MsgBoxError(_("Failed to read data from the tag."), { Response::Abort, Response::Retry });
             switch (r) {
 
