@@ -28,6 +28,8 @@ protected:
         JSON_FIELD_BOOL("hello", true);
         JSON_COMMA;
         JSON_FIELD_STR("world", "stuff\"escaped");
+        JSON_COMMA;
+        JSON_FIELD_NULL("nothing");
 
         if (true) {
             // Make sure we support conditions in the middle of the macro magic
@@ -104,7 +106,7 @@ protected:
     }
 };
 
-const constexpr char *const EXPECTED = "{\"hello\":true,\"world\":\"stuff\\\"escaped\",\"sub-something\":{\"answer\":42},\"list\":[{\"value\":0},{\"value\":1},{\"value\":2},{\"value\":3}]}";
+const constexpr char *const EXPECTED = "{\"hello\":true,\"world\":\"stuff\\\"escaped\",\"nothing\":null,\"sub-something\":{\"answer\":42},\"list\":[{\"value\":0},{\"value\":1},{\"value\":2},{\"value\":3}]}";
 const constexpr char *const EXPECTED_WITH_INNER = "{\"hello\":\"hello world\"}";
 
 } // namespace

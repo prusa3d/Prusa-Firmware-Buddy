@@ -95,6 +95,7 @@
 #define JSON_FIELD_STR(NAME, VALUE)                        JSON_FIELD_STR_G(true, (NAME), (VALUE))
 #define JSON_FIELD_BOOL(NAME, VALUE)                       JSON_OUT(__COUNTER__, true, output_field_bool, (NAME), (VALUE))
 #define JSON_FIELD_BOOL_G(GUARD, NAME, VALUE)              JSON_OUT(__COUNTER__, (GUARD), output_field_bool, (NAME), (VALUE))
+#define JSON_FIELD_NULL(NAME)                              JSON_OUT(__COUNTER__, true, output_field_null, (NAME))
 #define JSON_FIELD_INT_G(GUARD, NAME, VALUE)               JSON_OUT(__COUNTER__, (GUARD), output_field_int, (NAME), (VALUE))
 #define JSON_FIELD_INT(NAME, VALUE)                        JSON_FIELD_INT_G(true, (NAME), (VALUE))
 #define JSON_FIELD_FFIXED_G(GUARD, NAME, VALUE, PRECISION) JSON_OUT(__COUNTER__, (GUARD), output_field_float_fixed, (NAME), (VALUE), (PRECISION))

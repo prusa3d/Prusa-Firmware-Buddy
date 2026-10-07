@@ -101,6 +101,10 @@ JsonResult JsonOutput::output_field_bool(size_t resume_point, const char *name, 
     return output(resume_point, "\"%s\":%s", name, jsonify_bool(value));
 }
 
+JsonResult JsonOutput::output_field_null(size_t resume_point, const char *name) {
+    return output(resume_point, "\"%s\":null", name);
+}
+
 JsonResult JsonOutput::output_field_int(size_t resume_point, const char *name, int64_t value) {
     return output(resume_point, "\"%s\":%" PRIi64, name, value);
 }

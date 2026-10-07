@@ -63,6 +63,7 @@ public:
     JsonResult output_str_chunk(size_t resume_point, std::string_view str);
     // TODO: Add others as needed.
     JsonResult output_field_bool(size_t resume_point, const char *name, bool value);
+    JsonResult output_field_null(size_t resume_point, const char *name);
     JsonResult output_field_str(size_t resume_point, const char *name, std::string_view value);
     JsonResult output_field_int(size_t resume_point, const char *name, int64_t value);
     // Fixed precision
