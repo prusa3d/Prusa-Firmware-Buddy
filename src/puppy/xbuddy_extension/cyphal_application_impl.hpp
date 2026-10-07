@@ -949,27 +949,31 @@ public:
         }
     }
 
+    static xbuddy_extension::NodeState get_node_state(const Node &node) {
+        using xbuddy_extension::NodeState;
+        return match(
+            node.state,
+            [](const ApplicationImpl::Node::NotAllocated &) { return NodeState::unknown; },
+            [](const ApplicationImpl::Node::InitialInfo &) { return NodeState::unknown; },
+            [](const ApplicationImpl::Node::Verify &) { return NodeState::verify; },
+            [](const ApplicationImpl::Node::Flash &) { return NodeState::flash; },
+            [](const ApplicationImpl::Node::AcControllerAlive &alive) {
+                return alive.ac_controller->seen_status ? NodeState::ready : NodeState::verify;
+            },
+            [](const ApplicationImpl::Node::ToolOffsetSensorAlive &alive) {
+                return alive.tool_offset_sensor->seen_status ? NodeState::ready : NodeState::verify;
+            },
+            [](const ApplicationImpl::Node::NfcAlive &) { return NodeState::ready; },
+            [](const ApplicationImpl::Node::Inert &) { return NodeState::unknown; });
+    }
+
     xbuddy_extension::NodeState get_node_state(NodeName name) const {
         using xbuddy_extension::NodeState;
         for (const auto &node : nodes) {
             if (node.info.name != name) {
                 continue;
             }
-            auto state = match(
-                node.state,
-                [](const ApplicationImpl::Node::NotAllocated &) { return NodeState::unknown; },
-                [](const ApplicationImpl::Node::InitialInfo &) { return NodeState::unknown; },
-                [](const ApplicationImpl::Node::Verify &) { return NodeState::verify; },
-                [](const ApplicationImpl::Node::Flash &) { return NodeState::flash; },
-                [](const ApplicationImpl::Node::AcControllerAlive &alive) {
-                    return alive.ac_controller->seen_status ? NodeState::ready : NodeState::verify;
-                },
-                [](const ApplicationImpl::Node::ToolOffsetSensorAlive &alive) {
-                    return alive.tool_offset_sensor->seen_status ? NodeState::ready : NodeState::verify;
-                },
-                [](const ApplicationImpl::Node::NfcAlive &) { return NodeState::ready; },
-                [](const ApplicationImpl::Node::Inert &) { return NodeState::unknown; });
-            if (state != NodeState::unknown) {
+            if (const auto state = get_node_state(node); state != NodeState::unknown) {
                 return state;
             }
         }
