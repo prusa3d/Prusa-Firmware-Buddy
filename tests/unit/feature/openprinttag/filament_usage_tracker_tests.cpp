@@ -143,7 +143,7 @@ TEST_CASE("buddy::openprinttag::filament_usage_tracker") {
     stub_data[tag(0).field(MainField::actual_netto_full_weight)] = full_weight;
     stub_data[tag(0).field(AuxField::consumed_weight)] = pre_consumed_weight;
 
-    assigned_tags.emplace(0, tag(1));
+    assigned_tags.emplace(1, tag(1));
     stub_data[tag(1).field(MainField::nominal_full_length)] = full_length;
 
     // The tracker should now pick up the new tools and start tracking
