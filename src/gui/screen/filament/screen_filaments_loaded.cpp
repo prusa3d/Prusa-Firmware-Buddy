@@ -43,7 +43,7 @@ MI_LOADED_FILAMENT::MI_LOADED_FILAMENT(DisplayFormat display_format, VirtualTool
     string_view_utf8 label;
 
     if (should_open_submenu_) {
-        label = _("Loaded filaments");
+        label = _("Loaded Filaments");
 
     } else {
         filament_type_ = config_store().get_filament_type(tool);
@@ -53,7 +53,7 @@ MI_LOADED_FILAMENT::MI_LOADED_FILAMENT(DisplayFormat display_format, VirtualTool
             // Longer text doesn't fit well on the mini display
             label = _("Loaded");
 #else
-            label = _("Loaded filament");
+            label = _("Loaded Filament");
 #endif
         } else {
             label = _("Filament %d").formatted(label_params_, tool_.display_index());
