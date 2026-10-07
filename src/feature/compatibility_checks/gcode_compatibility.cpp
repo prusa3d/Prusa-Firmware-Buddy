@@ -513,8 +513,8 @@ void CompatibilityReport::generate_toolmapping_only_noclear([[maybe_unused]] con
             }
 
 #if HAS_ANFC()
-            if (auto v = buddy::openprinttag::filament_usage_tracker().remaining_filament_g(virtual_tool)) {
-                remaining_filament_g += *v;
+            if (auto v = buddy::openprinttag::filament_usage_tracker().filament_report(virtual_tool)) {
+                remaining_filament_g += v->remaining_weight_g;
             } else {
                 // At least one of the spools does not have an OPT
                 // We cannot rely on the remaining filament calculations

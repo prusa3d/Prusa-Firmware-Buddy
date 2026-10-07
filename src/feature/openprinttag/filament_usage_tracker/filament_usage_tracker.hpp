@@ -52,8 +52,20 @@ public:
     /// @returns extruded distance (in mm) that is not yet committed to the tag
     [[nodiscard]] uint32_t uncommited_consumption_mm(VirtualToolIndex tool) const;
 
-    /// @returns amount of filament remaining on the spool
-    [[nodiscard]] std::optional<float> remaining_filament_g(VirtualToolIndex tool) const;
+    struct FilamentReport {
+        /// Remaining material
+        float remaining_weight_g;
+
+        /// Full package weight (just the material)
+        float full_weight_g;
+
+        /// How many grams a millimeter of filament weighs
+        float g_per_mm;
+
+        /// Whether the full weight is nominal or actual
+        bool full_weight_is_nominal : 1;
+    };
+    [[nodiscard]] std::optional<FilamentReport> filament_report(VirtualToolIndex tool) const;
 
     /// @returns whether usage tracking is active for the specified tool
     bool is_tracking(VirtualToolIndex tool) const;
@@ -69,6 +81,9 @@ private:
         /// extruded_length (in mm) * g_per_mm = consumed_weight (in g)
         /// Filled in during init (see @p init_pending )
         float g_per_mm = NAN;
+
+        /// Full weight of the spool (in g)
+        float full_weight_g = NAN;
 
         /// FilamentTracker::get_extruded_distance that corresponds to the current consumed_weight value in the tag
         /// Pending distance is current FilamentTracker::get_extruded_distance - base_extruded_distance
@@ -95,9 +110,12 @@ private:
         /// If something happens that prevents tracking and is not recoverable by retrying, gets set to true
         /// Set to true by defalut because there is not tag assigned
         bool unrecoverable_error : 1 = true;
+
+        /// If full_weight is present, it can be either nominal or actual.
+        bool full_weight_is_nominal : 1 = false;
     };
     // Make sure the struct is not too big, it will be instantiated for each virtual tool (>=10 for INDX)
-    static_assert(sizeof(ToolData) == 16);
+    static_assert(sizeof(ToolData) == 20);
 
     StrongIndexArray<ToolData, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> tool_data_;
 
@@ -107,7 +125,7 @@ private:
         VirtualToolIndex tool;
     };
 
-    using AsyncJobFinishCallback = stdext::inplace_function<void(const AsyncJobFinishCallbackArgs &args)>;
+    using AsyncJobFinishCallback = stdext::inplace_function<void(const AsyncJobFinishCallbackArgs &args), 16>;
 
     /// Single job slot for doing the OPT IO asynchronously
     /// The result is a function that should be called once the async job finishes
