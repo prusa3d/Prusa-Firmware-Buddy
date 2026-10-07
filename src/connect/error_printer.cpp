@@ -59,7 +59,6 @@ Printer::Params ErrorPrinter::params() const {
     params.version = get_printer_version();
 
     // No tools available in this mode.
-    params.virtual_tool_mask = 0;
     params.physical_tool_mask = 0;
 
     return params;

@@ -24,6 +24,7 @@
     #include <feature/chamber_filtration/chamber_filtration.hpp>
 #endif
 
+#include <bit>
 #include <cstring>
 #include <cinttypes>
 
@@ -123,17 +124,15 @@ namespace {
         const auto params = state.printer.params();
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
-        const auto &preferred = params.physical_tools[state.preferred_physical_tool()];
-        // The "slot" and "tools" loops iterate the virtual / physical tools by state.iter
-        const auto iter_virtual_tool = [&] { return VirtualToolIndex::from_raw(state.iter); };
+        // The "tools" loops iterate the physical / virtual tools by state.iter
         const auto iter_physical_tool = [&] { return PhysicalToolIndex::from_raw(state.iter); };
         const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
-        const uint8_t active_slot = match(
-            state.active_slot,
-            [](VirtualToolIndex vt) -> uint8_t { return vt.to_raw() + 1; },
-            [](NoTool) -> uint8_t { return 0; });
+#if HAS_MMU2()
+        const auto iter_virtual_tool = [&] { return VirtualToolIndex::from_raw(state.iter); };
+#endif
 
 #if PRINTER_IS_PRUSA_iX()
+        const auto &preferred = params.physical_tools[state.preferred_physical_tool()];
         auto extruder_fs_state = preferred.extruder_fs_state;
         auto remote_fs_state = preferred.remote_fs_state;
 #endif
@@ -175,13 +174,7 @@ namespace {
                 JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
             }
 
-            // This info is duplicated in the slots structure if we have
-            // MMU/toolchanger. Eventually, it would be gread to deduplicate in
-            // some way (eg. send the slots structure only), but for that we
-            // need to coordinate with Connect, as these are probably
-            // "essential" fields right now.
             if (telemetry.mode == SendTelemetry::Mode::Full) {
-                JSON_FIELD_FFIXED("temp_nozzle", preferred.temp_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
 #if PRINTER_IS_PRUSA_iX()
                 JSON_FIELD_FFIXED("temp_heatbreak", preferred.temp_heatbreak, 1) JSON_COMMA;
@@ -197,9 +190,6 @@ namespace {
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                 JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (!params.virtual_tools[state.preferred_virtual_tool()].material.empty()) {
-                    JSON_FIELD_STR("material", params.virtual_tools[state.preferred_virtual_tool()].material.data()) JSON_COMMA;
-                }
 #if XL_ENCLOSURE_SUPPORT()
                 if (params.enclosure_info.present) {
                     JSON_FIELD_OBJ("enclosure");
@@ -225,33 +215,6 @@ namespace {
                     JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
                 }
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
-                if (params.has_job) {
-                    JSON_FIELD_INT("fan_extruder", preferred.heatbreak_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_INT("fan_print", preferred.print_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
-                }
-
-                if (state.enabled_tool_cnt() > 1) {
-                    JSON_FIELD_OBJ("slot");
-                        state.iter = 0;
-                        while (state.iter < VirtualToolIndex::count) {
-                            if (state.virtual_tool_mask & (1 << state.iter)) {
-                                JSON_CUSTOM("\"%zu\":{", state.iter + 1);
-                                    JSON_FIELD_STR("material", params.virtual_tools[iter_virtual_tool()].material.data()) JSON_COMMA;
-                                    JSON_FIELD_FFIXED("temp", params.physical_tools[iter_virtual_tool().to_physical()].temp_nozzle, 1) JSON_COMMA;
-                                    JSON_FIELD_FFIXED("fan_hotend", params.physical_tools[iter_virtual_tool().to_physical()].heatbreak_fan_rpm, 1) JSON_COMMA;
-                                    JSON_FIELD_FFIXED("fan_print", params.physical_tools[iter_virtual_tool().to_physical()].print_fan_rpm, 1);
-                                JSON_OBJ_END JSON_COMMA;
-                            }
-                            state.iter++;
-                        }
-#if HAS_MMU2()
-                        JSON_FIELD_INT("state", params.progress_code) JSON_COMMA;
-                        JSON_FIELD_STR_FORMAT("command", "%c", params.command_code) JSON_COMMA;
-#endif
-                        JSON_FIELD_INT("active", active_slot);
-                    JSON_OBJ_END JSON_COMMA;
-                }
 
                 JSON_FIELD_OBJ("tools");
                     for (state.iter = 0; state.iter < PhysicalToolIndex::count; state.iter++) {
@@ -398,8 +361,6 @@ namespace {
             // JSON_START/macros are already a big and quite nasty switch, and the
             // JSON_... macros don't work in a nested switch :-(.
             if (event.type == EventType::Info) {
-                // TODO: the Connect team (Sarka) to decide how the switch to "tool_count" and "tools" is rolled out
-                // and when the fields of the old protocol can go.
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
                     JSON_FIELD_STR_FORMAT("printer_type", "%hhu.%hhu.%hhu", params.version.type, params.version.version, params.version.subversion) JSON_COMMA;
@@ -407,9 +368,6 @@ namespace {
                     // TODO: Deprecated, kept for now for backwards compatibility. Remove eventually.
                     JSON_FIELD_BOOL("appendix", false) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
-                    // TODO: Deprecated, kept for now for backwards compatibility. Parts of the tools object.
-                    // Remove eventually.
-                    JSON_FIELD_FFIXED("nozzle_diameter", params.physical_tools[state.preferred_physical_tool()].nozzle_diameter, 2) JSON_COMMA;
                     JSON_FIELD_BOOL("transfer_paused", !params.can_start_download) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
                         JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
@@ -452,7 +410,6 @@ namespace {
                     // on one of several heads (an XL with MMUs, or a plain head next to one with an MMU).
                     static_assert(PhysicalToolIndex::count == 1);
 #endif
-                    JSON_FIELD_INT("tool_count", PhysicalToolIndex::count) JSON_COMMA;
                     JSON_FIELD_OBJ("tools");
                         for (state.iter = 0; state.iter < PhysicalToolIndex::count; state.iter++) {
                             if (state.iter > 0) {
@@ -522,16 +479,10 @@ namespace {
                         JSON_OBJ_END JSON_COMMA;
                     }
 #endif
-#if HAS_MMU2()
-                    JSON_FIELD_OBJ("mmu");
-                        JSON_FIELD_BOOL("enabled", state.enabled_tool_cnt() > 1) JSON_COMMA;
-                        JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", params.mmu_version.major, params.mmu_version.minor, params.mmu_version.build);
-                    JSON_OBJ_END JSON_COMMA;
-#endif
 #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
                     JSON_FIELD_BOOL("addon_power", params.addon_power) JSON_COMMA;
 #endif
-                    JSON_FIELD_INT("slots", state.enabled_tool_cnt());
+                    JSON_FIELD_INT("tool_count", PhysicalToolIndex::count);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
@@ -1173,14 +1124,7 @@ FileExtra::FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_)
 FileExtra::FileExtra(const char *base_path, Directory dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-VirtualToolIndex RenderState::preferred_virtual_tool() const {
-    return match(
-        active_slot,
-        [](VirtualToolIndex vt) { return vt; },
-        // Nothing active - take the first enabled slot (or the very first one on the error printer, which has none)
-        [this](NoTool) { return VirtualToolIndex::from_raw(virtual_tool_mask == 0 ? 0 : std::countr_zero(virtual_tool_mask)); });
-}
-
+#if PRINTER_IS_PRUSA_iX()
 PhysicalToolIndex RenderState::preferred_physical_tool() const {
     return match(
         active_physical_tool,
@@ -1188,6 +1132,7 @@ PhysicalToolIndex RenderState::preferred_physical_tool() const {
         // Nothing picked - take the first enabled tool (or the very first one on the error printer, which has none)
         [this](NoTool) { return PhysicalToolIndex::from_raw(physical_tool_mask == 0 ? 0 : std::countr_zero(physical_tool_mask)); });
 }
+#endif
 
 RenderState::RenderState(const Printer &printer, const Action &action, optional<CommandId> background_command_id)
     : printer(printer)
@@ -1201,9 +1146,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
     memset(&st, 0, sizeof st);
 
     const auto params = printer.params();
-    virtual_tool_mask = params.virtual_tool_mask;
     physical_tool_mask = params.physical_tool_mask;
-    active_slot = params.active_slot;
     active_physical_tool = params.active_physical_tool;
 #if HAS_MMU2()
     active_virtual_tool_mask = params.active_virtual_tool_mask;

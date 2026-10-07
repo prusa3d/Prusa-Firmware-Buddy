@@ -18,7 +18,6 @@ inline Printer::Params params_idle() {
     params.job_id = 13;
     params.state = printer_state::DeviceState::Idle;
     params.version = { 2, 3, 0 };
-    params.virtual_tool_mask = 1;
     params.active_physical_tool = PhysicalToolIndex::from_raw(0);
     params.physical_tools[PhysicalToolIndex::from_raw(0)] = Printer::PhysicalToolInfo {
         .nozzle_diameter = 0.4f,
@@ -35,7 +34,6 @@ inline Printer::Params params_dialog() {
     params.job_id = 13;
     params.state = printer_state::StateWithDialog(printer_state::DeviceState::Attention, ErrCode::ERR_UNDEF, 42, yes_no);
     params.version = { 2, 3, 0 };
-    params.virtual_tool_mask = 1;
     params.active_physical_tool = PhysicalToolIndex::from_raw(0);
     params.physical_tools[PhysicalToolIndex::from_raw(0)] = Printer::PhysicalToolInfo {
         .nozzle_diameter = 0.4f,

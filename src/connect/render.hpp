@@ -10,7 +10,6 @@
 #include <directory.hpp>
 #include <transfers/monitor.hpp>
 
-#include <bit>
 #include <sys/stat.h>
 
 namespace connect_client {
@@ -90,21 +89,17 @@ struct RenderState {
 
     const Printer &printer;
     const Action &action;
-    /// Virtual tools enabled when the response started.
+    /// Physical tools enabled when the response started.
     /// The printer state is re-read for every chunk, but the tool set can change at runtime
     /// (MMU switched, INDX dock calibrated); the renderer reads this instead of each chunk's snapshot.
-    decltype(Printer::Params::virtual_tool_mask) virtual_tool_mask = 0;
-    /// Physical tools enabled when the response started, kept for the same reason as virtual_tool_mask.
     decltype(Printer::Params::physical_tool_mask) physical_tool_mask = 0;
-    /// Virtual tool active when the response started, kept for the same reason as virtual_tool_mask.
-    decltype(Printer::Params::active_slot) active_slot = NoTool {};
-    /// Physical tool picked when the response started, kept for the same reason as virtual_tool_mask.
+    /// Physical tool picked when the response started, kept for the same reason as physical_tool_mask.
     decltype(Printer::Params::active_physical_tool) active_physical_tool = NoTool {};
 #if HAS_MMU2()
-    /// Virtual tools loaded when the response started, kept for the same reason as virtual_tool_mask.
+    /// Virtual tools loaded when the response started, kept for the same reason as physical_tool_mask.
     decltype(Printer::Params::active_virtual_tool_mask) active_virtual_tool_mask = 0;
 #endif
-    /// MMU state when the response started, kept for the same reason as virtual_tool_mask - it also decides the
+    /// MMU state when the response started, kept for the same reason as physical_tool_mask - it also decides the
     /// tool ids.
     ToConnectToolArgs tool_args = {};
     bool has_stat = false;
@@ -124,19 +119,12 @@ struct RenderState {
 
     RenderState(const Printer &printer, const Action &action, std::optional<CommandId> background_command_id);
 
-    uint8_t enabled_tool_cnt() const {
-        return std::popcount(virtual_tool_mask);
-    }
-
-    /// The virtual tool whose material fills the single-tool field of the old protocol: the active one, if any, or
-    /// the first enabled one.
-    /// The choice comes from the captured state, so all chunks of a response describe the same tool. The values are
-    /// read from each chunk's snapshot - it always holds all the tools, so the index is valid there.
-    VirtualToolIndex preferred_virtual_tool() const;
-
-    /// The physical tool whose values fill the single-tool fields of the old protocol (temperature, fans, nozzle):
-    /// the picked one, if any, or the first enabled one. Chosen like preferred_virtual_tool().
+#if PRINTER_IS_PRUSA_iX()
+    /// The physical tool whose values fill the single-tool telemetry fields (heatbreak and filament sensors): the
+    /// picked one, if any, or the first enabled one. The choice is sampled once per response, the values come from
+    /// each chunk's snapshot - zero defaults for a tool it does not fill (error printer, or disabled mid-response).
     PhysicalToolIndex preferred_physical_tool() const;
+#endif
 
     bool is_enabled(PhysicalToolIndex tool) const {
         return physical_tool_mask & (1 << tool.to_raw());

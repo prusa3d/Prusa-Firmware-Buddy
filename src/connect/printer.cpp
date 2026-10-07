@@ -81,15 +81,8 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         }
     }
 
-    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
-        if (virtual_tool_mask & (1 << vt.to_raw())) {
-            crc.add_str(virtual_tools[vt].material.data());
-        }
-    }
-
     return crc
         .add(physical_tool_mask)
-        .add(active_slot)
         .add(active_physical_tool)
 #if HAS_MMU2()
         .add(active_virtual_tool_mask)
@@ -98,8 +91,6 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
         .add(flow_factor)
-        // Report only about once every 10mm of filament
-        .add(int(filament_used / 10))
         .add(int(target_bed))
         .add(int(temp_bed))
 #if PRINTER_IS_PRUSA_iX()
@@ -173,12 +164,6 @@ uint32_t Printer::info_fingerprint() const {
         }
     }
 
-    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
-        if (parameters.virtual_tool_mask & (1 << vt.to_raw())) {
-            crc.add_str(parameters.virtual_tools[vt].material.data());
-        }
-    }
-
     return crc
         .add_str(creds.ssid)
         .add_str(creds.pl_password)
@@ -188,7 +173,6 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.version.type)
         .add(parameters.version.version)
         .add(parameters.version.subversion)
-        .add(parameters.enabled_tool_cnt())
         .add(parameters.physical_tool_mask)
 #if HAS_MMU2()
         // Decides the tool ids

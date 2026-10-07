@@ -13,13 +13,11 @@
 #include <ini.h>
 #include <otp.hpp>
 #include <buddy/filename_defs.hpp>
-#include <odometer.hpp>
 #include <netdev.h>
 #include <print_utils.hpp>
 #include <common/marlin_vars.hpp>
 #include <wui_api.h>
 #include <wui.h>
-#include <filament.hpp>
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <feature/filament_sensor/filament_sensor_states.hpp>
 #include <state/printer_state.hpp>
@@ -64,7 +62,6 @@ static_assert(HAS_CHAMBER_FILTRATION_API());
 
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
-    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
     #include <mmu2/mmu2_fsm.hpp>
 #endif
 
@@ -229,11 +226,9 @@ namespace {
 #if HAS_MMU2()
         params.progress_code = MMU2::Fsm::Instance().reporter.GetProgressCode();
         params.command_code = MMU2::Fsm::Instance().reporter.GetCommandInProgress();
-        params.mmu_version = MMU2::mmu2.GetMMUFWVersion();
         params.tool_args = { .mmu_enabled = config_store().mmu2_enabled.get() };
 #endif
 
-        params.active_slot = VirtualToolIndex::currently_selected();
         params.active_physical_tool = PhysicalToolIndex::currently_selected();
 
         params.physical_tool_mask = 0;
@@ -272,12 +267,6 @@ namespace {
             physical_tool.nozzle_diameter = config_store().get_nozzle_diameter(pt);
             physical_tool.hardened = config_store().get_nozzle_is_hardened(pt);
             physical_tool.high_flow = config_store().get_nozzle_is_high_flow(pt.to_raw());
-        }
-
-        params.virtual_tool_mask = 0;
-        for (VirtualToolIndex vt : VirtualToolIndex::all().skip_all_disabled()) {
-            params.virtual_tool_mask |= (1 << vt.to_raw());
-            params.virtual_tools[vt].material = config_store().get_filament_type(vt).parameters().name;
         }
     }
 } // namespace
@@ -337,7 +326,6 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_end = marlin_vars().time_to_end;
     params.time_to_pause = marlin_vars().time_to_pause;
     params.progress_percent = marlin_vars().sd_percent_done;
-    params.filament_used = Odometer_s::instance().get_extruded_all();
     params.has_usb = marlin_vars().media_inserted;
     params.can_start_download = can_start_download;
 

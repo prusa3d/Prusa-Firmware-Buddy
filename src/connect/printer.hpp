@@ -19,16 +19,10 @@
 #include <device/board.h>
 #include <connect/hostname.hpp>
 #include <connect/tools.hpp>
-#include <filament.hpp>
 #include <feature/filament_sensor/filament_sensor_states.hpp>
 
 #include <tool_index.hpp>
 #include <utils/storage/strong_index_array.hpp>
-
-#include <option/has_mmu2.h>
-#if HAS_MMU2()
-    #include <Marlin/src/feature/prusa/MMU2/mmu2_mk4.h>
-#endif
 
 #include <option/has_cancel_object.h>
 #include <option/xbuddy_extension_variant.h>
@@ -69,10 +63,6 @@ public:
         bool high_flow = false;
         bool hardened = false;
         float nozzle_diameter = 0;
-    };
-
-    struct VirtualToolInfo {
-        FilamentTypeParameters::Name material;
     };
 
 #if XL_ENCLOSURE_SUPPORT()
@@ -116,7 +106,6 @@ public:
     public:
         Params(const std::optional<BorrowPaths> &paths);
         StrongIndexArray<PhysicalToolInfo, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> physical_tools;
-        StrongIndexArray<VirtualToolInfo, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> virtual_tools;
 #if XL_ENCLOSURE_SUPPORT()
         EnclosureInfo enclosure_info;
 #endif
@@ -124,17 +113,8 @@ public:
         ChamberInfo chamber_info;
         bool addon_power = false;
 #endif
-#if HAS_MMU2()
-        MMU2::Version mmu_version = { 0, 0, 0 };
-#endif
         uint32_t progress_code = 0;
         char command_code = 0;
-        // Which virtual tools are available/enabled (bitfield)
-        // 0b00000001 for "ordinary" printers
-        // 0b00011111 for MMU enabled
-        // Something arbitrary for XL, depending on its heads available (note that they don't have to be "continuous")
-        uint8_t virtual_tool_mask = 1;
-        static_assert(8 * sizeof virtual_tool_mask >= VirtualToolIndex::count);
         // Which physical tools (print heads) are enabled (bitfield)
         uint8_t physical_tool_mask = 1;
         static_assert(8 * sizeof physical_tool_mask >= PhysicalToolIndex::count);
@@ -144,7 +124,6 @@ public:
         static_assert(8 * sizeof active_virtual_tool_mask >= VirtualToolIndex::count);
 #endif
         ToConnectToolArgs tool_args = {};
-        std::variant<VirtualToolIndex, NoTool> active_slot = NoTool {};
         std::variant<PhysicalToolIndex, NoTool> active_physical_tool = NoTool {};
         float temp_bed = 0;
 #if PRINTER_IS_PRUSA_iX()
@@ -153,7 +132,6 @@ public:
 #endif
         int16_t target_bed = 0;
         float pos[4] = { 0, 0, 0, 0 };
-        float filament_used = 0;
         // Note: These strings live in a shared buffer in the real implementation. As a result:
         // * These are NULL unless paths was passed to the constructor.
         // * They get invalidated by calling drop_paths or new renew() on the printer.
@@ -175,9 +153,6 @@ public:
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
         uint32_t state_fingerprint() const;
-        uint8_t enabled_tool_cnt() const {
-            return std::popcount(virtual_tool_mask);
-        }
     };
 
     struct Config {

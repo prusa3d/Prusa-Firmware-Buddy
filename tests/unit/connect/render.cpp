@@ -81,16 +81,12 @@ TEST_CASE("Render") {
             "\"time_remaining\":0,"
             "\"filament_change_in\":0,"
             "\"progress\":12,"
-            "\"temp_nozzle\":200.0,"
             "\"temp_bed\":65.0,"
             "\"target_bed\":70.0,"
             "\"speed\":0,"
             "\"flow\":0,"
             "\"chamber\":{\"temp\":0.0,\"target_temp\":0,\"fan_1_rpm\":0,\"fan_2_rpm\":0,\"fan_pwm_target\":-1,\"led_intensity\":0},"
             "\"axis_z\":0.00,"
-            "\"fan_extruder\":0,"
-            "\"fan_print\":0,"
-            "\"filament\":0.0,"
             "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":200.0,\"nozzle_target_temp\":195,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"PRINTING\""
         "}";
@@ -102,7 +98,6 @@ TEST_CASE("Render") {
         action = SendTelemetry { SendTelemetry::Mode::Full };
         // clang-format off
         expected = "{"
-            "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
@@ -120,13 +115,11 @@ TEST_CASE("Render") {
     SECTION("Telemetry - disabled head") {
         auto idle = params_idle();
         // No tool enabled, like the error printer reports
-        idle.virtual_tool_mask = 0;
         idle.physical_tool_mask = 0;
         params.emplace(idle);
         action = SendTelemetry { SendTelemetry::Mode::Full };
         // clang-format off
         expected = "{"
-            "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
@@ -148,7 +141,6 @@ TEST_CASE("Render") {
         action = SendTelemetry { SendTelemetry::Mode::Full };
         // clang-format off
         expected = "{"
-            "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
@@ -177,7 +169,6 @@ TEST_CASE("Render") {
             "\"transfer_transferred\":0,"
             "\"transfer_time_remaining\":0,"
             "\"transfer_progress\":0.0,"
-            "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
@@ -199,7 +190,6 @@ TEST_CASE("Render") {
         background_command_id = 13;
         // clang-format off
         expected = "{"
-            "\"temp_nozzle\":0.0,"
             "\"temp_bed\":0.0,"
             "\"target_bed\":0.0,"
             "\"speed\":0,"
@@ -312,11 +302,9 @@ TEST_CASE("Render") {
                 "\"sn\":\"FAKE-1234\","
                 "\"appendix\":false,"
                 "\"fingerprint\":\"DEADBEEF\","
-                "\"nozzle_diameter\":0.40,"
                 "\"transfer_paused\":true,"
                 "\"storages\":[],"
                 "\"network_info\":{\"hostname\":\"\"},"
-                "\"tool_count\":1,"
                 "\"tools\":{"
                     "\"0\":{"
                         "\"type\":\"FFF_PRINT_HEAD\","
@@ -328,51 +316,7 @@ TEST_CASE("Render") {
                     "}"
                 "},"
                 "\"addon_power\":false,"
-                "\"slots\":1"
-            "},"
-            "\"state\":\"IDLE\","
-            "\"command_id\":11,"
-            "\"event\":\"INFO\""
-        "}";
-        // clang-format on
-    }
-
-    SECTION("Event - info - multi") {
-        action = Event {
-            EventType::Info,
-            11,
-        };
-        auto idle = params_idle();
-        // Enable slot 1 and 3
-        idle.virtual_tool_mask = 5;
-        idle.virtual_tools[VirtualToolIndex::from_raw(2)].material = "PETG";
-        params.emplace(idle);
-
-        // clang-format off
-        expected = "{"
-            "\"data\":{"
-                "\"firmware\":\"TST-1234\","
-                "\"printer_type\":\"2.3.0\","
-                "\"sn\":\"FAKE-1234\","
-                "\"appendix\":false,"
-                "\"fingerprint\":\"DEADBEEF\","
-                "\"nozzle_diameter\":0.40,"
-                "\"transfer_paused\":true,"
-                "\"storages\":[],"
-                "\"network_info\":{\"hostname\":\"\"},"
-                "\"tool_count\":1,"
-                "\"tools\":{"
-                    "\"0\":{"
-                        "\"type\":\"FFF_PRINT_HEAD\","
-                        "\"features\":{"
-                            "\"nozzle_diameter\":0.40,"
-                            "\"nozzle_hardened\":false,"
-                            "\"nozzle_high_flow\":false"
-                        "}"
-                    "}"
-                "},"
-                "\"addon_power\":false,"
-                "\"slots\":2"
+                "\"tool_count\":1"
             "},"
             "\"state\":\"IDLE\","
             "\"command_id\":11,"
@@ -388,7 +332,6 @@ TEST_CASE("Render") {
         };
         auto idle = params_idle();
         // No tool enabled, like the error printer reports
-        idle.virtual_tool_mask = 0;
         idle.physical_tool_mask = 0;
         params.emplace(idle);
 
@@ -400,16 +343,14 @@ TEST_CASE("Render") {
                 "\"sn\":\"FAKE-1234\","
                 "\"appendix\":false,"
                 "\"fingerprint\":\"DEADBEEF\","
-                "\"nozzle_diameter\":0.40,"
                 "\"transfer_paused\":true,"
                 "\"storages\":[],"
                 "\"network_info\":{\"hostname\":\"\"},"
-                "\"tool_count\":1,"
                 "\"tools\":{"
                     "\"0\":null"
                 "},"
                 "\"addon_power\":false,"
-                "\"slots\":0"
+                "\"tool_count\":1"
             "},"
             "\"state\":\"IDLE\","
             "\"command_id\":11,"
@@ -562,10 +503,6 @@ TEST_CASE("Render - tool set and active tool are sampled once per response") {
     }
 
     auto params = params_idle();
-    // Slots 1 and 3, like an MMU or a toolchanger with a gap
-    params.virtual_tool_mask = 5;
-    params.virtual_tools[VirtualToolIndex::from_raw(2)].material = "PETG";
-    params.active_slot = VirtualToolIndex::from_raw(2);
     MockPrinter printer(params);
 
     const auto render = [&](size_t chunk_size, auto &&between_chunks) {
@@ -589,15 +526,11 @@ TEST_CASE("Render - tool set and active tool are sampled once per response") {
     // the tool loops included
     for (size_t chunk_size = 32; chunk_size <= 256; chunk_size++) {
         CAPTURE(chunk_size);
-        params.virtual_tool_mask = 5;
-        params.active_slot = VirtualToolIndex::from_raw(2);
         params.physical_tool_mask = 1;
         params.active_physical_tool = PhysicalToolIndex::from_raw(0);
         bool changed = false;
         const string chunked = render(chunk_size, [&] {
             changed = !changed;
-            params.virtual_tool_mask = changed ? 1 : 5;
-            params.active_slot = VirtualToolIndex::from_raw(changed ? 0 : 2);
             params.physical_tool_mask = changed ? 0 : 1;
             params.active_physical_tool = changed ? decltype(params.active_physical_tool)(NoTool {}) : PhysicalToolIndex::from_raw(0);
         });
