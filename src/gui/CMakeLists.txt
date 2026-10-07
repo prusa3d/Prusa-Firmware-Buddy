@@ -162,6 +162,10 @@ elseif(BOARD IN_LIST BOARDS_WITH_ILI9488)
     )
 endif()
 
+if(HAS_CYPHAL)
+  target_sources(firmware PRIVATE screen_menu_cyphal_info.cpp)
+endif()
+
 if(XL_ENCLOSURE_SUPPORT)
   target_sources(firmware PRIVATE MItem_enclosure.cpp screen_change_filter.cpp)
 endif()
