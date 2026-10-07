@@ -136,6 +136,11 @@ public:
         // Which physical tools (print heads) are enabled (bitfield)
         uint8_t physical_tool_mask = 1;
         static_assert(8 * sizeof physical_tool_mask >= PhysicalToolIndex::count);
+#if HAS_MMU2()
+        /// Virtual tools loaded into their physical tool, picked or not (bitfield) - one per physical tool at most
+        uint8_t active_virtual_tool_mask = 0;
+        static_assert(8 * sizeof active_virtual_tool_mask >= VirtualToolIndex::count);
+#endif
         ToConnectToolArgs tool_args = {};
         std::variant<VirtualToolIndex, NoTool> active_slot = NoTool {};
         std::variant<PhysicalToolIndex, NoTool> active_physical_tool = NoTool {};

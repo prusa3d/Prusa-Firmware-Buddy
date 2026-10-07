@@ -90,6 +90,10 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(physical_tool_mask)
         .add(active_slot)
         .add(active_physical_tool)
+#if HAS_MMU2()
+        .add(active_virtual_tool_mask)
+        .add(tool_args.mmu_enabled)
+#endif
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
         .add(flow_factor)

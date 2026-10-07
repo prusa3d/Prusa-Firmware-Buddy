@@ -124,8 +124,10 @@ namespace {
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
         const auto &preferred = params.physical_tools[state.preferred_physical_tool()];
-        // The legacy "slot" loop iterates the virtual tools by state.iter
+        // The "slot" and "tools" loops iterate the virtual / physical tools by state.iter
         const auto iter_virtual_tool = [&] { return VirtualToolIndex::from_raw(state.iter); };
+        const auto iter_physical_tool = [&] { return PhysicalToolIndex::from_raw(state.iter); };
+        const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
         const uint8_t active_slot = match(
             state.active_slot,
             [](VirtualToolIndex vt) -> uint8_t { return vt.to_raw() + 1; },
@@ -251,6 +253,56 @@ namespace {
                         JSON_FIELD_INT("active", active_slot);
                     JSON_OBJ_END JSON_COMMA;
                 }
+
+                JSON_FIELD_OBJ("tools");
+                    for (state.iter = 0; state.iter < PhysicalToolIndex::count; state.iter++) {
+                        if (state.iter > 0) {
+                            JSON_COMMA;
+                        }
+                        if (!state.is_enabled(iter_physical_tool())) {
+                            JSON_FIELD_NULL(to_connect_tool(iter_physical_tool()).data());
+                            continue;
+                        }
+                        JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_physical_tool()).data());
+                            JSON_FIELD_STR("type", "FFF_PRINT_HEAD") JSON_COMMA;
+                            JSON_FIELD_BOOL("active", state.is_active(iter_physical_tool())) JSON_COMMA;
+                            JSON_FIELD_FFIXED("nozzle_temp", iter_physical_tool_info().temp_nozzle, 1) JSON_COMMA;
+                            JSON_FIELD_INT("heatbreak_fan_rpm", iter_physical_tool_info().heatbreak_fan_rpm) JSON_COMMA;
+                            JSON_FIELD_INT("print_fan_rpm", iter_physical_tool_info().print_fan_rpm) JSON_COMMA;
+                            // The feeder mirrors the one in INFO. A head with a feeder leaves consumed_weight to its slots.
+#if HAS_MMU2()
+                            if (state.tool_args.mmu_enabled) {
+                                JSON_FIELD_OBJ("feeder");
+                                    JSON_FIELD_INT("mmu_progress_code", params.progress_code);
+                                    // The MMU reports 0 when idle, which has no character to send
+                                    if (params.command_code != 0) {
+                                        JSON_COMMA;
+                                        JSON_FIELD_STR_FORMAT("mmu_command_in_progress", "%c", params.command_code);
+                                    }
+                                JSON_OBJ_END;
+                            } else
+#endif
+                            {
+                                // TODO: report the consumed weight of a tracked OpenPrintTag spool (BFW-9416). The
+                                // usage tracker keeps the remaining weight, not the consumed one.
+                                JSON_FIELD_NULL("consumed_weight");
+                            }
+                        JSON_OBJ_END;
+                    }
+#if HAS_MMU2()
+                    if (state.tool_args.mmu_enabled) {
+                        for (state.iter = 0; state.iter < VirtualToolIndex::count; state.iter++) {
+                            JSON_COMMA;
+                            JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_virtual_tool(), state.tool_args).data());
+                                JSON_FIELD_STR("type", "FFF_FEEDER_SLOT") JSON_COMMA;
+                                JSON_FIELD_BOOL("active", state.is_active(iter_virtual_tool())) JSON_COMMA;
+                                // TODO: the consumed weight, as for the print head (BFW-9416)
+                                JSON_FIELD_NULL("consumed_weight");
+                            JSON_OBJ_END;
+                        }
+                    }
+#endif
+                JSON_OBJ_END JSON_COMMA;
             }
             if (state.background_command_id.has_value()) {
                 JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
@@ -1149,6 +1201,9 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
     physical_tool_mask = params.physical_tool_mask;
     active_slot = params.active_slot;
     active_physical_tool = params.active_physical_tool;
+#if HAS_MMU2()
+    active_virtual_tool_mask = params.active_virtual_tool_mask;
+#endif
     tool_args = params.tool_args;
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {

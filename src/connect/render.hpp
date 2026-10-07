@@ -100,6 +100,10 @@ struct RenderState {
     decltype(Printer::Params::active_slot) active_slot = NoTool {};
     /// Physical tool picked when the response started, kept for the same reason as virtual_tool_mask.
     decltype(Printer::Params::active_physical_tool) active_physical_tool = NoTool {};
+#if HAS_MMU2()
+    /// Virtual tools loaded when the response started, kept for the same reason as virtual_tool_mask.
+    decltype(Printer::Params::active_virtual_tool_mask) active_virtual_tool_mask = 0;
+#endif
     /// MMU state when the response started, kept for the same reason as virtual_tool_mask - it also decides the
     /// tool ids.
     ToConnectToolArgs tool_args = {};
@@ -137,6 +141,18 @@ struct RenderState {
     bool is_enabled(PhysicalToolIndex tool) const {
         return physical_tool_mask & (1 << tool.to_raw());
     }
+
+    /// Whether the physical tool is picked.
+    bool is_active(PhysicalToolIndex tool) const {
+        return stdext::get_optional<PhysicalToolIndex>(active_physical_tool) == tool;
+    }
+
+#if HAS_MMU2()
+    /// Whether the virtual tool is loaded into its physical tool, picked or not.
+    bool is_active(VirtualToolIndex tool) const {
+        return active_virtual_tool_mask & (1 << tool.to_raw());
+    }
+#endif
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

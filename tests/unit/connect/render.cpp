@@ -92,6 +92,7 @@ TEST_CASE("Render") {
             "\"fan_extruder\":0,"
             "\"fan_print\":0,"
             "\"filament\":0.0,"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":200.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"PRINTING\""
         "}";
         // clang-format on
@@ -112,6 +113,55 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"state\":\"IDLE\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Telemetry - disabled head") {
+        auto idle = params_idle();
+        // No tool enabled, like the error printer reports
+        idle.virtual_tool_mask = 0;
+        idle.physical_tool_mask = 0;
+        params.emplace(idle);
+        action = SendTelemetry { SendTelemetry::Mode::Full };
+        // clang-format off
+        expected = "{"
+            "\"temp_nozzle\":0.0,"
+            "\"temp_bed\":0.0,"
+            "\"target_nozzle\":0.0,"
+            "\"target_bed\":0.0,"
+            "\"speed\":0,"
+            "\"flow\":0,"
+            "\"chamber\":{\"temp\":0.0,\"target_temp\":0,\"fan_1_rpm\":0,\"fan_2_rpm\":0,\"fan_pwm_target\":-1,\"led_intensity\":0},"
+            "\"axis_x\":0.00,"
+            "\"axis_y\":0.00,"
+            "\"axis_z\":0.00,"
+            "\"tools\":{\"0\":null},"
+            "\"state\":\"IDLE\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Telemetry - no head picked") {
+        auto idle = params_idle();
+        idle.active_physical_tool = NoTool {};
+        params.emplace(idle);
+        action = SendTelemetry { SendTelemetry::Mode::Full };
+        // clang-format off
+        expected = "{"
+            "\"temp_nozzle\":0.0,"
+            "\"temp_bed\":0.0,"
+            "\"target_nozzle\":0.0,"
+            "\"target_bed\":0.0,"
+            "\"speed\":0,"
+            "\"flow\":0,"
+            "\"chamber\":{\"temp\":0.0,\"target_temp\":0,\"fan_1_rpm\":0,\"fan_2_rpm\":0,\"fan_pwm_target\":-1,\"led_intensity\":0},"
+            "\"axis_x\":0.00,"
+            "\"axis_y\":0.00,"
+            "\"axis_z\":0.00,"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":false,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -141,6 +191,7 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -163,6 +214,7 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
             "\"command_id\":13,"
             "\"state\":\"IDLE\""
         "}";

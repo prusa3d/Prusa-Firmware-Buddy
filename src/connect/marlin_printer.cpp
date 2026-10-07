@@ -237,9 +237,18 @@ namespace {
         params.active_physical_tool = PhysicalToolIndex::currently_selected();
 
         params.physical_tool_mask = 0;
+#if HAS_MMU2()
+        params.active_virtual_tool_mask = 0;
+#endif
         for (PhysicalToolIndex pt : PhysicalToolIndex::all().skip_all_disabled()) {
             const auto &hotend = marlin_vars().hotend(pt);
             params.physical_tool_mask |= (1 << pt.to_raw());
+#if HAS_MMU2()
+            // A virtual tool loaded into a head is active even when the head is not picked
+            if (const auto vt = stdext::get_optional<VirtualToolIndex>(pt.currently_selected_virtual_tool())) {
+                params.active_virtual_tool_mask |= (1 << vt->to_raw());
+            }
+#endif
 
             auto &physical_tool = params.physical_tools[pt];
             physical_tool.temp_nozzle = hotend.temp_nozzle;
