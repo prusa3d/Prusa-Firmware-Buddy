@@ -156,6 +156,7 @@ CommunicationStatus XBuddyExtension::refresh_input(PuppyModbus &bus, uint32_t ma
         gpio_filament_sensor.store(block.value.gpio_filament_sensor);
         ext_filament_sensors.store(block.value.ext_filament_sensors);
         current_log_message_sequence = block.value.log_message_sequence;
+        current_cyphal_node_table_sequence = block.value.cyphal_node_table_sequence;
         flash.set_requests(block.value.chunk_request, block.value.digest_request);
         // Only after publishing all status fields, to make sure to never
         // expose an invalid value.
@@ -164,6 +165,7 @@ CommunicationStatus XBuddyExtension::refresh_input(PuppyModbus &bus, uint32_t ma
     case CommunicationStatus::ERROR:
         valid.store(false);
         flash.invalidate();
+        cyphal_node_table.invalidate();
         break;
     default:
         // SKIPPED doesn't change the validity.
@@ -227,6 +229,7 @@ CommunicationStatus XBuddyExtension::refresh(PuppyModbus &bus) {
         refresh_input(bus, flash.flashing() ? 0 : 250),
         refresh_holding(bus),
         refresh_log_message(bus),
+        refresh_cyphal_node_table(bus),
         flash.write_chunk(bus, modbus::ServerAddress::xbuddy_extension),
         flash.write_digest(bus, modbus::ServerAddress::xbuddy_extension, [&lock](xbuddy_extension::modbus::DigestRequest request, FileId file_id, xbuddy_extension::modbus::Digest &out) {
             // Release mutex for the slow digest computation (file read + SHA256).
@@ -241,6 +244,7 @@ CommunicationStatus XBuddyExtension::refresh(PuppyModbus &bus) {
 CommunicationStatus XBuddyExtension::initial_scan(PuppyModbus &bus) {
     Lock lock(mutex);
 
+    cyphal_node_table.invalidate();
     const auto input = refresh_input(bus, 0);
     config_dirty.store(true);
     return input;
@@ -259,6 +263,15 @@ CommunicationStatus XBuddyExtension::set_mmu_power(PuppyModbus &bus, bool mmu_po
         config_dirty.store(true);
     }
     return refresh_holding(bus);
+}
+
+CommunicationStatus XBuddyExtension::refresh_cyphal_node_table(PuppyModbus &bus) {
+    // Already locked by caller
+    if (valid) {
+        return cyphal_node_table.refresh(bus, modbus::ServerAddress::xbuddy_extension, current_cyphal_node_table_sequence);
+    } else {
+        return CommunicationStatus::SKIPPED;
+    }
 }
 
 CommunicationStatus XBuddyExtension::refresh_log_message(PuppyModbus &bus) {
@@ -304,5 +317,9 @@ OTP_v5 XBuddyExtension::get_otp() const {
 }
 
 XBuddyExtension xbuddy_extension;
+
+const CyphalNodeTableHost &cyphal_node_table() {
+    return xbuddy_extension.cyphal_node_table;
+}
 
 } // namespace buddy::puppies

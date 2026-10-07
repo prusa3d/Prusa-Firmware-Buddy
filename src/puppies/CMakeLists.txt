@@ -42,7 +42,9 @@ if(HAS_XL_CAN)
 endif()
 
 if(HAS_CYPHAL)
-  target_sources(firmware PUBLIC cyphal_flash_files.cpp cyphal_flash_host.cpp)
+  target_sources(
+    firmware PUBLIC cyphal_flash_files.cpp cyphal_flash_host.cpp cyphal_node_table_host.cpp
+    )
 endif()
 
 if(HAS_AC_CONTROLLER)

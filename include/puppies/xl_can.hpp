@@ -8,6 +8,7 @@
 #include <optional>
 #include <otp/types.hpp>
 #include <puppies/cyphal_flash_host.hpp>
+#include <puppies/cyphal_node_table_host.hpp>
 #include <xbuddy_extension/modbus.hpp>
 
 namespace buddy::puppies {
@@ -23,7 +24,7 @@ public:
     /// assigned Modbus address.
     CommunicationStatus ping(PuppyModbus &);
 
-    /// Initial post-bootstrap scan; currently just ping().
+    /// Initial post-bootstrap scan.
     CommunicationStatus initial_scan(PuppyModbus &);
 
     /// Periodic refresh from the puppy task: reads the Status block and
@@ -34,6 +35,8 @@ public:
     /// flashing). Queried by the bootstrap wait to drive the progress UI; same
     /// role as XBuddyExtension::get_flash_progress_percent.
     [[nodiscard]] uint8_t get_flash_progress_percent() const;
+
+    friend const CyphalNodeTableHost &cyphal_node_table();
 
     void set_otp(const OTP_v5 &);
     OTP_v5 get_otp() const;
@@ -116,11 +119,15 @@ private:
     /// `mutex`.
     CommunicationStatus refresh_holding(PuppyModbus &);
 
+    CommunicationStatus refresh_cyphal_node_table(PuppyModbus &);
+
     /// Firmware-flashing host for the tool offset sensor, driven from
     /// refresh(). The bridge fw is an xBE variant listening on the same Chunk /
     /// Digest holding blocks, so this is the same streaming as on INDX.
     /// Guarded by `mutex`.
     CyphalBridgeFlashHost flash;
+
+    CyphalNodeTableHost cyphal_node_table;
 };
 
 extern XlCan xl_can;

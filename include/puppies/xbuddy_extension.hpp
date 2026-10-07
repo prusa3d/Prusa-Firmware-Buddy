@@ -8,6 +8,7 @@
 #include <freertos/mutex.hpp>
 #include <otp/types.hpp>
 #include <puppies/cyphal_flash_host.hpp>
+#include <puppies/cyphal_node_table_host.hpp>
 #include <span>
 #include <xbuddy_extension/modbus.hpp>
 #include <xbuddy_extension/shared_enums.hpp>
@@ -58,6 +59,8 @@ public:
 
     /// Get current flash progress (0-100 percent, 0 if not flashing)
     uint8_t get_flash_progress_percent() const;
+
+    friend const CyphalNodeTableHost &cyphal_node_table();
 
     bool get_usb_power() const;
 
@@ -131,6 +134,7 @@ private:
     // Plain mutex-protected members populated from status block in refresh_input().
     // Read in refresh_log_message() — sequence number used to detect new logs.
     uint16_t current_log_message_sequence { 0 };
+    uint16_t current_cyphal_node_table_sequence { 0 };
 
     // Plain puppy-task-only field for the activity heartbeat sent in config.
     uint16_t config_activity { 0 };
@@ -145,9 +149,12 @@ private:
     /// driven from refresh(). Guarded by `mutex`.
     CyphalBridgeFlashHost flash;
 
+    CyphalNodeTableHost cyphal_node_table;
+
     CommunicationStatus refresh_holding(PuppyModbus &);
     CommunicationStatus refresh_input(PuppyModbus &, uint32_t max_age);
     CommunicationStatus refresh_log_message(PuppyModbus &);
+    CommunicationStatus refresh_cyphal_node_table(PuppyModbus &);
 };
 
 extern XBuddyExtension xbuddy_extension;
