@@ -38,9 +38,10 @@ Printer::Params params_printing() {
     params.has_job = true;
     params.progress_percent = 12;
     params.temp_bed = 65;
-    params.slots[0].temp_nozzle = 200;
+    params.physical_tools[PhysicalToolIndex::from_raw(0)].temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
+    params.active_physical_tool = PhysicalToolIndex::from_raw(0);
     params.state = printer_state::DeviceState::Printing;
 
     return params;
@@ -297,12 +298,8 @@ TEST_CASE("Render") {
         };
         auto idle = params_idle();
         // Enable slot 1 and 3
-        idle.slot_mask = 5;
-        idle.slots[2] = Printer::SlotInfo {
-            .material = { "PETG" },
-            .hardened = true,
-            .nozzle_diameter = 0.6f,
-        };
+        idle.virtual_tool_mask = 5;
+        idle.virtual_tools[VirtualToolIndex::from_raw(2)].material = "PETG";
         params.emplace(idle);
 
         // clang-format off
@@ -345,7 +342,8 @@ TEST_CASE("Render") {
         };
         auto idle = params_idle();
         // No tool enabled, like the error printer reports
-        idle.slot_mask = 0;
+        idle.virtual_tool_mask = 0;
+        idle.physical_tool_mask = 0;
         params.emplace(idle);
 
         // clang-format off
@@ -519,9 +517,8 @@ TEST_CASE("Render - tool set and active tool are sampled once per response") {
 
     auto params = params_idle();
     // Slots 1 and 3, like an MMU or a toolchanger with a gap
-    params.slot_mask = 5;
-    params.slots[2].material = "PETG";
-    params.slots[2].temp_nozzle = 230;
+    params.virtual_tool_mask = 5;
+    params.virtual_tools[VirtualToolIndex::from_raw(2)].material = "PETG";
     params.active_slot = VirtualToolIndex::from_raw(2);
     MockPrinter printer(params);
 
@@ -546,13 +543,17 @@ TEST_CASE("Render - tool set and active tool are sampled once per response") {
     // the tool loops included
     for (size_t chunk_size = 32; chunk_size <= 256; chunk_size++) {
         CAPTURE(chunk_size);
-        params.slot_mask = 5;
+        params.virtual_tool_mask = 5;
         params.active_slot = VirtualToolIndex::from_raw(2);
+        params.physical_tool_mask = 1;
+        params.active_physical_tool = PhysicalToolIndex::from_raw(0);
         bool changed = false;
         const string chunked = render(chunk_size, [&] {
             changed = !changed;
-            params.slot_mask = changed ? 1 : 5;
+            params.virtual_tool_mask = changed ? 1 : 5;
             params.active_slot = VirtualToolIndex::from_raw(changed ? 0 : 2);
+            params.physical_tool_mask = changed ? 0 : 1;
+            params.active_physical_tool = changed ? decltype(params.active_physical_tool)(NoTool {}) : PhysicalToolIndex::from_raw(0);
         });
         REQUIRE(chunked == in_one_go);
     }

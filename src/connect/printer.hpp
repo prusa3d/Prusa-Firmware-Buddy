@@ -55,8 +55,7 @@ public:
         char fingerprint[FINGERPRINT_BUFF_LEN];
     };
 
-    struct SlotInfo {
-        FilamentTypeParameters::Name material;
+    struct PhysicalToolInfo {
         float temp_nozzle = 0;
 #if PRINTER_IS_PRUSA_iX()
         float temp_heatbreak = 0;
@@ -68,6 +67,10 @@ public:
         bool high_flow = false;
         bool hardened = false;
         float nozzle_diameter = 0;
+    };
+
+    struct VirtualToolInfo {
+        FilamentTypeParameters::Name material;
     };
 
 #if XL_ENCLOSURE_SUPPORT()
@@ -110,7 +113,8 @@ public:
 
     public:
         Params(const std::optional<BorrowPaths> &paths);
-        StrongIndexArray<SlotInfo, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static, strong_index_array::AllowWeakIndexing::yes> slots;
+        StrongIndexArray<PhysicalToolInfo, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> physical_tools;
+        StrongIndexArray<VirtualToolInfo, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> virtual_tools;
 #if XL_ENCLOSURE_SUPPORT()
         EnclosureInfo enclosure_info;
 #endif
@@ -123,14 +127,18 @@ public:
 #endif
         uint32_t progress_code = 0;
         char command_code = 0;
-        // Which slots are available/enabled (bitfielt)
+        // Which virtual tools are available/enabled (bitfield)
         // 0b00000001 for "ordinary" printers
         // 0b00011111 for MMU enabled
         // Something arbitrary for XL, depending on its heads available (note that they don't have to be "continuous")
-        uint8_t slot_mask = 1;
-        static_assert(8 * sizeof slot_mask >= VirtualToolIndex::count);
+        uint8_t virtual_tool_mask = 1;
+        static_assert(8 * sizeof virtual_tool_mask >= VirtualToolIndex::count);
+        // Which physical tools (print heads) are enabled (bitfield)
+        uint8_t physical_tool_mask = 1;
+        static_assert(8 * sizeof physical_tool_mask >= PhysicalToolIndex::count);
         ToConnectToolArgs tool_args = {};
         std::variant<VirtualToolIndex, NoTool> active_slot = NoTool {};
+        std::variant<PhysicalToolIndex, NoTool> active_physical_tool = NoTool {};
         float temp_bed = 0;
 #if PRINTER_IS_PRUSA_iX()
         float temp_psu = 0;
@@ -162,11 +170,8 @@ public:
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
         uint32_t state_fingerprint() const;
         uint8_t enabled_tool_cnt() const {
-            return std::popcount(slot_mask);
+            return std::popcount(virtual_tool_mask);
         }
-        /// Slot feeding @p head out of @p enabled_slots, as the source of the head's own data (nozzle, ...).
-        /// nullptr if the head is disabled.
-        const SlotInfo *head_slot(PhysicalToolIndex head, uint8_t enabled_slots) const;
     };
 
     struct Config {
@@ -300,7 +305,7 @@ public:
 
     uint32_t info_fingerprint() const;
 
-    virtual void set_slot_info(VirtualToolIndex vt, const SlotInfo &slot) = 0;
+    virtual void set_physical_tool_info(PhysicalToolIndex tool, const PhysicalToolInfo &info) = 0;
 };
 
 } // namespace connect_client

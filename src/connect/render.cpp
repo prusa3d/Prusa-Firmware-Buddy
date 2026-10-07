@@ -123,7 +123,9 @@ namespace {
         const auto params = state.printer.params();
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
-        const auto &preferred = params.slots[state.preferred_virtual_tool()];
+        const auto &preferred = params.physical_tools[state.preferred_physical_tool()];
+        // The legacy "slot" loop iterates the virtual tools by state.iter
+        const auto iter_virtual_tool = [&] { return VirtualToolIndex::from_raw(state.iter); };
         const uint8_t active_slot = match(
             state.active_slot,
             [](VirtualToolIndex vt) -> uint8_t { return vt.to_raw() + 1; },
@@ -194,8 +196,8 @@ namespace {
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                 JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (!params.slots[state.preferred_virtual_tool()].material.empty()) {
-                    JSON_FIELD_STR("material", params.slots[state.preferred_virtual_tool()].material.data()) JSON_COMMA;
+                if (!params.virtual_tools[state.preferred_virtual_tool()].material.empty()) {
+                    JSON_FIELD_STR("material", params.virtual_tools[state.preferred_virtual_tool()].material.data()) JSON_COMMA;
                 }
 #if XL_ENCLOSURE_SUPPORT()
                 if (params.enclosure_info.present) {
@@ -231,13 +233,13 @@ namespace {
                 if (state.enabled_tool_cnt() > 1) {
                     JSON_FIELD_OBJ("slot");
                         state.iter = 0;
-                        while (state.iter < params.slots.size()) {
-                            if (state.slot_mask & (1 << state.iter)) {
+                        while (state.iter < VirtualToolIndex::count) {
+                            if (state.virtual_tool_mask & (1 << state.iter)) {
                                 JSON_CUSTOM("\"%zu\":{", state.iter + 1);
-                                    JSON_FIELD_STR("material", params.slots[state.iter].material.data()) JSON_COMMA;
-                                    JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
-                                    JSON_FIELD_FFIXED("fan_hotend", params.slots[state.iter].heatbreak_fan_rpm, 1) JSON_COMMA;
-                                    JSON_FIELD_FFIXED("fan_print", params.slots[state.iter].print_fan_rpm, 1);
+                                    JSON_FIELD_STR("material", params.virtual_tools[iter_virtual_tool()].material.data()) JSON_COMMA;
+                                    JSON_FIELD_FFIXED("temp", params.physical_tools[iter_virtual_tool().to_physical()].temp_nozzle, 1) JSON_COMMA;
+                                    JSON_FIELD_FFIXED("fan_hotend", params.physical_tools[iter_virtual_tool().to_physical()].heatbreak_fan_rpm, 1) JSON_COMMA;
+                                    JSON_FIELD_FFIXED("fan_print", params.physical_tools[iter_virtual_tool().to_physical()].print_fan_rpm, 1);
                                 JSON_OBJ_END JSON_COMMA;
                             }
                             state.iter++;
@@ -269,8 +271,9 @@ namespace {
     JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const Event &event) {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
-        // The INFO tools loop iterates the print heads by state.iter
-        const auto current_head = [&] { return params.head_slot(PhysicalToolIndex::from_raw(state.iter), state.slot_mask); };
+        // The INFO tools loop iterates the physical tools by state.iter
+        const auto iter_physical_tool = [&] { return PhysicalToolIndex::from_raw(state.iter); };
+        const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         std::optional<Printer::FinishedJobResult> job_state;
 
@@ -350,7 +353,7 @@ namespace {
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
                     // TODO: Deprecated, kept for now for backwards compatibility. Parts of the tools object.
                     // Remove eventually.
-                    JSON_FIELD_FFIXED("nozzle_diameter", params.slots[state.preferred_virtual_tool()].nozzle_diameter, 2) JSON_COMMA;
+                    JSON_FIELD_FFIXED("nozzle_diameter", params.physical_tools[state.preferred_physical_tool()].nozzle_diameter, 2) JSON_COMMA;
                     JSON_FIELD_BOOL("transfer_paused", !params.can_start_download) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
                         JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
@@ -400,16 +403,16 @@ namespace {
                                 JSON_COMMA;
                             }
                             // Connect merges INFO into what it already has: null removes a tool, absence would keep it
-                            if (!current_head()) {
-                                JSON_FIELD_NULL(to_connect_tool(PhysicalToolIndex::from_raw(state.iter)).data());
+                            if (!state.is_enabled(iter_physical_tool())) {
+                                JSON_FIELD_NULL(to_connect_tool(iter_physical_tool()).data());
                                 continue;
                             }
-                            JSON_CUSTOM("\"%s\":{", to_connect_tool(PhysicalToolIndex::from_raw(state.iter)).data());
+                            JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_physical_tool()).data());
                                 JSON_FIELD_STR("type", "FFF_PRINT_HEAD") JSON_COMMA;
                                 JSON_FIELD_OBJ("features");
-                                    JSON_FIELD_FFIXED("nozzle_diameter", current_head()->nozzle_diameter, 2) JSON_COMMA;
-                                    JSON_FIELD_BOOL("nozzle_hardened", current_head()->hardened) JSON_COMMA;
-                                    JSON_FIELD_BOOL("nozzle_high_flow", current_head()->high_flow);
+                                    JSON_FIELD_FFIXED("nozzle_diameter", iter_physical_tool_info().nozzle_diameter, 2) JSON_COMMA;
+                                    JSON_FIELD_BOOL("nozzle_hardened", iter_physical_tool_info().hardened) JSON_COMMA;
+                                    JSON_FIELD_BOOL("nozzle_high_flow", iter_physical_tool_info().high_flow);
                                 JSON_OBJ_END;
 #if HAS_MMU2()
                                 JSON_COMMA;
@@ -1119,7 +1122,15 @@ VirtualToolIndex RenderState::preferred_virtual_tool() const {
         active_slot,
         [](VirtualToolIndex vt) { return vt; },
         // Nothing active - take the first enabled slot (or the very first one on the error printer, which has none)
-        [this](NoTool) { return VirtualToolIndex::from_raw(slot_mask == 0 ? 0 : std::countr_zero(slot_mask)); });
+        [this](NoTool) { return VirtualToolIndex::from_raw(virtual_tool_mask == 0 ? 0 : std::countr_zero(virtual_tool_mask)); });
+}
+
+PhysicalToolIndex RenderState::preferred_physical_tool() const {
+    return match(
+        active_physical_tool,
+        [](PhysicalToolIndex pt) { return pt; },
+        // Nothing picked - take the first enabled tool (or the very first one on the error printer, which has none)
+        [this](NoTool) { return PhysicalToolIndex::from_raw(physical_tool_mask == 0 ? 0 : std::countr_zero(physical_tool_mask)); });
 }
 
 RenderState::RenderState(const Printer &printer, const Action &action, optional<CommandId> background_command_id)
@@ -1134,8 +1145,10 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
     memset(&st, 0, sizeof st);
 
     const auto params = printer.params();
-    slot_mask = params.slot_mask;
+    virtual_tool_mask = params.virtual_tool_mask;
+    physical_tool_mask = params.physical_tool_mask;
     active_slot = params.active_slot;
+    active_physical_tool = params.active_physical_tool;
     tool_args = params.tool_args;
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {

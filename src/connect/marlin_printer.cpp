@@ -225,7 +225,7 @@ void MarlinPrinter::drop_paths() {
 }
 
 namespace {
-    void get_slot_info(Printer::Params &params) {
+    void get_tool_info(Printer::Params &params) {
 #if HAS_MMU2()
         params.progress_code = MMU2::Fsm::Instance().reporter.GetProgressCode();
         params.command_code = MMU2::Fsm::Instance().reporter.GetCommandInProgress();
@@ -234,35 +234,40 @@ namespace {
 #endif
 
         params.active_slot = VirtualToolIndex::currently_selected();
+        params.active_physical_tool = PhysicalToolIndex::currently_selected();
 
-        params.slot_mask = 0;
-        for (VirtualToolIndex vt : VirtualToolIndex::all().skip_all_disabled()) {
-            const PhysicalToolIndex pt = vt.to_physical();
+        params.physical_tool_mask = 0;
+        for (PhysicalToolIndex pt : PhysicalToolIndex::all().skip_all_disabled()) {
             const auto &hotend = marlin_vars().hotend(pt);
-            params.slot_mask |= (1 << vt.to_raw());
+            params.physical_tool_mask |= (1 << pt.to_raw());
 
-            auto &slot = params.slots[vt];
-            slot.material = config_store().get_filament_type(vt).parameters().name;
-            slot.temp_nozzle = hotend.temp_nozzle;
+            auto &physical_tool = params.physical_tools[pt];
+            physical_tool.temp_nozzle = hotend.temp_nozzle;
 #if PRINTER_IS_PRUSA_iX()
-            slot.temp_heatbreak = hotend.temp_heatbreak;
+            physical_tool.temp_heatbreak = hotend.temp_heatbreak;
 
             if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::extruder)) {
-                slot.extruder_fs_state = sensor->get_state();
+                physical_tool.extruder_fs_state = sensor->get_state();
             } else {
-                slot.extruder_fs_state.reset();
+                physical_tool.extruder_fs_state.reset();
             }
             if (IFSensor *sensor = FSensors_instance().sensor(LogicalFilamentSensor::side)) {
-                slot.remote_fs_state = sensor->get_state();
+                physical_tool.remote_fs_state = sensor->get_state();
             } else {
-                slot.remote_fs_state.reset();
+                physical_tool.remote_fs_state.reset();
             }
 #endif
-            slot.print_fan_rpm = hotend.print_fan_rpm;
-            slot.heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
-            slot.nozzle_diameter = config_store().get_nozzle_diameter(pt);
-            slot.hardened = config_store().get_nozzle_is_hardened(pt);
-            slot.high_flow = config_store().get_nozzle_is_high_flow(pt.to_raw());
+            physical_tool.print_fan_rpm = hotend.print_fan_rpm;
+            physical_tool.heatbreak_fan_rpm = hotend.heatbreak_fan_rpm;
+            physical_tool.nozzle_diameter = config_store().get_nozzle_diameter(pt);
+            physical_tool.hardened = config_store().get_nozzle_is_hardened(pt);
+            physical_tool.high_flow = config_store().get_nozzle_is_high_flow(pt.to_raw());
+        }
+
+        params.virtual_tool_mask = 0;
+        for (VirtualToolIndex vt : VirtualToolIndex::all().skip_all_disabled()) {
+            params.virtual_tool_mask |= (1 << vt.to_raw());
+            params.virtual_tools[vt].material = config_store().get_filament_type(vt).parameters().name;
         }
     }
 } // namespace
@@ -290,7 +295,7 @@ Printer::Params MarlinPrinter::params() const {
 
     params.job_id = marlin_vars().job_id;
     params.version = PrinterModelInfo::current().version;
-    get_slot_info(params);
+    get_tool_info(params);
 
 #if XL_ENCLOSURE_SUPPORT()
     params.enclosure_info = {
@@ -683,11 +688,10 @@ std::optional<MarlinPrinter::FinishedJobResult> MarlinPrinter::get_prior_job_res
     return nullopt;
 }
 
-void MarlinPrinter::set_slot_info(VirtualToolIndex vt, const SlotInfo &info) {
-    const auto pt = vt.to_physical();
-    config_store().set_nozzle_diameter(pt, info.nozzle_diameter);
-    config_store().set_nozzle_is_hardened(pt, info.hardened);
-    config_store().set_nozzle_is_high_flow(pt, info.high_flow);
+void MarlinPrinter::set_physical_tool_info(PhysicalToolIndex tool, const PhysicalToolInfo &info) {
+    config_store().set_nozzle_diameter(tool, info.nozzle_diameter);
+    config_store().set_nozzle_is_hardened(tool, info.hardened);
+    config_store().set_nozzle_is_high_flow(tool, info.high_flow);
 }
 
 } // namespace connect_client

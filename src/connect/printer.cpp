@@ -44,6 +44,7 @@ namespace connect_client {
 
 // The fingerprints pick the members one by one - a new member needs a decision there
 static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
+static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 6 + 3 * PRINTER_IS_PRUSA_iX());
 
 uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     // Note: keep in sync with the rendering of telemetry in render.cpp
@@ -60,27 +61,35 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
             .add(int(pos[Printer::Y_AXIS_POS]));
     }
 
-    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+    for (PhysicalToolIndex pt : PhysicalToolIndex::all()) {
         // Use the list of enabled at the time of snapshot, not current
         // (that is, the mask, not .skip_all_disabled)
-        if (slot_mask & (1 << vt.to_raw())) {
-            crc.add_str(slots[vt].material.data())
-                .add(int(slots[vt].temp_nozzle))
+        if (physical_tool_mask & (1 << pt.to_raw())) {
+            const auto &physical_tool = physical_tools[pt];
+            crc.add(int(physical_tool.temp_nozzle))
 #if PRINTER_IS_PRUSA_iX()
-                .add(int(slots[vt].temp_heatbreak))
-                .add(slots[vt].extruder_fs_state ? std::to_underlying(*slots[vt].extruder_fs_state) : -1)
-                .add(slots[vt].remote_fs_state ? std::to_underlying(*slots[vt].remote_fs_state) : -1)
+                .add(int(physical_tool.temp_heatbreak))
+                .add(physical_tool.extruder_fs_state ? std::to_underlying(*physical_tool.extruder_fs_state) : -1)
+                .add(physical_tool.remote_fs_state ? std::to_underlying(*physical_tool.remote_fs_state) : -1)
 #endif
                 // The RPM values are in thousands and fluctuating a bit, we don't want
                 // that to trigger the send too often, only when it actually really
                 // changes.
-                .add(slots[vt].print_fan_rpm / 500)
-                .add(slots[vt].heatbreak_fan_rpm / 500);
+                .add(physical_tool.print_fan_rpm / 500)
+                .add(physical_tool.heatbreak_fan_rpm / 500);
+        }
+    }
+
+    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+        if (virtual_tool_mask & (1 << vt.to_raw())) {
+            crc.add_str(virtual_tools[vt].material.data());
         }
     }
 
     return crc
+        .add(physical_tool_mask)
         .add(active_slot)
+        .add(active_physical_tool)
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
         .add(flow_factor)
@@ -148,16 +157,21 @@ uint32_t Printer::info_fingerprint() const {
     const auto creds = net_creds();
     const auto &parameters = params();
 
-    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+    for (PhysicalToolIndex pt : PhysicalToolIndex::all()) {
         // Use the list of enabled at the time of snapshot, not current
         // (that is, the mask, not .skip_all_disabled)
-        if (parameters.slot_mask & (1 << vt.to_raw())) {
-            const auto &slot = parameters.slots[vt];
+        if (parameters.physical_tool_mask & (1 << pt.to_raw())) {
+            const auto &physical_tool = parameters.physical_tools[pt];
             crc
-                .add(slot.nozzle_diameter)
-                .add(slot.hardened)
-                .add(slot.high_flow)
-                .add_str(slot.material.data());
+                .add(physical_tool.nozzle_diameter)
+                .add(physical_tool.hardened)
+                .add(physical_tool.high_flow);
+        }
+    }
+
+    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+        if (parameters.virtual_tool_mask & (1 << vt.to_raw())) {
+            crc.add_str(parameters.virtual_tools[vt].material.data());
         }
     }
 
@@ -171,6 +185,7 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.version.version)
         .add(parameters.version.subversion)
         .add(parameters.enabled_tool_cnt())
+        .add(parameters.physical_tool_mask)
 #if HAS_MMU2()
         // Decides the tool ids
         .add(parameters.tool_args.mmu_enabled)
@@ -221,15 +236,6 @@ const char *Printer::Params::job_lfn() const {
     } else {
         return nullptr;
     }
-}
-
-const Printer::SlotInfo *Printer::Params::head_slot(PhysicalToolIndex head, uint8_t enabled_slots) const {
-    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
-        if ((enabled_slots & (1 << vt.to_raw())) && vt.to_physical() == head) {
-            return &slots[vt];
-        }
-    }
-    return nullptr;
 }
 
 } // namespace connect_client

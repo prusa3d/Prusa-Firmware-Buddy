@@ -90,13 +90,18 @@ struct RenderState {
 
     const Printer &printer;
     const Action &action;
-    /// Tools enabled when the response started.
+    /// Virtual tools enabled when the response started.
     /// The printer state is re-read for every chunk, but the tool set can change at runtime
     /// (MMU switched, INDX dock calibrated); the renderer reads this instead of each chunk's snapshot.
-    decltype(Printer::Params::slot_mask) slot_mask = 0;
-    /// Tool active when the response started, kept for the same reason as slot_mask.
+    decltype(Printer::Params::virtual_tool_mask) virtual_tool_mask = 0;
+    /// Physical tools enabled when the response started, kept for the same reason as virtual_tool_mask.
+    decltype(Printer::Params::physical_tool_mask) physical_tool_mask = 0;
+    /// Virtual tool active when the response started, kept for the same reason as virtual_tool_mask.
     decltype(Printer::Params::active_slot) active_slot = NoTool {};
-    /// MMU state when the response started, kept for the same reason as slot_mask - it also decides the tool ids.
+    /// Physical tool picked when the response started, kept for the same reason as virtual_tool_mask.
+    decltype(Printer::Params::active_physical_tool) active_physical_tool = NoTool {};
+    /// MMU state when the response started, kept for the same reason as virtual_tool_mask - it also decides the
+    /// tool ids.
     ToConnectToolArgs tool_args = {};
     bool has_stat = false;
     bool read_only = false;
@@ -116,14 +121,22 @@ struct RenderState {
     RenderState(const Printer &printer, const Action &action, std::optional<CommandId> background_command_id);
 
     uint8_t enabled_tool_cnt() const {
-        return std::popcount(slot_mask);
+        return std::popcount(virtual_tool_mask);
     }
 
-    /// The virtual tool whose values fill the single-tool fields of the old protocol (temperature, fans, nozzle,
-    /// material): the active one, if any, or the first enabled one.
+    /// The virtual tool whose material fills the single-tool field of the old protocol: the active one, if any, or
+    /// the first enabled one.
     /// The choice comes from the captured state, so all chunks of a response describe the same tool. The values are
     /// read from each chunk's snapshot - it always holds all the tools, so the index is valid there.
     VirtualToolIndex preferred_virtual_tool() const;
+
+    /// The physical tool whose values fill the single-tool fields of the old protocol (temperature, fans, nozzle):
+    /// the picked one, if any, or the first enabled one. Chosen like preferred_virtual_tool().
+    PhysicalToolIndex preferred_physical_tool() const;
+
+    bool is_enabled(PhysicalToolIndex tool) const {
+        return physical_tool_mask & (1 << tool.to_raw());
+    }
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

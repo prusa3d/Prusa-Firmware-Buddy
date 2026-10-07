@@ -56,7 +56,7 @@ public:
     virtual const char *dialog_action(printer_state::DialogId dialog_id, Response response) override;
     virtual std::optional<FinishedJobResult> get_prior_job_result(uint16_t job_id) const override;
 
-    virtual void set_slot_info(VirtualToolIndex vt, const SlotInfo &info) override;
+    virtual void set_physical_tool_info(PhysicalToolIndex tool, const PhysicalToolInfo &info) override;
 
     static bool load_cfg_from_ini();
 

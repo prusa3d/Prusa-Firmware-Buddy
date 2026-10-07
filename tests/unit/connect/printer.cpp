@@ -11,7 +11,7 @@ TEST_CASE("Params CRC") {
 
     SECTION("Nozzle & bed temperature") {
         params.temp_bed = 50;
-        params.slots[0].temp_nozzle = 150;
+        params.physical_tools[PhysicalToolIndex::from_raw(0)].temp_nozzle = 150;
     }
 
     SECTION("target_bed") {

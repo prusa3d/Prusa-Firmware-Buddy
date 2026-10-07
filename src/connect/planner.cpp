@@ -980,14 +980,15 @@ void Planner::command(const Command &command, const SetValue &params) {
     const char *err = nullptr;
 
     auto adjust_nozzle = [&](size_t idx, auto cback) {
-        if (idx >= printer.params().slots.size()) {
+        if (idx >= VirtualToolIndex::count) {
             err = "Tool index out of range";
             return;
         }
-        const auto vt = VirtualToolIndex::from_raw(idx);
-        auto slot = printer.params().slots[idx];
-        cback(slot);
-        printer.set_slot_info(vt, slot);
+        // idx is the virtual tool of the 1-based "tools.<N>.*" key
+        const auto tool = VirtualToolIndex::from_raw(idx).to_physical();
+        auto info = printer.params().physical_tools[tool];
+        cback(info);
+        printer.set_physical_tool_info(tool, info);
     };
 
     switch (params.name) {
@@ -1019,18 +1020,18 @@ void Planner::command(const Command &command, const SetValue &params) {
     }
 #endif
     case connect_client::PropertyName::NozzleHighFlow:
-        adjust_nozzle(params.idx, [&](auto &slot) {
-            slot.high_flow = get<bool>(params.value);
+        adjust_nozzle(params.idx, [&](auto &info) {
+            info.high_flow = get<bool>(params.value);
         });
         break;
     case connect_client::PropertyName::NozzleHardened:
-        adjust_nozzle(params.idx, [&](auto &slot) {
-            slot.hardened = get<bool>(params.value);
+        adjust_nozzle(params.idx, [&](auto &info) {
+            info.hardened = get<bool>(params.value);
         });
         break;
     case connect_client::PropertyName::NozzleDiameter:
-        adjust_nozzle(params.idx, [&](auto &slot) {
-            slot.nozzle_diameter = get<float>(params.value);
+        adjust_nozzle(params.idx, [&](auto &info) {
+            info.nozzle_diameter = get<float>(params.value);
         });
         break;
 #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()

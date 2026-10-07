@@ -18,8 +18,9 @@ inline Printer::Params params_idle() {
     params.job_id = 13;
     params.state = printer_state::DeviceState::Idle;
     params.version = { 2, 3, 0 };
-    params.slot_mask = 1;
-    params.slots[0] = Printer::SlotInfo {
+    params.virtual_tool_mask = 1;
+    params.active_physical_tool = PhysicalToolIndex::from_raw(0);
+    params.physical_tools[PhysicalToolIndex::from_raw(0)] = Printer::PhysicalToolInfo {
         .nozzle_diameter = 0.4f,
     };
 
@@ -34,8 +35,9 @@ inline Printer::Params params_dialog() {
     params.job_id = 13;
     params.state = printer_state::StateWithDialog(printer_state::DeviceState::Attention, ErrCode::ERR_UNDEF, 42, yes_no);
     params.version = { 2, 3, 0 };
-    params.slot_mask = 1;
-    params.slots[0] = Printer::SlotInfo {
+    params.virtual_tool_mask = 1;
+    params.active_physical_tool = PhysicalToolIndex::from_raw(0);
+    params.physical_tools[PhysicalToolIndex::from_raw(0)] = Printer::PhysicalToolInfo {
         .nozzle_diameter = 0.4f,
     };
 
@@ -144,7 +146,7 @@ public:
         return nullptr;
     }
 
-    virtual void set_slot_info(VirtualToolIndex, const SlotInfo &) override {}
+    virtual void set_physical_tool_info(PhysicalToolIndex, const PhysicalToolInfo &) override {}
 
 #if HAS_CANCEL_OBJECT()
     virtual void set_object_cancelled(uint16_t, bool) override {}
