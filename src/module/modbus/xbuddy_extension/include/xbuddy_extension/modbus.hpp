@@ -63,6 +63,8 @@ struct Status {
     /// (the xBE fan rail has no dedicated switch). 1 = the TPS2041C reports
     /// overcurrent/overtemperature on the fan rail.
     uint16_t fan_power_fault;
+
+    uint16_t cyphal_node_table_sequence; ///< increments when CyphalNodeTable changes
 };
 
 /// MODBUS register file for setting desired config of xBuddyExtension from motherboard.
@@ -130,6 +132,17 @@ struct LogMessage {
     std::array<uint16_t, 121> text_data; ///< actual bytes of log message (little endian)
 };
 
+/// MODBUS register file for reporting the cyphal nodes known to xBuddyExtension.
+struct CyphalNodeTable {
+    static constexpr uint16_t address = 0x8200;
+
+    uint16_t sequence; ///< sequence number of this snapshot, see Status::cyphal_node_table_sequence
+
+    /// One CyphalNodeTableEntry per cyphal node id.
+    /// Entry 0 is xBuddyExtension itself and is always empty.
+    std::array<uint16_t, cyphal_node_count> nodes;
+};
+
 /// MODBUS register file for draining the CyphalBridgeQueue.
 /// Messages are packed as [1B length | 2B port_id LE | length bytes payload]...
 /// Byte content is packed little-endian into uint16 registers.
@@ -140,6 +153,20 @@ struct CyphalBridge {
     uint16_t size; ///< valid bytes in data[]
     std::array<uint16_t, 120> data; ///< packed bridge messages (little endian)
 };
+
+/// Decoded entry of CyphalNodeTable::nodes.
+struct CyphalNodeTableEntry {
+    NodeName name = NodeName::none;
+    NodeState state = NodeState::unknown;
+
+    bool operator==(const CyphalNodeTableEntry &) const = default;
+};
+
+/// Parse CyphalNodeTableEntry from modbus structure.
+CyphalNodeTableEntry parse_cyphal_node_table_entry(uint16_t);
+
+/// Serialize CyphalNodeTableEntry to modbus structure.
+uint16_t serialize_cyphal_node_table_entry(const CyphalNodeTableEntry &);
 
 /// Parse FileId from modbus structure.
 FileId parse_file_id(uint16_t);

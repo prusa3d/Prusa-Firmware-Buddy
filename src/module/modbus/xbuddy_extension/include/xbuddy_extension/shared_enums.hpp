@@ -24,6 +24,9 @@ enum class Fan : uint8_t {
 static constexpr uint8_t fan_count = 3;
 static constexpr uint8_t ext_filament_sensor_count = 8;
 
+/// How many cyphal nodes (including xBuddyExtension itself) are tracked.
+static constexpr uint8_t cyphal_node_count = 16;
+
 /// Represents compressed, parsed cyphal node name.
 /// No need to store and compare strings all the time.
 /// We wouldn't know what to do with unknown nodes anyway.
