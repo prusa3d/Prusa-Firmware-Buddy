@@ -3,6 +3,7 @@
 
 #include <bitset>
 #include <cmath>
+#include <cstdint>
 
 #include "requests_read_multi.hpp"
 
@@ -28,6 +29,20 @@ struct AmountsInfo {
 
     using RequestRef = Requirements::ApplyOn<MultiReadFieldRequestRef>;
 
+    enum class ValueSource : uint8_t {
+        /// The value is not known
+        no_value,
+
+        /// The value was taken from the "nominal_" field on the tag
+        nominal,
+
+        /// The value was taken from the "actual_" field on the tag
+        actual,
+
+        /// The value was determined by other means, various fallbacks, guesses and necromancy
+        heuristic,
+    };
+
     explicit AmountsInfo(const RequestRef &req);
 
     /// Remaining amount of material, in grams
@@ -41,6 +56,12 @@ struct AmountsInfo {
 
     /// Netto length of the full spool, in millimetres
     CompactOptional<float, NAN> full_length_mm;
+
+    /// How the full_weight was determined
+    ValueSource full_weight_source : 2 = ValueSource::no_value;
+
+    /// How the full_length was determined
+    ValueSource full_length_source : 2 = ValueSource::no_value;
 
     using WeightStrBuffer = std::array<char, 32>;
     using LengthStrBuffer = std::array<char, 32>;

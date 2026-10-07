@@ -14,26 +14,32 @@ AmountsInfo::AmountsInfo(const RequestRef &req) {
 
     if (auto val = req.result<MainField::actual_netto_full_weight>()) {
         full_weight_g = *val;
+        full_weight_source = ValueSource::actual;
 
     } else if (auto val = req.result<MainField::nominal_netto_full_weight>()) {
         full_weight_g = *val;
+        full_weight_source = ValueSource::nominal;
     }
 
     // Protect against division by zero on malicious data
     if (full_weight_g.has_value() && full_weight_g.value() <= 0) {
         full_weight_g = std::nullopt;
+        full_weight_source = ValueSource::no_value;
     }
 
     if (auto val = req.result<MainField::actual_full_length>()) {
         full_length_mm = *val;
+        full_length_source = ValueSource::actual;
 
     } else if (auto val = req.result<MainField::nominal_full_length>()) {
         full_length_mm = *val;
+        full_length_source = ValueSource::nominal;
     }
 
     // Protect against division by zero on malicious data
     if (full_length_mm.has_value() && full_length_mm.value() <= 0) {
         full_length_mm = std::nullopt;
+        full_length_source = ValueSource::no_value;
     }
 
     if (full_weight_g.has_value()) {
@@ -56,6 +62,8 @@ AmountsInfo::AmountsInfo(const RequestRef &req) {
 
             if (lin_density > 0) {
                 full_length_mm = *full_weight_g / lin_density;
+                full_length_source = ValueSource::heuristic;
+
                 remaining_length_mm = *remaining_weight_g / lin_density;
             }
         }
