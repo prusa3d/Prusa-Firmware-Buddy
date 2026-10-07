@@ -799,6 +799,14 @@ define_enum_option(
 # bridge, so missing-bridge on XLS is a hardware fault rather than a normal config.
 set_feature_for_printers_master_board(HAS_XL_CAN "XL")
 
+# Talks to cyphal nodes through a bridge board (xBuddyExtension or XL-CAN).
+if(HAS_XBUDDY_EXTENSION OR HAS_XL_CAN)
+  set(HAS_CYPHAL YES)
+else()
+  set(HAS_CYPHAL NO)
+endif()
+define_boolean_option(HAS_CYPHAL ${HAS_CYPHAL})
+
 if(DEVELOPMENT_ITEMS_ENABLED)
   set_feature_for_printers(HAS_ANFC "COREONE" "COREONEL")
 else()
