@@ -49,7 +49,6 @@ private:
         bool first = true;
         bool read_only = false;
         bool partial = false;
-        DirState() = default;
         DirState(FileInfo *owner, Directory dir)
             : filepath(owner->filepath)
             , dir { std::move(dir) } {
@@ -73,9 +72,6 @@ private:
         virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, DirState &state) const override;
 
     public:
-        DirRenderer(APIVersion api)
-            : JsonRenderer(DirState())
-            , api(api) {}
         DirRenderer(FileInfo *owner, Directory dir, APIVersion api)
             : JsonRenderer { DirState(owner, std::move(dir)) }
             , api(api) {}
