@@ -61,6 +61,7 @@ void read_register_file_callback(xbuddy_extension::modbus::Status &status) {
     status.digest_request.salt_hi = static_cast<uint16_t>(flash_data.hash_salt >> 16);
     const auto log = cyphal::application().get_log();
     status.log_message_sequence = log.sequence;
+    status.cyphal_node_table_sequence = cyphal::application().get_cyphal_node_table().sequence;
 
     // The read callback fills the raw Modbus response buffer, so every field
     // must be written on every variant — zero where the peripheral is absent.
@@ -85,6 +86,10 @@ void read_register_file_callback(xbuddy_extension::modbus::LogMessage &log_messa
     log_message.sequence = log.sequence;
     log_message.text_size = text_size;
     memcpy(log_message.text_data.data(), log.text.data(), text_size);
+}
+
+void read_register_file_callback(xbuddy_extension::modbus::CyphalNodeTable &cyphal_node_table) {
+    cyphal_node_table = cyphal::application().get_cyphal_node_table();
 }
 
 bool write_register_file_callback(const xbuddy_extension::modbus::Config &config) {
@@ -366,7 +371,7 @@ public:
     }
 
     Status read_registers(const uint16_t address, std::span<uint16_t> out) final {
-        return read_register_file<xbuddy_extension::modbus::Status, xbuddy_extension::modbus::LogMessage, xbuddy_extension::modbus::CyphalBridge>(address, out);
+        return read_register_file<xbuddy_extension::modbus::Status, xbuddy_extension::modbus::LogMessage, xbuddy_extension::modbus::CyphalBridge, xbuddy_extension::modbus::CyphalNodeTable>(address, out);
     }
 
     Status write_registers(const uint16_t address, std::span<const uint16_t> in) final {

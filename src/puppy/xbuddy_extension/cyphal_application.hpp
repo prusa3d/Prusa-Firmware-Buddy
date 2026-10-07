@@ -91,6 +91,8 @@ public:
         Bytes text;
     };
     virtual LogData get_log() const = 0;
+
+    virtual const xbuddy_extension::modbus::CyphalNodeTable &get_cyphal_node_table() const = 0;
 };
 
 /// Run the cyphal application for a while.

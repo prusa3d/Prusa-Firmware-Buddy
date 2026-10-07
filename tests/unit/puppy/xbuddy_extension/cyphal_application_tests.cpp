@@ -943,6 +943,83 @@ SCENARIO("NFC node allocation") {
     }
 }
 
+SCENARIO("node table") {
+    using xbuddy_extension::modbus::CyphalNodeTableEntry;
+    using xbuddy_extension::modbus::parse_cyphal_node_table_entry;
+
+    GIVEN("initial application state") {
+        MockPresentation mock;
+        Application app;
+        uint32_t time = 0;
+        run(app, mock, make_timepoint(time++));
+
+        THEN("the table is empty") {
+            CHECK(app.get_cyphal_node_table().sequence == 0);
+            for (const auto entry : app.get_cyphal_node_table().nodes) {
+                CHECK(entry == 0);
+            }
+        }
+
+        WHEN("an NFC node becomes ready") {
+            setup_nfc_node(app, mock, NodeId { 1 }, 0x11111111, time);
+            const auto sequence = app.get_cyphal_node_table().sequence;
+
+            THEN("the table reports it") {
+                CHECK(sequence != 0);
+                const auto expected = CyphalNodeTableEntry {
+                    .name = cyphal::NodeName::cz_prusa3d_honeybee_nfc,
+                    .state = xbuddy_extension::NodeState::ready,
+                };
+                CHECK(parse_cyphal_node_table_entry(app.get_cyphal_node_table().nodes[1]) == expected);
+            }
+
+            AND_WHEN("nothing changes") {
+                run(app, mock, make_timepoint(time++));
+
+                THEN("the sequence stays the same") {
+                    CHECK(app.get_cyphal_node_table().sequence == sequence);
+                }
+            }
+
+            AND_WHEN("another NFC node becomes ready") {
+                setup_nfc_node(app, mock, NodeId { 2 }, 0x22222222, time);
+
+                THEN("the table reports it too") {
+                    CHECK(app.get_cyphal_node_table().sequence != sequence);
+                    CHECK(app.get_cyphal_node_table().nodes[2] == app.get_cyphal_node_table().nodes[1]);
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("node table entry encoding") {
+    using xbuddy_extension::modbus::CyphalNodeTableEntry;
+    using xbuddy_extension::modbus::parse_cyphal_node_table_entry;
+    using xbuddy_extension::modbus::serialize_cyphal_node_table_entry;
+
+    CHECK(serialize_cyphal_node_table_entry({}) == 0);
+    CHECK(parse_cyphal_node_table_entry(0) == CyphalNodeTableEntry {});
+
+    const auto entry = CyphalNodeTableEntry {
+        .name = cyphal::NodeName::cz_prusa3d_honeybee_tool_offset_sensor,
+        .state = xbuddy_extension::NodeState::flash,
+    };
+    CHECK(parse_cyphal_node_table_entry(serialize_cyphal_node_table_entry(entry)) == entry);
+
+    const auto nfc_entry = CyphalNodeTableEntry {
+        .name = cyphal::NodeName::cz_prusa3d_honeybee_nfc,
+        .state = xbuddy_extension::NodeState::ready,
+    };
+    CHECK(serialize_cyphal_node_table_entry(nfc_entry) == 0x0203);
+    CHECK(parse_cyphal_node_table_entry(serialize_cyphal_node_table_entry(nfc_entry)) == nfc_entry);
+
+    // Values from a newer firmware are not misinterpreted.
+    const auto unknown = parse_cyphal_node_table_entry(0xFFFF);
+    CHECK(unknown.name == cyphal::NodeName::none);
+    CHECK(unknown.state == xbuddy_extension::NodeState::unknown);
+}
+
 SCENARIO("two nodes verifying at once") {
     const auto node_id1 = NodeId { 1 };
     const auto node_id2 = NodeId { 2 };
