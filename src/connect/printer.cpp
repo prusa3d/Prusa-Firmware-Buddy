@@ -214,13 +214,4 @@ const char *Printer::Params::job_lfn() const {
     }
 }
 
-VirtualToolIndex Printer::Params::preferred_slot() const {
-    return match(
-        active_slot,
-        [](VirtualToolIndex vt) { return vt; },
-        // We need to give Connect _some_ temperature. Pick the first enabled
-        // tool (or the first tool completely, in case of Error printer).
-        [this](NoTool) { return VirtualToolIndex::from_raw(slot_mask == 0 ? 0 : std::countr_zero(slot_mask)); });
-}
-
 } // namespace connect_client

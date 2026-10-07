@@ -123,9 +123,9 @@ namespace {
         const auto params = state.printer.params();
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
-        const auto &preferred = params.slots[params.preferred_slot()];
+        const auto &preferred = params.slots[state.preferred_virtual_tool()];
         const uint8_t active_slot = match(
-            params.active_slot,
+            state.active_slot,
             [](VirtualToolIndex vt) -> uint8_t { return vt.to_raw() + 1; },
             [](NoTool) -> uint8_t { return 0; });
 
@@ -194,8 +194,8 @@ namespace {
                 JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                 JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                 JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (!params.slots[params.preferred_slot()].material.empty()) {
-                    JSON_FIELD_STR("material", params.slots[params.preferred_slot()].material.data()) JSON_COMMA;
+                if (!params.slots[state.preferred_virtual_tool()].material.empty()) {
+                    JSON_FIELD_STR("material", params.slots[state.preferred_virtual_tool()].material.data()) JSON_COMMA;
                 }
 #if XL_ENCLOSURE_SUPPORT()
                 if (params.enclosure_info.present) {
@@ -228,11 +228,11 @@ namespace {
                     JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
 
-                if (params.enabled_tool_cnt() > 1) {
+                if (state.enabled_tool_cnt() > 1) {
                     JSON_FIELD_OBJ("slot");
                         state.iter = 0;
                         while (state.iter < params.slots.size()) {
-                            if (params.slot_mask & (1 << state.iter)) {
+                            if (state.slot_mask & (1 << state.iter)) {
                                 JSON_CUSTOM("\"%zu\":{", state.iter + 1);
                                     JSON_FIELD_STR("material", params.slots[state.iter].material.data()) JSON_COMMA;
                                     JSON_FIELD_FFIXED("temp", params.slots[state.iter].temp_nozzle, 1) JSON_COMMA;
@@ -346,7 +346,7 @@ namespace {
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
                     // TODO: Deprecated, kept for now for backwards compatibility. Parts of the tools object.
                     // Remove eventually.
-                    JSON_FIELD_FFIXED("nozzle_diameter", params.slots[params.preferred_slot()].nozzle_diameter, 2) JSON_COMMA;
+                    JSON_FIELD_FFIXED("nozzle_diameter", params.slots[state.preferred_virtual_tool()].nozzle_diameter, 2) JSON_COMMA;
                     JSON_FIELD_BOOL("transfer_paused", !params.can_start_download) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
                         JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
@@ -386,7 +386,7 @@ namespace {
 
                     JSON_FIELD_OBJ("tools");
                         for (state.iter = 0, state.need_comma = false; state.iter < params.slots.size(); state.iter ++) {
-                            if (params.slot_mask & (1 << state.iter)) {
+                            if (state.slot_mask & (1 << state.iter)) {
                                 if (state.need_comma) {
                                     JSON_COMMA;
                                 }
@@ -428,14 +428,14 @@ namespace {
 #endif
 #if HAS_MMU2()
                     JSON_FIELD_OBJ("mmu");
-                        JSON_FIELD_BOOL("enabled", params.enabled_tool_cnt() > 1) JSON_COMMA;
+                        JSON_FIELD_BOOL("enabled", state.enabled_tool_cnt() > 1) JSON_COMMA;
                         JSON_FIELD_STR_FORMAT("version", "%d.%d.%d", params.mmu_version.major, params.mmu_version.minor, params.mmu_version.build);
                     JSON_OBJ_END JSON_COMMA;
 #endif
 #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
                     JSON_FIELD_BOOL("addon_power", params.addon_power) JSON_COMMA;
 #endif
-                    JSON_FIELD_INT("slots", params.enabled_tool_cnt());
+                    JSON_FIELD_INT("slots", state.enabled_tool_cnt());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
@@ -1077,6 +1077,14 @@ FileExtra::FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_)
 FileExtra::FileExtra(const char *base_path, Directory dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
+VirtualToolIndex RenderState::preferred_virtual_tool() const {
+    return match(
+        active_slot,
+        [](VirtualToolIndex vt) { return vt; },
+        // Nothing active - take the first enabled slot (or the very first one on the error printer, which has none)
+        [this](NoTool) { return VirtualToolIndex::from_raw(slot_mask == 0 ? 0 : std::countr_zero(slot_mask)); });
+}
+
 RenderState::RenderState(const Printer &printer, const Action &action, optional<CommandId> background_command_id)
     : printer(printer)
     , action(action)
@@ -1088,9 +1096,12 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
     , background_command_id(background_command_id) {
     memset(&st, 0, sizeof st);
 
+    const auto params = printer.params();
+    slot_mask = params.slot_mask;
+    active_slot = params.active_slot;
+
     if (const auto *event = get_if<Event>(&action); event != nullptr) {
         const char *path = nullptr;
-        const auto params = printer.params();
         bool error = false;
 
         switch (event->type) {

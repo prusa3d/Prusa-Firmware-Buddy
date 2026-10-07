@@ -4,6 +4,7 @@
 #include "mock_printer.h"
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_message.hpp>
 
 #include <cstring>
 #include <string>
@@ -469,4 +470,54 @@ TEST_CASE("Render") {
     const uint8_t *b = buffer;
     string_view output(reinterpret_cast<const char *>(b), amount);
     REQUIRE(output == expected);
+}
+
+TEST_CASE("Render - tool set and active tool are sampled once per response") {
+    Action action;
+    SECTION("Telemetry") {
+        action = SendTelemetry { SendTelemetry::Mode::Full };
+    }
+    SECTION("Info") {
+        action = Event { EventType::Info, 11 };
+    }
+
+    auto params = params_idle();
+    // Slots 1 and 3, like an MMU or a toolchanger with a gap
+    params.slot_mask = 5;
+    params.slots[2].material = "PETG";
+    params.slots[2].temp_nozzle = 230;
+    params.active_slot = VirtualToolIndex::from_raw(2);
+    MockPrinter printer(params);
+
+    const auto render = [&](size_t chunk_size, auto &&between_chunks) {
+        Renderer renderer(RenderState(printer, action, nullopt));
+        string output;
+        while (true) {
+            uint8_t buffer[1024];
+            const auto [result, amount] = renderer.render(buffer, chunk_size);
+            REQUIRE((result == JsonResult::Complete || result == JsonResult::Incomplete));
+            output.append(reinterpret_cast<const char *>(buffer), amount);
+            if (result == JsonResult::Complete) {
+                return output;
+            }
+            between_chunks();
+        }
+    };
+
+    const string in_one_go = render(1024, [] {});
+
+    // The tools change after every chunk; the chunk sizes move the change points across the whole message,
+    // the tool loops included
+    for (size_t chunk_size = 32; chunk_size <= 256; chunk_size++) {
+        CAPTURE(chunk_size);
+        params.slot_mask = 5;
+        params.active_slot = VirtualToolIndex::from_raw(2);
+        bool changed = false;
+        const string chunked = render(chunk_size, [&] {
+            changed = !changed;
+            params.slot_mask = changed ? 1 : 5;
+            params.active_slot = VirtualToolIndex::from_raw(changed ? 0 : 2);
+        });
+        REQUIRE(chunked == in_one_go);
+    }
 }

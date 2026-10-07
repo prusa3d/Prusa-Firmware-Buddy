@@ -10,6 +10,7 @@
 #include <directory.hpp>
 #include <transfers/monitor.hpp>
 
+#include <bit>
 #include <sys/stat.h>
 
 namespace connect_client {
@@ -89,6 +90,12 @@ struct RenderState {
 
     const Printer &printer;
     const Action &action;
+    /// Tools enabled when the response started.
+    /// The printer state is re-read for every chunk, but the tool set can change at runtime
+    /// (MMU switched, INDX dock calibrated); the renderer reads this instead of each chunk's snapshot.
+    decltype(Printer::Params::slot_mask) slot_mask = 0;
+    /// Tool active when the response started, kept for the same reason as slot_mask.
+    decltype(Printer::Params::active_slot) active_slot = NoTool {};
     bool has_stat = false;
     bool read_only = false;
     struct stat st;
@@ -105,6 +112,16 @@ struct RenderState {
     const Response *buttons = nullptr;
 
     RenderState(const Printer &printer, const Action &action, std::optional<CommandId> background_command_id);
+
+    uint8_t enabled_tool_cnt() const {
+        return std::popcount(slot_mask);
+    }
+
+    /// The virtual tool whose values fill the single-tool fields of the old protocol (temperature, fans, nozzle,
+    /// material): the active one, if any, or the first enabled one.
+    /// The choice comes from the captured state, so all chunks of a response describe the same tool. The values are
+    /// read from each chunk's snapshot - it always holds all the tools, so the index is valid there.
+    VirtualToolIndex preferred_virtual_tool() const;
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

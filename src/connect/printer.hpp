@@ -162,8 +162,6 @@ public:
         uint8_t enabled_tool_cnt() const {
             return std::popcount(slot_mask);
         }
-        // Either the active slot, if any, or the first available slot if no slot is active.
-        VirtualToolIndex preferred_slot() const;
     };
 
     struct Config {
