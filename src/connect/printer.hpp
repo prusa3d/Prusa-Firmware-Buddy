@@ -18,6 +18,7 @@
 #include <state/printer_state.hpp>
 #include <device/board.h>
 #include <connect/hostname.hpp>
+#include <connect/tools.hpp>
 #include <filament.hpp>
 #include <feature/filament_sensor/filament_sensor_states.hpp>
 
@@ -128,6 +129,7 @@ public:
         // Something arbitrary for XL, depending on its heads available (note that they don't have to be "continuous")
         uint8_t slot_mask = 1;
         static_assert(8 * sizeof slot_mask >= VirtualToolIndex::count);
+        ToConnectToolArgs tool_args = {};
         std::variant<VirtualToolIndex, NoTool> active_slot = NoTool {};
         float temp_bed = 0;
 #if PRINTER_IS_PRUSA_iX()
@@ -162,6 +164,9 @@ public:
         uint8_t enabled_tool_cnt() const {
             return std::popcount(slot_mask);
         }
+        /// Slot feeding @p head out of @p enabled_slots, as the source of the head's own data (nozzle, ...).
+        /// nullptr if the head is disabled.
+        const SlotInfo *head_slot(PhysicalToolIndex head, uint8_t enabled_slots) const;
     };
 
     struct Config {

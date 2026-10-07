@@ -269,12 +269,15 @@ TEST_CASE("Render") {
                 "\"transfer_paused\":true,"
                 "\"storages\":[],"
                 "\"network_info\":{\"hostname\":\"\"},"
+                "\"tool_count\":1,"
                 "\"tools\":{"
-                    "\"1\":{"
-                        "\"nozzle_diameter\":0.40,"
-                        "\"high_flow\":false,"
-                        "\"hardened\":false,"
-                        "\"material\":\"---\""
+                    "\"0\":{"
+                        "\"type\":\"FFF_PRINT_HEAD\","
+                        "\"features\":{"
+                            "\"nozzle_diameter\":0.40,"
+                            "\"nozzle_hardened\":false,"
+                            "\"nozzle_high_flow\":false"
+                        "}"
                     "}"
                 "},"
                 "\"addon_power\":false,"
@@ -314,22 +317,55 @@ TEST_CASE("Render") {
                 "\"transfer_paused\":true,"
                 "\"storages\":[],"
                 "\"network_info\":{\"hostname\":\"\"},"
+                "\"tool_count\":1,"
                 "\"tools\":{"
-                    "\"1\":{"
-                        "\"nozzle_diameter\":0.40,"
-                        "\"high_flow\":false,"
-                        "\"hardened\":false,"
-                        "\"material\":\"---\""
-                    "},"
-                    "\"3\":{"
-                        "\"nozzle_diameter\":0.60,"
-                        "\"high_flow\":false,"
-                        "\"hardened\":true,"
-                        "\"material\":\"PETG\""
+                    "\"0\":{"
+                        "\"type\":\"FFF_PRINT_HEAD\","
+                        "\"features\":{"
+                            "\"nozzle_diameter\":0.40,"
+                            "\"nozzle_hardened\":false,"
+                            "\"nozzle_high_flow\":false"
+                        "}"
                     "}"
                 "},"
                 "\"addon_power\":false,"
                 "\"slots\":2"
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"INFO\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Event - info - disabled head") {
+        action = Event {
+            EventType::Info,
+            11,
+        };
+        auto idle = params_idle();
+        // No tool enabled, like the error printer reports
+        idle.slot_mask = 0;
+        params.emplace(idle);
+
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"firmware\":\"TST-1234\","
+                "\"printer_type\":\"2.3.0\","
+                "\"sn\":\"FAKE-1234\","
+                "\"appendix\":false,"
+                "\"fingerprint\":\"DEADBEEF\","
+                "\"nozzle_diameter\":0.40,"
+                "\"transfer_paused\":true,"
+                "\"storages\":[],"
+                "\"network_info\":{\"hostname\":\"\"},"
+                "\"tool_count\":1,"
+                "\"tools\":{"
+                    "\"0\":null"
+                "},"
+                "\"addon_power\":false,"
+                "\"slots\":0"
             "},"
             "\"state\":\"IDLE\","
             "\"command_id\":11,"

@@ -230,6 +230,7 @@ namespace {
         params.progress_code = MMU2::Fsm::Instance().reporter.GetProgressCode();
         params.command_code = MMU2::Fsm::Instance().reporter.GetCommandInProgress();
         params.mmu_version = MMU2::mmu2.GetMMUFWVersion();
+        params.tool_args = { .mmu_enabled = config_store().mmu2_enabled.get() };
 #endif
 
         params.active_slot = VirtualToolIndex::currently_selected();

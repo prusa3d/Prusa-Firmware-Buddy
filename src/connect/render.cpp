@@ -269,6 +269,8 @@ namespace {
     JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const Event &event) {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
+        // The INFO tools loop iterates the print heads by state.iter
+        const auto current_head = [&] { return params.head_slot(PhysicalToolIndex::from_raw(state.iter), state.slot_mask); };
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         std::optional<Printer::FinishedJobResult> job_state;
 
@@ -337,6 +339,8 @@ namespace {
             // JSON_START/macros are already a big and quite nasty switch, and the
             // JSON_... macros don't work in a nested switch :-(.
             if (event.type == EventType::Info) {
+                // TODO: the Connect team (Sarka) to decide how the switch to "tool_count" and "tools" is rolled out
+                // and when the fields of the old protocol can go.
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
                     JSON_FIELD_STR_FORMAT("printer_type", "%hhu.%hhu.%hhu", params.version.type, params.version.version, params.version.subversion) JSON_COMMA;
@@ -384,23 +388,56 @@ namespace {
                         JSON_FIELD_STR("hostname", creds.hostname);
                     JSON_OBJ_END JSON_COMMA;
 
+#if HAS_MMU2()
+                    // The feeder block and the slots below belong to the only print head. Revisit once an MMU can sit
+                    // on one of several heads (an XL with MMUs, or a plain head next to one with an MMU).
+                    static_assert(PhysicalToolIndex::count == 1);
+#endif
+                    JSON_FIELD_INT("tool_count", PhysicalToolIndex::count) JSON_COMMA;
                     JSON_FIELD_OBJ("tools");
-                        for (state.iter = 0, state.need_comma = false; state.iter < params.slots.size(); state.iter ++) {
-                            if (state.slot_mask & (1 << state.iter)) {
-                                if (state.need_comma) {
-                                    JSON_COMMA;
-                                }
-
-                                JSON_CUSTOM("\"%zu\":{", state.iter + 1);
-                                    JSON_FIELD_FFIXED("nozzle_diameter", params.slots[state.iter].nozzle_diameter, 2) JSON_COMMA;
-                                    JSON_FIELD_BOOL("high_flow", params.slots[state.iter].high_flow) JSON_COMMA;
-                                    JSON_FIELD_BOOL("hardened", params.slots[state.iter].hardened) JSON_COMMA;
-                                    JSON_FIELD_STR("material", !params.slots[state.iter].material.empty() ? params.slots[state.iter].material.data() : "---");
+                        for (state.iter = 0; state.iter < PhysicalToolIndex::count; state.iter++) {
+                            if (state.iter > 0) {
+                                JSON_COMMA;
+                            }
+                            // Connect merges INFO into what it already has: null removes a tool, absence would keep it
+                            if (!current_head()) {
+                                JSON_FIELD_NULL(to_connect_tool(PhysicalToolIndex::from_raw(state.iter)).data());
+                                continue;
+                            }
+                            JSON_CUSTOM("\"%s\":{", to_connect_tool(PhysicalToolIndex::from_raw(state.iter)).data());
+                                JSON_FIELD_STR("type", "FFF_PRINT_HEAD") JSON_COMMA;
+                                JSON_FIELD_OBJ("features");
+                                    JSON_FIELD_FFIXED("nozzle_diameter", current_head()->nozzle_diameter, 2) JSON_COMMA;
+                                    JSON_FIELD_BOOL("nozzle_hardened", current_head()->hardened) JSON_COMMA;
+                                    JSON_FIELD_BOOL("nozzle_high_flow", current_head()->high_flow);
                                 JSON_OBJ_END;
-
-                                state.need_comma = true;
+#if HAS_MMU2()
+                                JSON_COMMA;
+                                if (state.tool_args.mmu_enabled) {
+                                    JSON_FIELD_OBJ("feeder");
+                                        JSON_FIELD_STR("type", "MMU") JSON_COMMA;
+                                        JSON_FIELD_STR("model", "MMU3") JSON_COMMA;
+                                        JSON_FIELD_STR("base_model", "MMU3") JSON_COMMA;
+                                        JSON_FIELD_INT("slot_count", VirtualToolIndex::count);
+                                    JSON_OBJ_END;
+                                } else {
+                                    // Removes a feeder reported before. Its slots stay out - without a feeder,
+                                    // Connect does not look at them.
+                                    JSON_FIELD_NULL("feeder");
+                                }
+#endif
+                            JSON_OBJ_END;
+                        }
+#if HAS_MMU2()
+                        if (state.tool_args.mmu_enabled) {
+                            for (state.iter = 0; state.iter < VirtualToolIndex::count; state.iter++) {
+                                JSON_COMMA;
+                                JSON_CUSTOM("\"%s\":{", to_connect_tool(VirtualToolIndex::from_raw(state.iter), state.tool_args).data());
+                                    JSON_FIELD_STR("type", "FFF_FEEDER_SLOT");
+                                JSON_OBJ_END;
                             }
                         }
+#endif
                     JSON_OBJ_END JSON_COMMA;
 
 #if XL_ENCLOSURE_SUPPORT()
@@ -1099,6 +1136,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
     const auto params = printer.params();
     slot_mask = params.slot_mask;
     active_slot = params.active_slot;
+    tool_args = params.tool_args;
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {
         const char *path = nullptr;

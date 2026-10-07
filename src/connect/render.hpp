@@ -96,6 +96,8 @@ struct RenderState {
     decltype(Printer::Params::slot_mask) slot_mask = 0;
     /// Tool active when the response started, kept for the same reason as slot_mask.
     decltype(Printer::Params::active_slot) active_slot = NoTool {};
+    /// MMU state when the response started, kept for the same reason as slot_mask - it also decides the tool ids.
+    ToConnectToolArgs tool_args = {};
     bool has_stat = false;
     bool read_only = false;
     struct stat st;

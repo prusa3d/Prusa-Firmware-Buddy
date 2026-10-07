@@ -1,6 +1,8 @@
 #include "printer.hpp"
 
+#include <common/aggregate_arity.hpp>
 #include <crc32.h>
+#include <option/has_mmu2.h>
 
 #include <cstring>
 
@@ -39,6 +41,9 @@ struct Crc {
 } // namespace
 
 namespace connect_client {
+
+// The fingerprints pick the members one by one - a new member needs a decision there
+static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
 
 uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     // Note: keep in sync with the rendering of telemetry in render.cpp
@@ -166,6 +171,10 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.version.version)
         .add(parameters.version.subversion)
         .add(parameters.enabled_tool_cnt())
+#if HAS_MMU2()
+        // Decides the tool ids
+        .add(parameters.tool_args.mmu_enabled)
+#endif
 #if XL_ENCLOSURE_SUPPORT()
         .add(parameters.enclosure_info.present)
         .add(parameters.enclosure_info.enabled)
@@ -212,6 +221,15 @@ const char *Printer::Params::job_lfn() const {
     } else {
         return nullptr;
     }
+}
+
+const Printer::SlotInfo *Printer::Params::head_slot(PhysicalToolIndex head, uint8_t enabled_slots) const {
+    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+        if ((enabled_slots & (1 << vt.to_raw())) && vt.to_physical() == head) {
+            return &slots[vt];
+        }
+    }
+    return nullptr;
 }
 
 } // namespace connect_client
