@@ -19,7 +19,7 @@
  * Also print selected filament parameters to the serial.
  *
  *#### Parameters
- * - `S"<name>"` - Select filament with the specified name
+ * - `S"<short_name>"` - Select filament with the specified short name
  * - `I<ix>` - Select filament currently loaded to the specified tool (indexed from 0)
  * - `U<ix>` - Select User filament (indexed from 0)
  * - `X` - Select (pending) Custom filament type that will be loaded using `M600 F"#"` (or similar filament change gcode)
@@ -42,7 +42,7 @@
  *
  * - `J"<preset>"` - Set base preset (empty "" = no base preset)
  *
- * - `N"<name>"` - Set name
+ * - `N"<short_name>"` - Set short name
  * - `O"#<hex>"` - Set color
  *
  */

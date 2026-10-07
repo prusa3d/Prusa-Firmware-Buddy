@@ -30,9 +30,17 @@ namespace {
     };
 
     constexpr EnumArray<Detail, const char *, Detail::_cnt> detail_texts {
-        { Detail::material_name, N_("Name") },
+        {
+            Detail::material_name,
+            // Shorthand for "full name". Max ~9 chars.
+            N_("Name"),
+        },
         { Detail::brand_name, N_("Brand") },
-        { Detail::abbreviation, N_("Type") },
+        {
+            Detail::abbreviation,
+            // Shorthand for "short name". Max ~9 chars.
+            N_("Short"),
+        },
         { Detail::weight, N_("Weight") },
     };
 

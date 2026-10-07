@@ -19,7 +19,7 @@ using namespace screen_filament_detail;
 
 // * MI_FILAMENT_NAME
 MI_FILAMENT_NAME::MI_FILAMENT_NAME()
-    : WiInfo(_("Name")) {}
+    : WiInfo(_("Short Name")) {}
 
 void MI_FILAMENT_NAME::set_params(const BuildFilamentNameWithInfoParams &set) {
     if (data_ == set) {

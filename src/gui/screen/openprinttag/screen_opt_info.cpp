@@ -290,7 +290,7 @@ bool ScreenOPTInfo::scan() {
     menu.data_items_.clear();
 
     if (auto val = req.result<MainField::material_name>()) {
-        add_string_item(N_("Material Name"), *val, material_name_buffer_);
+        add_string_item(N_("Full Name"), *val, material_name_buffer_);
     }
 
     if (color.has_value()) {
@@ -311,7 +311,7 @@ bool ScreenOPTInfo::scan() {
             sb.append_printf(" (%.*s)", default_abbr->size(), default_abbr->data());
         }
 
-        add_string_item(N_("Abbreviation"), sb.str(), abbreviation_buffer_);
+        add_string_item(N_("Short Name"), sb.str(), abbreviation_buffer_);
     }
 
     if (amounts.full_weight_g.has_value() && amounts.remaining_weight_g.has_value() && amounts.full_weight_g != amounts.remaining_weight_g) {
