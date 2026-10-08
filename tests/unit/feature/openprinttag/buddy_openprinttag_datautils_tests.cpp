@@ -493,4 +493,41 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         UUIDInfo info { req, uid };
         CHECK(info.package_uuid == "77ab0489-8e18-5136-a3c5-b89f837a6822"_uuid);
     }
+
+    SECTION("Brand name of max length") {
+        static constexpr std::string_view brand_name = "0123456789012345678901234567890";
+        static_assert(brand_name.size() == FieldTraits<MainField::brand_name>::max_length);
+
+        stub_data = StubData {
+            stub_field<MainField::brand_name>(brand_name),
+        };
+
+        MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        UUIDInfo info { req, uid };
+        CHECK(info.brand_uuid.has_value());
+    }
+
+    SECTION("Brand name too long") {
+        static constexpr std::string_view brand_name = "01234567890123456789012345678901";
+        static_assert(brand_name.size() == FieldTraits<MainField::brand_name>::max_length + 1);
+
+        stub_data = StubData {
+            stub_field<MainField::brand_name>(brand_name),
+            stub_field<MainField::material_name>("PLA Prusa Galaxy Black"),
+            stub_field<MainField::gtin>(1234),
+        };
+
+        MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        CHECK(req.result<MainField::brand_name>() == std::unexpected { Request::Error::data_too_big });
+
+        UUIDInfo info { req, uid };
+        CHECK_FALSE(info.brand_uuid.has_value());
+        CHECK_FALSE(info.material_uuid.has_value());
+        CHECK_FALSE(info.package_uuid.has_value());
+        CHECK_FALSE(info.instance_uuid.has_value());
+    }
 }

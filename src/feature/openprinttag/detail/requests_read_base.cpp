@@ -168,9 +168,12 @@ void ReadStringRequestBase::complete(Bytes event_data) {
         return set_finished(std::unexpected(value_or_error.error()));
     }
     const auto &str = value_or_error.value()->_string;
-    auto len = std::min(static_cast<size_t>(str.count), buffer_.size());
-    std::memcpy(buffer_.data(), str.elements, len);
-    result_ = { buffer_.data(), len };
+    if (str.count > buffer_.size()) {
+        return set_finished(std::unexpected(Error::data_too_big));
+    }
+
+    std::memcpy(buffer_.data(), str.elements, str.count);
+    result_ = { buffer_.data(), str.count };
     set_finished({});
 }
 

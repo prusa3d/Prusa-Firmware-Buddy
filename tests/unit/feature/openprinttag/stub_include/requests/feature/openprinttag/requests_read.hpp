@@ -31,7 +31,17 @@ public:
             const auto any_type = it->second.type().name();
             CAPTURE(field_type, any_type);
             REQUIRE(field_type == any_type);
-            this->result_ = std::any_cast<typename BaseReadFieldRequest::Value>(it->second);
+            const auto value = std::any_cast<typename BaseReadFieldRequest::Value>(it->second);
+
+            // Mirrors ReadStringRequestBase::complete
+            if constexpr (FieldTraits::field_type == FieldType::string) {
+                if (value.size() > FieldTraits::max_length) {
+                    this->set_finished(std::unexpected(Request::Error::data_too_big));
+                    return;
+                }
+            }
+
+            this->result_ = value;
             this->set_finished(std::monostate {});
         }
     }
