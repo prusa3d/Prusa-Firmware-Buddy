@@ -5,7 +5,6 @@
 #include <option/has_indx.h>
 
 using Lock = std::unique_lock<freertos::Mutex>;
-using xbuddy_extension::NodeState;
 
 static constexpr uint8_t unit = std::to_underlying(modbus::ServerAddress::tool_offset_sensor);
 
@@ -17,12 +16,6 @@ bool ToolOffsetSensor::is_enabled() const {
 
 void ToolOffsetSensor::set_enabled(bool set) {
     is_enabled_.store(set);
-}
-
-NodeState ToolOffsetSensor::get_node_state() const {
-    Lock lock(mutex);
-
-    return valid ? static_cast<NodeState>(status.value.node_state) : NodeState::unknown;
 }
 
 bool ToolOffsetSensor::has_sensor_fault() const {

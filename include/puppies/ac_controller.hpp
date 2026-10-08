@@ -11,7 +11,6 @@
 #include <freertos/mutex.hpp>
 #include <option/has_ac_controller.h>
 #include <optional>
-#include <xbuddy_extension/shared_enums.hpp>
 
 static_assert(HAS_AC_CONTROLLER());
 
@@ -30,7 +29,6 @@ public:
     std::optional<uint8_t> get_bed_fan_pwm() const;
     std::optional<uint8_t> get_psu_fan_pwm() const;
     std::optional<ac_controller::Faults> get_faults() const;
-    xbuddy_extension::NodeState get_node_state() const;
     void set_bed_target_temp(float);
     void set_bed_fan_pwm(uint8_t);
     void set_psu_fan_pwm(uint8_t);
@@ -70,9 +68,6 @@ private:
 
     // Faults: faults_lo | (faults_hi << 16).
     std::atomic<uint32_t> faults { 0 };
-
-    // Node state.
-    std::atomic<uint16_t> node_state { 0 };
 
     // --- Desired write-side state, applied to config block in refresh() ---
 

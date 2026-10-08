@@ -6,7 +6,6 @@
 #include <tool_offset_sensor/modbus.hpp>
 #include <freertos/mutex.hpp>
 #include <option/has_tool_offset_sensor.h>
-#include <xbuddy_extension/shared_enums.hpp>
 
 static_assert(HAS_TOOL_OFFSET_SENSOR());
 
@@ -16,7 +15,6 @@ namespace buddy::puppies {
 /// This handles synchronization between tasks and caching the data.
 class ToolOffsetSensor final {
 public:
-    xbuddy_extension::NodeState get_node_state() const;
     bool has_sensor_fault() const;
     bool has_errors() const;
 
