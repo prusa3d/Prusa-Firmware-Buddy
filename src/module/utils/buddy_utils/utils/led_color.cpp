@@ -2,6 +2,26 @@
 
 namespace leds {
 
+namespace {
+
+    // operator== reads the union's data member, which is not allowed in
+    // constant expressions when the channels were the ones initialized
+    constexpr bool channels_equal(ColorRGBW a, ColorRGBW b) {
+        return a.r == b.r && a.g == b.g && a.b == b.b && a.w == b.w;
+    }
+
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 0, 100, 100 }), ColorRGBW(255, 0, 0)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 120, 100, 100 }), ColorRGBW(0, 255, 0)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 240, 100, 100 }), ColorRGBW(0, 0, 255)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 360, 100, 100 }), ColorRGBW(255, 0, 0)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 0, 0, 100 }), ColorRGBW(255, 255, 255)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 0, 100, 0 }), ColorRGBW(0, 0, 0)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 361, 100, 100 }), ColorRGBW(0, 0, 0)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 0, 101, 100 }), ColorRGBW(0, 0, 0)));
+    static_assert(channels_equal(ColorRGBW::from_hsv({ 0, 100, -1 }), ColorRGBW(0, 0, 0)));
+
+} // namespace
+
 ColorRGBW ColorRGBW::fade(float brightness) const {
     uint8_t nr = static_cast<uint8_t>(r * brightness);
     uint8_t ng = static_cast<uint8_t>(g * brightness);

@@ -40,9 +40,9 @@ struct ColorRGBW {
         , g(g)
         , w(w) {}
 
-    static ColorRGBW from_hsv(ColorHSV hsv) {
+    static constexpr ColorRGBW from_hsv(ColorHSV hsv) {
         if (hsv.h > 360 || hsv.h < 0 || hsv.s > 100 || hsv.s < 0 || hsv.v > 100 || hsv.v < 0) {
-            return ColorRGBW();
+            return ColorRGBW(0, 0, 0, 0);
         }
 
         const float h = hsv.h;
