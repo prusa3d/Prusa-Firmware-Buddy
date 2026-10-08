@@ -480,6 +480,21 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         CHECK(info.instance_uuid == "bf63e92d-9ca5-53d7-9fab-ffdd0240c585"_uuid);
     }
 
+    SECTION("UTF-8 names") {
+        // Names are hashed as UTF-8 bytes
+        stub_data = StubData {
+            stub_field<MainField::brand_name>("Průša"),
+            stub_field<MainField::material_name>("PETG Černá"),
+        };
+
+        MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        UUIDInfo info { req, uid };
+        CHECK(info.brand_uuid == "43b8849f-e146-50f8-a36e-42c1c485b732"_uuid);
+        CHECK(info.material_uuid == "683f8740-62f3-5a8f-aa6d-894611ff19a8"_uuid);
+    }
+
     SECTION("13-digit GTIN") {
         // Real-world GTINs exceed int32 range
         stub_data = StubData {
