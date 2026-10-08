@@ -494,6 +494,50 @@ TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
         CHECK(info.package_uuid == "77ab0489-8e18-5136-a3c5-b89f837a6822"_uuid);
     }
 
+    SECTION("Explicit UUIDs take precedence over derived ones") {
+        static constexpr UUID brand_uuid = "11111111-1111-4111-8111-111111111111"_uuid;
+        static constexpr UUID material_uuid = "22222222-2222-4222-8222-222222222222"_uuid;
+        static constexpr UUID package_uuid = "33333333-3333-4333-8333-333333333333"_uuid;
+        static constexpr UUID instance_uuid = "44444444-4444-4444-8444-444444444444"_uuid;
+
+        stub_data = StubData {
+            stub_field<MainField::brand_name>("Prusament"),
+            stub_field<MainField::material_name>("PLA Prusa Galaxy Black"),
+            stub_field<MainField::gtin>(1234),
+            stub_field<MainField::brand_uuid>(brand_uuid),
+            stub_field<MainField::material_uuid>(material_uuid),
+            stub_field<MainField::package_uuid>(package_uuid),
+            stub_field<MainField::instance_uuid>(instance_uuid),
+        };
+
+        MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        UUIDInfo info { req, uid };
+        CHECK(info.brand_uuid == brand_uuid);
+        CHECK(info.material_uuid == material_uuid);
+        CHECK(info.package_uuid == package_uuid);
+        CHECK(info.instance_uuid == instance_uuid);
+    }
+
+    SECTION("Explicit brand UUID is used for deriving material and package UUIDs") {
+        // Brand renaming example from the spec - the brand keeps its original UUID
+        stub_data = StubData {
+            stub_field<MainField::brand_name>("Pepament"),
+            stub_field<MainField::brand_uuid>("ae5ff34e-298e-50c9-8f77-92a97fb30b09"_uuid),
+            stub_field<MainField::material_name>("PLA Prusa Galaxy Black"),
+            stub_field<MainField::gtin>(1234),
+        };
+
+        MultiReadFieldRequest<UUIDInfo::Requirements {}> req { tool_tag };
+        req.issue();
+
+        UUIDInfo info { req, uid };
+        CHECK(info.brand_uuid == "ae5ff34e-298e-50c9-8f77-92a97fb30b09"_uuid);
+        CHECK(info.material_uuid == "1aaca54a-431f-5601-adf5-85dd018f487f"_uuid);
+        CHECK(info.package_uuid == "7ed3ce83-764d-56de-bdcd-dc5226a0efd1"_uuid);
+    }
+
     SECTION("Brand name of max length") {
         static constexpr std::string_view brand_name = "0123456789012345678901234567890";
         static_assert(brand_name.size() == FieldTraits<MainField::brand_name>::max_length);
