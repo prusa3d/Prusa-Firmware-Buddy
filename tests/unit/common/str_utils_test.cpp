@@ -56,7 +56,7 @@ void test_from_chars_light() {
     }
 
     SECTION("Min bound") {
-        int64_t min = std::numeric_limits<decltype(val)>::min();
+        const auto min = std::numeric_limits<decltype(val)>::min();
         std::string str = std::to_string(min);
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val, 10);
         CHECK(res.ec == std::errc {});
@@ -64,7 +64,7 @@ void test_from_chars_light() {
     }
 
     SECTION("max bound") {
-        int64_t max = std::numeric_limits<decltype(val)>::max();
+        const auto max = std::numeric_limits<decltype(val)>::max();
         std::string str = std::to_string(max);
         res = from_chars_light(str.c_str(), str.c_str() + str.size(), val, 10);
         CHECK(res.ec == std::errc {});
