@@ -62,6 +62,9 @@ public:
 
     bool IsOpenPending() const { return creator_node.creator.func != nullptr; }
 
+    /// @returns whether the currently open screen has a pending close
+    bool is_close_pending() const { return close; }
+
     void PushBeforeCurrent(screen_node screen_creator);
 
     /// Closes the currently open screen on the stack.

@@ -4,19 +4,26 @@
 #include <window_msgbox.hpp>
 #include <bsod/bsod.h>
 #include <timing.h>
+#include <ScreenHandler.hpp>
 
 namespace buddy::openprinttag {
 
 bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &multirequest) {
-    const auto start_ms = ticks_ms();
+    const auto wait_str = _("Communicating with the OpenPrintTag...");
+    bool auto_retried = false;
 
     // TODO:
     // - Option to format the aux region if corrupt
     // - Workgroups support
     while (true) {
+        if (Screens::Access()->is_close_pending()) {
+            // The current screen is about to be closed, bail
+            return false;
+        }
+
         multirequest.issue();
 
-        window_dlg_wait_t::wait_until(_("Communicating with the OpenPrintTag..."), [&] {
+        window_dlg_wait_t::wait_until(wait_str, [&] {
             return multirequest.finished();
         });
 
@@ -24,7 +31,6 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
             // Something closed our wait dlg -> interrupted -> fail
             return false;
         }
-
         const auto report = multirequest.report();
         if (report.any_unrecoverable_error) {
             // TODO offer formatting AUX region
@@ -32,10 +38,18 @@ bool multirequest_with_troubleshooting(buddy::openprinttag::MultiRequestBase &mu
             return false;
 
         } else if (report.any_recoverable_error) {
-            if (ticks_diff(ticks_ms(), start_ms) < 5000) {
+            if (!auto_retried) {
+                auto_retried = true;
                 // Automatically retry if the user is not waiting too long
                 // This is to reduce the need for the user to interact,
                 // and also to give the system enough time to silently close the dialog if the tag was removed.
+
+                // Wait a bit before reissuing everything, give the system time detect lost tag
+                // Reissuing immediately would flood the reader, proioritzing command processing over discovery
+                const auto wait_start_ms = ticks_ms();
+                window_dlg_wait_t::wait_until(wait_str, [&] {
+                    return ticks_diff(ticks_ms(), wait_start_ms) > 3000;
+                });
                 continue;
             }
 
