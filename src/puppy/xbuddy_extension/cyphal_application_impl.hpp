@@ -995,19 +995,6 @@ public:
             [](const ApplicationImpl::Node::Inert &) { return NodeState::unknown; });
     }
 
-    xbuddy_extension::NodeState get_node_state(NodeName name) const {
-        using xbuddy_extension::NodeState;
-        for (const auto &node : nodes) {
-            if (node.info.name != name) {
-                continue;
-            }
-            if (const auto state = get_node_state(node); state != NodeState::unknown) {
-                return state;
-            }
-        }
-        return NodeState::unknown;
-    }
-
     bool receive_chunk(const uint8_t *data, size_t size, bool is_last, uint16_t file_id, uint32_t offset) final {
         filesystem.update_modbus_request();
         const xbuddy_extension::modbus::ChunkRequest received_request = {
@@ -1075,13 +1062,11 @@ public:
         return true;
     }
 
-    void request_ac_controller(xbuddy_extension::NodeState &node_state, ac_controller::Status &status) final {
-        node_state = get_node_state(NodeName::cz_prusa3d_honeybee_ac_controller);
+    void request_ac_controller(ac_controller::Status &status) final {
         status = ac_controller.status;
     }
 
-    void request_tool_offset_sensor(xbuddy_extension::NodeState &node_state, tool_offset_sensor::Status &status) final {
-        node_state = get_node_state(NodeName::cz_prusa3d_honeybee_tool_offset_sensor);
+    void request_tool_offset_sensor(tool_offset_sensor::Status &status) final {
         status = tool_offset_sensor.status;
     }
 

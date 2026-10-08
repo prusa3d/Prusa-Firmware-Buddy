@@ -77,8 +77,8 @@ public:
     [[nodiscard]] virtual bool receive(const ac_controller::LedConfig &) = 0;
     [[nodiscard]] virtual bool receive(const tool_offset_sensor::Config &) = 0;
     virtual const ModbusRequest &request() = 0;
-    virtual void request_ac_controller(xbuddy_extension::NodeState &, ac_controller::Status &) = 0;
-    virtual void request_tool_offset_sensor(xbuddy_extension::NodeState &, tool_offset_sensor::Status &) = 0;
+    virtual void request_ac_controller(ac_controller::Status &) = 0;
+    virtual void request_tool_offset_sensor(tool_offset_sensor::Status &) = 0;
 
     [[nodiscard]] virtual NfcNode &get_nfc(anfc::Device) = 0;
 

@@ -21,7 +21,6 @@ struct Status {
     uint16_t psu_fan_rpm; ///< PSU fan RPM (RPM)
     uint16_t faults_lo; ///< ac_controller::Faults (lower 16 bits)
     uint16_t faults_hi; ///< ac_controller::Faults (upper 16 bits)
-    uint16_t node_state; ///< xbuddy_extension::NodeState
 };
 
 /// MODBUS register file for setting desired config of ac_controller from motherboard.

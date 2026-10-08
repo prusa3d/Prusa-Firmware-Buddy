@@ -142,9 +142,8 @@ bool write_register_file_callback(const xbuddy_extension::modbus::Chunk &chunk) 
 #if HAS_AC_CONTROLLER()
 
 void read_register_file_callback(ac_controller::modbus::Status &modbus_status) {
-    xbuddy_extension::NodeState node_state;
     ac_controller::Status status;
-    cyphal::application().request_ac_controller(node_state, status);
+    cyphal::application().request_ac_controller(status);
 
     modbus_status.mcu_temp = static_cast<uint16_t>(status.mcu_temp * 10);
     modbus_status.bed_temp = static_cast<uint16_t>(status.bed_temp * 10);
@@ -154,7 +153,6 @@ void read_register_file_callback(ac_controller::modbus::Status &modbus_status) {
     const auto faults = static_cast<uint32_t>(status.faults);
     modbus_status.faults_lo = faults & 0xFFFF;
     modbus_status.faults_hi = (faults >> 16) & 0xFFFF;
-    modbus_status.node_state = static_cast<uint16_t>(node_state);
 }
 
 static std::optional<float> modbus_parse_target_temperature(uint16_t temp) {
@@ -230,10 +228,8 @@ bool write_register_file_callback(const ac_controller::modbus::LedConfig &modbus
 #if HAS_TOOL_OFFSET_SENSOR()
 
 void read_register_file_callback(tool_offset_sensor::modbus::Status &modbus_status) {
-    xbuddy_extension::NodeState node_state;
     tool_offset_sensor::Status status;
-    cyphal::application().request_tool_offset_sensor(node_state, status);
-    modbus_status.node_state = static_cast<uint16_t>(node_state);
+    cyphal::application().request_tool_offset_sensor(status);
     using namespace tool_offset_sensor::modbus;
     modbus_status.channel_flags = (status.ch0_active ? channel_flag_ch0_active : 0)
         | (status.ch1_active ? channel_flag_ch1_active : 0)

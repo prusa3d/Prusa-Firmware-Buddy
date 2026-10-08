@@ -14,7 +14,6 @@ namespace tool_offset_sensor::modbus {
 struct Status {
     static constexpr uint16_t address = 0x8000;
 
-    uint16_t node_state; ///< corresponds to xbuddy_extension::NodeState
     uint16_t channel_flags; ///< bitfield, see channel_flag_* constants
     uint16_t sensor_errors; ///< sticky LDC1612 error flags
 };

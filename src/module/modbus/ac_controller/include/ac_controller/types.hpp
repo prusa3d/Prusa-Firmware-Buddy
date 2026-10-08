@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdint>
 #include <optional>
-#include <xbuddy_extension/shared_enums.hpp>
 
 namespace ac_controller {
 

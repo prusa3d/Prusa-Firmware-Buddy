@@ -1072,7 +1072,11 @@ SCENARIO("two nodes verifying at once") {
                     run(app, mock, make_timepoint(time++));
 
                     THEN("the NFC node is verified") {
-                        CHECK(app.get_node_state(cyphal::NodeName::cz_prusa3d_honeybee_nfc) == xbuddy_extension::NodeState::ready);
+                        const auto expected = xbuddy_extension::modbus::CyphalNodeTableEntry {
+                            .name = cyphal::NodeName::cz_prusa3d_honeybee_nfc,
+                            .state = xbuddy_extension::NodeState::ready,
+                        };
+                        CHECK(xbuddy_extension::modbus::parse_cyphal_node_table_entry(app.get_cyphal_node_table().nodes[uint8_t(node_id2)]) == expected);
                     }
                 }
             }
