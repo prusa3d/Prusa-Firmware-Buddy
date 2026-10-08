@@ -245,9 +245,11 @@ CommunicationStatus XBuddyExtension::initial_scan(PuppyModbus &bus) {
     Lock lock(mutex);
 
     cyphal_node_table.invalidate();
-    const auto input = refresh_input(bus, 0);
     config_dirty.store(true);
-    return input;
+    return aggregate_communication_status({
+        refresh_input(bus, 0),
+        refresh_cyphal_node_table(bus),
+    });
 }
 
 CommunicationStatus XBuddyExtension::ping(PuppyModbus &bus) {

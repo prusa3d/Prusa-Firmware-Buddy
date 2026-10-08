@@ -31,7 +31,10 @@ CommunicationStatus XlCan::ping(PuppyModbus &bus) {
 CommunicationStatus XlCan::initial_scan(PuppyModbus &bus) {
     Lock lock(mutex);
     cyphal_node_table.invalidate();
-    return refresh_input(bus, 0);
+    return aggregate_communication_status({
+        refresh_input(bus, 0),
+        refresh_cyphal_node_table(bus),
+    });
 }
 
 CommunicationStatus XlCan::refresh_input(PuppyModbus &bus, uint32_t max_age) {
