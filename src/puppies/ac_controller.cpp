@@ -2,6 +2,7 @@
 #include <puppies/ac_controller.hpp>
 
 #include <modbus/server_address.hpp>
+#include <puppies/cyphal_node_table_host.hpp>
 #include <utils/led_color.hpp>
 
 using Lock = std::unique_lock<freertos::Mutex>;
@@ -195,7 +196,15 @@ CommunicationStatus AcController::refresh(PuppyModbus &bus) {
     led_block.value.progress_percent = led_progress_percent;
     led_block.dirty = led_was_dirty;
 
-    const auto input = refresh_input(bus, 250);
+    using xbuddy_extension::NodeName;
+    using xbuddy_extension::NodeState;
+    const bool node_ready = cyphal_node_table().get_node_state(NodeName::cz_prusa3d_honeybee_ac_controller) == NodeState::ready;
+    CommunicationStatus input = CommunicationStatus::SKIPPED;
+    if (node_ready) {
+        input = refresh_input(bus, valid ? 250 : 0);
+    } else {
+        valid.store(false);
+    }
     const auto holding_config = bus.write(unit, config_block);
     const auto holding_led_config = bus.write(unit, led_block);
 
@@ -222,7 +231,7 @@ CommunicationStatus AcController::initial_scan(PuppyModbus &bus) {
 }
 
 bool AcController::all_valid() const {
-    return valid.load() && static_cast<NodeState>(node_state.load()) == NodeState::ready;
+    return valid.load();
 }
 
 AcController ac_controller;
