@@ -386,23 +386,26 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 #define NOZZLE_PARAMS(num)                                                \
     }                                                                     \
     else if (is_arg("tools." #num ".high_flow", Type::Primitive)) {       \
-        set_value_bool_arg(PropertyName::NozzleHighFlow, num - 1);        \
+        set_value_bool_arg(PropertyName::NozzleHighFlow, num);            \
     }                                                                     \
     else if (is_arg("tools." #num ".hardened", Type::Primitive)) {        \
-        set_value_bool_arg(PropertyName::NozzleHardened, num - 1);        \
+        set_value_bool_arg(PropertyName::NozzleHardened, num);            \
     }                                                                     \
     else if (is_arg("tools." #num ".nozzle_diameter", Type::Primitive)) { \
-        set_value_float_arg(PropertyName::NozzleDiameter, num - 1);
+        set_value_float_arg(PropertyName::NozzleDiameter, num);
 
-            NOZZLE_PARAMS(1)
+            NOZZLE_PARAMS(0)
 #if HAS_TOOLCHANGER() || UNITTESTS
+            static_assert(PhysicalToolIndex::count <= 8);
+            NOZZLE_PARAMS(1)
             NOZZLE_PARAMS(2)
             NOZZLE_PARAMS(3)
             NOZZLE_PARAMS(4)
             NOZZLE_PARAMS(5)
             NOZZLE_PARAMS(6)
             NOZZLE_PARAMS(7)
-            NOZZLE_PARAMS(8)
+#else
+            static_assert(PhysicalToolIndex::count == 1);
 #endif
 #undef NOZZLE_PARAMS
 #if !WEBSOCKET()

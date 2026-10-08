@@ -635,7 +635,7 @@ TEST_CASE("start_cmd_id does not leak across jobs") {
 }
 
 TEST_CASE("Command Set value - nozzle out-of-range tool index rejected") {
-    // idx=7 exceeds the slots available in the test printer, so it must be rejected.
+    // idx=7 exceeds the physical tools available in the test printer, so it must be rejected.
     Test test;
     auto command = Command { CommandId(0), SetValue { PropertyName::NozzleDiameter, 7, float(0.4) } };
     test.planner.command(command);

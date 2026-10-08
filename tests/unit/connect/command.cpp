@@ -206,8 +206,16 @@ TEST_CASE("Set value - hostname") {
     REQUIRE(strcmp(reinterpret_cast<const char *>(get<SharedBorrow>(cmd.value)->data()), "Nice_hostname") == 0);
 }
 
+TEST_CASE("Set value - first tool nozzle diameter") {
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.0.nozzle_diameter\":0.6}}");
+    REQUIRE(cmd.name == PropertyName::NozzleDiameter);
+    REQUIRE(cmd.idx == 0);
+    REQUIRE(holds_alternative<float>(cmd.value));
+    REQUIRE(get<float>(cmd.value) == 0.6f);
+}
+
 TEST_CASE("Set value - nozzle diameter") {
-    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.2.nozzle_diameter\":0.25}}");
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.1.nozzle_diameter\":0.25}}");
     REQUIRE(cmd.name == PropertyName::NozzleDiameter);
     REQUIRE(cmd.idx == 1);
     REQUIRE(holds_alternative<float>(cmd.value));
@@ -215,7 +223,7 @@ TEST_CASE("Set value - nozzle diameter") {
 }
 
 TEST_CASE("Set value - anti abrasive") {
-    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.hardened\":true}}");
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.2.hardened\":true}}");
     REQUIRE(cmd.name == PropertyName::NozzleHardened);
     REQUIRE(cmd.idx == 2);
     REQUIRE(holds_alternative<bool>(cmd.value));
@@ -223,7 +231,7 @@ TEST_CASE("Set value - anti abrasive") {
 }
 
 TEST_CASE("Set value - high flow") {
-    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.4.high_flow\":true}}");
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.high_flow\":true}}");
     REQUIRE(cmd.name == PropertyName::NozzleHighFlow);
     REQUIRE(cmd.idx == 3);
     REQUIRE(holds_alternative<bool>(cmd.value));
@@ -231,9 +239,13 @@ TEST_CASE("Set value - high flow") {
 }
 
 TEST_CASE("Set value - high tool index nozzle diameter") {
-    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.8.nozzle_diameter\":0.4}}");
+    auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.7.nozzle_diameter\":0.4}}");
     REQUIRE(cmd.name == PropertyName::NozzleDiameter);
     REQUIRE(cmd.idx == 7);
+}
+
+TEST_CASE("Set value - tool index past the last tool") {
+    command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.8.nozzle_diameter\":0.4}}");
 }
 
 void set_value_chamber_target_temp(uint32_t temperature) {

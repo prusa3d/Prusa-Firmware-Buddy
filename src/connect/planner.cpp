@@ -980,12 +980,12 @@ void Planner::command(const Command &command, const SetValue &params) {
     const char *err = nullptr;
 
     auto adjust_nozzle = [&](size_t idx, auto cback) {
-        if (idx >= VirtualToolIndex::count) {
+        if (idx >= PhysicalToolIndex::count) {
             err = "Tool index out of range";
             return;
         }
-        // idx is the virtual tool of the 1-based "tools.<N>.*" key
-        const auto tool = VirtualToolIndex::from_raw(idx).to_physical();
+        // idx is the physical tool of the 0-based "tools.<N>.*" key
+        const auto tool = PhysicalToolIndex::from_raw(idx);
         auto info = printer.params().physical_tools[tool];
         cback(info);
         printer.set_physical_tool_info(tool, info);
