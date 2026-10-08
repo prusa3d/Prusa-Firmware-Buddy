@@ -5,7 +5,7 @@
 using std::nullopt;
 using namespace connect_client;
 
-TEST_CASE("Params CRC") {
+TEST_CASE("connect::Params CRC", "[connect]") {
     Printer::Params params(nullopt);
     uint32_t base_crc = params.telemetry_fingerprint(true);
 

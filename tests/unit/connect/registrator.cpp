@@ -67,7 +67,7 @@ public:
 
 } // namespace
 
-TEST_CASE("Registrator") {
+TEST_CASE("connect::Registrator", "[connect]") {
     auto params = params_idle();
     InitPrinter printer(params);
     // Reset the "changed" flag in config

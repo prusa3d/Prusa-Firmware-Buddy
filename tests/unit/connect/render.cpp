@@ -51,7 +51,7 @@ Printer::Params params_printing() {
 
 } // namespace
 
-TEST_CASE("Render") {
+TEST_CASE("connect::Render", "[connect]") {
     string expected;
     optional<Printer::Params> params;
     Action action;
@@ -496,7 +496,7 @@ TEST_CASE("Render") {
     REQUIRE(output == expected);
 }
 
-TEST_CASE("Render - tool set and active tool are sampled once per response") {
+TEST_CASE("connect::Render - tool set and active tool are sampled once per response", "[connect]") {
     Action action;
     SECTION("Telemetry") {
         action = SendTelemetry { SendTelemetry::Mode::Full };

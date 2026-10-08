@@ -33,57 +33,57 @@ D command_test(const char *cmd) {
 
 } // namespace
 
-TEST_CASE("Invalid JSON command") {
+TEST_CASE("connect::Invalid JSON command", "[connect]") {
     command_test<BrokenCommand>("This is not a JSON");
 }
 
-TEST_CASE("Unknown command") {
+TEST_CASE("connect::Unknown command", "[connect]") {
     command_test<UnknownCommand>("{\"command\": \"SOME_CRAP\"}");
 }
 
-TEST_CASE("Array command") {
+TEST_CASE("connect::Array command", "[connect]") {
     command_test<BrokenCommand>("[\"hello\"]");
 }
 
-TEST_CASE("Send info command") {
+TEST_CASE("connect::Send info command", "[connect]") {
     command_test<SendInfo>("{\"command\": \"SEND_INFO\"}");
 }
 
-TEST_CASE("Send info with params") {
+TEST_CASE("connect::Send info with params", "[connect]") {
     command_test<SendInfo>("{\"command\": \"SEND_INFO\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Send job info") {
+TEST_CASE("connect::Send job info", "[connect]") {
     REQUIRE(command_test<SendJobInfo>("{\"command\": \"SEND_JOB_INFO\", \"args\": [42], \"kwargs\": {\"job_id\": 42}}").job_id == 42);
 }
 
-TEST_CASE("Send job info - missing args") {
+TEST_CASE("connect::Send job info - missing args", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"SEND_JOB_INFO\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Send file info") {
+TEST_CASE("connect::Send file info", "[connect]") {
     REQUIRE(strcmp(command_test<SendFileInfo>("{\"command\": \"SEND_FILE_INFO\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
 }
 
-TEST_CASE("Send file info - missing args") {
+TEST_CASE("connect::Send file info - missing args", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"SEND_FILE_INFO\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Send file info - path too long") {
+TEST_CASE("connect::Send file info - path too long", "[connect]") {
     // Reject a path that would overflow the shared buffer downstream.
     std::string long_path(filename_defs::max_hybrid_path_length + 1, 'x');
     std::string json = std::format(R"({{"command":"SEND_FILE_INFO","kwargs":{{"path":"{}"}}}})", long_path);
     command_test<BrokenCommand>(json.c_str());
 }
 
-TEST_CASE("Send file info - path at max length") {
+TEST_CASE("connect::Send file info - path at max length", "[connect]") {
     std::string long_path(filename_defs::max_hybrid_path_length, 'x');
     std::string json = std::format(R"({{"command":"SEND_FILE_INFO","kwargs":{{"path":"{}"}}}})", long_path);
     auto cmd = command_test<SendFileInfo>(json.c_str());
     REQUIRE(strcmp(cmd.path.path(), long_path.c_str()) == 0);
 }
 
-TEST_CASE("Create folder - hybrid path at max length") {
+TEST_CASE("connect::Create folder - hybrid path at max length", "[connect]") {
     // Creation commands legitimately carry an SFN prefix + LFN tail, which
     // can exceed max_path_length; only the hybrid length must be enforced.
     std::string long_path(filename_defs::max_hybrid_path_length, 'x');
@@ -92,29 +92,29 @@ TEST_CASE("Create folder - hybrid path at max length") {
     REQUIRE(strcmp(cmd.path.path(), long_path.c_str()) == 0);
 }
 
-TEST_CASE("Create folder - path too long") {
+TEST_CASE("connect::Create folder - path too long", "[connect]") {
     std::string long_path(filename_defs::max_hybrid_path_length + 1, 'x');
     std::string json = std::format(R"({{"command":"CREATE_FOLDER","kwargs":{{"path":"{}"}}}})", long_path);
     command_test<BrokenCommand>(json.c_str());
 }
 
-TEST_CASE("Pause print") {
+TEST_CASE("connect::Pause print", "[connect]") {
     command_test<PausePrint>("{\"command\": \"PAUSE_PRINT\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Resume print") {
+TEST_CASE("connect::Resume print", "[connect]") {
     command_test<ResumePrint>("{\"command\": \"RESUME_PRINT\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Stop print") {
+TEST_CASE("connect::Stop print", "[connect]") {
     command_test<StopPrint>("{\"command\": \"STOP_PRINT\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Start print") {
+TEST_CASE("connect::Start print", "[connect]") {
     REQUIRE(strcmp(command_test<StartPrint>("{\"command\": \"START_PRINT\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
 }
 
-TEST_CASE("Start print - tool mapping") {
+TEST_CASE("connect::Start print - tool mapping", "[connect]") {
     auto cmd = command_test<StartPrint>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"1\": [2, 3], \"3\": [4, 5, 1]}}}");
     ToolMapping expected;
     for (auto &tool : expected) {
@@ -130,32 +130,32 @@ TEST_CASE("Start print - tool mapping") {
     REQUIRE(tm == expected);
 }
 
-TEST_CASE("Start print - tool mapping too many tools") {
+TEST_CASE("connect::Start print - tool mapping too many tools", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"1\": [2, 3, 4, 5, 1, 3, 2]}}}");
 }
 
-TEST_CASE("Start print - tool mapping 7th tool") {
+TEST_CASE("connect::Start print - tool mapping 7th tool", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"7\": [2, 3, 4, 5]}}}");
 }
 
-TEST_CASE("Start print - SFN") {
+TEST_CASE("connect::Start print - SFN", "[connect]") {
     REQUIRE(strcmp(command_test<StartPrint>("{\"command\": \"START_PRINT\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path_sfn\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
 }
 
-TEST_CASE("Start print - missing args") {
+TEST_CASE("connect::Start print - missing args", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Set printer ready") {
+TEST_CASE("connect::Set printer ready", "[connect]") {
     command_test<SetPrinterReady>("{\"command\": \"SET_PRINTER_READY\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Send transfer info") {
+TEST_CASE("connect::Send transfer info", "[connect]") {
     command_test<SendTransferInfo>("{\"command\": \"SEND_TRANSFER_INFO\", \"args\": [], \"kwargs\": {}}");
 }
 
 #if !WEBSOCKET()
-TEST_CASE("Start connect download - encrypted") {
+TEST_CASE("connect::Start connect download - encrypted", "[connect]") {
     auto cmd = command_test<StartEncryptedDownload>("{\"command\":\"START_ENCRYPTED_DOWNLOAD\",\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"key\": \"000102030405060708090a0B0c0D0e0F\", \"iv\": \"101112131415161718191a1B1c1D1e1F\", \"orig_size\": 42}}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
     REQUIRE(cmd.orig_size == 42);
@@ -171,7 +171,7 @@ TEST_CASE("Start connect download - encrypted") {
 }
 #endif
 
-TEST_CASE("Start inline download") {
+TEST_CASE("connect::Start inline download", "[connect]") {
     auto cmd = command_test<StartInlineDownload>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\", \"orig_size\":1024}}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
     REQUIRE(strcmp(cmd.hash, "abcdef") == 0);
@@ -179,34 +179,34 @@ TEST_CASE("Start inline download") {
     REQUIRE(cmd.orig_size == 1024);
 }
 
-TEST_CASE("Start inline download - missing params") {
+TEST_CASE("connect::Start inline download - missing params", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {}}");
     command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"hash\": \"abcdef\"}}");
     command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42}}");
     command_test<BrokenCommand>("{\"command\": \"START_INLINE_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\"}}");
 }
 
-TEST_CASE("Set token") {
+TEST_CASE("connect::Set token", "[connect]") {
     auto cmd = command_test<SetToken>("{\"command\": \"SET_TOKEN\",\"kwargs\": {\"token\":\"toktoktok\"}}");
     REQUIRE(strcmp(reinterpret_cast<const char *>(cmd.token->data()), "toktoktok") == 0);
 }
 
-TEST_CASE("Set token ‒ missing params") {
+TEST_CASE("connect::Set token ‒ missing params", "[connect]") {
     command_test<BrokenCommand>("{\"command\":\"SET_TOKEN\",\"kwargs\": {}}");
 }
 
-TEST_CASE("Set token ‒ Too long") {
+TEST_CASE("connect::Set token ‒ Too long", "[connect]") {
     command_test<BrokenCommand>("{\"command\":\"SET_TOKEN\",\"kwargs\": {\"token\":\"123456789012345678901234567890\"}}");
 }
 
-TEST_CASE("Set value - hostname") {
+TEST_CASE("connect::Set value - hostname", "[connect]") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname\"}}");
     REQUIRE(cmd.name == PropertyName::HostName);
     REQUIRE(holds_alternative<SharedBorrow>(cmd.value));
     REQUIRE(strcmp(reinterpret_cast<const char *>(get<SharedBorrow>(cmd.value)->data()), "Nice_hostname") == 0);
 }
 
-TEST_CASE("Set value - first tool nozzle diameter") {
+TEST_CASE("connect::Set value - first tool nozzle diameter", "[connect]") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.0.nozzle_diameter\":0.6}}");
     REQUIRE(cmd.name == PropertyName::NozzleDiameter);
     REQUIRE(cmd.idx == 0);
@@ -214,7 +214,7 @@ TEST_CASE("Set value - first tool nozzle diameter") {
     REQUIRE(get<float>(cmd.value) == 0.6f);
 }
 
-TEST_CASE("Set value - nozzle diameter") {
+TEST_CASE("connect::Set value - nozzle diameter", "[connect]") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.1.nozzle_diameter\":0.25}}");
     REQUIRE(cmd.name == PropertyName::NozzleDiameter);
     REQUIRE(cmd.idx == 1);
@@ -222,7 +222,7 @@ TEST_CASE("Set value - nozzle diameter") {
     REQUIRE(get<float>(cmd.value) == 0.25);
 }
 
-TEST_CASE("Set value - anti abrasive") {
+TEST_CASE("connect::Set value - anti abrasive", "[connect]") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.2.hardened\":true}}");
     REQUIRE(cmd.name == PropertyName::NozzleHardened);
     REQUIRE(cmd.idx == 2);
@@ -230,7 +230,7 @@ TEST_CASE("Set value - anti abrasive") {
     REQUIRE(get<bool>(cmd.value));
 }
 
-TEST_CASE("Set value - high flow") {
+TEST_CASE("connect::Set value - high flow", "[connect]") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.3.high_flow\":true}}");
     REQUIRE(cmd.name == PropertyName::NozzleHighFlow);
     REQUIRE(cmd.idx == 3);
@@ -238,13 +238,13 @@ TEST_CASE("Set value - high flow") {
     REQUIRE(get<bool>(cmd.value));
 }
 
-TEST_CASE("Set value - high tool index nozzle diameter") {
+TEST_CASE("connect::Set value - high tool index nozzle diameter", "[connect]") {
     auto cmd = command_test<SetValue>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.7.nozzle_diameter\":0.4}}");
     REQUIRE(cmd.name == PropertyName::NozzleDiameter);
     REQUIRE(cmd.idx == 7);
 }
 
-TEST_CASE("Set value - tool index past the last tool") {
+TEST_CASE("connect::Set value - tool index past the last tool", "[connect]") {
     command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\":{\"tools.8.nozzle_diameter\":0.4}}");
 }
 
@@ -257,8 +257,8 @@ void set_value_chamber_target_temp(uint32_t temperature) {
     REQUIRE(get<uint32_t>(cmd.value) == temperature);
 }
 
-TEST_CASE("Set value - chamber.target_temp") {
-    // Note: for value logic verification see related TEST_CASE("Command Set value - chamber.target_temp set/unset logic")
+TEST_CASE("connect::Set value - chamber.target_temp", "[connect]") {
+    // Note: for value logic verification see related TEST_CASE("connect::Command Set value - chamber.target_temp set/unset logic")
     // in connect_planner unit test suite.
     SECTION("0") { // 0 is a special case - target_temp off. However, on the level of Set value, it is no different from any other value
         set_value_chamber_target_temp(0);
@@ -282,8 +282,8 @@ void set_value_chamber_fan_pwm_target(int8_t pwm) {
     REQUIRE(get<int8_t>(cmd.value) == pwm);
 }
 
-TEST_CASE("Set value - chamber.fan_pwm_target") {
-    // Note: for value logic verification see related TEST_CASE("Command Set value - xbuddy_extension fan1, 2 set/unset logic")
+TEST_CASE("connect::Set value - chamber.fan_pwm_target", "[connect]") {
+    // Note: for value logic verification see related TEST_CASE("connect::Command Set value - xbuddy_extension fan1, 2 set/unset logic")
     // in connect_planner unit test suite.
     SECTION("0") {
         set_value_chamber_fan_pwm_target(0);
@@ -307,8 +307,8 @@ void set_value_chamber_led_intensity(int8_t pwm) {
     REQUIRE(get<int8_t>(cmd.value) == pwm);
 }
 
-TEST_CASE("Set value - chamber.led_intensity") {
-    // Note: for value logic verification see related TEST_CASE("Command Set value - xbuddy_extension LED intensity logic")
+TEST_CASE("connect::Set value - chamber.led_intensity", "[connect]") {
+    // Note: for value logic verification see related TEST_CASE("connect::Command Set value - xbuddy_extension LED intensity logic")
     // in connect_planner unit test suite.
     SECTION("0") {
         set_value_chamber_led_intensity(0);
@@ -332,8 +332,8 @@ void set_value_addon_power(bool b) {
     REQUIRE(get<bool>(cmd.value) == b);
 }
 
-TEST_CASE("Set value - addon_power") {
-    // Note: for value logic verification see related TEST_CASE("Command Set value - xbuddy_extension usb addon power logic")
+TEST_CASE("connect::Set value - addon_power", "[connect]") {
+    // Note: for value logic verification see related TEST_CASE("connect::Command Set value - xbuddy_extension usb addon power logic")
     // in connect_planner unit test suite.
     SECTION("true") {
         set_value_addon_power(true);
@@ -344,18 +344,18 @@ TEST_CASE("Set value - addon_power") {
     }
 }
 
-TEST_CASE("Set value - hostname too long") {
+TEST_CASE("connect::Set value - hostname too long", "[connect]") {
     command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname_but_far_too_long_for_us_to_process\"}}");
 }
 
-TEST_CASE("Set value - missing params") {
+TEST_CASE("connect::Set value - missing params", "[connect]") {
     command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\": {}}");
 }
 
-TEST_CASE("Cancel object") {
+TEST_CASE("connect::Cancel object", "[connect]") {
     REQUIRE(command_test<CancelObject>("{\"command\":\"CANCEL_OBJECT\",\"kwargs\":{\"id\":3}}").id == 3);
 }
 
-TEST_CASE("Uncancel object") {
+TEST_CASE("connect::Uncancel object", "[connect]") {
     REQUIRE(command_test<UncancelObject>("{\"command\":\"UNCANCEL_OBJECT\",\"kwargs\":{\"id\":3}}").id == 3);
 }
