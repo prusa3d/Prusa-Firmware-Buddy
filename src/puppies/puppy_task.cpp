@@ -58,6 +58,11 @@
     #include <config_store/store_instance.hpp>
 #endif
 
+#include <option/has_cyphal.h>
+#if HAS_CYPHAL()
+    #include <puppies/cyphal_node_table_host.hpp>
+#endif
+
 #if HAS_TOOL_OFFSET_SENSOR()
     #include <puppies/cyphal_bridge_host.hpp>
 #endif
@@ -454,23 +459,13 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
     }
 #endif
 
-#if HAS_AC_CONTROLLER()
-    if (ac_controller.initial_scan(bus) == CommunicationStatus::ERROR) {
-        return false;
-    }
-#endif
-
-#if HAS_TOOL_OFFSET_SENSOR()
-    if (is_tool_offset_sensor_required() && tool_offset_sensor.initial_scan(bus) == CommunicationStatus::ERROR) {
-        return false;
-    }
-#endif
-
     return true;
 }
 
 #if HAS_AC_CONTROLLER()
 [[nodiscard]] static bool wait_for_ac_controller(PuppyModbus &bus) {
+    const CyphalNodeTableHost &node_table = cyphal_node_table();
+
     // AC controller is vital part of the printer, there is no upper limit
     // on how long we are willing to wait for the bootstrap.
     for (;;) {
@@ -483,11 +478,8 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
         if (xbuddy_extension.refresh(bus) == CommunicationStatus::ERROR) {
             return false;
         }
-        if (ac_controller.refresh(bus) == CommunicationStatus::ERROR) {
-            return false;
-        }
         using xbuddy_extension::NodeState;
-        switch (ac_controller.get_node_state()) {
+        switch (node_table.get_node_state(xbuddy_extension::NodeName::cz_prusa3d_honeybee_ac_controller)) {
         case NodeState::unknown:
             bootstrap_state_set(0, BootstrapStage::ac_controller_unknown);
             break;
@@ -508,9 +500,11 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
 #if HAS_TOOL_OFFSET_SENSOR()
 // The sensor sits behind whichever puppy hosts the Cyphal bridge (xBE on INDX,
 // the XL-CAN bridge on XLS); both drive bridge-led firmware flashing. The
-// function pumps the bridge host's refresh + sensor refresh and reports flash
-// progress until the sensor reaches ready.
+// function pumps the bridge host's refresh and reports flash progress until
+// the sensor reaches ready.
 [[nodiscard]] static bool wait_for_tool_offset_sensor(PuppyModbus &bus) {
+    const CyphalNodeTableHost &node_table = cyphal_node_table();
+
     constexpr int32_t absent_timeout_ms = 2000;
     uint32_t timeout_start_ms = ticks_ms();
 
@@ -526,12 +520,8 @@ static bool puppy_initial_scan(PuppyModbus &bus) {
         if (cyphal_bridge_host().refresh(bus) == CommunicationStatus::ERROR) {
             return false;
         }
-        if (tool_offset_sensor.refresh(bus) == CommunicationStatus::ERROR) {
-            return false;
-        }
-
         using xbuddy_extension::NodeState;
-        switch (tool_offset_sensor.get_node_state()) {
+        switch (node_table.get_node_state(xbuddy_extension::NodeName::cz_prusa3d_honeybee_tool_offset_sensor)) {
         case NodeState::unknown:
             if (ticks_diff(ticks_ms(), timeout_start_ms) > absent_timeout_ms) {
                 log_info(Puppies, "Tool offset sensor not detected, single tool -> continuing without it");
@@ -724,11 +714,19 @@ void run() {
             if (!wait_for_ac_controller(bus)) {
                 break; // go to puppy recovery
             }
+            if (ac_controller.initial_scan(bus) == CommunicationStatus::ERROR) {
+                break; // go to puppy recovery
+            }
 #endif
 
 #if HAS_TOOL_OFFSET_SENSOR()
-            if (is_tool_offset_sensor_required() && !wait_for_tool_offset_sensor(bus)) {
-                break; // go to puppy recovery
+            if (is_tool_offset_sensor_required()) {
+                if (!wait_for_tool_offset_sensor(bus)) {
+                    break; // go to puppy recovery
+                }
+                if (tool_offset_sensor.initial_scan(bus) == CommunicationStatus::ERROR) {
+                    break; // go to puppy recovery
+                }
             }
 #endif
 

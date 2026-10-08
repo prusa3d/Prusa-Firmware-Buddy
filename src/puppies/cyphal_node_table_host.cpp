@@ -36,4 +36,14 @@ xbuddy_extension::modbus::CyphalNodeTableEntry CyphalNodeTableHost::get_node(siz
     return nodes[index].load();
 }
 
+xbuddy_extension::NodeState CyphalNodeTableHost::get_node_state(xbuddy_extension::NodeName name) const {
+    using xbuddy_extension::NodeState;
+    for (const auto &node : nodes) {
+        if (const auto entry = node.load(); entry.name == name && entry.state != NodeState::unknown) {
+            return entry.state;
+        }
+    }
+    return NodeState::unknown;
+}
+
 } // namespace buddy::puppies
