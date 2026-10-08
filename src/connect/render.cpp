@@ -124,13 +124,10 @@ namespace {
         const auto params = state.printer.params();
 
         const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
-        // The "tools" loop iterates connect_tool(state.iter)
-        const auto iter_is_physical_tool = [&] { return std::holds_alternative<PhysicalToolIndex>(connect_tool(state.iter)); };
-        const auto iter_physical_tool = [&] { return std::get<PhysicalToolIndex>(connect_tool(state.iter)); };
+
+        const auto iter_physical_tool = [&] { return *state.iter_physical_tool(); };
+        const auto iter_virtual_tool = [&] { return *state.iter_virtual_tool(); };
         const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
-#if HAS_MMU2()
-        const auto iter_virtual_tool = [&] { return std::get<VirtualToolIndex>(connect_tool(state.iter)); };
-#endif
 
 #if PRINTER_IS_PRUSA_iX()
         const auto &preferred = params.physical_tools[state.preferred_physical_tool()];
@@ -218,11 +215,11 @@ namespace {
                 JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
 
                 JSON_FIELD_OBJ("tools");
-                    for (state.iter = 0; state.iter < connect_tool_count(state.tool_args); state.iter++) {
+                    for (state.iter = 0; state.iter < state.iter_tool_count(); state.iter++) {
                         if (state.iter > 0) {
                             JSON_COMMA;
                         }
-                        if (iter_is_physical_tool()) {
+                        if (state.iter_physical_tool().has_value()) {
                             if (!state.is_enabled(iter_physical_tool())) {
                                 JSON_FIELD_NULL(to_connect_tool(iter_physical_tool()).data());
                                 continue;
@@ -237,11 +234,11 @@ namespace {
                                     JSON_FIELD_NULL("nozzle_target_temp") JSON_COMMA;
                                 }
                                 JSON_FIELD_INT("heatbreak_fan_rpm", iter_physical_tool_info().heatbreak_fan_rpm) JSON_COMMA;
-                                JSON_FIELD_INT("print_fan_rpm", iter_physical_tool_info().print_fan_rpm) JSON_COMMA;
+                                JSON_FIELD_INT("print_fan_rpm", iter_physical_tool_info().print_fan_rpm) // No comma
                                 // The feeder mirrors the one in INFO. A head with a feeder leaves consumed_weight to its slots.
 #if HAS_MMU2()
                                 if (state.tool_args.mmu_enabled) {
-                                    JSON_FIELD_OBJ("feeder");
+                                    JSON_COMMA; JSON_FIELD_OBJ("feeder");
                                         JSON_FIELD_INT("mmu_progress_code", params.progress_code);
                                         // The MMU reports 0 when idle, which has no character to send
                                         if (params.command_code != 0) {
@@ -249,23 +246,25 @@ namespace {
                                             JSON_FIELD_STR_FORMAT("mmu_command_in_progress", "%c", params.command_code);
                                         }
                                     JSON_OBJ_END;
-                                } else
-#endif
-                                {
-                                    // TODO: report the consumed weight of a tracked OpenPrintTag spool (BFW-9416). The
-                                    // usage tracker keeps the remaining weight, not the consumed one.
-                                    JSON_FIELD_NULL("consumed_weight");
                                 }
-                        }
-#if HAS_MMU2()
-                        else {
-                            JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_virtual_tool(), state.tool_args).data());
-                                JSON_FIELD_STR("type", "FFF_FEEDER_SLOT") JSON_COMMA;
-                                JSON_FIELD_BOOL("active", state.is_active(iter_virtual_tool())) JSON_COMMA;
-                                // TODO: the consumed weight, as for the print head (BFW-9416)
-                                JSON_FIELD_NULL("consumed_weight");
-                        }
 #endif
+                        }
+                        else {
+                            // TODO Virtual tool enabled check
+                            JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_virtual_tool(), state.tool_args).data());
+
+                            #if HAS_MMU2()
+                                JSON_FIELD_STR("type", "FFF_FEEDER_SLOT") JSON_COMMA;
+                                JSON_FIELD_BOOL("active", state.is_active(iter_virtual_tool())) // No comma
+                            #else
+                                bsod_unreachable();
+                            #endif
+                        }
+
+                        if(state.iter_virtual_tool().has_value()) {
+                            // TODO: the consumed weight (BFW-9416)
+                            JSON_COMMA; JSON_FIELD_NULL("consumed_weight");
+                        }
                         JSON_OBJ_END;
                     }
                 JSON_OBJ_END JSON_COMMA;
@@ -289,13 +288,11 @@ namespace {
     JsonResult render_msg(size_t resume_point, JsonOutput &output, RenderState &state, const Event &event) {
         const auto params = state.printer.params();
         const auto &info = state.printer.printer_info();
-        // The INFO tools loop iterates connect_tool(state.iter)
-        const auto iter_is_physical_tool = [&] { return std::holds_alternative<PhysicalToolIndex>(connect_tool(state.iter)); };
-        const auto iter_physical_tool = [&] { return std::get<PhysicalToolIndex>(connect_tool(state.iter)); };
+
+        const auto iter_physical_tool = [&] { return *state.iter_physical_tool(); };
+        const auto iter_virtual_tool = [&] { return *state.iter_virtual_tool(); };
         const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
-#if HAS_MMU2()
-        const auto iter_virtual_tool = [&] { return std::get<VirtualToolIndex>(connect_tool(state.iter)); };
-#endif
+
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         std::optional<Printer::FinishedJobResult> job_state;
 
@@ -414,11 +411,11 @@ namespace {
                     static_assert(PhysicalToolIndex::count == 1);
 #endif
                     JSON_FIELD_OBJ("tools");
-                        for (state.iter = 0; state.iter < connect_tool_count(state.tool_args); state.iter++) {
+                        for (state.iter = 0; state.iter < state.iter_tool_count(); state.iter++) {
                             if (state.iter > 0) {
                                 JSON_COMMA;
                             }
-                            if (iter_is_physical_tool()) {
+                            if (state.iter_physical_tool().has_value()) {
                                 // Connect merges INFO into what it already has: null removes a tool, absence would keep it
                                 if (!state.is_enabled(iter_physical_tool())) {
                                     JSON_FIELD_NULL(to_connect_tool(iter_physical_tool()).data());
@@ -446,13 +443,20 @@ namespace {
                                         JSON_FIELD_NULL("feeder");
                                     }
 #endif
-                            }
-#if HAS_MMU2()
-                            else {
+                            } else {
+                                // TODO Virtual tool enabled check
                                 JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_virtual_tool(), state.tool_args).data());
-                                    JSON_FIELD_STR("type", "FFF_FEEDER_SLOT");
+
+                                #if HAS_MMU2()
+                                    JSON_FIELD_STR("type", "FFF_FEEDER_SLOT"); // No comma - last field
+                                #else
+                                    bsod_unreachable();
+                                #endif
                             }
-#endif
+
+                            if(state.iter_virtual_tool().has_value()) {
+                                // TODO: Material reporting
+                            }
                             JSON_OBJ_END;
                         }
                     JSON_OBJ_END JSON_COMMA;
@@ -1245,4 +1249,50 @@ JsonResult Renderer::renderState(size_t resume_point, JsonOutput &output, Render
         state.action);
 }
 
+size_t RenderState::iter_tool_count() const {
+#if HAS_MMU2()
+    // 1 Tool with a feeder + X feeder slots
+    static_assert(PhysicalToolIndex::count == 1);
+    if (tool_args.mmu_enabled) {
+        return 1 + VirtualToolIndex::count;
+    } else {
+        static_assert(PhysicalToolIndex::count == 1);
+        return 1;
+    }
+#else
+    static_assert(PhysicalToolIndex::count == VirtualToolIndex::count);
+#endif
+
+    return VirtualToolIndex::count;
+}
+
+std::optional<PhysicalToolIndex> RenderState::iter_physical_tool() const {
+#if HAS_MMU2()
+    static_assert(PhysicalToolIndex::count == 1);
+    if (tool_args.mmu_enabled) {
+        if (iter == 0) {
+            return PhysicalToolIndex::from_raw(0);
+        } else {
+            return std::nullopt;
+        }
+    }
+#endif
+
+    return VirtualToolIndex::from_raw(iter).to_physical();
+}
+
+std::optional<VirtualToolIndex> RenderState::iter_virtual_tool() const {
+#if HAS_MMU2()
+    static_assert(PhysicalToolIndex::count == 1);
+    if (tool_args.mmu_enabled) {
+        if (iter == 0) {
+            return std::nullopt;
+        } else {
+            return VirtualToolIndex::from_raw(iter - 1);
+        }
+    }
+#endif
+
+    return VirtualToolIndex::from_raw(iter);
+}
 } // namespace connect_client

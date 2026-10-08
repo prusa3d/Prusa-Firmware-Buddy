@@ -5,9 +5,6 @@
 #include <tool_index.hpp>
 #include <utils/string/inplace_string.hpp>
 
-#include <cstddef>
-#include <variant>
-
 namespace connect_client {
 
 /// Tool identifier in the Connect "Prusa Architecture" tool protocol.
@@ -24,28 +21,6 @@ struct ToConnectToolArgs {
     bool mmu_enabled : 1;
 #endif
 };
-
-/// A tool as Connect addresses it: a print head, or a slot of the feeder attached to one
-using ConnectTool = std::variant<PhysicalToolIndex, VirtualToolIndex>;
-
-/// @returns how many tools Connect sees: all the print heads, followed by the feeder slots when there is a feeder
-[[nodiscard]] constexpr size_t connect_tool_count([[maybe_unused]] ToConnectToolArgs args) {
-#if HAS_MMU2()
-    if (args.mmu_enabled) {
-        return PhysicalToolIndex::count + VirtualToolIndex::count;
-    }
-#endif
-    return PhysicalToolIndex::count;
-}
-
-/// @returns the tool at @p index in the sequence connect_tool_count() counts, 0 <= index < connect_tool_count()
-/// A plain index lets the chunked JSON renderer keep its place between the chunks.
-[[nodiscard]] constexpr ConnectTool connect_tool(size_t index) {
-    if (index < PhysicalToolIndex::count) {
-        return PhysicalToolIndex::from_raw(index);
-    }
-    return VirtualToolIndex::from_raw(index - PhysicalToolIndex::count);
-}
 
 [[nodiscard]] ConnectToolIndex to_connect_tool(PhysicalToolIndex tool);
 

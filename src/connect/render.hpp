@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "changes.hpp"
 #include "printer.hpp"
 #include "planner.hpp"
@@ -141,6 +143,14 @@ struct RenderState {
         return active_virtual_tool_mask & (1 << tool.to_raw());
     }
 #endif
+
+    [[nodiscard]] size_t iter_tool_count() const;
+
+    /// @returns iter to a physical tool index
+    [[nodiscard]] std::optional<PhysicalToolIndex> iter_physical_tool() const;
+
+    /// @returns iter to a virtual tool index
+    [[nodiscard]] std::optional<VirtualToolIndex> iter_virtual_tool() const;
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

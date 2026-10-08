@@ -46,6 +46,8 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/tools.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/utils/string_builder.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp

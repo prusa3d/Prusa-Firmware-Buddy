@@ -43,6 +43,8 @@ static_assert(
         && std::to_underlying(PrinterModel::xls) == 17,
     "Order should not change, it will create a discrepancy in stored EEPROM values");
 
+#ifndef UNITTESTS
+
 // Some checks about the printer data
 static_assert([] {
     for (size_t i = 0; i < printer_model_info.size(); i++) {
@@ -59,23 +61,25 @@ static_assert([] {
         std::abort();
     }
 
-#if HAS_MMU2()
-    // If the printer has an MMU, check that we have a record in printer_model_mmu_variant
-    #if HAS_EXTENDED_PRINTER_TYPE()
+    #if HAS_MMU2()
+        // If the printer has an MMU, check that we have a record in printer_model_mmu_variant
+        #if HAS_EXTENDED_PRINTER_TYPE()
     for (PrinterModel model : extended_printer_type_model) {
         if (std::ranges::find_if(printer_model_mmu_variant, [&](const auto &item) { return item.model == model; }) == printer_model_mmu_variant.end()) {
             std::abort();
         }
     }
-    #else
+        #else
     if (std::ranges::find_if(printer_model_mmu_variant, [](const auto &item) { return item.model == firmware_base_constexpr.model; }) == printer_model_mmu_variant.end()) {
         std::abort();
     }
+        #endif
     #endif
-#endif
 
     return true;
 }());
+
+#endif
 
 const PrinterModelInfo &PrinterModelInfo::firmware_base() {
     return firmware_base_constexpr;

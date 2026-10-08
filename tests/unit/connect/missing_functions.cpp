@@ -60,17 +60,9 @@ bool PhysicalToolIndex::is_enabled() const {
     return true;
 }
 
-// The tests are built without HAS_MMU2() and HAS_TOOLCHANGER(), so there is a single print head
 PhysicalToolIndex VirtualToolIndexExtension::to_physical() const {
     return PhysicalToolIndex::from_raw(0);
 }
-
-namespace connect_client {
-ConnectToolIndex to_connect_tool(PhysicalToolIndex) {
-    static_assert(PhysicalToolIndex::count == 1);
-    return "0";
-}
-} // namespace connect_client
 
 extern "C" {
 void notify_reconfigure() {}
