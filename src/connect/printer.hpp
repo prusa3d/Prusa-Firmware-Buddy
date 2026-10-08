@@ -11,6 +11,7 @@
 #include <tuple>
 #include <expected>
 #include <optional>
+#include <limits>
 #include <variant>
 
 #include <netif_settings.h>
@@ -19,6 +20,7 @@
 #include <device/board.h>
 #include <connect/hostname.hpp>
 #include <connect/tools.hpp>
+#include <utils/compact_optional.hpp>
 #include <feature/filament_sensor/filament_sensor_states.hpp>
 
 #include <tool_index.hpp>
@@ -26,7 +28,7 @@
 
 #include <option/has_cancel_object.h>
 #include <option/xbuddy_extension_variant.h>
-
+#include <option/has_anfc.h>
 #include <option/has_esp.h>
 
 namespace connect_client {
@@ -51,18 +53,28 @@ public:
 
     struct PhysicalToolInfo {
         float temp_nozzle = 0;
-        /// 0 when the heating is off
-        int16_t target_nozzle = 0;
+
 #if PRINTER_IS_PRUSA_iX()
         float temp_heatbreak = 0;
         std::optional<FilamentSensorState> extruder_fs_state;
         std::optional<FilamentSensorState> remote_fs_state;
 #endif
+        float nozzle_diameter = 0;
+
+        /// 0 when the heating is off
+        int16_t target_nozzle = 0;
+
         uint16_t print_fan_rpm = 0;
         uint16_t heatbreak_fan_rpm = 0;
-        bool high_flow = false;
-        bool hardened = false;
-        float nozzle_diameter = 0;
+
+        bool high_flow : 1 = false;
+        bool hardened : 1 = false;
+    };
+
+    struct VirtualToolInfo {
+#if HAS_ANFC()
+        CompactOptional<uint32_t, std::numeric_limits<uint32_t>::max()> consumed_weight_g;
+#endif
     };
 
 #if XL_ENCLOSURE_SUPPORT()
@@ -105,7 +117,10 @@ public:
 
     public:
         Params(const std::optional<BorrowPaths> &paths);
+
         StrongIndexArray<PhysicalToolInfo, PhysicalToolIndex::count, PhysicalToolIndex, PhysicalToolIndex::to_raw_static> physical_tools;
+        StrongIndexArray<VirtualToolInfo, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> virtual_tools;
+
 #if XL_ENCLOSURE_SUPPORT()
         EnclosureInfo enclosure_info;
 #endif
@@ -115,14 +130,18 @@ public:
 #endif
         uint32_t progress_code = 0;
         char command_code = 0;
+
         // Which physical tools (print heads) are enabled (bitfield)
-        uint8_t physical_tool_mask = 1;
+        uint8_t physical_tool_mask = 0;
         static_assert(8 * sizeof physical_tool_mask >= PhysicalToolIndex::count);
-#if HAS_MMU2()
+
         /// Virtual tools loaded into their physical tool, picked or not (bitfield) - one per physical tool at most
         uint8_t active_virtual_tool_mask = 0;
         static_assert(8 * sizeof active_virtual_tool_mask >= VirtualToolIndex::count);
-#endif
+        // Which virtual tools are enabled (bitset)
+        uint8_t virtual_tool_mask = 0;
+        static_assert(8 * sizeof virtual_tool_mask >= VirtualToolIndex::count);
+
         ToConnectToolArgs tool_args = {};
         std::variant<PhysicalToolIndex, NoTool> active_physical_tool = NoTool {};
         float temp_bed = 0;

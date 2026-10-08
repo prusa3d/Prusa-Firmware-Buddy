@@ -95,12 +95,11 @@ struct RenderState {
     /// The printer state is re-read for every chunk, but the tool set can change at runtime
     /// (MMU switched, INDX dock calibrated); the renderer reads this instead of each chunk's snapshot.
     decltype(Printer::Params::physical_tool_mask) physical_tool_mask = 0;
+    decltype(Printer::Params::virtual_tool_mask) virtual_tool_mask = 0;
     /// Physical tool picked when the response started, kept for the same reason as physical_tool_mask.
     decltype(Printer::Params::active_physical_tool) active_physical_tool = NoTool {};
-#if HAS_MMU2()
     /// Virtual tools loaded when the response started, kept for the same reason as physical_tool_mask.
     decltype(Printer::Params::active_virtual_tool_mask) active_virtual_tool_mask = 0;
-#endif
     /// MMU state when the response started, kept for the same reason as physical_tool_mask - it also decides the
     /// tool ids.
     ToConnectToolArgs tool_args = {};
@@ -132,17 +131,19 @@ struct RenderState {
         return physical_tool_mask & (1 << tool.to_raw());
     }
 
+    bool is_enabled(VirtualToolIndex tool) const {
+        return virtual_tool_mask & (1 << tool.to_raw());
+    }
+
     /// Whether the physical tool is picked.
     bool is_active(PhysicalToolIndex tool) const {
         return stdext::get_optional<PhysicalToolIndex>(active_physical_tool) == tool;
     }
 
-#if HAS_MMU2()
     /// Whether the virtual tool is loaded into its physical tool, picked or not.
     bool is_active(VirtualToolIndex tool) const {
         return active_virtual_tool_mask & (1 << tool.to_raw());
     }
-#endif
 
     [[nodiscard]] size_t iter_tool_count() const;
 

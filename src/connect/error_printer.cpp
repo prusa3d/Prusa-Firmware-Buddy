@@ -58,9 +58,6 @@ Printer::Params ErrorPrinter::params() const {
     // Version can change between MK4 and MK3.9 in runtime
     params.version = get_printer_version();
 
-    // No tools available in this mode.
-    params.physical_tool_mask = 0;
-
     return params;
 }
 

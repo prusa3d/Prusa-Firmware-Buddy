@@ -45,6 +45,7 @@ namespace connect_client {
 // The fingerprints pick the members one by one - a new member needs a decision there
 static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
 static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 7 + 3 * PRINTER_IS_PRUSA_iX());
+static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 1 * HAS_ANFC());
 
 uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     // Note: keep in sync with the rendering of telemetry in render.cpp
@@ -81,11 +82,26 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         }
     }
 
+    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+        // Use the list of enabled at the time of snapshot, not current
+        // (that is, the mask, not .skip_all_disabled)
+        if (!(virtual_tool_mask & (1 << vt.to_raw()))) {
+            continue;
+        }
+
+        [[maybe_unused]] const auto &virtual_tool = virtual_tools[vt];
+#if HAS_ANFC()
+        // Don't send telemetry on every consumed gram
+        crc.add(uint32_t(virtual_tool.consumed_weight_g.value_or(-1) / 10));
+#endif
+    }
+
     return crc
         .add(physical_tool_mask)
+        .add(virtual_tool_mask)
         .add(active_physical_tool)
-#if HAS_MMU2()
         .add(active_virtual_tool_mask)
+#if HAS_MMU2()
         .add(tool_args.mmu_enabled)
 #endif
         .add(int(pos[Printer::Z_AXIS_POS]))

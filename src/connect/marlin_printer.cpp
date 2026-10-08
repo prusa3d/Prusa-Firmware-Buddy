@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <crc32.h>
+#include <algorithm>
 
 #include <ini.h>
 #include <otp.hpp>
@@ -29,6 +30,7 @@
 #include <bsod/bsod.h>
 #include <client_response.hpp>
 #include <option/has_esp.h>
+#include <common/aggregate_arity.hpp>
 
 #include <option/has_cancel_object.h>
 #if HAS_CANCEL_OBJECT()
@@ -68,6 +70,11 @@ static_assert(HAS_CHAMBER_FILTRATION_API());
 #include <option/has_tool_mapping.h>
 #if HAS_TOOL_MAPPING()
     #include <module/prusa/tool_mapper.hpp>
+#endif
+
+#include <option/has_anfc.h>
+#if HAS_ANFC()
+    #include <feature/openprinttag/filament_usage_tracker/filament_usage_tracker.hpp>
 #endif
 
 using marlin_client::GcodeTryResult;
@@ -223,27 +230,30 @@ void MarlinPrinter::drop_paths() {
 
 namespace {
     void get_tool_info(Printer::Params &params) {
+        params.tool_args = {
+#if HAS_MMU2()
+            .mmu_enabled = config_store().mmu2_enabled.get()
+#endif
+        };
+
 #if HAS_MMU2()
         params.progress_code = MMU2::Fsm::Instance().reporter.GetProgressCode();
         params.command_code = MMU2::Fsm::Instance().reporter.GetCommandInProgress();
-        params.tool_args = { .mmu_enabled = config_store().mmu2_enabled.get() };
 #endif
 
         params.active_physical_tool = PhysicalToolIndex::currently_selected();
 
         params.physical_tool_mask = 0;
-#if HAS_MMU2()
+        params.virtual_tool_mask = 0;
         params.active_virtual_tool_mask = 0;
-#endif
+
         for (PhysicalToolIndex pt : PhysicalToolIndex::all().skip_all_disabled()) {
             const auto &hotend = marlin_vars().hotend(pt);
             params.physical_tool_mask |= (1 << pt.to_raw());
-#if HAS_MMU2()
             // A virtual tool loaded into a head is active even when the head is not picked
             if (const auto vt = stdext::get_optional<VirtualToolIndex>(pt.currently_selected_virtual_tool())) {
                 params.active_virtual_tool_mask |= (1 << vt->to_raw());
             }
-#endif
 
             auto &physical_tool = params.physical_tools[pt];
             physical_tool.temp_nozzle = hotend.temp_nozzle;
@@ -267,6 +277,21 @@ namespace {
             physical_tool.nozzle_diameter = config_store().get_nozzle_diameter(pt);
             physical_tool.hardened = config_store().get_nozzle_is_hardened(pt);
             physical_tool.high_flow = config_store().get_nozzle_is_high_flow(pt.to_raw());
+        }
+
+        for (VirtualToolIndex vt : VirtualToolIndex::all().skip_all_disabled()) {
+            params.virtual_tool_mask |= (1 << vt.to_raw());
+            static_assert(aggregate_arity<Printer::VirtualToolInfo>() == HAS_ANFC() * 1);
+
+            [[maybe_unused]] auto &vtp = params.virtual_tools[vt];
+
+#if HAS_ANFC()
+            if (const auto report = buddy::openprinttag::filament_usage_tracker().filament_report(vt)) {
+                vtp.consumed_weight_g = static_cast<uint32_t>(std::max(0.f, report->full_weight_g - report->remaining_weight_g));
+            } else {
+                vtp.consumed_weight_g = std::nullopt;
+            }
+#endif
         }
     }
 } // namespace

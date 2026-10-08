@@ -128,6 +128,7 @@ namespace {
         const auto iter_physical_tool = [&] { return *state.iter_physical_tool(); };
         const auto iter_virtual_tool = [&] { return *state.iter_virtual_tool(); };
         const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
+        [[maybe_unused]] const auto iter_virtual_tool_info = [&]() -> const Printer::VirtualToolInfo & { return params.virtual_tools[iter_virtual_tool()]; };
 
 #if PRINTER_IS_PRUSA_iX()
         const auto &preferred = params.physical_tools[state.preferred_physical_tool()];
@@ -250,20 +251,33 @@ namespace {
 #endif
                         }
                         else {
-                            // TODO Virtual tool enabled check
+                            if (!state.is_enabled(iter_virtual_tool())) {
+                                JSON_FIELD_NULL(to_connect_tool(iter_virtual_tool(), state.tool_args).data());
+                                continue;
+                            }
+
                             JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_virtual_tool(), state.tool_args).data());
+                            JSON_FIELD_BOOL("active", state.is_active(iter_virtual_tool()));
 
                             #if HAS_MMU2()
-                                JSON_FIELD_STR("type", "FFF_FEEDER_SLOT") JSON_COMMA;
-                                JSON_FIELD_BOOL("active", state.is_active(iter_virtual_tool())) // No comma
+                                JSON_COMMA; JSON_FIELD_STR("type", "FFF_FEEDER_SLOT");
                             #else
                                 bsod_unreachable();
                             #endif
                         }
 
                         if(state.iter_virtual_tool().has_value()) {
-                            // TODO: the consumed weight (BFW-9416)
-                            JSON_COMMA; JSON_FIELD_NULL("consumed_weight");
+                            debug_assert(state.is_enabled(iter_virtual_tool()));
+
+                            JSON_COMMA;
+                            #if HAS_ANFC()
+                                if(iter_virtual_tool_info().consumed_weight_g.has_value()) {
+                                    JSON_FIELD_INT("consumed_weight", iter_virtual_tool_info().consumed_weight_g.value_or(0));
+                                } else
+                            #endif
+                            {
+                                JSON_FIELD_NULL("consumed_weight");
+                            }
                         }
                         JSON_OBJ_END;
                     }
@@ -444,7 +458,11 @@ namespace {
                                     }
 #endif
                             } else {
-                                // TODO Virtual tool enabled check
+                                if (!state.is_enabled(iter_virtual_tool())) {
+                                    JSON_FIELD_NULL(to_connect_tool(iter_virtual_tool(), state.tool_args).data());
+                                    continue;
+                                }
+
                                 JSON_CUSTOM("\"%s\":{", to_connect_tool(iter_virtual_tool(), state.tool_args).data());
 
                                 #if HAS_MMU2()
@@ -1152,10 +1170,9 @@ RenderState::RenderState(const Printer &printer, const Action &action, optional<
 
     const auto params = printer.params();
     physical_tool_mask = params.physical_tool_mask;
+    virtual_tool_mask = params.virtual_tool_mask;
     active_physical_tool = params.active_physical_tool;
-#if HAS_MMU2()
     active_virtual_tool_mask = params.active_virtual_tool_mask;
-#endif
     tool_args = params.tool_args;
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {

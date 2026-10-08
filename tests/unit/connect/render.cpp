@@ -41,6 +41,8 @@ Printer::Params params_printing() {
     params.physical_tools[PhysicalToolIndex::from_raw(0)].temp_nozzle = 200;
     params.target_bed = 70;
     params.physical_tools[PhysicalToolIndex::from_raw(0)].target_nozzle = 195;
+    params.physical_tool_mask = 1;
+    params.virtual_tool_mask = 1;
     params.active_physical_tool = PhysicalToolIndex::from_raw(0);
     params.state = printer_state::DeviceState::Printing;
 
