@@ -17,6 +17,12 @@ auto stub_field(typename ReadFieldRequest<field>::Value val) {
     return std::pair { tool_tag.field(field), val };
 }
 
+/// Makes the read of @p field fail with @p error
+template <CField auto field>
+auto stub_field_error(Request::Error error) {
+    return std::pair { tool_tag.field(field), error };
+}
+
 std::optional<ToolTag> ToolTag::for_tool_ephemeral(VirtualToolIndex tool) {
     return std::nullopt;
 }
@@ -455,7 +461,6 @@ TEST_CASE("buddy::openprinttag::data_utils::FilamentParametersInfo") {
 }
 
 TEST_CASE("buddy::openprinttag::data_utils::UUIDInfo") {
-
     stub_data = StubData {
         stub_field<MainField::brand_name>("Prusament"),
         stub_field<MainField::material_name>("PLA Prusa Galaxy Black"),
