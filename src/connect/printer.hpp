@@ -22,6 +22,7 @@
 #include <connect/tools.hpp>
 #include <utils/compact_optional.hpp>
 #include <feature/filament_sensor/filament_sensor_states.hpp>
+#include <filament.hpp>
 
 #include <tool_index.hpp>
 #include <utils/storage/strong_index_array.hpp>
@@ -304,6 +305,9 @@ public:
     std::tuple<Config, bool> config(bool reset_fingerprint = true);
 
     uint32_t info_fingerprint() const;
+
+    /// @returns the parameters of the material loaded in the virtual tool, nullopt when there is none
+    virtual std::optional<FilamentTypeParameters> material(VirtualToolIndex tool) const = 0;
 
     virtual void set_physical_tool_info(PhysicalToolIndex tool, const PhysicalToolInfo &info) = 0;
 };

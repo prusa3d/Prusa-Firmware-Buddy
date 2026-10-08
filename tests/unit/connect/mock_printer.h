@@ -148,6 +148,11 @@ public:
         return nullptr;
     }
 
+    // Return value of material(), the same for every tool
+    std::optional<FilamentTypeParameters> loaded_material = std::nullopt;
+    virtual std::optional<FilamentTypeParameters> material(VirtualToolIndex) const override {
+        return loaded_material;
+    }
     virtual void set_physical_tool_info(PhysicalToolIndex, const PhysicalToolInfo &) override {}
 
 #if HAS_CANCEL_OBJECT()

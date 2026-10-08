@@ -306,6 +306,9 @@ namespace {
         const auto iter_physical_tool = [&] { return *state.iter_physical_tool(); };
         const auto iter_virtual_tool = [&] { return *state.iter_virtual_tool(); };
         const auto iter_physical_tool_info = [&]() -> const Printer::PhysicalToolInfo & { return params.physical_tools[iter_physical_tool()]; };
+#if HAS_ANFC()
+        std::array<char, UUID::string_length> uuid_buffer;
+#endif
 
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         std::optional<Printer::FinishedJobResult> job_state;
@@ -429,6 +432,10 @@ namespace {
                             if (state.iter > 0) {
                                 JSON_COMMA;
                             }
+                            // Runs once per tool: a resumed chunk jumps past it
+                            if (const auto virtual_tool = state.iter_virtual_tool()) {
+                                state.material = state.printer.material(*virtual_tool);
+                            }
                             if (state.iter_physical_tool().has_value()) {
                                 // Connect merges INFO into what it already has: null removes a tool, absence would keep it
                                 if (!state.is_enabled(iter_physical_tool())) {
@@ -472,8 +479,89 @@ namespace {
                                 #endif
                             }
 
-                            if(state.iter_virtual_tool().has_value()) {
-                                // TODO: Material reporting
+                            if (state.iter_virtual_tool().has_value()) {
+                                JSON_COMMA;
+                                if (!state.material.has_value()) {
+                                    JSON_FIELD_NULL("material_package_instance");
+                                } else {
+                                    JSON_FIELD_OBJ("material_package_instance");
+                                        JSON_FIELD_STR("class", "FFF");
+#if HAS_ANFC()
+                                        if (state.material->instance_uuid.has_value()) {
+                                            JSON_COMMA;
+                                            JSON_FIELD_STR("uuid", state.material->instance_uuid->to_string(uuid_buffer));
+                                        }
+#endif
+                                        JSON_COMMA;
+                                        JSON_FIELD_OBJ("package");
+                                            JSON_FIELD_STR("class", "FFF");
+#if HAS_ANFC()
+                                            if (state.material->package_uuid.has_value()) {
+                                                JSON_COMMA;
+                                                JSON_FIELD_STR("uuid", state.material->package_uuid->to_string(uuid_buffer));
+                                            }
+#endif
+                                            JSON_COMMA;
+                                            JSON_FIELD_OBJ("material");
+                                                JSON_FIELD_STR("class", "FFF");
+#if HAS_ANFC()
+                                                if (state.material->material_uuid.has_value()) {
+                                                    JSON_COMMA;
+                                                    JSON_FIELD_STR("uuid", state.material->material_uuid->to_string(uuid_buffer));
+                                                }
+#endif
+                                                if (!state.material->name.empty()) {
+                                                    JSON_COMMA;
+                                                    JSON_FIELD_STR("abbreviation", state.material->name.data());
+                                                }
+                                                if (state.material->color.has_value()) {
+                                                    JSON_COMMA;
+                                                    JSON_FIELD_OBJ("primary_color");
+                                                        // Color keeps 0x00RRGGBB in its raw value
+                                                        JSON_FIELD_STR_FORMAT("color_rgba", "#%06" PRIx32, state.material->color->raw & 0xffffff);
+                                                    JSON_OBJ_END;
+                                                }
+                                                JSON_COMMA;
+                                                JSON_FIELD_ARR("tags");
+                                                    if (state.material->is_abrasive) {
+                                                        JSON_CUSTOM("\"%s\"", "abrasive");
+                                                    }
+#if HAS_CHAMBER_FILTRATION_API()
+                                                    if (state.material->requires_filtration) {
+                                                        if (state.material->is_abrasive) {
+                                                            JSON_COMMA;
+                                                        }
+                                                        JSON_CUSTOM("\"%s\"", "filtration_recommended");
+                                                    }
+#endif
+                                                JSON_ARR_END;
+                                                JSON_COMMA;
+                                                JSON_FIELD_OBJ("properties");
+                                                    // The filament has one printing temperature, the architecture a range
+                                                    JSON_FIELD_INT("min_print_temperature", state.material->nozzle_temperature) JSON_COMMA;
+                                                    JSON_FIELD_INT("max_print_temperature", state.material->nozzle_temperature) JSON_COMMA;
+                                                    JSON_FIELD_INT("preheat_temperature", state.material->nozzle_preheat_temperature) JSON_COMMA;
+#if HAS_FILAMENT_HEATBREAK_PARAM()
+                                                    JSON_FIELD_INT("heatbreak_temperature", state.material->heatbreak_temperature) JSON_COMMA;
+#endif
+#if HAS_CHAMBER_API()
+                                                    if (state.material->chamber_min_temperature.has_value()) {
+                                                        JSON_FIELD_INT("min_chamber_temperature", *state.material->chamber_min_temperature) JSON_COMMA;
+                                                    }
+                                                    if (state.material->chamber_max_temperature.has_value()) {
+                                                        JSON_FIELD_INT("max_chamber_temperature", *state.material->chamber_max_temperature) JSON_COMMA;
+                                                    }
+                                                    if (state.material->chamber_target_temperature.has_value()) {
+                                                        JSON_FIELD_INT("chamber_temperature", *state.material->chamber_target_temperature) JSON_COMMA;
+                                                    }
+#endif
+                                                    JSON_FIELD_INT("min_bed_temperature", state.material->heatbed_temperature) JSON_COMMA;
+                                                    JSON_FIELD_INT("max_bed_temperature", state.material->heatbed_temperature);
+                                                JSON_OBJ_END;
+                                            JSON_OBJ_END;
+                                        JSON_OBJ_END;
+                                    JSON_OBJ_END;
+                                }
                             }
                             JSON_OBJ_END;
                         }

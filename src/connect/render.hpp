@@ -103,6 +103,8 @@ struct RenderState {
     /// MMU state when the response started, kept for the same reason as physical_tool_mask - it also decides the
     /// tool ids.
     ToConnectToolArgs tool_args = {};
+    /// Material of the INFO tool being rendered, sampled once per tool so that its fields come from one material
+    std::optional<FilamentTypeParameters> material;
     bool has_stat = false;
     bool read_only = false;
     struct stat st;

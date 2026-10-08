@@ -49,6 +49,22 @@ Printer::Params params_printing() {
     return params;
 };
 
+/// Renders the action in chunks of @p chunk_size, calling @p between_chunks after each but the last
+string render_chunked(const Printer &printer, const Action &action, size_t chunk_size, auto &&between_chunks) {
+    Renderer renderer(RenderState(printer, action, nullopt));
+    string output;
+    while (true) {
+        uint8_t buffer[1024];
+        const auto [result, amount] = renderer.render(buffer, chunk_size);
+        REQUIRE((result == JsonResult::Complete || result == JsonResult::Incomplete));
+        output.append(reinterpret_cast<const char *>(buffer), amount);
+        if (result == JsonResult::Complete) {
+            return output;
+        }
+        between_chunks();
+    }
+}
+
 } // namespace
 
 TEST_CASE("connect::Render", "[connect]") {
@@ -57,6 +73,7 @@ TEST_CASE("connect::Render", "[connect]") {
     Action action;
     optional<Monitor::Slot> transfer_slot = nullopt;
     optional<CommandId> background_command_id = nullopt;
+    optional<FilamentTypeParameters> material = nullopt;
 
     SECTION("Telemetry - reduced") {
         params.emplace(params_printing());
@@ -315,7 +332,8 @@ TEST_CASE("connect::Render", "[connect]") {
                             "\"nozzle_hardened\":false,"
                             "\"nozzle_high_flow\":false"
                         "},"
-                        "\"feeder\":null"
+                        "\"feeder\":null,"
+                        "\"material_package_instance\":null"
                     "}"
                 "},"
                 "\"addon_power\":false,"
@@ -351,6 +369,135 @@ TEST_CASE("connect::Render", "[connect]") {
                 "\"network_info\":{\"hostname\":\"\"},"
                 "\"tools\":{"
                     "\"0\":null"
+                "},"
+                "\"addon_power\":false,"
+                "\"tool_count\":1"
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"INFO\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Event - info - material") {
+        action = Event {
+            EventType::Info,
+            11,
+        };
+        params.emplace(params_idle());
+        material = FilamentTypeParameters {
+            .name = "PETG",
+            .nozzle_temperature = 230,
+            .nozzle_preheat_temperature = 170,
+            .heatbed_temperature = 90,
+            .is_abrasive = true,
+        };
+
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"firmware\":\"TST-1234\","
+                "\"printer_type\":\"2.3.0\","
+                "\"sn\":\"FAKE-1234\","
+                "\"appendix\":false,"
+                "\"fingerprint\":\"DEADBEEF\","
+                "\"transfer_paused\":true,"
+                "\"storages\":[],"
+                "\"network_info\":{\"hostname\":\"\"},"
+                "\"tools\":{"
+                    "\"0\":{"
+                        "\"type\":\"FFF_PRINT_HEAD\","
+                        "\"features\":{"
+                            "\"nozzle_diameter\":0.40,"
+                            "\"nozzle_hardened\":false,"
+                            "\"nozzle_high_flow\":false"
+                        "},"
+                        "\"feeder\":null,"
+                        "\"material_package_instance\":{"
+                            "\"class\":\"FFF\","
+                            "\"package\":{"
+                                "\"class\":\"FFF\","
+                                "\"material\":{"
+                                    "\"class\":\"FFF\","
+                                    "\"abbreviation\":\"PETG\","
+                                    "\"tags\":[\"abrasive\"],"
+                                    "\"properties\":{"
+                                        "\"min_print_temperature\":230,"
+                                        "\"max_print_temperature\":230,"
+                                        "\"preheat_temperature\":170,"
+                                        "\"min_bed_temperature\":90,"
+                                        "\"max_bed_temperature\":90"
+                                    "}"
+                                "}"
+                            "}"
+                        "}"
+                    "}"
+                "},"
+                "\"addon_power\":false,"
+                "\"tool_count\":1"
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"INFO\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Event - info - material with color") {
+        action = Event {
+            EventType::Info,
+            11,
+        };
+        params.emplace(params_idle());
+        material = FilamentTypeParameters {
+            .name = "FLEX",
+            .color = Color::from_rgb(0x12, 0xab, 0xef),
+            .nozzle_temperature = 240,
+            .nozzle_preheat_temperature = 170,
+            .heatbed_temperature = 50,
+        };
+
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"firmware\":\"TST-1234\","
+                "\"printer_type\":\"2.3.0\","
+                "\"sn\":\"FAKE-1234\","
+                "\"appendix\":false,"
+                "\"fingerprint\":\"DEADBEEF\","
+                "\"transfer_paused\":true,"
+                "\"storages\":[],"
+                "\"network_info\":{\"hostname\":\"\"},"
+                "\"tools\":{"
+                    "\"0\":{"
+                        "\"type\":\"FFF_PRINT_HEAD\","
+                        "\"features\":{"
+                            "\"nozzle_diameter\":0.40,"
+                            "\"nozzle_hardened\":false,"
+                            "\"nozzle_high_flow\":false"
+                        "},"
+                        "\"feeder\":null,"
+                        "\"material_package_instance\":{"
+                            "\"class\":\"FFF\","
+                            "\"package\":{"
+                                "\"class\":\"FFF\","
+                                "\"material\":{"
+                                    "\"class\":\"FFF\","
+                                    "\"abbreviation\":\"FLEX\","
+                                    "\"primary_color\":{\"color_rgba\":\"#12abef\"},"
+                                    "\"tags\":[],"
+                                    "\"properties\":{"
+                                        "\"min_print_temperature\":240,"
+                                        "\"max_print_temperature\":240,"
+                                        "\"preheat_temperature\":170,"
+                                        "\"min_bed_temperature\":50,"
+                                        "\"max_bed_temperature\":50"
+                                    "}"
+                                "}"
+                            "}"
+                        "}"
+                    "}"
                 "},"
                 "\"addon_power\":false,"
                 "\"tool_count\":1"
@@ -484,6 +631,7 @@ TEST_CASE("connect::Render", "[connect]") {
     }
 
     MockPrinter printer(params.value());
+    printer.loaded_material = material;
     RenderState state(printer, action, background_command_id);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
@@ -508,35 +656,56 @@ TEST_CASE("connect::Render - tool set and active tool are sampled once per respo
     auto params = params_idle();
     MockPrinter printer(params);
 
-    const auto render = [&](size_t chunk_size, auto &&between_chunks) {
-        Renderer renderer(RenderState(printer, action, nullopt));
-        string output;
-        while (true) {
-            uint8_t buffer[1024];
-            const auto [result, amount] = renderer.render(buffer, chunk_size);
-            REQUIRE((result == JsonResult::Complete || result == JsonResult::Incomplete));
-            output.append(reinterpret_cast<const char *>(buffer), amount);
-            if (result == JsonResult::Complete) {
-                return output;
-            }
-            between_chunks();
-        }
-    };
-
-    const string in_one_go = render(1024, [] {});
+    const string in_one_go = render_chunked(printer, action, 1024, [] {});
 
     // The tools change after every chunk; the chunk sizes move the change points across the whole message,
-    // the tool loops included
-    for (size_t chunk_size = 32; chunk_size <= 256; chunk_size++) {
+    // the tool loops included. The smallest chunk still fits the longest field.
+    for (size_t chunk_size = 40; chunk_size <= 256; chunk_size++) {
         CAPTURE(chunk_size);
         params.physical_tool_mask = 1;
         params.active_physical_tool = PhysicalToolIndex::from_raw(0);
         bool changed = false;
-        const string chunked = render(chunk_size, [&] {
+        const string chunked = render_chunked(printer, action, chunk_size, [&] {
             changed = !changed;
             params.physical_tool_mask = changed ? 0 : 1;
             params.active_physical_tool = changed ? decltype(params.active_physical_tool)(NoTool {}) : PhysicalToolIndex::from_raw(0);
         });
         REQUIRE(chunked == in_one_go);
+    }
+}
+
+TEST_CASE("connect::Render - the material is sampled once per tool", "[connect]") {
+    const Action action = Event { EventType::Info, 11 };
+    const auto params = params_idle();
+    MockPrinter printer(params);
+
+    const FilamentTypeParameters pla {
+        .name = "PLA",
+        .nozzle_temperature = 215,
+        .heatbed_temperature = 60,
+    };
+    const FilamentTypeParameters asa {
+        .name = "ASA",
+        .color = Color::from_rgb(0xff, 0, 0),
+        .nozzle_temperature = 260,
+        .heatbed_temperature = 100,
+        .is_abrasive = true,
+    };
+
+    printer.loaded_material = pla;
+    const string with_pla = render_chunked(printer, action, 1024, [] {});
+    printer.loaded_material = asa;
+    const string with_asa = render_chunked(printer, action, 1024, [] {});
+    REQUIRE(with_pla != with_asa);
+
+    // The test printer has a single tool. Swapping its material after every chunk, at every possible place in the
+    // message, must still give the whole message of one of the two materials, never a mix of both.
+    for (size_t chunk_size = 40; chunk_size <= 256; chunk_size++) {
+        CAPTURE(chunk_size);
+        printer.loaded_material = pla;
+        const string chunked = render_chunked(printer, action, chunk_size, [&] {
+            printer.loaded_material = printer.loaded_material->is_abrasive ? pla : asa;
+        });
+        REQUIRE((chunked == with_pla || chunked == with_asa));
     }
 }

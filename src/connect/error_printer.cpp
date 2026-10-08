@@ -141,6 +141,11 @@ void ErrorPrinter::reset_printer() {
     sys_reset();
 }
 
+// The error state reports no tools, so no material either
+std::optional<FilamentTypeParameters> ErrorPrinter::material(VirtualToolIndex) const {
+    return nullopt;
+}
+
 void ErrorPrinter::set_physical_tool_info(PhysicalToolIndex, const PhysicalToolInfo &) {
     // Nothing in the error state
 }

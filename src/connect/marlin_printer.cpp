@@ -27,6 +27,7 @@
 #include <common/unique_file_ptr.hpp>
 #include <raii/scope_guard.hpp>
 #include <config_store/store_instance.hpp>
+#include <common/aggregate_arity.hpp>
 #include <bsod/bsod.h>
 #include <client_response.hpp>
 #include <option/has_esp.h>
@@ -708,6 +709,14 @@ std::optional<MarlinPrinter::FinishedJobResult> MarlinPrinter::get_prior_job_res
     }
 
     return nullopt;
+}
+
+std::optional<FilamentTypeParameters> MarlinPrinter::material(VirtualToolIndex tool) const {
+    const FilamentType type = FilamentType::for_tool(tool);
+    if (!type) {
+        return nullopt;
+    }
+    return type.parameters();
 }
 
 void MarlinPrinter::set_physical_tool_info(PhysicalToolIndex tool, const PhysicalToolInfo &info) {

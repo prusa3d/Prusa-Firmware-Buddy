@@ -46,6 +46,53 @@ namespace connect_client {
 static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
 static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 7 + 3 * PRINTER_IS_PRUSA_iX());
 static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 1 * HAS_ANFC());
+// A new filament parameter needs a decision whether INFO reports it
+static_assert(
+    aggregate_arity<FilamentTypeParameters>()
+    == 7
+        + HAS_FILAMENT_HEATBREAK_PARAM() * 1
+        + HAS_CHAMBER_API() * 3
+        + HAS_CHAMBER_FILTRATION_API() * 1
+        + HAS_FILAMENT_BASE_PRESET_PARAM() * 1
+        + HAS_ANFC() * 4
+        + HAS_HT_HOTEND() * 1);
+
+namespace {
+
+    void add_material(Crc &crc, const std::optional<FilamentTypeParameters> &material) {
+        crc.add(material.has_value());
+        if (!material.has_value()) {
+            return;
+        }
+
+        // Member by member, the padding bytes are indeterminate
+        crc
+#if HAS_ANFC()
+            .add(material->material_uuid.value_or(UUID::nil()))
+            .add(material->package_uuid.value_or(UUID::nil()))
+            .add(material->instance_uuid.value_or(UUID::nil()))
+#endif
+            .add_str(material->name.data())
+            .add(material->color.has_value() ? material->color->raw : uint32_t(-1))
+            .add(material->nozzle_temperature)
+            .add(material->nozzle_preheat_temperature)
+            .add(material->heatbed_temperature)
+#if HAS_FILAMENT_HEATBREAK_PARAM()
+            .add(material->heatbreak_temperature)
+#endif
+#if HAS_CHAMBER_FILTRATION_API()
+            .add(material->requires_filtration)
+#endif
+            .add(material->is_abrasive);
+#if HAS_CHAMBER_API()
+        // Through the value: the bytes of an empty optional are indeterminate
+        for (const std::optional<uint8_t> &temperature : { material->chamber_min_temperature, material->chamber_max_temperature, material->chamber_target_temperature }) {
+            crc.add(temperature.has_value() ? int(*temperature) : -1);
+        }
+#endif
+    }
+
+} // namespace
 
 uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
     // Note: keep in sync with the rendering of telemetry in render.cpp
@@ -177,6 +224,13 @@ uint32_t Printer::info_fingerprint() const {
                 .add(physical_tool.nozzle_diameter)
                 .add(physical_tool.hardened)
                 .add(physical_tool.high_flow);
+        }
+    }
+
+    for (VirtualToolIndex vt : VirtualToolIndex::all()) {
+        // Use the list of enabled at the time of snapshot, not current
+        if (parameters.virtual_tool_mask & (1 << vt.to_raw())) {
+            add_material(crc, material(vt));
         }
     }
 
