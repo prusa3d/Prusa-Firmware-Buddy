@@ -32,6 +32,7 @@
 #include <client_response.hpp>
 #include <option/has_esp.h>
 #include <common/aggregate_arity.hpp>
+#include <random/random.h>
 
 #include <option/has_cancel_object.h>
 #if HAS_CANCEL_OBJECT()
@@ -76,6 +77,11 @@ static_assert(HAS_CHAMBER_FILTRATION_API());
 #include <option/has_anfc.h>
 #if HAS_ANFC()
     #include <feature/openprinttag/filament_usage_tracker/filament_usage_tracker.hpp>
+#endif
+
+#include <option/has_filament_tracker.h>
+#if HAS_FILAMENT_TRACKER()
+    #include <feature/filament_tracker/filament_tracker.hpp>
 #endif
 
 using marlin_client::GcodeTryResult;
@@ -230,6 +236,14 @@ void MarlinPrinter::drop_paths() {
 }
 
 namespace {
+#if HAS_FILAMENT_TRACKER()
+    uint32_t odometer_id() {
+        // Filament tracker stores data in RAM, so the value gets reset on printer restart
+        static const uint32_t id = rand_u();
+        return id;
+    }
+#endif
+
     void get_tool_info(Printer::Params &params) {
         params.tool_args = {
 #if HAS_MMU2()
@@ -282,9 +296,14 @@ namespace {
 
         for (VirtualToolIndex vt : VirtualToolIndex::all().skip_all_disabled()) {
             params.virtual_tool_mask |= (1 << vt.to_raw());
-            static_assert(aggregate_arity<Printer::VirtualToolInfo>() == HAS_ANFC() * 3);
+            static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 2 * HAS_FILAMENT_TRACKER() + HAS_ANFC() * 3);
 
             [[maybe_unused]] auto &vtp = params.virtual_tools[vt];
+
+#if HAS_FILAMENT_TRACKER()
+            vtp.odometer_id = odometer_id();
+            vtp.odometer_e_mm = buddy::filament_tracker().get_extruded_distance(vt);
+#endif
 
 #if HAS_ANFC()
             if (const auto report = buddy::openprinttag::filament_usage_tracker().filament_report(vt)) {

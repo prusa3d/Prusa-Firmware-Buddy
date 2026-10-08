@@ -43,6 +43,8 @@ Printer::Params params_printing() {
     params.physical_tools[PhysicalToolIndex::from_raw(0)].target_nozzle = 195;
     params.physical_tool_mask = 1;
     params.virtual_tool_mask = 1;
+    params.virtual_tools[VirtualToolIndex::from_raw(0)].odometer_id = 1234;
+    params.virtual_tools[VirtualToolIndex::from_raw(0)].odometer_e_mm = 5678;
     params.active_physical_tool = PhysicalToolIndex::from_raw(0);
     params.state = printer_state::DeviceState::Printing;
 
@@ -106,7 +108,7 @@ TEST_CASE("connect::Render", "[connect]") {
             "\"flow\":0,"
             "\"chamber\":{\"temp\":0.0,\"target_temp\":0,\"fan_1_rpm\":0,\"fan_2_rpm\":0,\"fan_pwm_target\":-1,\"led_intensity\":0},"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":200.0,\"nozzle_target_temp\":195,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":200.0,\"nozzle_target_temp\":195,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null,\"odometer_id\":1234,\"odometer_e\":5678}},"
             "\"state\":\"PRINTING\""
         "}";
         // clang-format on
@@ -125,7 +127,7 @@ TEST_CASE("connect::Render", "[connect]") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null,\"odometer_id\":0,\"odometer_e\":0}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -168,7 +170,7 @@ TEST_CASE("connect::Render", "[connect]") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":false,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":false,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null,\"odometer_id\":0,\"odometer_e\":0}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -196,7 +198,7 @@ TEST_CASE("connect::Render", "[connect]") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null,\"odometer_id\":0,\"odometer_e\":0}},"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -217,7 +219,7 @@ TEST_CASE("connect::Render", "[connect]") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
-            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null}},"
+            "\"tools\":{\"0\":{\"type\":\"FFF_PRINT_HEAD\",\"active\":true,\"nozzle_temp\":0.0,\"nozzle_target_temp\":null,\"heatbreak_fan_rpm\":0,\"print_fan_rpm\":0,\"consumed_weight\":null,\"odometer_id\":0,\"odometer_e\":0}},"
             "\"command_id\":13,"
             "\"state\":\"IDLE\""
         "}";

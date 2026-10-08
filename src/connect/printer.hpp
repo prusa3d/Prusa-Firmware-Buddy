@@ -30,6 +30,7 @@
 #include <option/has_cancel_object.h>
 #include <option/xbuddy_extension_variant.h>
 #include <option/has_anfc.h>
+#include <option/has_filament_tracker.h>
 #include <option/has_esp.h>
 
 namespace connect_client {
@@ -73,6 +74,14 @@ public:
     };
 
     struct VirtualToolInfo {
+#if HAS_FILAMENT_TRACKER()
+        /// Changes (not increments) whenever the odometers of the tool are reset
+        uint32_t odometer_id = 0;
+
+        /// Length of filament extruded since the last odometer reset
+        uint32_t odometer_e_mm = 0;
+#endif
+
 #if HAS_ANFC()
         CompactOptional<uint32_t, std::numeric_limits<uint32_t>::max()> consumed_weight_g;
 

@@ -3,6 +3,7 @@
 #include <common/aggregate_arity.hpp>
 #include <crc32.h>
 #include <option/has_mmu2.h>
+#include <option/has_filament_tracker.h>
 
 #include <cstring>
 
@@ -45,7 +46,8 @@ namespace connect_client {
 // The fingerprints pick the members one by one - a new member needs a decision there
 static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
 static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 7 + 3 * PRINTER_IS_PRUSA_iX());
-static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 3 * HAS_ANFC());
+static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 2 * HAS_FILAMENT_TRACKER() + 3 * HAS_ANFC());
+
 // A new filament parameter needs a decision whether INFO reports it
 static_assert(
     aggregate_arity<FilamentTypeParameters>()
@@ -137,6 +139,11 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         }
 
         [[maybe_unused]] const auto &virtual_tool = virtual_tools[vt];
+#if HAS_FILAMENT_TRACKER()
+        crc.add(virtual_tool.odometer_id)
+            // Don't send telemetry on every extruded millimeter
+            .add(virtual_tool.odometer_e_mm / 100);
+#endif
 #if HAS_ANFC()
         // Don't send telemetry on every consumed gram. The full weight is reported in INFO.
         crc.add(uint32_t(virtual_tool.consumed_weight_g.value_or(-1) / 10));

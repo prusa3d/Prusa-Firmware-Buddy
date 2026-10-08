@@ -32,6 +32,7 @@
 #include <mbedtls/base64.h>
 
 #include <option/has_mmu2.h>
+#include <option/has_filament_tracker.h>
 #include <bsod/bsod.h>
 
 using json::JsonOutput;
@@ -278,6 +279,12 @@ namespace {
                             {
                                 JSON_FIELD_NULL("consumed_weight");
                             }
+
+                            #if HAS_FILAMENT_TRACKER()
+                                JSON_COMMA;
+                                JSON_FIELD_INT("odometer_id", iter_virtual_tool_info().odometer_id) JSON_COMMA;
+                                JSON_FIELD_INT("odometer_e", iter_virtual_tool_info().odometer_e_mm);
+                            #endif
                         }
                         JSON_OBJ_END;
                     }
