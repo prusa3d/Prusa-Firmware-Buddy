@@ -1,6 +1,5 @@
 add_subdirectory(probe_analysis)
 add_subdirectory(automata)
-add_subdirectory(Leds)
 add_subdirectory(gcode)
 add_subdirectory(e2ee)
 add_subdirectory(http)
