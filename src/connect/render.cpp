@@ -435,6 +435,7 @@ namespace {
                             // Runs once per tool: a resumed chunk jumps past it
                             if (const auto virtual_tool = state.iter_virtual_tool()) {
                                 state.material = state.printer.material(*virtual_tool);
+                                state.virtual_tool_info = params.virtual_tools[*virtual_tool];
                             }
                             if (state.iter_physical_tool().has_value()) {
                                 // Connect merges INFO into what it already has: null removes a tool, absence would keep it
@@ -491,6 +492,10 @@ namespace {
                                             JSON_COMMA;
                                             JSON_FIELD_STR("uuid", state.material->instance_uuid->to_string(uuid_buffer));
                                         }
+                                        if (state.virtual_tool_info.full_weight_g.has_value() && !state.virtual_tool_info.full_weight_is_nominal) {
+                                            JSON_COMMA;
+                                            JSON_FIELD_INT("actual_netto_full_weight", *state.virtual_tool_info.full_weight_g);
+                                        }
 #endif
                                         JSON_COMMA;
                                         JSON_FIELD_OBJ("package");
@@ -499,6 +504,10 @@ namespace {
                                             if (state.material->package_uuid.has_value()) {
                                                 JSON_COMMA;
                                                 JSON_FIELD_STR("uuid", state.material->package_uuid->to_string(uuid_buffer));
+                                            }
+                                            if (state.virtual_tool_info.full_weight_g.has_value() && state.virtual_tool_info.full_weight_is_nominal) {
+                                                JSON_COMMA;
+                                                JSON_FIELD_INT("nominal_netto_full_weight", *state.virtual_tool_info.full_weight_g);
                                             }
 #endif
                                             JSON_COMMA;

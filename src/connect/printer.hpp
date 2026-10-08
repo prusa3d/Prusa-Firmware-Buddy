@@ -75,6 +75,12 @@ public:
     struct VirtualToolInfo {
 #if HAS_ANFC()
         CompactOptional<uint32_t, std::numeric_limits<uint32_t>::max()> consumed_weight_g;
+
+        /// Full weight of the tracked spool, for INFO
+        CompactOptional<uint32_t, std::numeric_limits<uint32_t>::max()> full_weight_g;
+
+        /// Whether the spool tag gives the full weight as nominal rather than actual
+        bool full_weight_is_nominal = false;
 #endif
     };
 

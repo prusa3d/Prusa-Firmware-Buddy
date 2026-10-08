@@ -282,15 +282,19 @@ namespace {
 
         for (VirtualToolIndex vt : VirtualToolIndex::all().skip_all_disabled()) {
             params.virtual_tool_mask |= (1 << vt.to_raw());
-            static_assert(aggregate_arity<Printer::VirtualToolInfo>() == HAS_ANFC() * 1);
+            static_assert(aggregate_arity<Printer::VirtualToolInfo>() == HAS_ANFC() * 3);
 
             [[maybe_unused]] auto &vtp = params.virtual_tools[vt];
 
 #if HAS_ANFC()
             if (const auto report = buddy::openprinttag::filament_usage_tracker().filament_report(vt)) {
                 vtp.consumed_weight_g = static_cast<uint32_t>(std::max(0.f, report->full_weight_g - report->remaining_weight_g));
+                vtp.full_weight_g = static_cast<uint32_t>(report->full_weight_g);
+                vtp.full_weight_is_nominal = report->full_weight_is_nominal;
             } else {
                 vtp.consumed_weight_g = std::nullopt;
+                vtp.full_weight_g = std::nullopt;
+                vtp.full_weight_is_nominal = false;
             }
 #endif
         }

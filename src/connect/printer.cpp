@@ -45,7 +45,7 @@ namespace connect_client {
 // The fingerprints pick the members one by one - a new member needs a decision there
 static_assert(aggregate_arity<ToConnectToolArgs>() == HAS_MMU2());
 static_assert(aggregate_arity<Printer::PhysicalToolInfo>() == 7 + 3 * PRINTER_IS_PRUSA_iX());
-static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 1 * HAS_ANFC());
+static_assert(aggregate_arity<Printer::VirtualToolInfo>() == 3 * HAS_ANFC());
 // A new filament parameter needs a decision whether INFO reports it
 static_assert(
     aggregate_arity<FilamentTypeParameters>()
@@ -138,7 +138,7 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
 
         [[maybe_unused]] const auto &virtual_tool = virtual_tools[vt];
 #if HAS_ANFC()
-        // Don't send telemetry on every consumed gram
+        // Don't send telemetry on every consumed gram. The full weight is reported in INFO.
         crc.add(uint32_t(virtual_tool.consumed_weight_g.value_or(-1) / 10));
 #endif
     }
@@ -231,6 +231,9 @@ uint32_t Printer::info_fingerprint() const {
         // Use the list of enabled at the time of snapshot, not current
         if (parameters.virtual_tool_mask & (1 << vt.to_raw())) {
             add_material(crc, material(vt));
+#if HAS_ANFC()
+            crc.add(parameters.virtual_tools[vt].full_weight_g.value_or(-1)).add(parameters.virtual_tools[vt].full_weight_is_nominal);
+#endif
         }
     }
 

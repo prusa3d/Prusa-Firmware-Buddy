@@ -105,6 +105,8 @@ struct RenderState {
     ToConnectToolArgs tool_args = {};
     /// Material of the INFO tool being rendered, sampled once per tool so that its fields come from one material
     std::optional<FilamentTypeParameters> material;
+    /// Spool data of the INFO tool being rendered, sampled with its material
+    Printer::VirtualToolInfo virtual_tool_info;
     bool has_stat = false;
     bool read_only = false;
     struct stat st;
