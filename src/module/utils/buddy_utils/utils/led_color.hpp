@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
 
 namespace leds {
@@ -51,7 +50,11 @@ struct ColorRGBW {
         const float v = hsv.v / 100.0f;
 
         const auto convert = [&](uint8_t n) -> uint8_t {
-            float k = std::fmod(n + h / 60, 6.f);
+            // n + h / 60 is within [0, 11], so a single wrap is enough
+            float k = n + h / 60;
+            if (k >= 6) {
+                k -= 6;
+            }
             float intermediate = (v * s * std::max(0.f, std::min(std::min(k, 4 - k), 1.f)));
             float e = (v - intermediate);
             return static_cast<uint8_t>(255 * e);
