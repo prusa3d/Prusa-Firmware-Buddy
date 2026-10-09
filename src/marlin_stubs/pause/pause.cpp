@@ -65,6 +65,11 @@ static_assert(HAS_PAUSE());
 #include <option/has_wastebin.h>
 #include <option/has_side_fsensor.h>
 
+#include <option/has_side_leds.h>
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_handler.hpp>
+#endif
+
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
@@ -876,7 +881,14 @@ bool Pause::nozzle_cleaner_purge_sequence() {
 #endif // HAS_NOZZLE_CLEANER()
 
 void Pause::color_correct_ask_process(Response response) {
-    setPhase(load_type == LoadType::load_purge ? PhasesLoadUnload::IsColorPurge : PhasesLoadUnload::IsColor);
+    const auto phase = load_type == LoadType::load_purge ? PhasesLoadUnload::IsColorPurge : PhasesLoadUnload::IsColor;
+#if HAS_SIDE_LEDS()
+    if (getPhase() != phase) {
+        // Wake the chamber lights so the user can inspect the filament after each purge.
+        leds::SideStripHandler::instance().activity_ping();
+    }
+#endif
+    setPhase(phase);
     switch (response) {
 
     case Response::Purge_more:

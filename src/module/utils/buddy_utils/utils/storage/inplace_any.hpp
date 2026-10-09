@@ -1,6 +1,7 @@
 /// \file
 #pragma once
 
+#include <array>
 #include <memory>
 #include <type_traits>
 
