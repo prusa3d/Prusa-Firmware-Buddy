@@ -489,4 +489,15 @@ JsonResult get_storage(size_t resume_point, JsonOutput &output) {
     // clang-format on
 }
 
+JsonResult get_stealth_settings(size_t resume_point, JsonOutput &output) {
+    const bool enabled = config_store().stealth_mode.get();
+    // clang-format off
+    JSON_START;
+        JSON_OBJ_START
+            JSON_FIELD_BOOL("enabled", enabled);
+        JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
 } // namespace nhttp::link_content

@@ -49,6 +49,11 @@ namespace {
         return ret;
     }
 
+    void set_stealth(bool enable, const RequestParser &parser, handler::Step &out) {
+        marlin_client::gcode_try(enable ? "M9150" : "M9140");
+        out.next = StatusPage(Status::NoContent, parser);
+    }
+
     void stop_print(const RequestParser &parser, handler::Step &out) {
         switch (printer_state::get_state(false)) {
         case DeviceState::Printing:
@@ -174,6 +179,17 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
             out.next = StatusPage(Status::NoContent, parser);
             return Accepted::Accepted;
         }
+    } else if (auto stealth_suffix = remove_prefix(suffix, "settings/stealth"); stealth_suffix.has_value()) {
+        if (*stealth_suffix == "") {
+            get_only(SendJson(EmptyRenderer(get_stealth_settings), parser.can_keep_alive()), parser, out);
+        } else if (*stealth_suffix == "/on" && parser.method == Method::Put) {
+            set_stealth(true, parser, out);
+        } else if (*stealth_suffix == "/off" && parser.method == Method::Put) {
+            set_stealth(false, parser, out);
+        } else {
+            out.next = StatusPage(Status::NotFound, parser);
+        }
+        return Accepted::Accepted;
     } else if (remove_prefix(suffix, "files").has_value()) {
         static const auto prefix = "/api/v1/files";
         static const size_t prefix_len = strlen(prefix);
