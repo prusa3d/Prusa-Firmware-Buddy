@@ -546,6 +546,7 @@ SCENARIO("happy case") {
                 CHECK(modbus_request.offset == 0);
 
                 std::optional<size_t> last_sent = std::nullopt;
+                size_t bytes_sent = 0;
                 uint32_t time = 4002;
 
                 std::vector<uint8_t> data;
@@ -559,6 +560,7 @@ SCENARIO("happy case") {
                     if (last_sent != modbus_request.offset) {
                         last_sent = modbus_request.offset;
                         CHECK(app.receive_chunk(mock_firmware.data() + modbus_request.offset, size, modbus_request.offset + size == mock_firmware.size(), static_cast<uint16_t>(modbus_request.flash_request), modbus_request.offset));
+                        bytes_sent += size;
                         progress = true;
                     }
 
@@ -600,6 +602,8 @@ SCENARIO("happy case") {
                 }
 
                 CHECK(data == mock_firmware);
+                // Each part of the firmware is fetched over modbus only once.
+                CHECK(bytes_sent == mock_firmware.size());
             }
 
             WHEN("Application boots and requests ID again") {

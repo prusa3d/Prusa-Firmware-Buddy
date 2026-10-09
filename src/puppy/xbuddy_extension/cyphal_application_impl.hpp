@@ -789,6 +789,7 @@ private:
                 read_size = std::min(read_size, filesystem.buffer.size());
             }
             if (filesystem.buffer.try_read(buf, read_size)) {
+                filesystem.read_offset += read_size;
                 presentation.transmit_file_read_response(NodeId { *filesystem.current_node }, *flash->transfer_id, { buf, read_size });
                 filesystem.last_activity = now;
                 // This chunk got sent, but the flashing continues, we expect we'll get another request.
