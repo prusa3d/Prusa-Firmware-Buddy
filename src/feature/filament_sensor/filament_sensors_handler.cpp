@@ -13,6 +13,11 @@
 #include <option/has_selftest.h>
 #include <option/has_mmu2.h>
 
+#include <option/has_side_leds.h>
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_handler.hpp>
+#endif
+
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <Marlin/src/module/prusa/toolchanger.h>
@@ -145,6 +150,13 @@ void FilamentSensors::step() {
 
         s.record_state();
         s.check_for_events();
+
+#if HAS_SIDE_LEDS()
+        // Inserting filament counts as activity even when autoload/runout events are locked.
+        if (s.last_event() == IFSensor::Event::filament_inserted) {
+            leds::SideStripHandler::instance().activity_ping();
+        }
+#endif
     });
 
     // Update logical sensors states
