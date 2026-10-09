@@ -237,9 +237,13 @@ uint32_t Printer::info_fingerprint() const {
     for (VirtualToolIndex vt : VirtualToolIndex::all()) {
         // Use the list of enabled at the time of snapshot, not current
         if (parameters.virtual_tool_mask & (1 << vt.to_raw())) {
+            [[maybe_unused]] auto &vd = parameters.virtual_tools[vt];
+
             add_material(crc, material(vt));
 #if HAS_ANFC()
-            crc.add(parameters.virtual_tools[vt].full_weight_g.value_or(-1)).add(parameters.virtual_tools[vt].full_weight_is_nominal);
+            crc
+                .add(vd.full_weight_g.value_or(-1))
+                .add(vd.full_weight_is_nominal);
 #endif
         }
     }
