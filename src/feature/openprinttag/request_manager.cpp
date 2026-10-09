@@ -11,6 +11,7 @@
 #include <prusa3d/nfc/command/AcceptEvent_1_0.h>
 #include <prusa3d/nfc/command/Request_1_0.h>
 #include <prusa3d/nfc/event/Event_1_0.h>
+#include <puppies/cyphal_node_table_host.hpp>
 #include <logging/log.hpp>
 #include <timing.h>
 #include <utils/byte_utils.hpp>
@@ -75,6 +76,10 @@ puppies::CommunicationStatus Manager::step(anfc::modbus::Client &client) {
         std::lock_guard lock { mutex };
 
         check_timeouts();
+
+        if (puppies::cyphal_node_table().get_node_state(xbuddy_extension::NodeName::cz_prusa3d_honeybee_nfc) != xbuddy_extension::NodeState::ready) {
+            return result;
+        }
 
         for (DeviceState &device_state : devices) {
             result = puppies::aggregate_communication_status({ result, device_state.step(client) });
