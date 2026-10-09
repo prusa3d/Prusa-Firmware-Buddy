@@ -811,11 +811,8 @@ else()
 endif()
 define_boolean_option(HAS_CYPHAL ${HAS_CYPHAL})
 
-if(DEVELOPMENT_ITEMS_ENABLED)
-  set_feature_for_printers(HAS_ANFC "COREONE" "COREONEL")
-else()
-  set_feature_for_printers(HAS_ANFC)
-endif()
+set_feature_for_printers(HAS_ANFC "COREONE" "COREONEL")
+
 set_feature_for_printers(HAS_HEATBED_SCREWS_DURING_TRANSPORT "COREONEL" "COREONEL_INDX")
 
 set_feature_for_printers(HAS_HTCONTROLLER "XL")
