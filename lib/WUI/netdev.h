@@ -114,6 +114,8 @@ uint32_t netdev_get_active_id();
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set network device for communication
 ///
+/// The other device is brought down (Wi-Fi leaves its access point).
+///
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
