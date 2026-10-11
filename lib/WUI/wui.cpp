@@ -795,8 +795,8 @@ void netdev_set_enabled(const uint32_t netdev_id, const bool enabled) {
     });
 }
 
-bool netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) {
-    const uint8_t flag = config_store().wifi_flag.get();
+bool netdev_is_enabled(const uint32_t netdev_id) {
+    const uint8_t flag = netdev_id == NETDEV_ETH_ID ? config_store().lan_flag.get() : config_store().wifi_flag.get();
     return IS_LAN_ON(flag);
 }
 
