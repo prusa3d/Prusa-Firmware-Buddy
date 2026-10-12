@@ -46,6 +46,13 @@ MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
 }
 
 void MI_WIFI_STATUS_t::Loop() {
+    if (netdev_get_active_id() != NETDEV_ESP_ID) {
+        // Only the active interface is brought up, so an inactive Wi-Fi is
+        // off on purpose rather than failing to find an access point.
+        ChangeInformation(_("Off"));
+        return;
+    }
+
     const netdev_status_t status = netdev_get_status(NETDEV_ESP_ID);
     if (is_device_connected(status)) {
         ChangeInformation(status == NETDEV_NETIF_UP ? _("Connected") : _("Link down"));
