@@ -353,6 +353,17 @@ private:
         load_net_params(&ifaces[NETDEV_ETH_ID].desired_config, nullptr, NETDEV_ETH_ID);
 #if HAS_ESP()
         load_net_params(&ifaces[NETDEV_ESP_ID].desired_config, &ap, NETDEV_ESP_ID);
+
+        // Only the active interface runs. Both share the hostname, so with
+        // both up the printer appears on the network twice under the same
+        // name with different addresses.
+        if (active_local < ifaces.size()) {
+            for (uint32_t i = 0; i < ifaces.size(); i++) {
+                if (i != active_local) {
+                    TURN_FLAG_OFF(ifaces[i].desired_config.lan.flag);
+                }
+            }
+        }
 #endif
 
         // First, bring everything down. Then bring whatever is enabled up.
@@ -795,8 +806,8 @@ void netdev_set_enabled(const uint32_t netdev_id, const bool enabled) {
     });
 }
 
-bool netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) {
-    const uint8_t flag = config_store().wifi_flag.get();
+bool netdev_is_enabled(const uint32_t netdev_id) {
+    const uint8_t flag = netdev_id == NETDEV_ETH_ID ? config_store().lan_flag.get() : config_store().wifi_flag.get();
     return IS_LAN_ON(flag);
 }
 
