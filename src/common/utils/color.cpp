@@ -14,7 +14,7 @@ static constexpr auto color_presets = std::to_array<ColorPreset>({
     { "BLACK", Color::from_raw(0x000000) },
     { "BLUE", Color::from_raw(0x0000FF) },
     { "GREEN", Color::from_raw(0x00FF00) },
-    { "BROWN", Color::from_raw(0x800000) },
+    { "BROWN", Color::from_raw(0x804000) },
     { "PURPLE", Color::from_raw(0x800080) },
     { "GRAY", Color::from_raw(0x999999) },
     { "TERRACOTTA", Color::from_raw(0xB87F6A) },
