@@ -46,22 +46,6 @@ static const Bytes dummy_parameter = std::as_bytes(std::span { dummy_parameter_s
 
 namespace cyphal {
 
-/// For now, there is a one-to-one correspondence; this may be extended with
-/// different hardware revisions of the same logical node in the future.
-inline FirmwareFile get_firmware_file_for_node_name(NodeName node_name) {
-    switch (node_name) {
-    case NodeName::none:
-        break;
-    case NodeName::cz_prusa3d_honeybee_ac_controller:
-        return FirmwareFile::firmware_ac_controller;
-    case NodeName::cz_prusa3d_honeybee_nfc:
-        return FirmwareFile::firmware_anfc;
-    case NodeName::cz_prusa3d_honeybee_tool_offset_sensor:
-        return FirmwareFile::firmware_tool_offset_sensor;
-    }
-    return FirmwareFile::none;
-}
-
 /// Application layer of the cyphal implementation.
 class ApplicationImpl final : public Application {
 private:
@@ -536,7 +520,7 @@ private:
                 }
 
                 if (!verify.requested_from_source && verify.salt_valid) {
-                    if (filesystem.request_hash(node_id, get_firmware_file_for_node_name(info.name), verify.salt)) {
+                    if (filesystem.request_hash(node_id, xbuddy_extension::firmware_file_id(info.name), verify.salt)) {
                         presentation.transmit_diagnostic_record(Severity::notice, "hash requested");
                         verify.requested_from_source = true;
                         return true;
@@ -557,7 +541,7 @@ private:
 
                 if (!verify.received_from_source && verify.salt_valid) {
                     // We are waiting for the digest from the board.
-                    if (filesystem.hash_response == get_firmware_file_for_node_name(info.name) && filesystem.hash_salt == verify.salt) {
+                    if (filesystem.hash_response == xbuddy_extension::firmware_file_id(info.name) && filesystem.hash_salt == verify.salt) {
                         switch (filesystem.hash_status) {
                         case xbuddy_extension::DigestStatus::ok:
                             verify.received_from_source = true;
@@ -750,7 +734,7 @@ private:
                             // Give up on this node, try looking into the next one.
                             continue;
                         } else {
-                            filesystem.file = get_firmware_file_for_node_name(node.info.name);
+                            filesystem.file = xbuddy_extension::firmware_file_id(node.info.name);
                         }
                         filesystem.eof = false;
                         filesystem.delayed_update = true;

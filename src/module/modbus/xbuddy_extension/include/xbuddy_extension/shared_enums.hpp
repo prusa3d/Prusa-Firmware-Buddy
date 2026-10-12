@@ -53,6 +53,23 @@ enum class FileId : uint8_t {
     firmware_tool_offset_sensor
 };
 
+/// Firmware file of the node with given name.
+/// For now, there is a one-to-one correspondence; this may be extended with
+/// different hardware revisions of the same logical node in the future.
+constexpr FileId firmware_file_id(NodeName node_name) {
+    switch (node_name) {
+    case NodeName::none:
+        break;
+    case NodeName::cz_prusa3d_honeybee_ac_controller:
+        return FileId::firmware_ac_controller;
+    case NodeName::cz_prusa3d_honeybee_nfc:
+        return FileId::firmware_anfc;
+    case NodeName::cz_prusa3d_honeybee_tool_offset_sensor:
+        return FileId::firmware_tool_offset_sensor;
+    }
+    return FileId::none;
+}
+
 /// Status accompanying a Digest response.
 enum class DigestStatus : uint8_t {
     ok = 0, ///< data contains a valid digest
