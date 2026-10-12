@@ -7,4 +7,8 @@ if(HAS_ANFC)
   target_sources(firmware PRIVATE menu_item_uuid.cpp)
 endif()
 
+if(HAS_CYPHAL)
+  target_sources(firmware PRIVATE menu_item_cyphal_node_status.cpp)
+endif()
+
 add_subdirectory(specific)
