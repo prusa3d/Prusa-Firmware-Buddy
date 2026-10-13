@@ -12,6 +12,7 @@
 #include <marlin_server.hpp>
 #include <feature/prusa/e-stall_detector.h>
 #include <mapi/motion.hpp>
+#include <mapi/cold_extrude.hpp>
 #include <mapi/parking.hpp>
 #include <mapi/feedrates/standard_feedrates.hpp>
 #include <gcode/temperature/M104_M109.hpp>
@@ -244,15 +245,35 @@ void AutoRetract::ensure_retracted_no_ramming(float purge_length) {
 
     planner.synchronize();
     const auto temp_before = thermalManager.degTargetHotend(physical_tool);
-    const M109Flags flags_pre = {
-        .target_temp = FilamentType::for_tool_heuristic(virtual_tool).parameters().nozzle_temperature,
-    };
-    M109_no_parser(physical_tool, flags_pre);
+
+    // The nozzle is sometimes deliberately held below the filament's nominal
+    // temperature (e.g. at the lower mesh-bed-leveling probing temperature).
+    // Whether extrusion is allowed at the current temperature is decided by the
+    // cold extrusion limit (settable via M302); when the nozzle is already that
+    // hot, retract at the current temperature instead of heating all the way to
+    // the filament temperature and cooling back. That round-trip wastes time and
+    // briefly oozes right before the probe the retraction is meant to protect.
+#if ENABLED(PREVENT_COLD_EXTRUSION)
+    const bool preheat_needed = temp_before < thermalManager.extrude_min_temp;
+#else
+    const bool preheat_needed = true;
+#endif
+
+    if (preheat_needed) {
+        const M109Flags flags_pre = {
+            .target_temp = FilamentType::for_tool_heuristic(virtual_tool).parameters().nozzle_temperature,
+        };
+        M109_no_parser(physical_tool, flags_pre);
+    }
 
     {
         const auto filament = FilamentType::for_current_tool_heuristic();
 
         BlockEStallDetection estall_blocker;
+        // When the pre-heat was skipped the nozzle sits at the (already
+        // extrudable) holding temperature, which may be a touch below the cold
+        // extrusion limit momentarily; allow the deliberate retract regardless.
+        mapi::ColdExtrudeGuard cold_extrude_guard;
         // Purge a little
         if (purge_length > 0.f) {
             mapi::extruder_move(purge_length, buddy::standard_feedrates::extruder(buddy::standard_feedrates::Extruder::advanced_pause_purge, filament));
@@ -266,11 +287,13 @@ void AutoRetract::ensure_retracted_no_ramming(float purge_length) {
         set_retracted_distance(physical_tool, full_retract_distance);
     }
 
-    // Reach back to original temp
-    const M109Flags flags_post = {
-        .target_temp = temp_before,
-        .wait_heat_or_cool = true,
-        .autotemp = true, // Use fans to cool
-    };
-    M109_no_parser(physical_tool, flags_post);
+    if (preheat_needed) {
+        // Reach back to original temp
+        const M109Flags flags_post = {
+            .target_temp = temp_before,
+            .wait_heat_or_cool = true,
+            .autotemp = true, // Use fans to cool
+        };
+        M109_no_parser(physical_tool, flags_post);
+    }
 }
