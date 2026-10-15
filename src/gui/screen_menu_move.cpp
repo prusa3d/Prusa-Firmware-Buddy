@@ -10,6 +10,8 @@
     #include <Marlin/src/module/prusa/toolchanger.h>
 #endif
 
+#include <config_store/store_c_api.h>
+
 #include <gui/menu_vars.h>
 #include <img_resources.hpp>
 #include <utils/string_builder.hpp>
@@ -202,7 +204,10 @@ void ScreenMenuMove::plan_moves() {
         (double)target_pos.y,
         (double)target_pos.z);
     if (PhysicalToolIndex::currently_selected_opt().has_value()) {
-        gcode.append_printf(" E%f", (double)target_pos.e);
+        // The user enters millimeters of filament; the default steps/mm feed less than commanded, compensate here.
+        // Only here - G-codes and firmware moves stay uncompensated for compatibility with existing G-codes.
+        const float e_gcode = target_pos.e * CALIBRATED_AXIS_STEPS_PER_UNIT_E0 / get_steps_per_unit_e();
+        gcode.append_printf(" E%f", (double)e_gcode);
     }
     if (marlin_client::gcode_try(gcode.str()) != marlin_client::GcodeTryResult::Submitted) {
         return;
