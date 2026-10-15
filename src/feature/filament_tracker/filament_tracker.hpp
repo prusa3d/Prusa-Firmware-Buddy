@@ -34,9 +34,17 @@ public:
     #error
 #endif
 
+    struct ExtruderMove {
+        /// Commanded E distance (mm), flow factor already applied
+        float commanded_mm;
+
+        /// Length the extruder actually feeds per commanded mm
+        float feed_ratio;
+    };
+
     /// Lets the tracker know about a planned extruder move
     /// The only place this should be called from is planner.buffer_segment
-    void track_extruder_move(VirtualToolIndex virtual_tool, float e_delta);
+    void track_extruder_move(VirtualToolIndex virtual_tool, const ExtruderMove &move);
 
     /// @returns how much the filament is retracted  (in mm) from the nozzle of @p physical_tool
     ///   or std::nullopt if the value is not known
@@ -46,7 +54,7 @@ public:
     /// std::nullopt would signalize that the filament is fully removed
     void assume_retracted_distance(PhysicalToolIndex physical_tool, std::optional<float> distance);
 
-    /// @returns how much filament (in mm) has been extruded from the nozzle since last reset
+    /// @returns how much filament (in mm) the extruder has actually fed out of the nozzle since last reset
     /// This value is NOT persistent
     uint32_t get_extruded_distance(VirtualToolIndex virtual_tool) const;
 

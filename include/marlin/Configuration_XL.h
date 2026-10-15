@@ -445,6 +445,10 @@
 #define AXIS_STEPS_PER_UNIT_2GT_XY 80.0f
 #define AXIS_STEPS_PER_UNIT_15GT_XY (80.f * 40.f / 40.5f)
 #define DEFAULT_AXIS_STEPS_PER_UNIT_Z 800
+// Steps/mm at which the extruder feeds exactly the commanded length. The default is deliberately
+// lower ("normalised flow", formerly M221 S95 in the slicer start G-code); filament usage tracking
+// and the Move E menu compensate for it. Re-measure both when the extruder changes.
+#define CALIBRATED_AXIS_STEPS_PER_UNIT_E0 400
 #define DEFAULT_AXIS_STEPS_PER_UNIT_E0 380
 
 /**

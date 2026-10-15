@@ -11,10 +11,12 @@ FilamentTracker::FilamentTracker() {
     retracted_distances.fill(0);
 }
 
-void FilamentTracker::track_extruder_move(VirtualToolIndex virtual_tool, float e_delta) {
+void FilamentTracker::track_extruder_move(VirtualToolIndex virtual_tool, const ExtruderMove &move) {
     const PhysicalToolIndex physical_tool = virtual_tool.to_physical();
 
-    const float new_retracted_distance_unclamped = retracted_distances[physical_tool] - /* inverting to positive */ e_delta;
+    // The retracted distance stays in commanded mm: auto_retract replays it as commanded moves.
+    // The clamp below is a physical length compared against commanded mm; the few % mismatch is accepted.
+    const float new_retracted_distance_unclamped = retracted_distances[physical_tool] - /* inverting to positive */ move.commanded_mm;
 
     // Update retracted distance
     {
@@ -33,11 +35,11 @@ void FilamentTracker::track_extruder_move(VirtualToolIndex virtual_tool, float e
         }
     }
 
-    // Update extruded distance
+    // Update extruded distance - in mm actually fed
     {
         auto &edist = extruded_distances[virtual_tool];
         float integral;
-        edist.fractional += std::max<float>(-new_retracted_distance_unclamped, 0);
+        edist.fractional += std::max<float>(-new_retracted_distance_unclamped, 0) * move.feed_ratio;
         edist.fractional = std::modf(edist.fractional, &integral);
         edist.integral += static_cast<uint32_t>(integral);
     }

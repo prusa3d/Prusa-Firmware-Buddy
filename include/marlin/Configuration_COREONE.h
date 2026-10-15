@@ -470,12 +470,16 @@
 #define AXIS_STEPS_PER_UNIT_15GT_XY 101.587f
 #define DEFAULT_AXIS_STEPS_PER_UNIT_Z 400
 
+// Steps/mm at which the extruder feeds exactly the commanded length. The default is deliberately
+// lower ("normalised flow", formerly M221 S95 in the slicer start G-code); filament usage tracking
+// and the Move E menu compensate for it. Re-measure both when the extruder changes.
 #if HAS_INDX()
-// INDX_HEAD extruder is calibrated for 567 steps/mm, but we have changed it to 550 steps/mm.
-// This compensates for shorter length of the extruder service moves.
-static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = 576.f / 550.f;
-#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 550 // Adjust EXTRUDER_SERVICE_MOVE_E_FACTOR if changed
+#define CALIBRATED_AXIS_STEPS_PER_UNIT_E0 576
+#define DEFAULT_AXIS_STEPS_PER_UNIT_E0 550
+// Extruder service moves feed exactly their commanded length
+static constexpr float EXTRUDER_SERVICE_MOVE_E_FACTOR = static_cast<float>(CALIBRATED_AXIS_STEPS_PER_UNIT_E0) / DEFAULT_AXIS_STEPS_PER_UNIT_E0;
 #else
+#define CALIBRATED_AXIS_STEPS_PER_UNIT_E0 400
 #define DEFAULT_AXIS_STEPS_PER_UNIT_E0 380
 #endif
 

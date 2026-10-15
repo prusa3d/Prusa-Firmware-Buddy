@@ -411,6 +411,9 @@
 #define DEFAULT_AXIS_STEPS_PER_UNIT_X 100
 #define DEFAULT_AXIS_STEPS_PER_UNIT_Y 100
 #define DEFAULT_AXIS_STEPS_PER_UNIT_Z 400
+// Steps/mm at which the extruder feeds exactly the commanded length.
+// MINI G-codes apply the "normalised flow" themselves (M221 S95), so the default is not reduced.
+#define CALIBRATED_AXIS_STEPS_PER_UNIT_E0 325
 #define DEFAULT_AXIS_STEPS_PER_UNIT_E0 325 //E0 280 295
 
 /**

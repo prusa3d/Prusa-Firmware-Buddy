@@ -2208,7 +2208,14 @@ bool Planner::buffer_segment(const MachinePosXYZE &xyze, const feedRate_t fr_mm_
       // Note: This is not >>ideal<<, because although the moves get planned, they might get discarded through (gcode_exceptions/quick_stop)
       // Most notably, this will track some extra filament usage if user intterupts purging
       // Tying this directly to the immediate motor positions might be better, but one would also need to also handle the origin resets
-      buddy::filament_tracker().track_extruder_move(*tools.virtual_tool, delta_e_mm);
+      // Live steps/mm against the stock extruder's calibration, so G-codes changing steps (M92) or flow are tracked right.
+      // A custom extruder with user-set steps/mm would need its own calibrated value (e.g. an experimental
+      // menu item stored in EEPROM next to the steps/mm); not supported.
+      static constexpr float inv_calibrated_steps_per_mm = 1.0f / CALIBRATED_AXIS_STEPS_PER_UNIT_E0;
+      buddy::filament_tracker().track_extruder_move(*tools.virtual_tool, {
+        .commanded_mm = delta_e_mm,
+        .feed_ratio = settings.axis_steps_per_mm[E_AXIS_N(tools.extruder)] * inv_calibrated_steps_per_mm,
+      });
     }
 #endif
   }
