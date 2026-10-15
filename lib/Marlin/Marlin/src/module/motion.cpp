@@ -1159,7 +1159,15 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
     if (++attempt >= HOMING_MAX_ATTEMPTS) {
       // not OK run out attempts
       set_axis_is_not_at_home(axis);
-      
+
+      if (axis == Z_AXIS && axis_home_dir < 0 && Z_HOMING_HEIGHT > 0) {
+        // The last attempt left the nozzle touching the bed. Whoever handles the failure
+        // (e.g. crash recovery rehoming XY) must not drag it across the bed.
+        current_position[axis] += Z_HOMING_HEIGHT;
+        line_to_current_position(homing_feedrate(Z_AXIS));
+        planner.synchronize();
+      }
+
       if (throw_homing_failed) {
         static constexpr std::array error_codes {
           ErrCode::ERR_ELECTRO_HOMING_ERROR_X,
