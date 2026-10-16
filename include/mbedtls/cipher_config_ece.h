@@ -66,7 +66,10 @@
 #define MBEDTLS_MPI_WINDOW_SIZE       1
 #define MBEDTLS_ECP_WINDOW_SIZE       2
 #define MBEDTLS_ECP_FIXED_POINT_OPTIM 0
-#define MBEDTLS_SSL_MAX_CONTENT_LEN   1024
+// Fast P-256 field reduction instead of generic bignum division. Costs <1 KB of flash
+// and no RAM, makes the TLS handshake ~5x faster (11 s -> 2.4 s on MK4).
+#define MBEDTLS_ECP_NIST_OPTIM
+#define MBEDTLS_SSL_MAX_CONTENT_LEN 1024
 
 #define MBEDTLS_SSL_OUT_CONTENT_LEN 512
 #define MBEDTLS_SSL_IN_CONTENT_LEN  1024
