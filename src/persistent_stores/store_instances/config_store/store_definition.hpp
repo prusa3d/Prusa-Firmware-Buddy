@@ -929,6 +929,11 @@ struct CurrentStore
 #endif
 #if HAS_PRECISE_HOMING_COREXY() && HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
     StoreItem<CoreXYHomeTMCSens, COREXY_NO_HOME_TMC_SENS, ItemFlag::calibrations, journal::hash("CoreXY home TMC calibration")> corexy_home_tmc_sens;
+    #ifdef XY_HOMING_MEASURE_CURRENT
+    /// Current of the measured (moving) motor during precise homing measurements [mA]
+    /// The homing calibration is tied to this value and has to be redone when it changes
+    StoreItem<uint16_t, XY_HOMING_MEASURE_CURRENT, ItemFlag::hw_config, journal::hash("CoreXY homing measure current")> xy_homing_measure_current;
+    #endif
 #endif
 #if HAS_PRECISE_HOMING()
     static constexpr uint8_t precise_homing_axis_sample_count = 9;

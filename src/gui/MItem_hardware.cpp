@@ -201,6 +201,35 @@ void MI_AUTO_PRECISE_HOMING_CALIBRATION::OnChange(size_t) {
     config_store().auto_recalibrate_precise_homing.set(static_cast<Tristate::Value>(get_index()));
 }
 #endif
+
+#if HAS_XY_HOMING_MEASURE_CURRENT_MENU()
+static constexpr NumericInputConfig xy_homing_measure_current_spin_config = {
+    .min_value = 500,
+    .max_value = 700,
+    .step = 10,
+    .unit = Unit::milliamper,
+};
+
+MI_XY_HOMING_MEASURE_CURRENT::MI_XY_HOMING_MEASURE_CURRENT()
+    : WiSpin(config_store().xy_homing_measure_current.get(), xy_homing_measure_current_spin_config, _(label)) {
+}
+
+void MI_XY_HOMING_MEASURE_CURRENT::OnClick() {
+    const uint16_t new_current = static_cast<uint16_t>(value());
+    if (new_current == config_store().xy_homing_measure_current.get()) {
+        return;
+    }
+
+    config_store().xy_homing_measure_current.set(new_current);
+
+    // Both the sensitivity and the grid origin were measured with the old current.
+    // Resetting the origin as well makes the next homing run the full calibration
+    // instead of refining with a mismatched sensitivity.
+    config_store().corexy_home_tmc_sens.set_to_default();
+    config_store().corexy_grid_origin.set_to_default();
+    config_store().precise_homing_instability_history.set_to_default();
+}
+#endif
 #if HAS_EXPANSION_JOINTS_GEN_2()
 MI_EXPANSION_JOINTS_GEN_2::MI_EXPANSION_JOINTS_GEN_2()
     : WI_ICON_SWITCH_OFF_ON_t(false, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}

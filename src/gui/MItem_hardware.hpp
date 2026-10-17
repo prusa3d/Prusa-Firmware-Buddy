@@ -132,6 +132,24 @@ protected:
 };
 #endif
 
+#if HAS_PRECISE_HOMING_COREXY() && HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN) && defined(XY_HOMING_MEASURE_CURRENT)
+    #define HAS_XY_HOMING_MEASURE_CURRENT_MENU() 1
+#else
+    #define HAS_XY_HOMING_MEASURE_CURRENT_MENU() 0
+#endif
+
+#if HAS_XY_HOMING_MEASURE_CURRENT_MENU()
+/// Current of the moving motor during precise homing measurements.
+/// Changing it resets the homing calibration, so the next homing recalibrates with the new current.
+class MI_XY_HOMING_MEASURE_CURRENT : public WiSpin {
+    static constexpr const char *const label = N_("Homing Current");
+
+public:
+    MI_XY_HOMING_MEASURE_CURRENT();
+    virtual void OnClick() override;
+};
+#endif
+
 #if HAS_EXPANSION_JOINTS_GEN_2()
 /// Whether the Expansion Joints Gen 2 (frame expansion joints) is installed. Affects bed-frame heat absorption.
 class MI_EXPANSION_JOINTS_GEN_2 : public WI_ICON_SWITCH_OFF_ON_t {

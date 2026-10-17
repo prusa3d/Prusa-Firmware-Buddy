@@ -379,7 +379,9 @@ static measure_axis_params measure_axis_defaults(const AxisEnum axis) {
 #else
     params.feedrate = homing_feedrate(axis);
 #endif
-#ifdef XY_HOMING_MEASURE_CURRENT
+#if defined(XY_HOMING_MEASURE_CURRENT) && HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+    params.current = config_store().xy_homing_measure_current.get();
+#elif defined(XY_HOMING_MEASURE_CURRENT)
     params.current = XY_HOMING_MEASURE_CURRENT;
 #else
     params.current = (axis == A_AXIS ? X_CURRENT_HOME : Y_CURRENT_HOME);
