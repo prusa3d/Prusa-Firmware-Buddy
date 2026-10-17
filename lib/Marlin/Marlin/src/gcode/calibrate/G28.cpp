@@ -97,6 +97,7 @@
 #endif
 
 #include <raii/scope_guard.hpp>
+#include <optional>
 #include <marlin_server.hpp>
 #include <feature/print_status_message/print_status_message_guard.hpp>
 #include <config_store/store_instance.hpp>
@@ -945,6 +946,50 @@ enum class RefineResult {
   calibrate_from_menu, ///< Needs calibration but cannot do it en-situ. The user needs to abort/ignroe and do it from the calibrations menu.
 };
 
+/// Run the sensitivity (if supported) and origin calibration once.
+/// @warning Must be called *at* home position
+static RefineResult corexy_calibrate_homing_attempt(float xy_mm_s
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+  , uint16_t measure_current
+#endif
+) {
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+  // Try calibrating motor sensitivity before calibration
+  if (!corexy_sens_calibrate(xy_mm_s, measure_current)) {
+    return RefineResult::hard_fail;
+  }
+
+  // After calibrating sensitivity, we need to rehome
+  if (!corexy_rehome_xy(xy_mm_s)) {
+    return RefineResult::hard_fail;
+  }
+#endif
+
+  for (uint8_t retry = 0; retry < PRECISE_HOMING_COREXY_RETRIES; retry++) {
+    if (planner.draining()) {
+      return RefineResult::hard_fail;
+    }
+
+    if (corexy_home_refine(xy_mm_s, CoreXYCalibrationMode::force)) {
+      return RefineResult::success;
+    }
+
+    // Always re-home to ensure we are in the right position
+    if (!corexy_rehome_xy(xy_mm_s)) {
+      return RefineResult::hard_fail;
+    }
+  }
+
+  return RefineResult::refine_fail;
+}
+
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN) && defined(XY_HOMING_MEASURE_CURRENT_MAX)
+static RefineResult corexy_homing_calibrated(uint16_t measure_current) {
+  SERIAL_ECHOLNPAIR("homing calibration selected current:", measure_current);
+  return RefineResult::success;
+}
+#endif
+
 RefineResult corexy_calibrate_homing_during_G28(float xy_mm_s, const G28Flags &flags) {
   // We cannot calibrate -> this are bad, abort
   if (!flags.can_calibrate) {
@@ -997,32 +1042,77 @@ RefineResult corexy_calibrate_homing_during_G28(float xy_mm_s, const G28Flags &f
   PrintStatusMessageGuard status_guard;
   status_guard.update<PrintStatusMessage::recalibrating_home>({});
 
-#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
-  // Try calibrating motor sensitivity before calibration
-  if (!corexy_sens_calibrate(xy_mm_s)) {
-    return RefineResult::hard_fail;
-  }
+#if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN) && defined(XY_HOMING_MEASURE_CURRENT_MAX)
+  // Some motors stall early at the default measurement current, while others slip their belts at
+  // higher currents. Try increasing currents and keep the first one that calibrates without any
+  // early trigger, falling back to the passing one with the fewest early triggers.
+  // Always start from the lowest current, so a previous result never prevents a lower one.
+  constexpr uint16_t current_first = XY_HOMING_MEASURE_CURRENT;
+  constexpr uint16_t current_last = XY_HOMING_MEASURE_CURRENT_MAX;
+  static_assert(current_last >= current_first && XY_HOMING_MEASURE_CURRENT_STEP > 0);
+  std::optional<uint16_t> best_current;
+  uint16_t best_early_triggers = 0;
+  std::optional<uint16_t> stored_current; ///< Current of the calibration that is currently stored, if it passed
+  RefineResult last_result = RefineResult::refine_fail;
 
-  // After calibrating sensitivity, we need to rehome
-  if (!corexy_rehome_xy(xy_mm_s)) {
-    return RefineResult::hard_fail;
-  }
-#endif
+  for (uint16_t current = current_first; current <= current_last; current += XY_HOMING_MEASURE_CURRENT_STEP) {
+    if (current != current_first && !corexy_rehome_xy(xy_mm_s)) {
+      return RefineResult::hard_fail;
+    }
 
-  for (uint8_t retry = 0; retry < PRECISE_HOMING_COREXY_RETRIES; retry++) {
+    corexy_reset_early_trigger_count();
+    last_result = corexy_calibrate_homing_attempt(xy_mm_s, current);
     if (planner.draining()) {
       return RefineResult::hard_fail;
     }
 
-    if (corexy_home_refine(xy_mm_s, CoreXYCalibrationMode::force)) {
-      return RefineResult::success;
+    // A failure at one current (even a failed sensitivity calibration) may pass at a higher one
+    const uint16_t early_triggers = corexy_early_trigger_count();
+    SERIAL_ECHOLNPAIR("homing calibration current:", current, " passed:", last_result == RefineResult::success, " early triggers:", early_triggers);
+    if (last_result != RefineResult::success) {
+      stored_current = std::nullopt;
+      continue;
     }
 
-    // Always re-home to ensure we are in the right position
+    stored_current = current;
+    if (early_triggers == 0) {
+      return corexy_homing_calibrated(current);
+    }
+    if (!best_current || early_triggers < best_early_triggers) {
+      best_current = current;
+      best_early_triggers = early_triggers;
+    }
+  }
+
+  if (best_current) {
+    // The stored calibration belongs to the last attempt that ran, redo the best one if it differs
+    if (best_current == stored_current) {
+      return corexy_homing_calibrated(*best_current);
+    }
     if (!corexy_rehome_xy(xy_mm_s)) {
       return RefineResult::hard_fail;
     }
+    const RefineResult result = corexy_calibrate_homing_attempt(xy_mm_s, *best_current);
+    if (result == RefineResult::success) {
+      return corexy_homing_calibrated(*best_current);
+    }
+    if (result == RefineResult::hard_fail) {
+      return result;
+    }
+  } else if (last_result == RefineResult::hard_fail) {
+    return last_result;
   }
+#elif HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
+  const RefineResult result = corexy_calibrate_homing_attempt(xy_mm_s, corexy_default_measure_current());
+  if (result != RefineResult::refine_fail) {
+    return result;
+  }
+#else
+  const RefineResult result = corexy_calibrate_homing_attempt(xy_mm_s);
+  if (result != RefineResult::refine_fail) {
+    return result;
+  }
+#endif
 
   // If recalibration was attempted and failed, clear the old (now known-invalid) calibration data.
   // This mostly just removes the green tickmark in calibration menu - even
