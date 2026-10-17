@@ -95,6 +95,7 @@ namespace internal {
     uint8_t probe_id = 0; ///< Probe id for metric cross-referencing
     uint8_t refine_id = 0; ///< Refine count for metric cross-referencing
     uint8_t cal_id = 0; ///< Calibration count for metric cross-referencing
+    uint16_t early_trigger_count = 0; ///< Early endstop triggers since the last reset
 } // namespace internal
 } // namespace
 
@@ -541,6 +542,7 @@ static bool measure_phase_cycles(const AxisEnum axis, const ab_grid_t &ab_off, x
                 SERIAL_ECHOLNPAIR("endstop ", (dir == 0 ? '-' : '+'), ": early trigger ",
                     p_steps[slot][dir], "<", exp_dir_steps_min);
                 ui.status_printf_P(0, "Endstop early trigger");
+                ++internal::early_trigger_count;
                 if (++retries <= XY_HOMING_ORIGIN_BUMP_RETRIES) {
                     continue;
                 }
@@ -1091,8 +1093,9 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
 }
 
 static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
-    AxisEnum measured_axis, const float fr_mm_s) {
+    AxisEnum measured_axis, const float fr_mm_s, const uint16_t current) {
     measure_axis_params params = measure_axis_defaults(measured_axis);
+    params.current = current;
     bool rehome = false; // initial home state
 
     // limits are inclusive
@@ -1153,7 +1156,7 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
     return true;
 }
 
-bool corexy_sens_calibrate(const float fr_mm_s) {
+bool corexy_sens_calibrate(const float fr_mm_s, const uint16_t current) {
     const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
 
     // finish previous moves and disable main endstop/crash recovery handling
@@ -1173,7 +1176,7 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
     SERIAL_ECHOLN("recalibrating homing sensitivity");
 
     CoreXYHomeTMCSens calibrated_sens;
-    if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s)) {
+    if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s, current)) {
         SERIAL_ECHOLNPAIR("home sensitivity calibration failed");
         return false;
     }
@@ -1186,7 +1189,20 @@ bool corexy_sens_is_calibrated() {
     const CoreXYHomeTMCSens calibrated_sens = config_store().corexy_home_tmc_sens.get();
     return !calibrated_sens.uninitialized();
 }
+
+uint16_t corexy_default_measure_current() {
+    const AxisEnum measured_axis = (X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS);
+    return measure_axis_defaults(measured_axis).current;
+}
 #endif
+
+uint16_t corexy_early_trigger_count() {
+    return internal::early_trigger_count;
+}
+
+void corexy_reset_early_trigger_count() {
+    internal::early_trigger_count = 0;
+}
 
 /// Refine home origin precisely on core-XY.
 bool corexy_home_refine(float fr_mm_s, CoreXYCalibrationMode mode) {

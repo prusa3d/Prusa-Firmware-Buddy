@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 enum class CoreXYCalibrationMode {
     on_demand, // Allow automatic calibration
     force, // Force re-calibration
@@ -41,18 +43,28 @@ bool corexy_home_is_unstable();
 
 void corexy_clear_homing_calibration();
 
+/// Number of early endstop triggers seen by precise homing measurements since the last reset.
+/// Early triggers mean the measured motor stalled before reaching the endstop.
+uint16_t corexy_early_trigger_count();
+
+void corexy_reset_early_trigger_count();
+
 #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
 /**
  * @brief Calibrate homing sensitivity on TMC
  * @warning Must be called *at* home position
  * @param fr_mm_s Homing (and service moves) feedrate
+ * @param current Measured motor current [mA], stored with the calibration and used by later refinements
  * @return true on success
  */
-bool corexy_sens_calibrate(const float fr_mm_s);
+bool corexy_sens_calibrate(const float fr_mm_s, const uint16_t current);
 
 /**
  * @brief Return the TMC sensitivity calibration status
  * @return true if already calibrated
  */
 bool corexy_sens_is_calibrated();
+
+/// Measured motor current [mA] the homing calibration starts with
+uint16_t corexy_default_measure_current();
 #endif
