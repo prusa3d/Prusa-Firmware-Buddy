@@ -6,7 +6,7 @@
 #include <logging/log.hpp>
 #include <window_msgbox.hpp>
 #include <Marlin/src/core/serial.h>
-#if HAS_ATTACHABLE_ACCELEROMETER()
+#if HAS_LOCAL_ACCELEROMETER()
     #include <Marlin/src/module/prusa/accelerometer.h>
 #endif
 #ifdef HAS_TMC_WAVETABLE
@@ -80,7 +80,7 @@ void MI_WAVETABLE_XYZ::OnChange(size_t old_index) {
 }
 #endif
 
-#if HAS_ATTACHABLE_ACCELEROMETER()
+#if HAS_LOCAL_ACCELEROMETER()
 MI_CHECK_ACCELEROMETER::MI_CHECK_ACCELEROMETER()
     : IWindowMenuItem {
         string_view_utf8::MakeCPUFLASH("Check Accelerometer"),

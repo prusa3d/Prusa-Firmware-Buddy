@@ -7,7 +7,7 @@
 #include <basic_screen_menu.hpp>
 #include <option/development_items.h>
 #include <option/has_touch.h>
-#include <option/has_attachable_accelerometer.h>
+#include <option/has_local_accelerometer.h>
 
 static_assert(DEVELOPMENT_ITEMS());
 
@@ -24,7 +24,7 @@ using ScreenMenuDevelopmentBase = BasicScreenMenu<
     MI_TOUCH_PLAYGROUND,
 #endif
     MI_PRINTER_TYPE_CHANGED,
-#if HAS_ATTACHABLE_ACCELEROMETER()
+#if HAS_LOCAL_ACCELEROMETER()
     MI_CHECK_ACCELEROMETER,
 #endif
     MI_TRIGGER_BANK_MIGRATION>;
