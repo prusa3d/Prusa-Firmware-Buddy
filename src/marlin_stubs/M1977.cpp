@@ -39,9 +39,14 @@ struct Context {
     uint8_t reduction_x;
     uint8_t reduction_y;
     phase_stepping::CalibrateAxisError error;
+    bool unattended;
 };
 
-using marlin_server::wait_for_response;
+/// Waits for the user to respond in the given phase. Unattended, answers with
+/// @p automatic_response instead, so that the dialog is only shown in passing.
+Response get_dialog_response(const Context &context, PhasesPhaseStepping phase, Response automatic_response) {
+    return context.unattended ? automatic_response : marlin_server::wait_for_response(phase);
+}
 
 class CalibrateAxisHooks final : public phase_stepping::CalibrateAxisHooks {
 private:
@@ -105,8 +110,8 @@ void calibration_helper(AxisEnum axis, CalibrateAxisHooks &hooks) {
     }
 }
 
-PhasesPhaseStepping fail_helper(PhasesPhaseStepping phase) {
-    switch (wait_for_response(phase)) {
+PhasesPhaseStepping fail_helper(const Context &context, PhasesPhaseStepping phase) {
+    switch (get_dialog_response(context, phase, Response::Ok)) {
     case Response::Ok:
         config_store().selftest_result_phase_stepping.set(TestResult::failed);
         return PhasesPhaseStepping::finish;
@@ -216,11 +221,11 @@ void restore_axis_defaults(AxisEnum axis) {
 
 namespace state {
 
-    PhasesPhaseStepping restore_defaults() {
+    PhasesPhaseStepping restore_defaults(const Context &context) {
         Planner::synchronize();
         restore_axis_defaults(X_AXIS);
         restore_axis_defaults(Y_AXIS);
-        switch (wait_for_response(PhasesPhaseStepping::restore_defaults)) {
+        switch (get_dialog_response(context, PhasesPhaseStepping::restore_defaults, Response::Ok)) {
         case Response::Ok:
             return PhasesPhaseStepping::finish;
         default:
@@ -228,8 +233,8 @@ namespace state {
         }
     }
 
-    PhasesPhaseStepping intro() {
-        switch (wait_for_response(PhasesPhaseStepping::intro)) {
+    PhasesPhaseStepping intro(const Context &context) {
+        switch (get_dialog_response(context, PhasesPhaseStepping::intro, Response::Continue)) {
         case Response::Continue:
             return intro_helper();
         case Response::Abort:
@@ -279,9 +284,10 @@ namespace state {
 
 #if HAS_ATTACHABLE_ACCELEROMETER()
 
-    PhasesPhaseStepping connect_to_board(Context &) {
+    PhasesPhaseStepping connect_to_board(Context &context) {
         marlin_server::fsm_change(PhasesPhaseStepping::connect_to_board);
-        switch (wait_for_response(PhasesPhaseStepping::connect_to_board)) {
+        log_error(Marlin, "M1977: accelerometer not connected");
+        switch (get_dialog_response(context, PhasesPhaseStepping::connect_to_board, Response::Abort)) {
         case Response::Abort:
             return PhasesPhaseStepping::abort;
         default:
@@ -320,7 +326,7 @@ namespace state {
 
     PhasesPhaseStepping attach_to_extruder(Context &) {
         marlin_server::fsm_change(PhasesPhaseStepping::attach_to_extruder);
-        switch (wait_for_response(PhasesPhaseStepping::attach_to_extruder)) {
+        switch (marlin_server::wait_for_response(PhasesPhaseStepping::attach_to_extruder)) {
         case Response::Abort:
             return PhasesPhaseStepping::abort;
         case Response::Continue:
@@ -333,7 +339,7 @@ namespace state {
 
     PhasesPhaseStepping attach_to_bed(Context &) {
         marlin_server::fsm_change(PhasesPhaseStepping::attach_to_bed);
-        switch (wait_for_response(PhasesPhaseStepping::attach_to_bed)) {
+        switch (marlin_server::wait_for_response(PhasesPhaseStepping::attach_to_bed)) {
         case Response::Abort:
             return PhasesPhaseStepping::abort;
         case Response::Continue:
@@ -394,7 +400,8 @@ namespace state {
         phase_stepping::enable(Y_AXIS, true);
         config_store().set_phase_stepping_enabled(Y_AXIS, true);
         config_store().selftest_result_phase_stepping.set(TestResult::passed);
-        switch (wait_for_response(PhasesPhaseStepping::calib_ok)) {
+        log_info(Marlin, "M1977: calibration passed, reduction X %u%% Y %u%%", context.reduction_x, context.reduction_y);
+        switch (get_dialog_response(context, PhasesPhaseStepping::calib_ok, Response::Ok)) {
         case Response::Ok:
             return PhasesPhaseStepping::finish;
         default:
@@ -402,9 +409,10 @@ namespace state {
         }
     }
 
-    PhasesPhaseStepping calib_nok() {
+    PhasesPhaseStepping calib_nok(const Context &context) {
         marlin_server::fsm_change(PhasesPhaseStepping::calib_nok);
-        return fail_helper(PhasesPhaseStepping::calib_nok);
+        log_error(Marlin, "M1977: calibration result out of bounds");
+        return fail_helper(context, PhasesPhaseStepping::calib_nok);
     }
 
     PhasesPhaseStepping calib_error(Context &context) {
@@ -415,7 +423,8 @@ namespace state {
             0,
         };
         marlin_server::fsm_change(PhasesPhaseStepping::calib_error, data);
-        return fail_helper(PhasesPhaseStepping::calib_error);
+        log_error(Marlin, "M1977: calibration failed: %s", phase_stepping::to_string(context.error));
+        return fail_helper(context, PhasesPhaseStepping::calib_error);
     }
 
 } // namespace state
@@ -423,9 +432,9 @@ namespace state {
 PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping phase) {
     switch (phase) {
     case PhasesPhaseStepping::restore_defaults:
-        return state::restore_defaults();
+        return state::restore_defaults(context);
     case PhasesPhaseStepping::intro:
-        return state::intro();
+        return state::intro(context);
     case PhasesPhaseStepping::home:
         return state::home();
 #if HAS_ATTACHABLE_ACCELEROMETER()
@@ -445,7 +454,7 @@ PhasesPhaseStepping get_next_phase(Context &context, const PhasesPhaseStepping p
     case PhasesPhaseStepping::calib_error:
         return state::calib_error(context);
     case PhasesPhaseStepping::calib_nok:
-        return state::calib_nok();
+        return state::calib_nok(context);
     case PhasesPhaseStepping::calib_ok:
         return state::calib_ok(context);
     case PhasesPhaseStepping::abort:
@@ -471,13 +480,25 @@ namespace PrusaGcodeSuite {
  *
  *#### Usage
  *
- *    M1977
+ *    M1977 [ D | U ]
+ *
+ *#### Parameters
+ *
+ * - `D` - Restore the default (uncalibrated) state instead of calibrating
+ * - `U` - Unattended: confirm the intro and result dialogs automatically and
+ *         abort instead of waiting on an error screen. Dialogs that ask for a
+ *         physical action (attaching the accelerometer) still wait.
+ *
+ *#### Examples
+ *
+ *    M1977 U ; Calibrate without user interaction, e.g. from a test script
  *
  */
 void M1977() {
     const bool D = parser.seen('D');
     PhasesPhaseStepping phase = D ? PhasesPhaseStepping::restore_defaults : PhasesPhaseStepping::intro;
     Context context {};
+    context.unattended = parser.seen('U');
     marlin_server::FSM_Holder holder { phase };
     do {
         phase = get_next_phase(context, phase);
