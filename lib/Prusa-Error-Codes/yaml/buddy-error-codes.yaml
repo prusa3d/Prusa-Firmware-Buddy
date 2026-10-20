@@ -447,6 +447,14 @@ Errors:
     gui_layout: "warning_dialog"
     approved: false
 
+  - code: "XX147"
+    printers: [iX, XL, COREONE, COREONEL, COREONE_INDX, COREONEL_INDX]
+    title: "Filament Sensor Not Ready"
+    text: "The extruder filament sensor is disabled or not calibrated, so filament cannot be loaded. Enable or calibrate it in the filament sensor settings."
+    id: "EXTRUDER_FSENSOR_NOT_READY"
+    gui_layout: "warning_dialog"
+    approved: true
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"
