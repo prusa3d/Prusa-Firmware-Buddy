@@ -24,6 +24,7 @@
 #include <option/has_chamber_api.h>
 #include <option/has_emergency_stop.h>
 #include <option/has_uneven_bed_detection.h>
+#include <option/has_side_fsensor.h>
 #include <option/xl_enclosure_support.h>
 
 enum class WarningType : uint32_t {
@@ -45,6 +46,10 @@ enum class WarningType : uint32_t {
     HotendTempDiscrepancy,
     NozzleTimeout,
     FilamentLoadingTimeout,
+#if HAS_SIDE_FSENSOR()
+    /// Load stopped because the extruder filament sensor is disabled or not calibrated
+    ExtruderFSensorNotReady,
+#endif
     FilamentSensorStuckHelp,
 #if HAS_MMU2()
     FilamentSensorStuckHelpMMU,
