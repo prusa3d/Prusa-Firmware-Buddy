@@ -14,10 +14,7 @@
 
 namespace buddy::openprinttag {
 
-inline bool has_tool_openprinttag_reader([[maybe_unused]] VirtualToolIndex tool) {
-    // TODO
-    return true;
-}
+bool has_tool_openprinttag_reader(VirtualToolIndex tool);
 
 struct TagUID {
     /// UID in the NFC-V wire order: LSB first (0xE0 is the last byte)
