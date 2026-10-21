@@ -6,6 +6,7 @@
 #include <feature/filament_sensor/filament_sensors_handler.hpp>
 
 #include <option/has_mmu2.h>
+#include <option/has_anfc_for_multiple_tools.h>
 
 /**
  * @brief load filament to MMU
@@ -53,8 +54,8 @@ void filament_gcodes::mmu_reset(uint8_t level) {
 void filament_gcodes::mmu_on() {
     config_store().mmu2_enabled.set(true);
 
-#if HAS_ANFC()
-    // OTP is disabled when MMU is disabled, remove OPT/NFC related filament data
+#if HAS_ANFC() && !HAS_ANFC_FOR_MULTIPLE_TOOLS()
+    // Remove link to a NFC Tag
     for (const VirtualToolIndex tool : VirtualToolIndex::all()) {
         FilamentType { AdHocFilamentType { tool } }.modify_parameters([](FilamentTypeParameters &p) {
             p.openprinttag_uid_hash = buddy::openprinttag::ToolTag::no_tag_hash;

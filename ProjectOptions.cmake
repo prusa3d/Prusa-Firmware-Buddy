@@ -813,6 +813,13 @@ define_boolean_option(HAS_CYPHAL ${HAS_CYPHAL})
 
 set_feature_for_printers(HAS_ANFC "COREONE" "COREONEL")
 
+set_feature_for_printers(HAS_ANFC_FOR_MULTIPLE_TOOLS)
+
+# Sanity check
+if(HAS_ANFC_FOR_MULTIPLE_TOOLS AND NOT HAS_ANFC)
+  message(FATAL_ERROR "HAS_ANFC_FOR_MULTIPLE_TOOLS requires HAS_ANFC")
+endif()
+
 set_feature_for_printers(HAS_HEATBED_SCREWS_DURING_TRANSPORT "COREONEL" "COREONEL_INDX")
 
 set_feature_for_printers(HAS_HTCONTROLLER "XL")
