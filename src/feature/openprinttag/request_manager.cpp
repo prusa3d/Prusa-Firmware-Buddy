@@ -15,6 +15,9 @@
 #include <logging/log.hpp>
 #include <timing.h>
 #include <utils/byte_utils.hpp>
+#include <option/has_anfc_for_multiple_tools.h>
+#include <option/has_indx.h>
+#include <option/has_mmu2.h>
 
 LOG_COMPONENT_REF(OpenPrintTag);
 
@@ -256,22 +259,34 @@ puppies::CommunicationStatus Manager::DeviceState::step(anfc::modbus::Client &cl
         return puppies::CommunicationStatus::SKIPPED;
     }
 
-    if (!radio_enabled) {
+    static_assert(!HAS_INDX(), "Revisit all HAS_ANFC_FOR_MULTIPLE_TOOLS block (especially code below) when implementing NFC for 'multi-tool' printers.");
+#if (HAS_MMU2() && !HAS_ANFC_FOR_MULTIPLE_TOOLS())
+    // Turn NFC antenna off if MMU is active
+    // !!This code should be temporary!!
+    const bool want_radio = !config_store().mmu2_enabled.get();
+#else
+    const bool want_radio = true;
+#endif
+
+    if (radio_enabled != want_radio) {
         if (!enable_radio_request.has_value()) {
             // Enable radio request has not been issued yed - issue
-            enable_radio_request.emplace(*device, true);
+            enable_radio_request.emplace(*device, want_radio);
             manager->add_request_nolock(*enable_radio_request);
 
         } else if (!enable_radio_request->finished()) {
             // Wait for the request to finish
 
         } else if (enable_radio_request->has_error()) {
-            // Error - reset the request, re-issue
+            // Error - re-issue
             manager->add_request_nolock(*enable_radio_request);
-
+        } else if (enable_radio_request->enable() != want_radio) {
+            // Target changed - re-issue
+            enable_radio_request->set_enable(want_radio);
+            manager->add_request_nolock(*enable_radio_request);
         } else {
             // Done!
-            radio_enabled = true;
+            radio_enabled = want_radio;
         }
     }
 

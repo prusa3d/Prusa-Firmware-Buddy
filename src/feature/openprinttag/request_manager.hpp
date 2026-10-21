@@ -98,7 +98,7 @@ private:
         std::optional<anfc::Device> device;
 
         /// nullopt - enable radio has not been issued yet
-        /// finished without error - radio is enabled
+        /// finished without error - radio is in the requested state
         std::optional<EnableRadioRequest> enable_radio_request;
 
         bool radio_enabled : 1 = false;
