@@ -388,7 +388,7 @@ msgstr ""
 
 #: src/feature/print_status_message/print_status_message_formatter_buddy.cpp:29
 msgid "Aligning the bed"
-msgstr "ベッドの位置調整"
+msgstr "ベッド ノ イチチョウセイ"
 
 #: src/gui/wizard/selftest_frame_dock.cpp:197
 msgid "Aligning tool"
@@ -5817,10 +5817,10 @@ msgid ""
 "Nozzles have to be perfectly clean for good calibration results.\n"
 "Manually pick each tool and clean its nozzle. Press Continue when done."
 msgstr ""
-"セイカクナキャリブレーションニハ、ノズルガカンゼンニクリーンデアルヒツヨウガ"
-"アリマス.\n"
-"カクツールヲシュドウデトリハズシ、ノズルヲセイソウシテクダサイ. カンリョウゴ"
-"ニ「ツヅケル」ヲオシテクダサイ."
+"セイカク ナ キャリブレーション ノ タメ ニ、ノズル ハ カンゼン ニ キレイ デ "
+"アル ヒツヨウ ガ アリマス。\n"
+"カク ツール ヲ シュドウ デ トリ、ノズル ヲ セイソウ シテ クダサイ。カンリョウ "
+"シタラ ツヅケル ヲ オシテ クダサイ。"
 
 #: src/gui/footer/footer_item_fsensor.cpp:61
 #: src/gui/footer/footer_item_multitool.cpp:26
@@ -9732,7 +9732,7 @@ msgstr "ハイ"
 
 #: src/gui/menu_item/menu_item_color.cpp:48
 msgid "Yellow"
-msgstr "黄"
+msgstr "イエロー"
 
 #: src/gui/screen_cold_pull.cpp:313
 msgid ""
