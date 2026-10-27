@@ -105,7 +105,8 @@ void LocalHotend::manage() {
         constexpr float distance_to_volume_per_second = distance_to_volume * sample_frequency;
 
         uint32_t e_position = stepper.position(E_AXIS);
-        const float e_volume_delta = is_current_tool ? (e_position - last_e_position_) * planner.mm_per_step[E_AXIS] * distance_to_volume_per_second : 0;
+        // Signed, so that a retraction takes power away instead of wrapping around to full power
+        const float e_volume_delta = is_current_tool ? static_cast<int32_t>(e_position - last_e_position_) * planner.mm_per_step[E_AXIS] * distance_to_volume_per_second : 0;
         last_e_position_ = e_position;
 #endif
 
