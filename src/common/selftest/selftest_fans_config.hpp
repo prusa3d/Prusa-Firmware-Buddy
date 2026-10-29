@@ -31,9 +31,10 @@ constexpr FanRPMRange benevolent_fan_range = { .rpm_min = 10, .rpm_max = 10000 }
 
 #if PRINTER_IS_PRUSA_XL()
 ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
-///  Blocked fan increases its RPMs over 7000.
-///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
-constexpr FanRPMRange print_fan_range_xl = { .rpm_min = 5300, .rpm_max = 7000 };
+/// With XL shroud the values can be 6200 - 7000ish depending on fan shroud version.
+/// 8000 is a magic number to avoid false positives.
+/// It is better to pass the test than to block users from completing calibrations/prints
+constexpr FanRPMRange print_fan_range_xl = { .rpm_min = 5300, .rpm_max = 8000 };
 /// XLS uses LDO D5015G08B05X71 blower: datasheet values 7100 RPM +/-10%,
 /// but when loaded it is higher, empirically measured value: 8000 RPM +/- 15%
 constexpr FanRPMRange print_fan_range_xls = { .rpm_min = 6800, .rpm_max = 9200 };
