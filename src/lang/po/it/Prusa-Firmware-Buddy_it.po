@@ -2554,7 +2554,7 @@ msgstr "Controllo Ventola"
 
 #: src/gui/MItem_menus.hpp:71
 msgid "Fan Info"
-msgstr "Info Ventrola"
+msgstr "Info Ventola"
 
 #: src/gui/wizard/screen_fan_selftest.cpp:64
 msgid "Fan RPM tests"
