@@ -3,9 +3,12 @@
 #include <algorithm>
 #include <cmath>
 
+#include <random/random.h>
+
 using namespace buddy;
 
-FilamentTracker::FilamentTracker() {
+FilamentTracker::FilamentTracker()
+    : extruded_distance_id_(rand_u()) {
     // Start assuming all filament is unretracted
     // This is not necessarily true
     retracted_distances.fill(0);

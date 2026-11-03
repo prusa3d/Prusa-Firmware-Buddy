@@ -4,6 +4,10 @@
 
 using namespace buddy;
 
+extern "C" uint32_t rand_u() {
+    return 42;
+}
+
 namespace {
 
 FilamentTracker::ExtruderMove calibrated(float commanded_mm) {
@@ -21,6 +25,7 @@ TEST_CASE("FilamentTracker") {
     // Should be zeroed out at the beginning
     CHECK(ft.get_retracted_distance(pt) == std::nullopt);
     CHECK(ft.get_extruded_distance(vt) == 0);
+    CHECK(ft.extruded_distance_id() == 42);
 
     ft.track_extruder_move(vt, calibrated(3));
     CHECK(ft.get_retracted_distance(pt) == 0);

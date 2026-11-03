@@ -58,6 +58,13 @@ public:
     /// This value is NOT persistent
     uint32_t get_extruded_distance(VirtualToolIndex virtual_tool) const;
 
+    /// @returns a random value that identifies the current run of the extruded distance counters.
+    /// The counters restart from zero on every boot, and this value changes with them.
+    /// Consumers computing usage deltas from @ref get_extruded_distance use it to detect the reset.
+    uint32_t extruded_distance_id() const {
+        return extruded_distance_id_;
+    }
+
 #ifndef UNITTESTS
 private:
 #endif
@@ -77,6 +84,8 @@ private: // * per-VirtualToolIndex things
 
     /// This is used for filament usage tracking, so it must be per VIRTUAL tool.
     StrongIndexArray<ExtrudedDistance, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> extruded_distances;
+
+    uint32_t extruded_distance_id_;
 };
 
 FilamentTracker &filament_tracker();
