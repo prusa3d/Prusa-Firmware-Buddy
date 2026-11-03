@@ -741,7 +741,13 @@ TEST_CASE("rectangle split", "[rectangle]") {
             std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
                 { 0, 0, 100, 100 }, 2, 0, { { 20, 20 } }, { { { 0, 0, 50, 100 }, { 50, 0, 50, 100 } } }, { { { 50, 0, 0, 100 } } }),
             std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
-                { 0, 0, 120, 100 }, 4, 10, { { 10, 15, 15, 10 } }, { { { 0, 0, 20, 100 }, { 30, 0, 25, 100 }, { 65, 0, 25, 100 }, { 100, 0, 20, 100 } } }, { { { 20, 0, 10, 100 }, { 55, 0, 10, 100 }, { 90, 0, 10, 100 } } }));
+                { 0, 0, 120, 100 }, 4, 10, { { 10, 15, 15, 10 } }, { { { 0, 0, 20, 100 }, { 30, 0, 25, 100 }, { 65, 0, 25, 100 }, { 100, 0, 20, 100 } } }, { { { 20, 0, 10, 100 }, { 55, 0, 10, 100 }, { 90, 0, 10, 100 } } }),
+            // texts wider than the rectangle are squeezed proportionally, the splits must not exceed the rectangle
+            std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
+                { 0, 0, 120, 100 }, 4, 10, { { 40, 40, 40, 40 } }, { { { 0, 0, 22, 100 }, { 32, 0, 22, 100 }, { 64, 0, 22, 100 }, { 96, 0, 24, 100 } } }, { { { 22, 0, 10, 100 }, { 54, 0, 10, 100 }, { 86, 0, 10, 100 } } }),
+            // real-life case: French button labels on a 468 px wide radio button (13 px per character)
+            std::make_tuple<Rect16, size_t, uint16_t, Ratio, Sequence, Sequence>(
+                { 0, 0, 468, 32 }, 4, 6, { { 130, 91, 143, 104 } }, { { { 0, 0, 125, 32 }, { 131, 0, 87, 32 }, { 224, 0, 137, 32 }, { 367, 0, 101, 32 } } }, { { { 125, 0, 6, 32 }, { 218, 0, 6, 32 }, { 361, 0, 6, 32 } } }));
 
         r.HorizontalSplit(splits, spaces, count, spacing, ratio.data());
 
