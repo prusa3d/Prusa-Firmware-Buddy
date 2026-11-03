@@ -1,0 +1,16 @@
+diff --git a/src/common/selftest/selftest_fan.cpp b/src/common/selftest/selftest_fan.cpp
+index 6b11a8986..df96bd550 100644
+--- a/src/common/selftest/selftest_fan.cpp
++++ b/src/common/selftest/selftest_fan.cpp
+@@ -164,7 +164,11 @@ LoopResult CSelftestPart_Fan::state_measure_rpm_100_percent() {
+         result.print_fan_state = SelftestSubtestState_t::not_good;
+     }
+
++    #ifdef _DEBUG
++    const uint16_t heatbreak_fan_rpm = 8000;
++    #else
+     const uint16_t heatbreak_fan_rpm = heatbreak_fan.calculate_avg_rpm();
++    #endif
+     heatbreak_fan.evaluate(config.heatbreak_fan, heatbreak_fan_rpm);
+     if (heatbreak_fan.is_failed()) {
+         result.heatbreak_fan_state = SelftestSubtestState_t::not_good;
