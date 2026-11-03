@@ -97,5 +97,6 @@ void SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
 template class SendJson<EmptyRenderer>;
 template class SendJson<TransferRenderer>;
 template class SendJson<StatusRenderer>;
+template class SendJson<FilamentRenderer>;
 
 } // namespace nhttp::handler

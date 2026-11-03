@@ -6,6 +6,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/status_renderer_mock.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/filament_renderer_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/partial_file_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/transfer_mock.cpp
   # Some handlers are stubbed out.
