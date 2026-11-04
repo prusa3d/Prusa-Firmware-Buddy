@@ -64,7 +64,12 @@ namespace impl {
     // Takes the current token to process and returns the pointer to the next yet
     // unused token. In case of error, returns nullptr.
     template <class Callback>
-    jsmntok_t *search_recursive(char *input, jsmntok_t *token, bool emit_self, std::optional<std::string_view> key, size_t depth, Callback &&callback) {
+    jsmntok_t *search_recursive(char *input, jsmntok_t *token, jsmntok_t *end, bool emit_self, std::optional<std::string_view> key, size_t depth, Callback &&callback) {
+        // jsmn (strict or not) can emit container sizes that don't match the
+        // tokens it produced, so never trust them: bound every access.
+        if (token == nullptr || token >= end) {
+            return nullptr;
+        }
         switch (token->type) {
         case JSMN_OBJECT:
         case JSMN_ARRAY: {
@@ -82,14 +87,13 @@ namespace impl {
             for (int i = 0; pos && (i < token->size); i++) {
                 std::optional<std::string_view> key_tmp = std::nullopt;
                 if (is_object) {
-                    debug_assert(pos->size == 1);
-                    if (pos->type != JSMN_STRING) {
+                    if (pos >= end || pos->type != JSMN_STRING) {
                         return nullptr;
                     }
                     key_tmp = std::string_view(input + pos->start, pos->end - pos->start);
                     pos++;
                 }
-                pos = search_recursive(input, pos, true, key_tmp, depth + 1, callback);
+                pos = search_recursive(input, pos, end, true, key_tmp, depth + 1, callback);
             }
             if (emit_self) {
                 event.type = Type::Pop;
@@ -135,7 +139,7 @@ namespace impl {
 ///
 /// Returns true on success, false on "broken" JSON (mostly if the top-level
 /// thing isn't an object). It does expect "structural" validity of the tokens,
-/// that is the sizes must be correct - range checking is not performed.
+/// Token access is bounded by cnt; inconsistent sizes make it return false.
 template <class Callback>
 bool search(char *input, jsmntok_t *tokens, size_t cnt, Callback &&callback) {
     if (cnt == 0) {
@@ -146,7 +150,7 @@ bool search(char *input, jsmntok_t *tokens, size_t cnt, Callback &&callback) {
         return false;
     }
 
-    return impl::search_recursive(input, tokens, false, std::nullopt, 0, callback) != nullptr;
+    return impl::search_recursive(input, tokens, tokens + cnt, false, std::nullopt, 0, callback) != nullptr;
 }
 
 } // namespace json
