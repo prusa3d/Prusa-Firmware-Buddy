@@ -16,7 +16,7 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-{{ nunavut.version }} (serialization was {{ 'not ' * nunavut.support.omit }}enabled)
-// Source file:   {{ T.source_file_path.relative_to(T.source_file_path_to_root.parent) }}
+// Source file:   {{ T.source_file_path.relative_to(T.source_file_path_to_root.parent).as_posix() }}
 // Is deprecated: {{ T.deprecated and 'yes' or 'no' }}
 // Fixed port-ID: {{ T.fixed_port_id }}
 // Full name:     {{ T.full_name }}
@@ -48,7 +48,7 @@
 {% endfor %}
 {% for key, value in options.items() -%}
 static_assert( {{ "NUNAVUT_SUPPORT_LANGUAGE_OPTION_{}".format(key) | ln.c.macrofy }} == {{ value | to_static_assertion_value }},
-              "{{ T.source_file_path.relative_to(T.source_file_path_to_root.parent) }} is trying to use a serialization library that was compiled with "
+              "{{ T.source_file_path.relative_to(T.source_file_path_to_root.parent).as_posix() }} is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 {% endfor %}
 #ifdef __cplusplus
