@@ -36,6 +36,8 @@ def scan_directory(directory: Path):
                     'Failed to decode %s as UTF-8. Please check the encoding.'
                     % (file_path, ),
                     file=sys.stderr)
+            except FileNotFoundError:
+                pass  # skip broken symlinks
 
 
 def scan_project():
