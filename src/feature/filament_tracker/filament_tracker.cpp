@@ -66,6 +66,21 @@ uint32_t buddy::FilamentTracker::get_extruded_distance(VirtualToolIndex virtual_
     return ed.integral;
 }
 
+void buddy::FilamentTracker::track_filament_unload(VirtualToolIndex virtual_tool) {
+    const uint32_t extruded = get_extruded_distance(virtual_tool);
+    unloads.transform([&](auto &items) {
+        auto &item = items[virtual_tool];
+        item.count++;
+        item.extruded_at_last = extruded;
+    });
+}
+
+FilamentTracker::Unloads buddy::FilamentTracker::get_unloads(VirtualToolIndex virtual_tool) const {
+    return unloads.visit([&](const auto &items) {
+        return items[virtual_tool];
+    });
+}
+
 FilamentTracker &buddy::filament_tracker() {
     static FilamentTracker instance;
     return instance;

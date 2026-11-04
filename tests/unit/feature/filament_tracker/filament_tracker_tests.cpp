@@ -106,3 +106,28 @@ TEST_CASE("FilamentTracker reports the length actually fed") {
         CHECK(ft.get_extruded_distance(vt) == 195);
     }
 }
+
+TEST_CASE("FilamentTracker counts unloads") {
+    constexpr VirtualToolIndex vt { 0 };
+
+    FilamentTracker ft;
+
+    CHECK(ft.get_unloads(vt).count == 0);
+    CHECK(ft.get_unloads(vt).extruded_at_last == 0);
+
+    ft.track_extruder_move(vt, calibrated(100));
+    ft.track_filament_unload(vt);
+    CHECK(ft.get_unloads(vt).count == 1);
+    CHECK(ft.get_unloads(vt).extruded_at_last == 100);
+
+    // The unload itself retracts, the next load feeds again
+    ft.track_extruder_move(vt, calibrated(-FilamentTracker::extruder_to_nozzle_distance - 60));
+    ft.track_extruder_move(vt, calibrated(FilamentTracker::extruder_to_nozzle_distance + 20));
+    CHECK(ft.get_extruded_distance(vt) == 120);
+    CHECK(ft.get_unloads(vt).count == 1);
+    CHECK(ft.get_unloads(vt).extruded_at_last == 100);
+
+    ft.track_filament_unload(vt);
+    CHECK(ft.get_unloads(vt).count == 2);
+    CHECK(ft.get_unloads(vt).extruded_at_last == 120);
+}
