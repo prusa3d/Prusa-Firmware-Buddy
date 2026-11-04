@@ -1,8 +1,8 @@
 /*----------------------------------------------------------------------------/
-/  FatFs - Generic FAT Filesystem Module  R0.14b                              /
+/  FatFs - Generic FAT Filesystem Module  R0.15 w/patch2                      /
 /-----------------------------------------------------------------------------/
 /
-/ Copyright (C) 2021, ChaN, all right reserved.
+/ Copyright (C) 2022, ChaN, all right reserved.
 /
 / FatFs module is an open source software. Redistribution and use of FatFs in
 / source and binary forms, with or without modification, are permitted provided
@@ -208,26 +208,26 @@
 #define PTE_StLba			8		/* MBR PTE: Start in LBA */
 #define PTE_SizLba			12		/* MBR PTE: Size in LBA */
 
-#define GPTH_Sign			0		/* GPT: Header signature (8-byte) */
-#define GPTH_Rev			8		/* GPT: Revision (DWORD) */
-#define GPTH_Size			12		/* GPT: Header size (DWORD) */
-#define GPTH_Bcc			16		/* GPT: Header BCC (DWORD) */
-#define GPTH_CurLba			24		/* GPT: Main header LBA (QWORD) */
-#define GPTH_BakLba			32		/* GPT: Backup header LBA (QWORD) */
-#define GPTH_FstLba			40		/* GPT: First LBA for partitions (QWORD) */
-#define GPTH_LstLba			48		/* GPT: Last LBA for partitions (QWORD) */
-#define GPTH_DskGuid		56		/* GPT: Disk GUID (16-byte) */
-#define GPTH_PtOfs			72		/* GPT: Partation table LBA (QWORD) */
-#define GPTH_PtNum			80		/* GPT: Number of table entries (DWORD) */
-#define GPTH_PteSize		84		/* GPT: Size of table entry (DWORD) */
-#define GPTH_PtBcc			88		/* GPT: Partation table BCC (DWORD) */
-#define SZ_GPTE				128		/* GPT: Size of partition table entry */
+#define GPTH_Sign			0		/* GPT HDR: Signature (8-byte) */
+#define GPTH_Rev			8		/* GPT HDR: Revision (DWORD) */
+#define GPTH_Size			12		/* GPT HDR: Header size (DWORD) */
+#define GPTH_Bcc			16		/* GPT HDR: Header BCC (DWORD) */
+#define GPTH_CurLba			24		/* GPT HDR: This header LBA (QWORD) */
+#define GPTH_BakLba			32		/* GPT HDR: Another header LBA (QWORD) */
+#define GPTH_FstLba			40		/* GPT HDR: First LBA for partition data (QWORD) */
+#define GPTH_LstLba			48		/* GPT HDR: Last LBA for partition data (QWORD) */
+#define GPTH_DskGuid		56		/* GPT HDR: Disk GUID (16-byte) */
+#define GPTH_PtOfs			72		/* GPT HDR: Partition table LBA (QWORD) */
+#define GPTH_PtNum			80		/* GPT HDR: Number of table entries (DWORD) */
+#define GPTH_PteSize		84		/* GPT HDR: Size of table entry (DWORD) */
+#define GPTH_PtBcc			88		/* GPT HDR: Partition table BCC (DWORD) */
+#define SZ_GPTE				128		/* GPT PTE: Size of partition table entry */
 #define GPTE_PtGuid			0		/* GPT PTE: Partition type GUID (16-byte) */
 #define GPTE_UpGuid			16		/* GPT PTE: Partition unique GUID (16-byte) */
-#define GPTE_FstLba			32		/* GPT PTE: First LBA (QWORD) */
-#define GPTE_LstLba			40		/* GPT PTE: Last LBA inclusive (QWORD) */
-#define GPTE_Flags			48		/* GPT PTE: Flags (QWORD) */
-#define GPTE_Name			56		/* GPT PTE: Name */
+#define GPTE_FstLba			32		/* GPT PTE: First LBA of partition (QWORD) */
+#define GPTE_LstLba			40		/* GPT PTE: Last LBA of partition (QWORD) */
+#define GPTE_Flags			48		/* GPT PTE: Partition flags (QWORD) */
+#define GPTE_Name			56		/* GPT PTE: Partition name */
 
 
 /* Post process on fatal error in the file operations */
@@ -286,7 +286,7 @@ typedef struct {
 	FATFS *fs;		/* Object ID 1, volume (NULL:blank entry) */
 	DWORD clu;		/* Object ID 2, containing directory (0:root) */
 	DWORD ofs;		/* Object ID 3, offset in the directory */
-	WORD ctr;		/* Object open counter, 0:none, 0x01..0xFF:read mode open count, 0x100:write mode */
+	UINT ctr;		/* Object open counter, 0:none, 0x01..0xFF:read mode open count, 0x100:write mode */
 } FILESEM;
 #endif
 
@@ -987,7 +987,7 @@ static FRESULT dec_lock (	/* Decrement object open counter */
 	UINT i			/* Semaphore index (1..) */
 )
 {
-	WORD n;
+	UINT n;
 	FRESULT res;
 
 
@@ -2624,7 +2624,7 @@ static void get_fileinfo (
 			hs = 0;
 		}
 		if (hs != 0) di = 0;					/* Broken surrogate pair? */
-		if (di == 0) fno->fname[di++] = '?';	/* Inaccessible object name? */
+		if (di == 0) fno->fname[di++] = '\?';	/* Inaccessible object name? */
 		fno->fname[di] = 0;						/* Terminate the name */
 		fno->altname[0] = 0;					/* exFAT does not support SFN */
 
@@ -2676,8 +2676,8 @@ static void get_fileinfo (
 	fno->altname[di] = 0;	/* Terminate the SFN  (null string means SFN is invalid) */
 
 	if (fno->fname[0] == 0) {	/* If LFN is invalid, altname[] needs to be copied to fname[] */
-		if (di == 0) {	/* If LFN and SFN both are invalid, this object is inaccesible */
-			fno->fname[di++] = '?';
+		if (di == 0) {	/* If LFN and SFN both are invalid, this object is inaccessible */
+			fno->fname[di++] = '\?';
 		} else {
 			for (si = di = 0, lcf = NS_BODY; fno->altname[si]; si++, di++) {	/* Copy altname[] to fname[] with case information */
 				wc = (WCHAR)fno->altname[si];
@@ -2702,13 +2702,10 @@ static void get_fileinfo (
 	fno->fname[di] = 0;		/* Terminate the SFN */
 #endif
 
-    fno->fattrib = dp->dir[DIR_Attr] & AM_MASK;           /* Attribute */
-    fno->fsize = ld_dword(dp->dir + DIR_FileSize);        /* Size */
-    DWORD modified = ld_dword(dp->dir + DIR_ModTime + 0); /* Modified date and time */
-    DWORD created = ld_dword(dp->dir + DIR_CrtTime + 0);  /* Created date and time */
-    int offset = (modified > created) ? DIR_ModTime : DIR_CrtTime;
-    fno->ftime = ld_word(dp->dir + offset + 0);	          /* Time */
-    fno->fdate = ld_word(dp->dir + offset + 2);	          /* Date */
+	fno->fattrib = dp->dir[DIR_Attr] & AM_MASK;			/* Attribute */
+	fno->fsize = ld_dword(dp->dir + DIR_FileSize);		/* Size */
+	fno->ftime = ld_word(dp->dir + DIR_ModTime + 0);	/* Time */
+	fno->fdate = ld_word(dp->dir + DIR_ModTime + 2);	/* Date */
 }
 
 #endif /* FF_FS_MINIMIZE <= 1 || FF_FS_RPATH >= 2 */
@@ -2775,12 +2772,16 @@ static int pattern_match (	/* 0:mismatched, 1:matched */
 	do {
 		pptr = pat; nptr = nam;			/* Top of pattern and name to match */
 		for (;;) {
-			if (*pptr == '?' || *pptr == '*') {	/* Wildcard term? */
+			if (*pptr == '\?' || *pptr == '*') {	/* Wildcard term? */
 				if (recur == 0) return 0;	/* Too many wildcard terms? */
 				sk = 0;
 				do {	/* Analyze the wildcard term */
-					if (*pptr++ == '?') sk++; else sk |= 0x100;
-				} while (*pptr == '?' || *pptr == '*');
+					if (*pptr++ == '\?') {
+						sk++;
+					} else {
+						sk |= 0x100;
+					}
+				} while (*pptr == '\?' || *pptr == '*');
 				if (pattern_match(pptr, nptr, sk, recur - 1)) return 1;	/* Test new branch (recursive call) */
 				nchr = *nptr; break;	/* Branch mismatched */
 			}
@@ -3196,16 +3197,18 @@ static int test_gpt_header (	/* 0:Invalid, 1:Valid */
 )
 {
 	UINT i;
-	DWORD bcc;
+	DWORD bcc, hlen;
 
 
-	if (memcmp(gpth + GPTH_Sign, "EFI PART" "\0\0\1\0" "\x5C\0\0", 16)) return 0;	/* Check sign, version (1.0) and length (92) */
-	for (i = 0, bcc = 0xFFFFFFFF; i < 92; i++) {		/* Check header BCC */
+	if (memcmp(gpth + GPTH_Sign, "EFI PART" "\0\0\1", 12)) return 0;	/* Check signature and version (1.0) */
+	hlen = ld_dword(gpth + GPTH_Size);						/* Check header size */
+	if (hlen < 92 || hlen > FF_MIN_SS) return 0;
+	for (i = 0, bcc = 0xFFFFFFFF; i < hlen; i++) {			/* Check header BCC */
 		bcc = crc32(bcc, i - GPTH_Bcc < 4 ? 0 : gpth[i]);
 	}
 	if (~bcc != ld_dword(gpth + GPTH_Bcc)) return 0;
 	if (ld_dword(gpth + GPTH_PteSize) != SZ_GPTE) return 0;	/* Table entry size (must be SZ_GPTE bytes) */
-	if (ld_dword(gpth + GPTH_PtNum) > 128) return 0;	/* Table size (must be 128 entries or less) */
+	if (ld_dword(gpth + GPTH_PtNum) > 128) return 0;		/* Table size (must be 128 entries or less) */
 
 	return 1;
 }
@@ -3283,7 +3286,7 @@ static UINT check_fs (	/* 0:FAT/FAT32 VBR, 1:exFAT VBR, 2:Not FAT and valid BS, 
 
 static UINT find_volume (	/* Returns BS status found in the hosting drive */
 	FATFS* fs,		/* Filesystem object */
-	UINT part		/* Partition to fined = 0:auto, 1..:forced */
+	UINT part		/* Partition to fined = 0:find as SFD and partitions, >0:forced partition number */
 )
 {
 	UINT fmt, i;
@@ -3338,15 +3341,15 @@ static UINT find_volume (	/* Returns BS status found in the hosting drive */
 static FRESULT mount_volume (	/* FR_OK(0): successful, !=0: an error occurred */
 	const TCHAR** path,			/* Pointer to pointer to the path name (drive number) */
 	FATFS** rfs,				/* Pointer to pointer to the found filesystem object */
-	BYTE mode					/* !=0: Check write protection for write access */
+	BYTE mode					/* Desiered access mode to check write protection */
 )
 {
 	int vol;
+	FATFS *fs;
 	DSTATUS stat;
 	LBA_t bsect;
 	DWORD tsect, sysect, fasize, nclst, szbfat;
 	WORD nrsv;
-	FATFS *fs;
 	UINT fmt;
 
 
@@ -3641,7 +3644,8 @@ FRESULT f_mount (
 		if (!ff_cre_syncobj((BYTE)vol, &fs->sobj)) return FR_INT_ERR;
 #endif
 	}
-	FatFs[vol] = fs;					/* Register new fs object */
+        fs->fs_type = 0;		/* Invalidate the new filesystem object */
+	FatFs[vol] = fs;		/* Register new fs object */
 
 	if (opt == 0) return FR_OK;			/* Do not mount now, it will be mounted later */
 
@@ -4795,12 +4799,12 @@ FRESULT f_getfree (
 					sect = fs->bitbase;			/* Bitmap sector */
 					i = 0;						/* Offset in the sector */
 					do {	/* Counts numbuer of bits with zero in the bitmap */
-						if (i == 0) {
+						if (i == 0) {	/* New sector? */
 							res = move_window(fs, sect++);
 							if (res != FR_OK) break;
 						}
-						for (b = 8, bm = fs->win[i]; b && clst; b--, clst--) {
-							if (!(bm & 1)) nfree++;
+						for (b = 8, bm = ~fs->win[i]; b && clst; b--, clst--) {
+							nfree += bm & 1;
 							bm >>= 1;
 						}
 						i = (i + 1) % SS(fs);
@@ -4812,7 +4816,7 @@ FRESULT f_getfree (
 					sect = fs->fatbase;		/* Top of the FAT */
 					i = 0;					/* Offset in the sector */
 					do {	/* Counts numbuer of entries with zero in the FAT */
-						if (i == 0) {
+						if (i == 0) {	/* New sector? */
 							res = move_window(fs, sect++);
 							if (res != FR_OK) break;
 						}
@@ -5379,8 +5383,8 @@ FRESULT f_setlabel (
 )
 {
 	FRESULT res;
-	DIR dj;
 	FATFS *fs;
+	DIR dj;
 	BYTE dirvn[22];
 	UINT di;
 	WCHAR wc;
@@ -5705,7 +5709,7 @@ static FRESULT create_partition (
 		rnd = (DWORD)sz_drv + GET_FATTIME();	/* Random seed */
 		align = GPT_ALIGN / ss;				/* Partition alignment for GPT [sector] */
 		sz_ptbl = GPT_ITEMS * SZ_GPTE / ss;	/* Size of partition table [sector] */
-		top_bpt = sz_drv - sz_ptbl - 1;		/* Backup partiiton table start sector */
+		top_bpt = sz_drv - sz_ptbl - 1;		/* Backup partition table start sector */
 		nxt_alloc = 2 + sz_ptbl;			/* First allocatable sector */
 		sz_pool = top_bpt - nxt_alloc;		/* Size of allocatable area */
 		bcc = 0xFFFFFFFF; sz_part = 1;
@@ -5834,30 +5838,33 @@ FRESULT f_mkfs (
 	UINT n_fat, n_root, i;					/* Index, Number of FATs and Number of roor dir entries */
 	int vol;
 	DSTATUS ds;
-	FRESULT fr;
+	FRESULT res;
 
 
 	/* Check mounted drive and clear work area */
 	vol = get_ldnumber(&path);					/* Get target logical drive */
 	if (vol < 0) return FR_INVALID_DRIVE;
 	if (FatFs[vol]) FatFs[vol]->fs_type = 0;	/* Clear the fs object if mounted */
-	pdrv = LD2PD(vol);			/* Physical drive */
-	ipart = LD2PT(vol);			/* Partition (0:create as new, 1..:get from partition table) */
-	if (!opt) opt = &defopt;	/* Use default parameter if it is not given */
+	pdrv = LD2PD(vol);		/* Hosting physical drive */
+	ipart = LD2PT(vol);		/* Hosting partition (0:create as new, 1..:existing partition) */
 
-	/* Get physical drive status (sz_drv, sz_blk, ss) */
+	/* Initialize the hosting physical drive */
 	ds = disk_initialize(pdrv);
 	if (ds & STA_NOINIT) return FR_NOT_READY;
 	if (ds & STA_PROTECT) return FR_WRITE_PROTECTED;
+
+	/* Get physical drive parameters (sz_drv, sz_blk and ss) */
+	if (!opt) opt = &defopt;	/* Use default parameter if it is not given */
 	sz_blk = opt->align;
-	if (sz_blk == 0 && disk_ioctl(pdrv, GET_BLOCK_SIZE, &sz_blk) != RES_OK) sz_blk = 1;
- 	if (sz_blk == 0 || sz_blk > 0x8000 || (sz_blk & (sz_blk - 1))) sz_blk = 1;
+	if (sz_blk == 0) disk_ioctl(pdrv, GET_BLOCK_SIZE, &sz_blk);					/* Block size from the paramter or lower layer */
+ 	if (sz_blk == 0 || sz_blk > 0x8000 || (sz_blk & (sz_blk - 1))) sz_blk = 1;	/* Use default if the block size is invalid */
 #if FF_MAX_SS != FF_MIN_SS
 	if (disk_ioctl(pdrv, GET_SECTOR_SIZE, &ss) != RES_OK) return FR_DISK_ERR;
 	if (ss > FF_MAX_SS || ss < FF_MIN_SS || (ss & (ss - 1))) return FR_DISK_ERR;
 #else
 	ss = FF_MAX_SS;
 #endif
+
 	/* Options for FAT sub-type and FAT parameters */
 	fsopt = opt->fmt & (FM_ANY | FM_SFD);
 	n_fat = (opt->n_fat >= 1 && opt->n_fat <= 2) ? opt->n_fat : 1;
@@ -5973,7 +5980,7 @@ FRESULT f_mkfs (
 		sz_fat = (DWORD)((sz_vol / sz_au + 2) * 4 + ss - 1) / ss;	/* Number of FAT sectors */
 		b_data = (b_fat + sz_fat + sz_blk - 1) & ~((LBA_t)sz_blk - 1);	/* Align data area to the erase block boundary */
 		if (b_data - b_vol >= sz_vol / 2) LEAVE_MKFS(FR_MKFS_ABORTED);	/* Too small volume? */
-		n_clst = (DWORD)(sz_vol - (b_data - b_vol)) / sz_au;	/* Number of clusters */
+		n_clst = (DWORD)((sz_vol - (b_data - b_vol)) / sz_au);	/* Number of clusters */
 		if (n_clst <16) LEAVE_MKFS(FR_MKFS_ABORTED);			/* Too few clusters? */
 		if (n_clst > MAX_EXFAT) LEAVE_MKFS(FR_MKFS_ABORTED);	/* Too many clusters? */
 
@@ -6274,32 +6281,30 @@ FRESULT f_mkfs (
 
 	/* Determine system ID in the MBR partition table */
 	if (FF_FS_EXFAT && fsty == FS_EXFAT) {
-		sys = 0x07;			/* exFAT */
+		sys = 0x07;		/* exFAT */
+	} else if (fsty == FS_FAT32) {
+		sys = 0x0C;		/* FAT32X */
+	} else if (sz_vol >= 0x10000) {
+		sys = 0x06;		/* FAT12/16 (large) */
+	} else if (fsty == FS_FAT16) {
+		sys = 0x04;		/* FAT16 */
 	} else {
-		if (fsty == FS_FAT32) {
-			sys = 0x0C;		/* FAT32X */
-		} else {
-			if (sz_vol >= 0x10000) {
-				sys = 0x06;	/* FAT12/16 (large) */
-			} else {
-				sys = (fsty == FS_FAT16) ? 0x04 : 0x01;	/* FAT16 : FAT12 */
-			}
-		}
+		sys = 0x01;		/* FAT12 */
 	}
 
 	/* Update partition information */
 	if (FF_MULTI_PARTITION && ipart != 0) {	/* Volume is in the existing partition */
-		if (!FF_LBA64 || !(fsopt & 0x80)) {
+		if (!FF_LBA64 || !(fsopt & 0x80)) {	/* Is the partition in MBR? */
 			/* Update system ID in the partition table */
 			if (disk_read(pdrv, buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Read the MBR */
 			buf[MBR_Table + (ipart - 1) * SZ_PTE + PTE_System] = sys;			/* Set system ID */
 			if (disk_write(pdrv, buf, 0, 1) != RES_OK) LEAVE_MKFS(FR_DISK_ERR);	/* Write it back to the MBR */
 		}
 	} else {								/* Volume as a new single partition */
-		if (!(fsopt & FM_SFD)) {			/* Create partition table if not in SFD */
+		if (!(fsopt & FM_SFD)) {			/* Create partition table if not in SFD format */
 			lba[0] = sz_vol; lba[1] = 0;
-			fr = create_partition(pdrv, lba, sys, buf);
-			if (fr != FR_OK) LEAVE_MKFS(fr);
+			res = create_partition(pdrv, lba, sys, buf);
+			if (res != FR_OK) LEAVE_MKFS(res);
 		}
 	}
 
@@ -6509,7 +6514,7 @@ static void putc_bfd (putbuff* pb, TCHAR c)
 	WCHAR hs, wc;
 #if FF_LFN_UNICODE == 2
 	DWORD dc;
-	const TCHAR *tp;
+	const TCHAR* tp;
 #endif
 #endif
 
@@ -6523,39 +6528,39 @@ static void putc_bfd (putbuff* pb, TCHAR c)
 
 #if FF_USE_LFN && FF_LFN_UNICODE
 #if FF_LFN_UNICODE == 1		/* UTF-16 input */
-	if (IsSurrogateH(c)) {	/* High surrogate? */
+	if (IsSurrogateH(c)) {	/* Is this a high-surrogate? */
 		pb->hs = c; return;	/* Save it for next */
 	}
 	hs = pb->hs; pb->hs = 0;
-	if (hs != 0) {			/* There is a leading high surrogate */
-		if (!IsSurrogateL(c)) hs = 0;	/* Discard high surrogate if not a surrogate pair */
+	if (hs != 0) {			/* Is there a leading high-surrogate? */
+		if (!IsSurrogateL(c)) hs = 0;	/* Discard high-surrogate if not a surrogate pair */
 	} else {
-		if (IsSurrogateL(c)) return;	/* Discard stray low surrogate */
+		if (IsSurrogateL(c)) return;	/* Discard stray low-surrogate */
 	}
 	wc = c;
 #elif FF_LFN_UNICODE == 2	/* UTF-8 input */
 	for (;;) {
 		if (pb->ct == 0) {	/* Out of multi-byte sequence? */
 			pb->bs[pb->wi = 0] = (BYTE)c;	/* Save 1st byte */
-			if ((BYTE)c < 0x80) break;					/* Single byte? */
+			if ((BYTE)c < 0x80) break;					/* Single byte code? */
 			if (((BYTE)c & 0xE0) == 0xC0) pb->ct = 1;	/* 2-byte sequence? */
 			if (((BYTE)c & 0xF0) == 0xE0) pb->ct = 2;	/* 3-byte sequence? */
-			if (((BYTE)c & 0xF1) == 0xF0) pb->ct = 3;	/* 4-byte sequence? */
-			return;
+			if (((BYTE)c & 0xF8) == 0xF0) pb->ct = 3;	/* 4-byte sequence? */
+			return;										/* Wrong leading byte (discard it) */
 		} else {				/* In the multi-byte sequence */
 			if (((BYTE)c & 0xC0) != 0x80) {	/* Broken sequence? */
-				pb->ct = 0; continue;
+				pb->ct = 0; continue;		/* Discard the sequense */
 			}
 			pb->bs[++pb->wi] = (BYTE)c;	/* Save the trailing byte */
-			if (--pb->ct == 0) break;	/* End of multi-byte sequence? */
+			if (--pb->ct == 0) break;	/* End of the sequence? */
 			return;
 		}
 	}
 	tp = (const TCHAR*)pb->bs;
-	dc = tchar2uni(&tp);	/* UTF-8 ==> UTF-16 */
+	dc = tchar2uni(&tp);			/* UTF-8 ==> UTF-16 */
 	if (dc == 0xFFFFFFFF) return;	/* Wrong code? */
-	wc = (WCHAR)dc;
 	hs = (WCHAR)(dc >> 16);
+	wc = (WCHAR)dc;
 #elif FF_LFN_UNICODE == 3	/* UTF-32 input */
 	if (IsSurrogate(c) || c >= 0x110000) return;	/* Discard invalid code */
 	if (c >= 0x10000) {		/* Out of BMP? */
@@ -6758,7 +6763,7 @@ static void ftoa (
 		er = "NaN";
 	} else {
 		if (prec < 0) prec = 6;	/* Default precision? (6 fractional digits) */
-		if (val < 0) {			/* Nagative? */
+		if (val < 0) {			/* Negative? */
 			val = 0 - val; sign = '-';
 		} else {
 			sign = '+';
