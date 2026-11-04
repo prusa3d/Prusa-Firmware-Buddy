@@ -28,6 +28,10 @@ namespace {
         FilamentState::Tool result;
 
 #if HAS_FILAMENT_TRACKER()
+        // Unloads first, so that extruded is never below extruded_at_unload
+        const auto unloads = buddy::filament_tracker().get_unloads(tool);
+        result.unload_count = unloads.count;
+        result.extruded_at_unload = unloads.extruded_at_last;
         result.extruded = buddy::filament_tracker().get_extruded_distance(tool);
 #endif
 
@@ -103,7 +107,9 @@ json::JsonResult FilamentRenderer::renderState(size_t resume_point, json::JsonOu
                 JSON_FIELD_INT("index", state.iter);
 #if HAS_FILAMENT_TRACKER()
                 JSON_COMMA;
-                JSON_FIELD_INT("extruded", tool.extruded);
+                JSON_FIELD_INT("extruded", tool.extruded) JSON_COMMA;
+                JSON_FIELD_INT("unload_count", tool.unload_count) JSON_COMMA;
+                JSON_FIELD_INT("extruded_at_unload", tool.extruded_at_unload);
 #endif
                 if (tool.has_material) {
                     JSON_COMMA;

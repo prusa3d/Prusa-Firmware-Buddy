@@ -21,6 +21,8 @@ public:
     struct Tool {
 #if HAS_FILAMENT_TRACKER()
         uint32_t extruded = 0;
+        uint32_t unload_count = 0;
+        uint32_t extruded_at_unload = 0;
 #endif
 
         bool has_material = false;
