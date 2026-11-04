@@ -450,7 +450,7 @@ static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *
         ep_ix = 0U;
         pep = (USBH_EpDescTypeDef *)NULL;
 
-        while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+        while ((ep_ix < USBH_MAX_NUM_ENDPOINTS) && (ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
         {
           pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
 
