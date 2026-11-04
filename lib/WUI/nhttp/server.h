@@ -293,7 +293,12 @@ private:
 
     class TransferSlot : public Slot {
     public:
-        static constexpr size_t PbufQueueMax = 8;
+        // One entry per segment, but the TCP window counts bytes: fit a full
+        // window of 512 B segments (macOS PMTU black-hole fallback) + the EOF.
+        // Smaller segments wouldn't fit the RX pbuf ring anyway (#5591).
+        static constexpr size_t PbufQueueMax = 17;
+        static_assert(PbufQueueMax >= TCP_WND / 512 + 1);
+
         // Queue of pbufs to process/write into the file.
         //
         // The 0 index is the oldest one (being processed right now), we append
