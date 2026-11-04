@@ -258,6 +258,12 @@ void IRAM_ATTR check_online_status() {
     const uint32_t elapsed = now >= last ? now - last : now;
 
     if (elapsed > INACTIVE_PACKET_SECONDS) {
+        // Keep idle links up while the Wi-Fi stack still reports an association.
+        if (get_link_status() != 0) {
+            last_inbound_seen = now;
+            return;
+        }
+
         probe_in_progress = true;
         probe_retry_count = 0;
         probe_run();

@@ -274,6 +274,13 @@ static void read_wifi_client_message() {
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
     }
     wifi_config.sta.pmf_cfg.capable = 1;
+    wifi_config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+    wifi_config.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
+    // Support both H2E (Hash-to-Element) and Hunting-and-Pecking SAE methods to
+    // allow WPA3 authentication with routers that require H2E (e.g. Wi-Fi 6 APs
+    // in WPA3/WPA2 transition mode).  Without this the default is
+    // WPA3_SAE_PWE_UNSPECIFIED (0) which fails on such routers.
+    wifi_config.sta.sae_pwe_h2e = WPA3_SAE_PWE_BOTH;
 
     // If scan is in progress we need to stop it manually here to prevent reconnect to previous AP.
     if (scan.in_progress) {
@@ -289,7 +296,7 @@ static void read_wifi_client_message() {
     send_device_info();
 }
 
-static int8_t get_link_status() {
+int8_t get_link_status() {
     static wifi_ap_record_t ap_info = {};
     esp_err_t ret = esp_wifi_sta_get_ap_info(&ap_info);
     // ap_info is not important, just not receiven ESP_ERR_WIFI_NOT_CONNECT means we are associated
