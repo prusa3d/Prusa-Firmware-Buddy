@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <stdio.h>
 #include "translator.hpp"
@@ -292,4 +293,43 @@ TEST_CASE("string_view_utf8::string_build", "[string_view_utf8]") {
     copied_bytes = str.copyToRAM(compare_buff, sizeof(compare_buff));
     REQUIRE_THAT(compare_buff, Equals(ref_text_in_between));
     REQUIRE(copied_bytes == strlen(ref_text_in_between));
+}
+
+TEST_CASE("string_view_utf8::MakeRAM from std::string_view", "[string_view_utf8]") {
+    using Catch::Matchers::Equals;
+
+    const auto require_empty = [](const string_view_utf8 &sf) {
+        // Checked first: the reader would dereference a misencoded view as format parameters
+        REQUIRE(sf.type() != string_view_utf8::Type::formatted_string);
+        REQUIRE_FALSE(sf.isNULLSTR());
+        REQUIRE(sf.computeNumUtf8Chars() == 0);
+
+        char dst[8];
+        std::fill(std::begin(dst), std::end(dst), 'x');
+        REQUIRE(sf.copyToRAM(dst, sizeof(dst)) == 0);
+        REQUIRE_THAT(dst, Equals(""));
+    };
+
+    SECTION("empty, null data") {
+        require_empty(string_view_utf8::MakeRAM(std::string_view {}));
+    }
+
+    SECTION("empty, data at an odd address") {
+        alignas(4) static const char buffer[8] = {};
+        require_empty(string_view_utf8::MakeRAM(std::string_view { buffer + 1, 0 }));
+    }
+
+    SECTION("empty, CPU flash") {
+        require_empty(string_view_utf8::MakeCPUFLASH(std::string_view {}));
+    }
+
+    SECTION("not zero-terminated") {
+        const auto sf = string_view_utf8::MakeRAM(std::string_view { "abcdef", 3 });
+        REQUIRE(sf.type() == string_view_utf8::Type::string_view);
+        REQUIRE(sf.computeNumUtf8Chars() == 3);
+
+        char dst[8];
+        REQUIRE(sf.copyToRAM(dst, sizeof(dst)) == 3);
+        REQUIRE_THAT(dst, Equals("abc"));
+    }
 }
