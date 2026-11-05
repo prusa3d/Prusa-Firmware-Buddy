@@ -1,5 +1,6 @@
 #include "DialogHandler.hpp"
 
+#include <type_traits>
 #include <gui/screen/screen_filament_change.hpp>
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
@@ -134,8 +135,9 @@ struct FSMScreenDef : public FSMScreenDefBase {
     }
 
     static void close() {
-        debug_assert(Screens::Access()->IsScreenOnStack<Screen>());
-        Screens::Access()->close_screen<Screen>();
+        if (Screens::Access()->IsScreenOnStack<Screen>()) {
+            Screens::Access()->close_screen<Screen>();
+        }
     }
 
     [[nodiscard]] static bool change(fsm::BaseData data) {
@@ -351,6 +353,20 @@ void visit_display_config(ClientFSM fsm, auto f) {
 static constexpr size_t fsm_display_config_size = []<class... T>(FSMDisplayConfigDef<T...>) { return sizeof...(T); }(FSMDisplayConfig());
 static_assert(fsm_display_config_size == std::to_underlying(ClientFSM::_count) + 1);
 
+static bool is_dialog_fsm(ClientFSM fsm) {
+    bool result = false;
+    visit_display_config(fsm, [&]<typename Config>(Config) {
+        result = std::is_base_of_v<FSMDialogDefBase, Config>;
+    });
+    return result;
+}
+
+static void finish_screen_loop() {
+    if (!gui_get_nesting()) {
+        Screens::Access()->Loop();
+    }
+}
+
 static constexpr auto dlg_size = []<typename T> {
     if constexpr (std::is_base_of_v<FSMDialogDefBase, T>) {
         return sizeof(typename T::Dialog);
@@ -425,6 +441,55 @@ void DialogHandler::update_screen() {
         return;
     }
 
+    const bool new_is_dialog = new_top && is_dialog_fsm(new_top->fsm_type);
+    const bool current_is_dialog = current_fsm_top && is_dialog_fsm(current_fsm_top->fsm_type);
+    const bool current_is_screen = current_fsm_top && !current_is_dialog;
+
+    // Overlay a dialog on the current screen instead of tearing the screen down.
+    // Closing Load_unload to show HeatersTimeout/NozzleTimeout, then recreating
+    // it after OK, left the filament-change UI unresponsive (issue #5497).
+    if (new_is_dialog && current_is_screen) {
+        if (!open(new_top->fsm_type, new_top->data)) {
+            return;
+        }
+        if (!change(new_top->fsm_type, new_top->data)) {
+            bsod_unreachable();
+        }
+        underlying_screen_fsm = current_fsm_top;
+        current_fsm_top = new_top;
+        finish_screen_loop();
+        return;
+    }
+
+    // Dialog swapped for another dialog - keep the screen underneath
+    if (new_is_dialog && current_is_dialog) {
+        close(current_fsm_top->fsm_type);
+        current_fsm_top = std::nullopt;
+        if (!open(new_top->fsm_type, new_top->data)) {
+            return;
+        }
+        if (!change(new_top->fsm_type, new_top->data)) {
+            bsod_unreachable();
+        }
+        current_fsm_top = new_top;
+        finish_screen_loop();
+        return;
+    }
+
+    // Return from an overlayed dialog to the screen that is still open underneath
+    if (current_is_dialog && new_top && underlying_screen_fsm && new_top->fsm_type == underlying_screen_fsm->fsm_type) {
+        close(current_fsm_top->fsm_type);
+        current_fsm_top = std::nullopt;
+        if (change(new_top->fsm_type, new_top->data)) {
+            current_fsm_top = new_top;
+            underlying_screen_fsm.reset();
+            finish_screen_loop();
+            return;
+        }
+        // Screen was destroyed while the dialog was up - fall through and reopen
+        underlying_screen_fsm.reset();
+    }
+
     // Close the previous screen/dialog
     if (current_fsm_top) {
         // Closing should never fail
@@ -432,6 +497,11 @@ void DialogHandler::update_screen() {
         // Screen - just marks the screen to be destroyed on the next Screens::Access()->Loop
         close(current_fsm_top->fsm_type);
         current_fsm_top = std::nullopt;
+    }
+
+    if (underlying_screen_fsm && (!new_top || new_top->fsm_type != underlying_screen_fsm->fsm_type)) {
+        close(underlying_screen_fsm->fsm_type);
+        underlying_screen_fsm.reset();
     }
 
     // Do NOT do Screens::Access()->Loop(); here.
@@ -450,8 +520,5 @@ void DialogHandler::update_screen() {
         current_fsm_top = new_top;
     }
 
-    // Make sure all changes are carried over now to reduce redraws
-    if (!gui_get_nesting()) {
-        Screens::Access()->Loop();
-    }
+    finish_screen_loop();
 }

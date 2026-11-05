@@ -617,6 +617,14 @@ static void handle_warnings() {
 
     // Consume the response now
     get_response_from_phase(phase, true);
+
+    // Dismissing a heater-timeout warning is an explicit request to continue.
+    // Restore saved print temperatures here (not only on KnobClick) so Connect
+    // and the pause FSM can resume heating after a runout wait (issue #5497).
+    if (warning_type == WarningType::NozzleTimeout || warning_type == WarningType::HeatersTimeout) {
+        buddy::safety_timer().reset_restore_nonblocking();
+    }
+
     clear_warning(warning_type);
 }
 
@@ -948,6 +956,11 @@ static void cycle() {
     // We still need to run the step() there to prevent "sampling bias" so that the timer could reset itself during movements and single-injected gcodes
     buddy::stepper_timeout().step();
 
+    // Warning responses must be consumed even from nested idle() (M600 waiting
+    // for filament after runout). Otherwise the HeatersTimeout/NozzleTimeout
+    // dialog cannot be dismissed and the screen appears frozen (issue #5497).
+    handle_warnings();
+
 #if HAS_BED_FAN()
     bed_fan::controller().step();
 #endif
@@ -973,8 +986,6 @@ static void cycle() {
 #if HAS_MMU2()
     MMU2::Fsm::Instance().Loop();
 #endif
-
-    handle_warnings();
 
 #if XL_ENCLOSURE_SUPPORT()
     int16_t dwarf_temp = std::numeric_limits<int16_t>().min();

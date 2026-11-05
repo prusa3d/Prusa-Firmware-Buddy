@@ -13,6 +13,10 @@ class DialogHandler {
 
     static_unique_ptr<IDialogMarlin> ptr;
     std::optional<fsm::States::Top> current_fsm_top;
+    /// Screen-type FSM kept open underneath an overlayed dialog FSM.
+    /// Warning/SafetyTimer used to close Load_unload, and returning to that
+    /// screen after a heater timeout could leave the UI unresponsive (issue #5497).
+    std::optional<fsm::States::Top> underlying_screen_fsm;
     DialogHandler() = default;
     DialogHandler(DialogHandler &) = delete;
 

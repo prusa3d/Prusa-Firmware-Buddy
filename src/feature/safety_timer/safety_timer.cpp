@@ -239,7 +239,10 @@ void SafetyTimer::step() {
         trigger();
     }
 
-    if (state_ == State::restoring && Temperature::are_hotend_temperatures_reached(Temperature::RequireCooling::all_tools)) {
+    // Parked XL tools must not hold restore complete: they can sit above a 0 °C
+    // target (or have no reading) and would freeze filament change after a
+    // heater timeout (issue #5497). Same rule as print resume after pause.
+    if (state_ == State::restoring && Temperature::are_hotend_temperatures_reached(Temperature::RequireCooling::current_tool_only)) {
         state_ = State::idle;
     }
 }
