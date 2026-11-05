@@ -340,12 +340,10 @@ bool Pause::ensureSafeTemperatureNotifyProgress() {
     }
 
     const auto is_tempreature_reached = [] {
-        return
-            // We're not restoring from a safety timer
-            buddy::safety_timer().state() == buddy::SafetyTimer::State::idle
-
-            // Pause-specific voodoo
-            && Temperature::degHotend(active_extruder) + heating_phase_min_hotend_diff > Temperature::degTargetHotend(active_extruder);
+        // Only the tool about to extrude has to be ready. Waiting for
+        // SafetyTimer::idle used all_tools, which on XL can stall forever on a
+        // parked/disabled head after a heater timeout (issue #5497).
+        return Temperature::degHotend(active_extruder) + heating_phase_min_hotend_diff > Temperature::degTargetHotend(active_extruder);
     };
 
     if (is_tempreature_reached()) {
@@ -718,30 +716,41 @@ void Pause::move_to_purge_process([[maybe_unused]] Response response) {
 }
 
 void Pause::load_wait_temp_process([[maybe_unused]] Response response) {
-    if (ensureSafeTemperatureNotifyProgress()) {
-        // blocking -> checks for user stop
-
+    if (!ensureSafeTemperatureNotifyProgress()) {
+        // After a safety-timer timeout the stored restore temps can be 0.
+        // Re-apply the filament default so the next iteration can heat instead
+        // of spinning forever on this state (issue #5497).
         const auto filament_to_load = filament::get_type_to_load();
         if (filament_to_load != NoFilamentType {}) {
-            // We preheated to the higher temeperature of the filament currently
-            // being loaded and the previously loaded filament. Drop the target to
-            // the temperature of the filament currently being loaded just before
-            // loading it into the nozzle (this will drop the nozzle temperature by
-            // itself, overheating the new filament a bit less).
             thermalManager.setTargetHotend(
                 filament_to_load.parameters().nozzle_temperature,
                 settings.physical_tool());
-
-        } else {
-            // If we don't know the new material (can happen in M600 during print),
-            // keep the original temperature instead of turning the nozzle off :3
         }
+        return;
+    }
 
-        if (load_type == LoadType::load_purge) {
-            set(LoadState::purge);
-        } else {
-            set(LoadState::long_load);
-        }
+    // blocking -> checks for user stop
+
+    const auto filament_to_load = filament::get_type_to_load();
+    if (filament_to_load != NoFilamentType {}) {
+        // We preheated to the higher temeperature of the filament currently
+        // being loaded and the previously loaded filament. Drop the target to
+        // the temperature of the filament currently being loaded just before
+        // loading it into the nozzle (this will drop the nozzle temperature by
+        // itself, overheating the new filament a bit less).
+        thermalManager.setTargetHotend(
+            filament_to_load.parameters().nozzle_temperature,
+            settings.physical_tool());
+
+    } else {
+        // If we don't know the new material (can happen in M600 during print),
+        // keep the original temperature instead of turning the nozzle off :3
+    }
+
+    if (load_type == LoadType::load_purge) {
+        set(LoadState::purge);
+    } else {
+        set(LoadState::long_load);
     }
     handle_filament_removal(LoadState::filament_push_ask);
 }
