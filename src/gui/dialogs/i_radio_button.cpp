@@ -225,8 +225,10 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
     for (size_t i = 0; i < btn_count; ++i) {
         string_view_utf8 drawn = _(get_response_text(responseFromIndex(i)));
         char buffer[MAX_TEXT_BUFFER] = { 0 };
-        if (layout.text_widths[i] > layout.splits[i].Width()) {
-            uint32_t max_btn_label_text = layout.splits[i].Width() / width(ButtonFont);
+        // button_draw shrinks the font when the label does not fit, so truncate only if even the smallest font is too big
+        const int text_area_width = std::max(0, static_cast<int>(layout.splits[i].Width()) - 2 * static_cast<int>(GuiDefaults::RadioButtonCornerRadius));
+        if (static_cast<int>(drawn.computeNumUtf8Chars() * width(Font::small)) > text_area_width) {
+            uint32_t max_btn_label_text = text_area_width / width(Font::small);
             size_t length = std::min(max_btn_label_text, MAX_TEXT_BUFFER - 1);
             length = drawn.copyToRAM(buffer, length);
             buffer[length] = 0;

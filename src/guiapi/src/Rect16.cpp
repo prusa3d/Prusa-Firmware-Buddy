@@ -205,18 +205,19 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
     uint16_t width = usable_width / count;
     uint16_t final_width = 0;
     int space_in_btn = 0;
+    int text_sum = 0;
     if (text_width != nullptr) {
-        int text_sum = std::accumulate(text_width, text_width + count, 0);
-        if (text_sum > usable_width) {
-            text_sum = usable_width;
+        text_sum = std::accumulate(text_width, text_width + count, 0);
+        if (text_sum <= usable_width) {
+            /// unused space around text will be the same in all buttons
+            space_in_btn = (usable_width - text_sum) / count;
         }
-        /// unused space around text will be the same in all buttons
-        space_in_btn = (usable_width - text_sum) / count;
     }
 
     for (index = 0; index < count; index++) {
         if (text_width != nullptr) {
-            width = text_width[index] + space_in_btn;
+            // Texts that do not fit are squeezed proportionally so that the splits never exceed the rectangle
+            width = text_sum <= usable_width ? text_width[index] + space_in_btn : text_width[index] * usable_width / text_sum;
         }
         const int16_t left = index == 0 ? (int16_t)Left() : splits[index - 1].EndPoint().x + spacing;
         /// rect split
