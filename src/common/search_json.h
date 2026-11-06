@@ -137,9 +137,8 @@ namespace impl {
 /// (or used really carefuly) afterwards, because the de-escaping is done in place and
 ///  messes it up. See unescape_json_i() for details on how.
 ///
-/// Returns true on success, false on "broken" JSON (mostly if the top-level
-/// thing isn't an object). It does expect "structural" validity of the tokens,
-/// Token access is bounded by cnt; inconsistent sizes make it return false.
+/// Returns true on success, false on "broken" JSON (if the top-level thing
+/// isn't an object or the token sizes don't match the cnt tokens).
 template <class Callback>
 bool search(char *input, jsmntok_t *tokens, size_t cnt, Callback &&callback) {
     if (cnt == 0) {
