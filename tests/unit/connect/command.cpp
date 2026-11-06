@@ -138,6 +138,14 @@ TEST_CASE("connect::Start print - tool mapping 7th tool", "[connect]") {
     command_test<BrokenCommand>("{\"command\": \"START_PRINT\", \"kwargs\": {\"path\": \"/usb/x.gcode\", \"tool_mapping\": {\"7\": [2, 3, 4, 5]}}}");
 }
 
+TEST_CASE("connect::Start print - nested arrays after tool mapping", "[connect]") {
+    command_test<BrokenCommand>("{\"command\":\"START_PRINT\",\"kwargs\":{\"tool_mapping\":{},\"x\":[[1]]}}");
+    command_test<BrokenCommand>("{\"kwargs\":{\"tool_mapping\":{}},\"command\":\"START_PRINT\",\"y\":{\"a\":{\"b\":[1]}}}");
+    auto cmd = command_test<StartPrint>("{\"command\":\"START_PRINT\",\"kwargs\":{\"path\":\"/usb/x.gcode\",\"tool_mapping\":{\"1\":[2]},\"x\":[[1]]}}");
+    REQUIRE(cmd.tool_mapping.has_value());
+    REQUIRE(cmd.tool_mapping.value()[0][0] == 1);
+}
+
 TEST_CASE("connect::Start print - SFN", "[connect]") {
     REQUIRE(strcmp(command_test<StartPrint>("{\"command\": \"START_PRINT\", \"args\": [\"/usb/x.gcode\"], \"kwargs\": {\"path_sfn\": \"/usb/x.gcode\"}}").path.path(), "/usb/x.gcode") == 0);
 }
