@@ -987,12 +987,16 @@ static float limit_end_frequency(const float start_frequency, float end_frequenc
     return end_frequency;
 }
 
-static double get_inv_D(const input_shaper::Shaper &shaper) {
-    double d = 0.;
+// The shaper fitting below uses float on purpose. The MCU FPU is single precision only,
+// so double math is emulated in software, and the fitting evaluates these functions
+// hundreds of thousands of times for each axis.
+
+static float get_inv_D(const input_shaper::Shaper &shaper) {
+    float d = 0.f;
     for (int i = 0; i < shaper.num_pulses; ++i) {
-        d += static_cast<double>(shaper.a[i]);
+        d += shaper.a[i];
     }
-    return 1. / d;
+    return 1.f / d;
 }
 
 /**
@@ -1001,26 +1005,26 @@ static double get_inv_D(const input_shaper::Shaper &shaper) {
  * called _estimate_shaper in klipper source
  *
  * @param shaper
+ * @param inv_D get_inv_D(shaper)
  * @param system_damping_ratio
  * @param frequency
  * @return Vibration reduction for system with system_damping_ratio at frequency.
  */
-static double vibration_reduction(const input_shaper::Shaper &shaper, float system_damping_ratio, float frequency) {
-    const double inv_D = get_inv_D(shaper);
-    const double omega = 2. * std::numbers::pi_v<double> * static_cast<double>(frequency);
-    const double damping = static_cast<double>(system_damping_ratio) * omega;
-    const double omega_d = omega * sqrt(1. - sq(static_cast<double>(system_damping_ratio)));
+static float vibration_reduction(const input_shaper::Shaper &shaper, float inv_D, float system_damping_ratio, float frequency) {
+    const float omega = 2.f * std::numbers::pi_v<float> * frequency;
+    const float damping = system_damping_ratio * omega;
+    const float omega_d = omega * std::sqrt(1.f - sq(system_damping_ratio));
+    const float t_last = shaper.t[shaper.num_pulses - 1];
 
-    double s = 0.;
-    double c = 0.;
+    float s = 0.f;
+    float c = 0.f;
 
     for (int i = 0; i < shaper.num_pulses; ++i) {
-        const double t_i = static_cast<double>(shaper.t[i]);
-        const double w = shaper.a[i] * exp(-damping * (static_cast<double>(shaper.t[shaper.num_pulses - 1]) - t_i));
-        s += w * sin(omega_d * t_i);
-        c += w * cos(omega_d * t_i);
+        const float w = shaper.a[i] * std::exp(-damping * (t_last - shaper.t[i]));
+        s += w * std::sin(omega_d * shaper.t[i]);
+        c += w * std::cos(omega_d * shaper.t[i]);
     }
-    return (sqrt(sq(s) + sq(c)) * inv_D);
+    return std::sqrt(sq(s) + sq(c)) * inv_D;
 }
 
 /**
@@ -1035,13 +1039,14 @@ static double vibration_reduction(const input_shaper::Shaper &shaper, float syst
  * @return remaining vibrations
  */
 static float remaining_vibrations(const input_shaper::Shaper &shaper, float system_damping_ratio, const Spectrum &psd, float default_vibration_reduction) {
+    const float inv_D = get_inv_D(shaper);
     float vibr_threshold = psd.max() / default_vibration_reduction;
     float remaining_vibrations_sum = 0.f;
     float all_vibrations_sum = 0.f;
     for (size_t i = 0; i < psd.size(); ++i) {
         const FrequencyGain fg = psd.get(i);
         all_vibrations_sum += max(fg.gain, 0.f);
-        const float vibration = max(fg.gain * static_cast<float>(vibration_reduction(shaper, system_damping_ratio, fg.frequency)) - vibr_threshold, 0.f);
+        const float vibration = max(fg.gain * vibration_reduction(shaper, inv_D, system_damping_ratio, fg.frequency) - vibr_threshold, 0.f);
         remaining_vibrations_sum += vibration;
     }
     return (remaining_vibrations_sum / all_vibrations_sum);
@@ -1060,30 +1065,30 @@ static float smoothing(const input_shaper::Shaper &shaper) {
     constexpr float scv = 5.f;
     constexpr float half_accel = accel / 2.f;
 
-    const double inv_D = get_inv_D(shaper);
+    const float inv_D = get_inv_D(shaper);
 
-    double ts = 0.;
+    float ts = 0.f;
     for (int i = 0; i < shaper.num_pulses; ++i) {
-        ts += static_cast<double>(shaper.a[i] * shaper.t[i]);
+        ts += shaper.a[i] * shaper.t[i];
     }
     ts *= inv_D;
 
-    double offset_90 = 0.;
-    double offset_180 = 0.;
+    float offset_90 = 0.f;
+    float offset_180 = 0.f;
 
     for (int i = 0; i < shaper.num_pulses; ++i) {
-        const double t_i = static_cast<double>(shaper.t[i]);
-        const double a_i = static_cast<double>(shaper.a[i]);
+        const float t_i = shaper.t[i];
+        const float a_i = shaper.a[i];
         if (t_i >= ts) {
             /// Calculate offset for one of the axes
             offset_90 += a_i * (scv + half_accel * (t_i - ts)) * (t_i - ts);
         }
         offset_180 += a_i * half_accel * sq(t_i - ts);
     }
-    offset_90 *= (inv_D * sqrt(2.));
+    offset_90 *= inv_D * std::numbers::sqrt2_v<float>;
     offset_180 *= inv_D;
 
-    return static_cast<float>(max(offset_90, offset_180));
+    return max(offset_90, offset_180);
 }
 
 namespace {
@@ -1146,9 +1151,6 @@ static Shaper_result fit_shaper(const FindBestShaperProgressHook &progress_hook,
                 float vibrations = remaining_vibrations(shaper, damping_ratio, psd, default_vibration_reduction);
                 if (vibrations > shaper_vibrations) {
                     shaper_vibrations = vibrations;
-                }
-                if (!progress_hook(type, progress_ratio).has_value()) {
-                    return {};
                 }
             }
             /// todo max_accel = self.find_shaper_max_accel(shaper) (not needed to fit filter)
