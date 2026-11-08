@@ -170,6 +170,19 @@ struct ParkArgs {
 };
 
 /**
+ * @brief Moves Z away from the bed to target_z (clamped to Z_MAX_POS), stopping early at the physical end of the axis.
+ *
+ * Z_MAX_POS is not guaranteed to be physically reachable (user-configurable axis length, mechanical tolerances).
+ * Instead of skipping steps against the frame, the move stops on the Z max endstop and current_position
+ * is synced to where the axis really ended up. A subsequent move back to an absolute Z thus returns
+ * by the distance actually travelled instead of driving the nozzle into the print.
+ *
+ * Works with unhomed Z as well. Does nothing if target_z is not above the current position.
+ * Blocking, issued as a single unsegmented move.
+ */
+void lift_z_to(float target_z);
+
+/**
  * @brief Parks the toolhead at the specified position.
  *
  * Moves the toolhead to a parking position, optionally adjusting the Z axis first.

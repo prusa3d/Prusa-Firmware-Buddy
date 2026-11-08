@@ -358,6 +358,7 @@ namespace {
         void finalize_retraction() {
             if (remaining_distance_to_retract_mm_ > 0) {
                 mapi::extruder_move(-remaining_distance_to_retract_mm_, args_.evaluate_feedrate());
+                remaining_distance_to_retract_mm_ = 0;
             }
         }
 
@@ -500,6 +501,18 @@ void move_out_of_nozzle_cleaner_area() {
 }
 #endif
 
+void lift_z_to(float target_z) {
+    const float distance = std::min<float>(target_z, Z_MAX_POS) - current_position.z;
+    if (!(distance > 0)) {
+        return;
+    }
+
+    // A homing move stops on the Z max stallguard instead of skipping steps against the frame,
+    // and resyncs current_position from the steppers afterwards.
+    // The stallguard needs HOMING_FEEDRATE_INVERTED_Z to trigger reliably.
+    do_homing_move(Z_AXIS, distance, HOMING_FEEDRATE_INVERTED_Z);
+}
+
 bool park(const ParkingPosition &parking_position, const ParkArgs &args) {
     const auto park_destination = parking_position.to_xyz_pos(current_position.xyz());
     const auto needs_homed = parking_position.axes_needing_homing();
@@ -511,13 +524,19 @@ bool park(const ParkingPosition &parking_position, const ParkArgs &args) {
         if (park_destination.z == current_position.z) {
             return true;
         }
-        if (axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise)) {
-            p.move_z(park_destination.z);
-
-        } else if (needs_homed.z) {
+        const bool z_homed = axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise);
+        if (!z_homed && needs_homed.z) {
             // The move requires homed Z axis, which we don't have
             // Don't allow XY moves without lifting
             return false;
+
+        } else if (park_destination.z > current_position.z) {
+            // The lift is not done in parallel with the retraction, retract first so that we don't ooze while lifting
+            p.finalize_retraction();
+            lift_z_to(park_destination.z);
+
+        } else if (z_homed) {
+            p.move_z(park_destination.z);
 
         } else {
             do_homing_move(Z_AXIS, park_destination.z - current_position.z, HOMING_FEEDRATE_INVERTED_Z);
