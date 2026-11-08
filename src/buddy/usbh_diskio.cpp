@@ -1,6 +1,7 @@
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
 #include "usbh_async_diskio.hpp"
+#include "usb_storage_gate.hpp"
 #include <buddy/ccm_thread.hpp>
 #include "usb_host.h"
 
@@ -10,6 +11,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <utility_extensions.hpp>
+#include <atomic>
 #include <bit>
 #include <FreeRTOS.h>
 #include <logging/log.hpp>
@@ -21,6 +23,24 @@ using Lock = std::unique_lock<Mutex>;
 
 static const uint16_t USB_DEFAULT_BLOCK_SIZE = FF_MIN_SS;
 static DWORD scratch[FF_MAX_SS / 4];
+
+/// Exclusive USB volume token. Binary semaphore so UsbPartialFile can release
+/// it from the MSC worker callback (FreeRTOS mutexes are task-bound).
+struct StorageExclusive {
+    freertos::BinarySemaphore sem;
+    StorageExclusive() { sem.release(); }
+    void lock() { sem.acquire(); }
+    void unlock() { sem.release(); }
+};
+
+static StorageExclusive storage_exclusive;
+static UsbStorageGate<StorageExclusive, freertos::Mutex> storage_gate { storage_exclusive };
+static std::atomic<bool> accepting_requests { true };
+
+struct StorageGuard {
+    StorageGuard() { storage_gate.lock(); }
+    ~StorageGuard() { storage_gate.unlock(); }
+};
 
 extern USBH_HandleTypeDef hUsbHostHS;
 
@@ -60,6 +80,10 @@ void USBH_worker_notify(USBH_StatusTypeDef, void *semaphore, void *) {
 // their requests, they will be distributed fairly.
 static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation operation,
     BYTE lun, BYTE *buff, DWORD sector, uint16_t count) {
+    if (!accepting_requests.load()) {
+        return USBH_FAIL;
+    }
+
     freertos::BinarySemaphore semaphore;
     UsbhMscRequest request {
         operation,
@@ -87,10 +111,45 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
     // we don't have any io scheduler, but if only tasks with the same priority send
     // their requests, they will be distributed fairly
     debug_assert(((DWORD)request->data & 3) == 0);
+    if (!accepting_requests.load()) {
+        return USBH_FAIL;
+    }
     if (xQueueSend(request_queue, &request, portMAX_DELAY) != pdPASS) {
         return USBH_FAIL;
     }
     return USBH_OK;
+}
+
+bool usbh_storage_async_begin() {
+    if (!accepting_requests.load()) {
+        return false;
+    }
+    storage_gate.async_begin();
+    return true;
+}
+
+void usbh_storage_async_end() {
+    storage_gate.async_end();
+}
+
+void usbh_msc_accept_requests(bool accept) {
+    accepting_requests.store(accept);
+}
+
+static void fail_queued_requests() {
+    if (request_queue == nullptr) {
+        return;
+    }
+    UsbhMscRequest *pending;
+    while (xQueueReceive(request_queue, &pending, 0) == pdPASS) {
+        if (pending == nullptr || pending->operation == UsbhMscRequest::UsbhMscRequestOperation::Noop) {
+            continue;
+        }
+        pending->result = USBH_FAIL;
+        if (pending->callback) {
+            pending->callback(USBH_FAIL, pending->callback_param1, pending->callback_param2);
+        }
+    }
 }
 
 // A real-time priority task that takes individual requests from the request_queue and executes them,
@@ -100,7 +159,14 @@ static void USBH_MSC_WorkerTask(void const *) {
     for (;;) {
         UsbhMscRequest *request;
         BaseType_t queue_status = xQueueReceive(request_queue, &request, portMAX_DELAY);
-        if (queue_status == pdPASS && request->operation != UsbhMscRequest::UsbhMscRequestOperation::Noop) {
+        if (queue_status == pdPASS && request != nullptr && request->operation != UsbhMscRequest::UsbhMscRequestOperation::Noop) {
+            if (!accepting_requests.load()) {
+                request->result = USBH_FAIL;
+                if (request->callback) {
+                    request->callback(USBH_FAIL, request->callback_param1, request->callback_param2);
+                }
+                continue;
+            }
             {
                 switch (request->operation) {
                 case UsbhMscRequest::UsbhMscRequestOperation::Read: {
@@ -119,16 +185,27 @@ static void USBH_MSC_WorkerTask(void const *) {
             }
 
             if (request->result != USBH_OK) {
-                usbh_power_cycle::io_error();
+                // Fail everyone still waiting before the bus is torn down, so
+                // FatFs / UsbPartialFile are not writing into a restarting stack.
+                accepting_requests.store(false);
+                fail_queued_requests();
             }
             if (request->callback) {
                 request->callback(request->result, request->callback_param1, request->callback_param2);
+            }
+            if (request->result != USBH_OK) {
+                usbh_power_cycle::io_error();
             }
         }
     }
 }
 
 static void USBH_StartMSCWorkerTask() {
+    static bool started = false;
+    if (started) {
+        return;
+    }
+    started = true;
     request_queue = xQueueCreateStatic(queue_length, sizeof(UsbhMscRequest *), storage_area, &queue);
     configASSERT(request_queue);
     osThreadCCMDef(USBH_MSC_WorkerTask, USBH_MSC_WorkerTask, TASK_PRIORITY_USB_MSC_WORKER_HIGH, 0U, 512);
@@ -180,6 +257,7 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
+    StorageGuard io_lock;
 
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
         while ((count--) && (status == USBH_OK)) {
@@ -228,6 +306,7 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
+    StorageGuard io_lock;
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
         USBH_ErrLog("Suspicious DMA Alignment issue, do single up to aligned buffer");
         while (count--) {
@@ -283,9 +362,14 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
 
     switch (cmd) {
     /* Make sure that no pending write process */
-    case CTRL_SYNC:
+    case CTRL_SYNC: {
+        // Wait until UsbPartialFile raw writes (and any other FatFs disk I/O)
+        // have finished so FAT/directory updates are not sitting behind them
+        // in the stick's write cache.
+        StorageGuard io_lock;
         res = RES_OK;
         break;
+    }
 
     /* Get number of sectors on the disk (DWORD) */
     case GET_SECTOR_COUNT:

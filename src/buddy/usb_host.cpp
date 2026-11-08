@@ -1,6 +1,7 @@
 #include "usb_host.h"
 #include "usbh_core.h"
 #include "usbh_msc.h"
+#include "usbh_async_diskio.hpp"
 
 #include <buddy/fatfs.h>
 #include <device/board.h>
@@ -163,6 +164,7 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
     case HOST_USER_DISCONNECTION:
         media_inserted = false;
         media_inserted_since_startup = false;
+        usbh_msc_accept_requests(false);
         f_mount(0, (TCHAR const *)USBHPath, 1); // umount
         break;
 
@@ -172,6 +174,7 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
             break;
         }
 
+        usbh_msc_accept_requests(true);
         media_inserted_since_startup = (media_on_startup_detection_timeout != 0);
         media_inserted = true;
 

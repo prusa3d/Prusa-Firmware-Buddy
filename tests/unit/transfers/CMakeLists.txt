@@ -15,6 +15,7 @@ add_executable(
   changed_path_tests.cpp
   transfer_tests.cpp
   partial_file_mock.cpp
+  usb_storage_gate_tests.cpp
   )
 
 if(NOT WEBSOCKET)
