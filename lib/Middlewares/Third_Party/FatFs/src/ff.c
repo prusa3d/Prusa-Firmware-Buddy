@@ -5536,24 +5536,45 @@ FRESULT f_expand (
 	} else
 #endif
 	{
-		scl = clst = stcl; ncl = 0;
-		for (;;) {	/* Find a contiguous cluster block */
-			n = get_fat(&fp->obj, clst);
-			if (++clst >= fs->n_fatent) clst = 2;
-			if (n == 1) { res = FR_INT_ERR; break; }
-			if (n == 0xFFFFFFFF) { res = FR_DISK_ERR; break; }
-			if (n == 0) {	/* Is it a free cluster? */
-				if (++ncl == tcl) break;	/* Break if a contiguous cluster block is found */
-			} else {
-				scl = clst; ncl = 0;		/* Not a free cluster */
-				if (yield) {
-					unlock_fs(fs, FR_OK);	/* release disk lock so others can use the fs */
-					res = validate(&fp->obj, &fs);	/* acquire the lock again and re-check the file */
-					if (res != FR_OK || (res = (FRESULT)fp->err) != FR_OK) LEAVE_FF(fs, res);
-					if (fp->obj.objsize != 0 || !(fp->flag & FA_WRITE)) LEAVE_FF(fs, FR_DENIED);
+		BYTE yield_retries;
+		for (yield_retries = 0; yield_retries < 3; yield_retries++) {
+			res = FR_OK;
+			scl = clst = stcl; ncl = 0;
+			for (;;) {	/* Find a contiguous cluster block */
+				n = get_fat(&fp->obj, clst);
+				if (++clst >= fs->n_fatent) clst = 2;
+				if (n == 1) { res = FR_INT_ERR; break; }
+				if (n == 0xFFFFFFFF) { res = FR_DISK_ERR; break; }
+				if (n == 0) {	/* Is it a free cluster? */
+					if (++ncl == tcl) break;	/* Break if a contiguous cluster block is found */
+				} else {
+					scl = clst; ncl = 0;		/* Not a free cluster */
+					if (yield) {
+						unlock_fs(fs, FR_OK);	/* release disk lock so others can use the fs */
+						res = validate(&fp->obj, &fs);	/* acquire the lock again and re-check the file */
+						if (res != FR_OK || (res = (FRESULT)fp->err) != FR_OK) LEAVE_FF(fs, res);
+						if (fp->obj.objsize != 0 || !(fp->flag & FA_WRITE)) LEAVE_FF(fs, FR_DENIED);
+					}
 				}
+				if (clst == stcl) { res = FR_DENIED; break; }	/* No contiguous cluster? */
 			}
-			if (clst == stcl) { res = FR_DENIED; break; }	/* No contiguous cluster? */
+			if (res != FR_OK || !opt || !yield) break;
+			/* yield dropped the FS lock during the search; another thread (e.g. f_unlink)
+			   may have allocated part of [scl, scl+tcl). Re-check before chaining. */
+			{
+				DWORD c, left, fat;
+				int stolen = 0;
+				for (c = scl, left = tcl; left; c++, left--) {
+					fat = get_fat(&fp->obj, c);
+					if (fat == 1) { res = FR_INT_ERR; break; }
+					if (fat == 0xFFFFFFFF) { res = FR_DISK_ERR; break; }
+					if (fat != 0) { stolen = 1; break; }
+				}
+				if (res != FR_OK) break;
+				if (!stolen) break;
+				if (yield_retries == 2) { res = FR_DENIED; break; }
+				stcl = 2;
+			}
 		}
 		if (res == FR_OK) {	/* A contiguous free area is found */
 			if (opt) {		/* Allocate it now */
