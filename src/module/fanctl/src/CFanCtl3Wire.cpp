@@ -27,8 +27,10 @@ CFanCtlPWM::CFanCtlPWM(const WritePinFunc &pin_write_func, const PWMParams &pwm_
     , pha_stp(0)
     , has_inverted_pwm(pwm_params.has_inverted_pwm) {}
 
-int8_t CFanCtlPWM::tick() {
-    int8_t pwm_on = cnt - pha; // calculate on time (number of ticks after 0-1 pwm transition)
+int16_t CFanCtlPWM::tick() {
+    // 16 bit: with dynamic PWM, max_value can be 250. pwm_on - max_value and max_value - val
+    // do not fit in int8_t.
+    int16_t pwm_on = cnt - pha; // calculate on time (number of ticks after 0-1 pwm transition)
     if (pwm_on >= val) {
         pwm_on -= max_value;
     }
@@ -64,7 +66,7 @@ int8_t CFanCtlPWM::tick() {
                 }
                 break;
             case random:
-                pha = static_cast<uint8_t>(pha_max * rand_f_from_u(rand_u_sw()));
+                pha = static_cast<int16_t>(pha_max * rand_f_from_u(rand_u_sw()));
                 break;
             }
         }
@@ -97,7 +99,7 @@ CFanCtlTach::CFanCtlTach(const ReadPinFunc &read_pin_func)
     m_value_ready = false;
 }
 
-bool CFanCtlTach::tick(int8_t pwm_on) {
+bool CFanCtlTach::tick(int16_t pwm_on) {
     bool tach = pin_read(); // sample tach input pin
     bool edge = ((tach ^ input_state) && (pwm_on >= 2)); // detect edge inside pwm pulse, ignore first two sub-periods after 0-1 pwm transition
     if (edge) {
@@ -147,7 +149,7 @@ void CFanCtl3Wire::tick() {
         return;
     }
     // PWM control
-    int8_t pwm_on = m_pwm.tick();
+    int16_t pwm_on = m_pwm.tick();
     // RPM measurement
     bool edge = false;
 

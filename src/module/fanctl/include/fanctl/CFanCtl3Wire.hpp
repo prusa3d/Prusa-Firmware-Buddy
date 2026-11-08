@@ -48,7 +48,7 @@ public:
     CFanCtlPWM(const WritePinFunc &write_pin_func, const PWMParams &pwm_params);
 
 public:
-    int8_t tick(); // tick callback from timer interrupt
+    int16_t tick(); // tick callback from timer interrupt
     // returns: positive number means pwm is on N ticks, negative number means pwm is off and will be switched on in -N ticks
 
     // getters
@@ -78,11 +78,11 @@ private:
     uint8_t pwm; // requested pwm value
     uint8_t cnt; // pwm counter (value 0..max-1)
     uint8_t val; // pwm value (cached during pwm cycle)
-    int8_t pha; // pwm phase shift
+    int16_t pha; // pwm phase shift
     PhaseShiftMode pha_mode; // pwm phase shift mode
     uint8_t pha_thr; // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
-    int8_t pha_max; // pwm phase shift maximum (calculated when pwm changed)
-    int8_t pha_stp; // pwm phase shift step (calculated when pwm changed)
+    int16_t pha_max; // pwm phase shift maximum (calculated when pwm changed)
+    int16_t pha_stp; // pwm phase shift step (calculated when pwm changed)
     bool has_inverted_pwm;
 };
 
@@ -94,7 +94,7 @@ public:
     CFanCtlTach(const ReadPinFunc &read_pin_func);
 
 public:
-    bool tick(int8_t pwm_on); // tick callback from timer interrupt (currently 1kHz), returns true when edge detected
+    bool tick(int16_t pwm_on); // tick callback from timer interrupt (currently 1kHz), returns true when edge detected
     // returns: true = tach cycle complete (used for RPM calculation)
 
     // getters
