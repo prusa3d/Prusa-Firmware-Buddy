@@ -3,7 +3,10 @@
 #pragma once
 
 #include <utils/uncopyable.hpp>
+#include <utils/mutex_atomic.hpp>
+#include <freertos/mutex.hpp>
 #include <bitset>
+#include <cstdint>
 #include <optional>
 #include <option/has_nextruder.h>
 #include <option/has_indx_head.h>
@@ -58,6 +61,30 @@ public:
     /// This value is NOT persistent
     uint32_t get_extruded_distance(VirtualToolIndex virtual_tool) const;
 
+    /// @returns a random value that identifies the current run of the extruded distance counters.
+    /// The counters restart from zero on every boot, and this value changes with them.
+    /// Consumers computing usage deltas from @ref get_extruded_distance use it to detect the reset.
+    uint32_t extruded_distance_id() const {
+        return extruded_distance_id_;
+    }
+
+    struct Unloads {
+        /// How many times the tool went from loaded to empty since boot
+        uint32_t count = 0;
+
+        /// @ref get_extruded_distance at the most recent of those; 0 if there was none
+        uint32_t extruded_at_last = 0;
+    };
+
+    /// Lets the tracker know that the filament of @p virtual_tool went from loaded to empty
+    void track_filament_unload(VirtualToolIndex virtual_tool);
+
+    /// Unloads of @p virtual_tool since boot.
+    /// Both fields are updated together, so they are always consistent with each other.
+    /// To read a consistent pair with @ref get_extruded_distance, read the unloads first:
+    /// the extruded distance never decreases, so it is then never below @ref Unloads::extruded_at_last.
+    Unloads get_unloads(VirtualToolIndex virtual_tool) const;
+
 #ifndef UNITTESTS
 private:
 #endif
@@ -77,6 +104,11 @@ private: // * per-VirtualToolIndex things
 
     /// This is used for filament usage tracking, so it must be per VIRTUAL tool.
     StrongIndexArray<ExtrudedDistance, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static> extruded_distances;
+
+    /// Written by whichever task changes the loaded filament, read by API handlers
+    MutexAtomic<StrongIndexArray<Unloads, VirtualToolIndex::count, VirtualToolIndex, VirtualToolIndex::to_raw_static>, freertos::Mutex> unloads;
+
+    uint32_t extruded_distance_id_;
 };
 
 FilamentTracker &filament_tracker();

@@ -28,6 +28,7 @@
  */
 #pragma once
 
+#include "filament_renderer.h"
 #include "file_info.h"
 #include "file_command.h"
 #include "gcode_upload.h"
@@ -149,6 +150,7 @@ namespace handler {
         SendJson<EmptyRenderer>,
         SendJson<TransferRenderer>,
         SendJson<StatusRenderer>,
+        SendJson<FilamentRenderer>,
         printer::GcodeUpload,
         printer::GCodePreview,
         printer::JobCommand,
