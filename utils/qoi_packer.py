@@ -28,7 +28,10 @@ def main():
 
     png_files = []
     if os.path.isdir(args.input.resolve()):
-        for filename in os.listdir(args.input.resolve()):
+        # Sort for reproducible builds: os.listdir() returns entries in
+        # filesystem-dependent order, which makes the packed qoi.data blob and
+        # the generated Resource offsets differ between build hosts.
+        for filename in sorted(os.listdir(args.input.resolve())):
             if filename.endswith('.png'):
                 png_files.append((args.input.resolve() / filename).resolve())
     else:
