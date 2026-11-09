@@ -32,8 +32,19 @@ enum class Type {
 
 /// An event in a JSON "stream".
 ///
-/// Note that this is not "owned", the string_views point to temporary
-/// stack-allocated data.
+/// Note that this is not "owned", the string_views point to data inside
+/// the JSON buffer passed to search(). The buffer is mutated in place
+/// (de-escape + null-termination), so the input buffer must be writable
+/// and must remain alive for the duration of the callbacks.
+///
+/// **Null-termination guarantee:** since the buffer is mutable, both
+/// `key` and `value` string_views are null-terminated — the byte at
+/// `view.data() + view.size()` is `\0`. Callers may pass `.data()` to
+/// C-string APIs or construct `std::string_view(const char*)` safely.
+/// (Without this guarantee, the previous byte was whatever JSON syntax
+/// followed the token, which silently leaked into anything that read
+/// to `\0` — see the commit that added this guarantee for the bug class
+/// it fixes.)
 struct Event {
     /// How deep in the structure this thing is.
     ///
@@ -86,6 +97,13 @@ namespace impl {
                     if (pos->type != JSMN_STRING) {
                         return nullptr;
                     }
+                    // Overwrite the closing '"' of the key with '\0' so the
+                    // resulting string_view is C-string-safe. The byte at
+                    // pos->end is the byte AFTER the last char of the key,
+                    // which for a JSON string key is always the closing
+                    // quote — JSMN has already consumed it, nothing else
+                    // needs it.
+                    input[pos->end] = '\0';
                     key_tmp = std::string_view(input + pos->start, pos->end - pos->start);
                     pos++;
                 }
@@ -101,6 +119,15 @@ namespace impl {
         case JSMN_STRING:
         case JSMN_PRIMITIVE: {
             auto new_size = unescape_json_i(input + token->start, token->end - token->start);
+            // Null-terminate the value so callers can pass .data() to
+            // C-string APIs. The byte at `start + new_size` is safe to
+            // overwrite: for strings shorter than the original quoted
+            // length it's leftover unescape garbage, for strings of full
+            // length it's the closing '"', and for primitives it's the
+            // following JSON syntax char (',', '}', ']', or whitespace).
+            // In all cases JSMN has already consumed the byte, nothing
+            // else needs it.
+            input[token->start + new_size] = '\0';
             std::string_view value(input + token->start, new_size);
             Event event {
                 depth,
@@ -129,9 +156,9 @@ namespace impl {
 /// subfields, etc (and not confuse a sub-sub-sub-field of the same name with
 /// the required one on top level).
 ///
-/// The value strings are de-escaped. The string should not be used
-/// (or used really carefuly) afterwards, because the de-escaping is done in place and
-///  messes it up. See unescape_json_i() for details on how.
+/// The value strings are de-escaped and null-terminated in place. The
+/// input buffer is mutated; do not rely on it being unchanged afterwards.
+/// See unescape_json_i() and the Event struct doc for details.
 ///
 /// Returns true on success, false on "broken" JSON (mostly if the top-level
 /// thing isn't an object). It does expect "structural" validity of the tokens,
