@@ -253,6 +253,13 @@ fn main() -> Result<(), Error> {
         idx += 1;
     }
 
+    if Some(idx) == args.insert_at {
+        println!("Inserted into output at {idx}");
+        output
+            .write_all(&gen_printer_metadata())
+            .context("Writing additional block")?;
+    }
+
     debug!("Done reading");
 
     Ok(())
