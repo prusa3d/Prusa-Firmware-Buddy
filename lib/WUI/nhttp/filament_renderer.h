@@ -28,6 +28,9 @@ public:
         bool has_material = false;
         std::array<char, 8> name {};
         std::optional<uint32_t> color_rgb;
+        int16_t nozzle_temperature = 0;
+        int16_t preheat_temperature = 0;
+        int16_t bed_temperature = 0;
 
 #if HAS_ANFC()
         using UUIDBytes = std::array<std::byte, 16>;

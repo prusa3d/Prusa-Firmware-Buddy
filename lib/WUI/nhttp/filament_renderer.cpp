@@ -40,6 +40,9 @@ namespace {
             result.has_material = true;
             std::copy_n(params.name.data(), result.name.size(), result.name.begin());
             result.name.back() = '\0';
+            result.nozzle_temperature = params.nozzle_temperature;
+            result.preheat_temperature = params.nozzle_preheat_temperature;
+            result.bed_temperature = params.heatbed_temperature;
             if (params.color.has_value()) {
                 // Color keeps 0x00RRGGBB in its raw value
                 result.color_rgb = params.color->raw & 0xffffff;
@@ -114,7 +117,10 @@ json::JsonResult FilamentRenderer::renderState(size_t resume_point, json::JsonOu
                 if (tool.has_material) {
                     JSON_COMMA;
                     JSON_FIELD_OBJ("material");
-                        JSON_FIELD_STR("name", tool.name.data());
+                        JSON_FIELD_STR("name", tool.name.data()) JSON_COMMA;
+                        JSON_FIELD_INT("nozzle_temperature", tool.nozzle_temperature) JSON_COMMA;
+                        JSON_FIELD_INT("preheat_temperature", tool.preheat_temperature) JSON_COMMA;
+                        JSON_FIELD_INT("bed_temperature", tool.bed_temperature);
                         if (tool.color_rgb.has_value()) {
                             JSON_COMMA;
                             JSON_FIELD_STR_FORMAT("color", "#%06" PRIx32, *tool.color_rgb);
