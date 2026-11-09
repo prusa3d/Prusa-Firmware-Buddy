@@ -67,6 +67,10 @@ enum class XLTypeDetectionResult : uint8_t {
     detected_as_xls,
     detected_as_xl,
     wiring_suspected,
+    /// The type is set manually to XL, but the bridge is present
+    manual_xl_mismatch,
+    /// The type is set manually to XLS, but the bridge is absent
+    manual_xls_mismatch,
 };
 
 /// Set by the puppy bootstrap, to be read by the marlin server during init

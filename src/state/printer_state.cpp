@@ -133,6 +133,8 @@ bool is_warning_attention(const fsm::BaseData &data) {
     case ErrCode::ERR_MECHANICAL_PRINTER_DETECTED_AS_XLS:
     case ErrCode::ERR_MECHANICAL_PRINTER_DETECTED_AS_XL:
     case ErrCode::ERR_MECHANICAL_XL_CAN_WIRING_SUSPECTED:
+    case ErrCode::ERR_MECHANICAL_MANUAL_PRINTER_TYPE_XL_MISMATCH:
+    case ErrCode::ERR_MECHANICAL_MANUAL_PRINTER_TYPE_XLS_MISMATCH:
 #endif
         return false;
     default:
@@ -832,6 +834,12 @@ ErrCode warning_type_to_error_code(WarningType wtype) {
 
     case WarningType::XlCanWiringSuspected:
         return ErrCode::ERR_MECHANICAL_XL_CAN_WIRING_SUSPECTED;
+
+    case WarningType::ManualPrinterTypeXLMismatch:
+        return ErrCode::ERR_MECHANICAL_MANUAL_PRINTER_TYPE_XL_MISMATCH;
+
+    case WarningType::ManualPrinterTypeXLSMismatch:
+        return ErrCode::ERR_MECHANICAL_MANUAL_PRINTER_TYPE_XLS_MISMATCH;
 #endif
 
     case WarningType::_cnt:

@@ -628,8 +628,10 @@ void run() {
         if (first_run && !autodetect_printer_type) {
             if ((config_store().extended_printer_type.get() == xls_index) && !xl_can.is_enabled()) {
                 log_info(Puppies, "XL-CAN absent: Printer type mismatch unchanged (manual selection)");
+                xl_type_detection_result = XLTypeDetectionResult::manual_xls_mismatch;
             } else if ((config_store().extended_printer_type.get() == xl_index) && xl_can.is_enabled()) {
                 log_info(Puppies, "XL-CAN detected: Printer type mismatch unchanged (manual selection)");
+                xl_type_detection_result = XLTypeDetectionResult::manual_xl_mismatch;
             }
         }
         if (xl_can.is_enabled() && (first_run || xl_can_requires_reset)) {
