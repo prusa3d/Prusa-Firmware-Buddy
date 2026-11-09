@@ -8,6 +8,8 @@ namespace nhttp::handler {
 class StatusState {
 public:
     std::optional<transfers::TransferId> transfer_id { std::nullopt };
+    size_t iter = 0;
+    bool need_comma = false;
     StatusState(std::optional<transfers::TransferId> id)
         : transfer_id(id) {}
 };
