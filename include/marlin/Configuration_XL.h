@@ -154,6 +154,10 @@
 //===========================================================================
 
 #define TEMP_SENSOR_BED 5
+
+// Chamber temperature is thermistor connector on sandwich. Connected to virtual MARLIN_PIN(AMBIENT) and AdcGet::ambientTemp().
+#define TEMP_SENSOR_CHAMBER 0
+
 #define TEMP_SENSOR_HEATBREAK 5
 #define TEMP_SENSOR_BOARD 2000
 
