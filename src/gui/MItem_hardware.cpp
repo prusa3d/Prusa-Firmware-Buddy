@@ -65,6 +65,13 @@ void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
 namespace {
 /// The "Auto" row precedes the models on printers that detect their type
 constexpr int extended_printer_type_first_model_row = HAS_EXTENDED_PRINTER_TYPE_AUTODETECT() ? 1 : 0;
+
+/// The detection/type change only apply at boot
+void offer_restart_after_printer_type_change() {
+    if (MsgBoxQuestion(_("The printer type change takes full effect after a restart. Restart now?"), { Response::Yes, Response::No }) == Response::Yes) {
+        sys_reset();
+    }
+}
 } // namespace
 
 MI_EXTENDED_PRINTER_TYPE::MI_EXTENDED_PRINTER_TYPE()
@@ -95,13 +102,24 @@ string_view_utf8 MI_EXTENDED_PRINTER_TYPE::build_item_text(int index, [[maybe_un
 
 bool MI_EXTENDED_PRINTER_TYPE::on_item_selected(const OnItemSelectedArgs &args) {
     const auto new_type_index = args.new_index - extended_printer_type_first_model_row;
-
+    bool should_ask_to_restart = false;
     #if HAS_EXTENDED_PRINTER_TYPE_AUTODETECT()
-    config_store().extended_printer_type_autodetect.set(args.new_index == 0);
+    const bool new_autodetect_value = args.new_index == 0;
+
+    if (config_store().extended_printer_type_autodetect.get() != new_autodetect_value) {
+        config_store().extended_printer_type_autodetect.set(new_autodetect_value);
+        should_ask_to_restart = true;
+    }
+
     #endif
 
     if (args.new_index >= extended_printer_type_first_model_row && new_type_index != config_store().extended_printer_type.get()) {
         change_extended_printer_type(extended_printer_type_model[new_type_index], ChangeExtendedPrinterTypeMode::standard_with_marlin_client_and_puppies);
+        should_ask_to_restart = true;
+    }
+
+    if (should_ask_to_restart) {
+        offer_restart_after_printer_type_change();
     }
 
     return true;
