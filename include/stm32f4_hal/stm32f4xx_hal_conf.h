@@ -190,8 +190,15 @@ extern "C" {
 /* Definition of the Ethernet driver buffers size and count */
 #define ETH_RX_BUF_SIZE ETH_MAX_PACKET_SIZE /* buffer size for receive               */
 #define ETH_TX_BUF_SIZE ETH_MAX_PACKET_SIZE /* buffer size for transmit              */
-#define ETH_RXBUFNB     ((uint32_t)4U) /* 4 Rx buffers of size ETH_RX_BUF_SIZE  */
-#define ETH_TXBUFNB     ((uint32_t)4U) /* 4 Tx buffers of size ETH_TX_BUF_SIZE  */
+/* A full TCP window (8 segments) arrives back to back. The MAC drops the frames that
+ * find no free descriptor. The MINI (STM32F407) keeps 4: the buffers take RAM from
+ * its heap, and it has the least heap. */
+#if defined(STM32F407xx)
+    #define ETH_RXBUFNB ((uint32_t)4U) /* 4 Rx buffers of size ETH_RX_BUF_SIZE  */
+#else
+    #define ETH_RXBUFNB ((uint32_t)10U) /* 10 Rx buffers of size ETH_RX_BUF_SIZE  */
+#endif
+#define ETH_TXBUFNB ((uint32_t)4U) /* 4 Tx buffers of size ETH_TX_BUF_SIZE  */
 
 /* Section 2: PHY configuration section */
 
