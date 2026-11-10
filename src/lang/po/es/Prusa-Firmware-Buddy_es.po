@@ -8805,7 +8805,7 @@ msgstr "Test Célula de Carga Cabezal %d"
 #: tmp_error_headers/error_list.hpp:37
 #, c-format
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
-msgstr "El offset %c del cabezal %d: %.3f está fuera de límites [%.3f, %.3f]."
+msgstr "Cabezal %d, offset %c: %.3f está fuera de límites [%.3f, %.3f]."
 
 #: src/common/tool_index.cpp:210
 #, c-format

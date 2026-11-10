@@ -8704,7 +8704,7 @@ msgstr "Test ogniwa tensometrycznego %d"
 #: tmp_error_headers/error_list.hpp:37
 #, c-format
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
-msgstr "Przesunięcie %c narzędzia %d: %.3f jest poza zakresem [%.3f, %.3f]."
+msgstr "Narzędzie %d, przesunięcie %c: %.3f jest poza zakresem [%.3f, %.3f]."
 
 #: src/common/tool_index.cpp:210
 #, c-format

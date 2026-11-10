@@ -9280,7 +9280,7 @@ msgstr "アンロード フィラメント"
 #: src/gui/screen/openprinttag/screen_opt_lost.cpp:19
 #, c-format
 msgid "Unload filament \"%.*s\" from tool %i?"
-msgstr "ツール %i カラ フィラメント \"%.*s\" ヲ アンロード シマスカ?"
+msgstr "フィラメント \"%.*s\" ヲ ツール %i カラ アンロード シマスカ?"
 
 #: src/gui/screen/screen_filament_change.cpp:30
 #: src/gui/screen_cold_pull.cpp:293

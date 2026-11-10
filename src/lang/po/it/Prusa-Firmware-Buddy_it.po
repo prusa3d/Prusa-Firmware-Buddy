@@ -8797,7 +8797,7 @@ msgstr "Test Cella di carico Strumento %d"
 #: tmp_error_headers/error_list.hpp:37
 #, c-format
 msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
-msgstr "Offset %c strumento %d : %.3f è fuori dai limiti [%.3f, %.3f]."
+msgstr "Strumento %d, offset %c: %.3f è fuori dai limiti [%.3f, %.3f]."
 
 #: src/common/tool_index.cpp:210
 #, c-format
