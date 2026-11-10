@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <cstdint>
+#include <span>
+
 enum class CoreXYCalibrationMode {
     on_demand, // Allow automatic calibration
     force, // Force re-calibration
@@ -49,12 +52,21 @@ bool homing_corexy_in_progress();
 
 #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
 /**
+ * @brief Measurement currents (mA) to calibrate with, in order of preference
+ *
+ * A higher current can overpower the holding motor and skip the belt, so it is only worth trying
+ * when the calibration fails at the lower one.
+ */
+std::span<const uint16_t> corexy_measure_currents();
+
+/**
  * @brief Calibrate homing sensitivity on TMC
  * @warning Must be called *at* home position
  * @param fr_mm_s Homing (and service moves) feedrate
+ * @param current Measurement current (mA), see corexy_measure_currents()
  * @return true on success
  */
-bool corexy_sens_calibrate(const float fr_mm_s);
+bool corexy_sens_calibrate(const float fr_mm_s, uint16_t current);
 
 /**
  * @brief Return the TMC sensitivity calibration status

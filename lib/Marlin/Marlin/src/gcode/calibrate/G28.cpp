@@ -951,6 +951,26 @@ enum class RefineResult {
   calibrate_from_menu, ///< Needs calibration but cannot do it en-situ. The user needs to abort/ignroe and do it from the calibrations menu.
 };
 
+/// Calibrate the home origin, re-homing and retrying on failure
+/// @warning Must be called *at* home position
+static RefineResult corexy_calibrate_origin_with_retries(float xy_mm_s) {
+  for (uint8_t retry = 0; retry < PRECISE_HOMING_COREXY_RETRIES; retry++) {
+    if (planner.draining()) {
+      return RefineResult::hard_fail;
+    }
+
+    if (corexy_home_refine(xy_mm_s, CoreXYCalibrationMode::force)) {
+      return RefineResult::success;
+    }
+
+    // Always re-home to ensure we are in the right position
+    if (!corexy_rehome_xy(xy_mm_s)) {
+      return RefineResult::hard_fail;
+    }
+  }
+  return RefineResult::refine_fail;
+}
+
 RefineResult corexy_calibrate_homing_during_G28(float xy_mm_s, const G28Flags &flags) {
   // We cannot calibrate -> this are bad, abort
   if (!flags.can_calibrate) {
@@ -1003,31 +1023,31 @@ RefineResult corexy_calibrate_homing_during_G28(float xy_mm_s, const G28Flags &f
   PrintStatusMessageGuard status_guard;
   status_guard.update<PrintStatusMessage::recalibrating_home>({});
 
+  RefineResult result = RefineResult::refine_fail;
 #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
-  // Try calibrating motor sensitivity before calibration
-  if (!corexy_sens_calibrate(xy_mm_s)) {
-    return RefineResult::hard_fail;
-  }
-
-  // After calibrating sensitivity, we need to rehome
-  if (!corexy_rehome_xy(xy_mm_s)) {
-    return RefineResult::hard_fail;
-  }
-#endif
-
-  for (uint8_t retry = 0; retry < PRECISE_HOMING_COREXY_RETRIES; retry++) {
-    if (planner.draining()) {
+  // The first current whose origin calibration passes wins: a higher one is only tried when the
+  // lower one fails, see corexy_measure_currents()
+  for (const uint16_t current : corexy_measure_currents()) {
+    if (!corexy_sens_calibrate(xy_mm_s, current)) {
       return RefineResult::hard_fail;
     }
 
-    if (corexy_home_refine(xy_mm_s, CoreXYCalibrationMode::force)) {
-      return RefineResult::success;
-    }
-
-    // Always re-home to ensure we are in the right position
+    // After calibrating sensitivity, we need to rehome
     if (!corexy_rehome_xy(xy_mm_s)) {
       return RefineResult::hard_fail;
     }
+
+    result = corexy_calibrate_origin_with_retries(xy_mm_s);
+    if (result != RefineResult::refine_fail) {
+      break;
+    }
+  }
+#else
+  result = corexy_calibrate_origin_with_retries(xy_mm_s);
+#endif
+
+  if (result != RefineResult::refine_fail) {
+    return result;
   }
 
   // If recalibration was attempted and failed, clear the old (now known-invalid) calibration data.

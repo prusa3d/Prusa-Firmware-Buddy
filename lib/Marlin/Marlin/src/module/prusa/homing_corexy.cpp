@@ -19,6 +19,12 @@
     // not per-axis as currently done. Ensure the setting is not enabled by mistake.
     #error "HAS_PRECISE_HOMING_COREXY() is not compatible with HAS_TMC_WAVETABLE"
 #endif
+#if defined(XY_HOMING_MEASURE_CURRENTS) && !defined(XY_HOMING_MEASURE_SENS_MIN)
+    #error "XY_HOMING_MEASURE_CURRENTS requires sensitivity calibration (XY_HOMING_MEASURE_SENS_MIN)"
+#endif
+#if defined(XY_HOMING_MEASURE_CURRENTS) && defined(XY_HOMING_MEASURE_CURRENT)
+    #error "XY_HOMING_MEASURE_CURRENTS is mutually exclusive with XY_HOMING_MEASURE_CURRENT"
+#endif
 
 #include "../planner.h"
 #include "../stepper.h"
@@ -41,10 +47,6 @@
 #include <metric.h>
 #include <cmath_ext.h>
 #include <option/has_toolchanger.h>
-
-#include <utility>
-using std::make_pair;
-using std::pair;
 
 #if HAS_TRINAMIC && defined(XY_HOMING_MEASURE_SENS_MIN)
     #include <configuration.hpp>
@@ -368,6 +370,15 @@ static bool measure_axis_distance(const AxisEnum axis, const ab_steps_t origin_s
     return hit;
 }
 
+/// Default measurement current for the stepper of the given axis
+static constexpr uint16_t default_measure_current([[maybe_unused]] const AxisEnum axis) {
+#ifdef XY_HOMING_MEASURE_CURRENT
+    return XY_HOMING_MEASURE_CURRENT;
+#else
+    return (axis == A_AXIS ? X_CURRENT_HOME : Y_CURRENT_HOME);
+#endif
+}
+
 /// Return measure axis default parameters
 static measure_axis_params measure_axis_defaults(const AxisEnum axis) {
     measure_axis_params params;
@@ -385,11 +396,7 @@ static measure_axis_params measure_axis_defaults(const AxisEnum axis) {
 #else
     params.feedrate = homing_feedrate(axis);
 #endif
-#ifdef XY_HOMING_MEASURE_CURRENT
-    params.current = XY_HOMING_MEASURE_CURRENT;
-#else
-    params.current = (axis == A_AXIS ? X_CURRENT_HOME : Y_CURRENT_HOME);
-#endif
+    params.current = default_measure_current(axis);
 
     return params;
 }
@@ -1100,15 +1107,20 @@ static bool measure_calibrate_walk(float &score, AxisEnum measured_axis,
 }
 
 static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
-    AxisEnum measured_axis, const float fr_mm_s) {
+    AxisEnum measured_axis, const float fr_mm_s, const uint16_t current) {
     measure_axis_params params = measure_axis_defaults(measured_axis);
+    params.current = current;
     bool rehome = false; // initial home state
 
     // limits are inclusive
     static_assert(XY_HOMING_MEASURE_SENS_MAX > XY_HOMING_MEASURE_SENS_MIN);
     constexpr size_t slots = (XY_HOMING_MEASURE_SENS_MAX - XY_HOMING_MEASURE_SENS_MIN) + 1;
     static_assert(slots > 1 && slots < 16);
-    pair<int8_t, float> scores[slots];
+    struct Score {
+        int8_t sensitivity;
+        float score;
+    };
+    Score scores[slots];
     size_t score_cnt = 0;
 
     for (int8_t sens = XY_HOMING_MEASURE_SENS_MIN; sens <= XY_HOMING_MEASURE_SENS_MAX; ++sens) {
@@ -1128,9 +1140,7 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
                 return false;
             }
         } else {
-            scores[score_cnt].first = sens;
-            scores[score_cnt].second = score;
-            ++score_cnt;
+            scores[score_cnt++] = { sens, score };
 
             metric_record_custom(&metric_phxy_sens, ",a=%u,sens=%i s=%.4f,f=%.2f,c=%u",
                 measured_axis, sens, (double)score, (double)params.feedrate, params.current);
@@ -1145,24 +1155,35 @@ static bool measure_calibrate_sens(CoreXYHomeTMCSens &calibrated_sens,
 
     // pick the best result
     size_t best_idx = 0;
-    SERIAL_ECHOLN("sensitivity calibration");
+    SERIAL_ECHOLNPAIR("sensitivity calibration current:", current);
     for (size_t i = 0; i != score_cnt; ++i) {
-        SERIAL_ECHOLNPAIR(" sens:", scores[i].first, " score:", scores[i].second);
-        if (scores[i].second > scores[best_idx].second) {
+        SERIAL_ECHOPAIR(" sens:", scores[i].sensitivity);
+        SERIAL_ECHOLNPAIR_F(" score:", scores[i].score, 4);
+        if (scores[i].score > scores[best_idx].score) {
             best_idx = i;
         }
     }
-    SERIAL_ECHOLNPAIR(" selected:", scores[best_idx].first);
+    SERIAL_ECHOLNPAIR(" selected:", scores[best_idx].sensitivity);
 
-    // we currently only calibrate sensitivity, but save all effective parameters
+    // save all effective parameters, calibrated or not
     calibrated_sens.feedrate = params.feedrate;
     calibrated_sens.current = params.current;
-    calibrated_sens.sensitivity = scores[best_idx].first;
-    calibrated_sens.score = scores[best_idx].second;
+    calibrated_sens.sensitivity = scores[best_idx].sensitivity;
+    calibrated_sens.score = scores[best_idx].score;
     return true;
 }
 
-bool corexy_sens_calibrate(const float fr_mm_s) {
+std::span<const uint16_t> corexy_measure_currents() {
+    #ifdef XY_HOMING_MEASURE_CURRENTS
+    static constexpr uint16_t currents[] = XY_HOMING_MEASURE_CURRENTS;
+    static_assert(std::size(currents) > 1);
+    #else
+    static constexpr uint16_t currents[] = { default_measure_current(X_HOME_DIR == Y_HOME_DIR ? B_AXIS : A_AXIS) };
+    #endif
+    return currents;
+}
+
+bool corexy_sens_calibrate(const float fr_mm_s, const uint16_t current) {
 
     AutoRestore<bool> scope_guard_homing_in_progress(homing_in_progress, true);
 
@@ -1185,7 +1206,7 @@ bool corexy_sens_calibrate(const float fr_mm_s) {
     SERIAL_ECHOLN("recalibrating homing sensitivity");
 
     CoreXYHomeTMCSens calibrated_sens;
-    if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s)) {
+    if (!measure_calibrate_sens(calibrated_sens, measured_axis, fr_mm_s, current)) {
         SERIAL_ECHOLNPAIR("home sensitivity calibration failed");
         return false;
     }
