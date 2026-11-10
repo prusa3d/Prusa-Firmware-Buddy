@@ -3372,21 +3372,10 @@ static void lift_head() {
     }
 #endif
 
-    const float distance = std::min(target_z, Z_MAX_POS) - current_position.z;
-
     static_assert(Z_NOZZLE_PARK_POINT > 0);
 
-    if (axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise)) {
-        // Do prepare_move_to, as it segments the move and thus allows better emergency_stop
-        destination = current_position;
-        destination.z += distance;
-        prepare_move_to(destination, HOMING_FEEDRATE_INVERTED_Z, {});
-        planner.synchronize();
-
-    } else {
-        // have to use HOMING_FEEDRATE, otherwise the stallguards might not trigger
-        do_homing_move(Z_AXIS, distance, HOMING_FEEDRATE_INVERTED_Z);
-    }
+    // The unpark returns to the absolute resume Z, so the lift must not lose steps at the bottom of the axis
+    mapi::lift_z_to(target_z);
 }
 
 static void retract_and_lift() {
