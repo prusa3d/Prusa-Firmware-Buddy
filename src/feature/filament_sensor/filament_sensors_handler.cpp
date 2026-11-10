@@ -223,8 +223,9 @@ void FilamentSensors::process_events() {
         }
 
 #if HAS_CRASH_DETECTION()
-        if (crash_s.get_state() != Crash_s::PRINTING) {
-            // Only allow runouts in print and outside of crash recovery
+        // Only allow runouts outside of crash recovery.
+        // Crash recovery stays IDLE during serial prints, those have to trigger runouts too.
+        if (const auto crash_state = crash_s.get_state(); crash_state != Crash_s::PRINTING && crash_state != Crash_s::IDLE) {
             return false;
         }
 #endif
