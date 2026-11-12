@@ -38,6 +38,7 @@
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
   #include "../../feature/prusa/MMU2/mmu2_mk4.h"
+  #include <config_store/store_instance.hpp>
 #endif
 
 #include <option/has_toolchanger.h>
@@ -78,6 +79,17 @@
  * - `Tc` - Load to nozzle after filament was prepared by Tc and nozzle is already heated.
  */
 void GcodeSuite::T() {
+#if HAS_MMU2()
+  // Slots beyond the stock range exist only on user-modified MMUs running
+  // matching custom MMU firmware. The user opts in by setting the slot count;
+  // the MMU then gets the raw slot number, bypassing tool mapping.
+  if (!parser.string_arg && MMU2::mmu2.Enabled() && parser.codenum >= VirtualToolIndex::count
+      && parser.codenum < config_store().mmu2_extended_slot_count.get()) {
+    MMU2::mmu2.tool_change(static_cast<uint8_t>(parser.codenum));
+    return;
+  }
+#endif
+
   const auto result = GcodeSuite::get_virtual_tool_from_command(parser.codenum, parser.boolval('M', true));
   const auto virtual_tool = match(result,
     [](GcodeSuite::ToolParsingError error) -> std::variant<VirtualToolIndex, NoTool> { fatal_error(error.msg, "GcodeSuite"); },

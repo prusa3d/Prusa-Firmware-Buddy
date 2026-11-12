@@ -2,6 +2,8 @@
 #include "Marlin/src/gcode/gcode.h"
 #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "M70X.hpp"
+#include <config_store/store_instance.hpp>
+#include <tool_index.hpp>
 
 /** \addtogroup G-Codes
  * @{
@@ -64,10 +66,13 @@ void PrusaGcodeSuite::M708() {
  *
  *#### Usage
  *
- *    M709 [ S | X ]
+ *    M709 [ S | X | C ]
  *
  * #### Parameters
  *
+ * - `C` - slot count of a user-modified MMU with more slots than stock (persistent).
+ *   Requires matching custom MMU firmware. Allows `Tn` up to `C-1` to be passed to the MMU.
+ *   `0` restores the default (stock MMU).
  * - `X` - reset type
  *   - `0` - command via communication into the MMU (soft reset)
  *   - `1` - hard reset via MMU's reset pin
@@ -81,6 +86,12 @@ void PrusaGcodeSuite::M708() {
  *
  */
 void PrusaGcodeSuite::M709() {
+    if (parser.seen('C')) {
+        const uint8_t slots = parser.value_byte();
+        config_store().mmu2_extended_slot_count.set(slots > VirtualToolIndex::count ? slots : 0);
+        return;
+    }
+
     const int16_t reset_val = parser.byteval('X', -1);
     const int16_t power_val = parser.byteval('S', -1);
 
