@@ -421,6 +421,9 @@ struct CurrentStore
     StoreItem<bool, false, ItemFlag::features, journal::hash("MMU2 Enabled")> mmu2_enabled;
     StoreItem<bool, false, ItemFlag::features | ItemFlag::hw_config, journal::hash("MMU2 Cutter")> mmu2_cutter; // use MMU2 cutter when it sees fit
     StoreItem<bool, false, ItemFlag::features, journal::hash("MMU2 Stealth Mode")> mmu2_stealth_mode; // run MMU2 in stealth mode wherever possible
+    /// Slot count of a user-modified MMU with more slots than stock (needs matching custom MMU firmware).
+    /// 0 (default) = stock MMU, tool commands beyond VirtualToolIndex::count are rejected as before.
+    StoreItem<uint8_t, 0, ItemFlag::features, journal::hash("MMU2 Extended Slot Count")> mmu2_extended_slot_count;
 
     StoreItem<uint16_t, 0, ItemFlag::stats, journal::hash("MMU2 load fails")> mmu2_load_fails;
     StoreItem<uint16_t, 0, ItemFlag::stats, journal::hash("MMU2 total load fails")> mmu2_total_load_fails;

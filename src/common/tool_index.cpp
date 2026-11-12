@@ -144,7 +144,8 @@ std::variant<VirtualToolIndex, NoTool> PhysicalExtension::currently_selected_vir
     static_assert(PhysicalToolIndex::count == 1);
     if (MMU2::mmu2.Enabled()) {
         const auto e = MMU2::mmu2.get_current_tool();
-        if (e == MMU2::FILAMENT_UNKNOWN) {
+        if (e == MMU2::FILAMENT_UNKNOWN || e >= VirtualToolIndex::count) {
+            // Extended slots of a user-modified MMU have no per-tool settings
             return NoTool {};
         } else {
             return VirtualToolIndex::from_raw(e);
