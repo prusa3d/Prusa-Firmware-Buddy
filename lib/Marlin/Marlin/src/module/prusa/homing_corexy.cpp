@@ -39,6 +39,9 @@
 #include <feature/input_shaper/input_shaper_config.hpp>
 #include <config_store/store_instance.hpp>
 #include <metric.h>
+#include <config_store/store_c_api.h>
+#include <feature/tmc_util.h>
+#include <numbers>
 #include <cmath_ext.h>
 #include <option/has_toolchanger.h>
 
@@ -65,6 +68,9 @@ using ab_grid_t = XYval<int32_t, PhaseGridTag>;
 
 // Electrical phase alignment position: set to 45' for maximum two-phase current holding torque
 static constexpr int16_t zero_phase_mscnt_angle = 1024 / 8;
+
+// Part of the measured motor's final speed from which the stall is watched for
+static constexpr float measure_stall_watch_speed_ratio = 0.9f;
 
 // Number of measurement probes to average
 static constexpr int16_t measure_probe_n = 2;
@@ -316,6 +322,13 @@ static bool measure_axis_distance(const AxisEnum axis, const ab_steps_t origin_s
 #if HAS_TRINAMIC
     const int8_t axis_orig_sens = axis_stepper.sgt();
     axis_stepper.sgt(params.sensitivity);
+
+    // A single motor moves the head diagonally, which takes it sqrt(2) faster than a move along
+    // one axis at the same feedrate. The generic homing threshold would thus start watching for
+    // the stall in the middle of the acceleration, where the motor is loaded and still slow for a
+    // reliable reading. Start watching only when the motor is close to its final speed.
+    axis_stepper.TCOOLTHRS(tmc_feedrate_to_period(X_AXIS, get_microsteps_x(),
+        params.feedrate * std::numbers::sqrt2_v<float> * measure_stall_watch_speed_ratio, get_steps_per_unit_x()));
 #endif
     ScopeGuard state_restorer([&]() {
 #if HAS_TRINAMIC
