@@ -2,6 +2,15 @@
 #include "Marlin/src/gcode/gcode.h"
 #include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "M70X.hpp"
+#include <config_store/store_instance.hpp>
+#include <tool_index.hpp>
+
+#include <algorithm>
+
+namespace {
+/// The MMU firmware supports up to 14 slots (+ the parking position)
+constexpr uint8_t max_mmu_slot_count = 14;
+} // namespace
 
 /** \addtogroup G-Codes
  * @{
@@ -64,10 +73,14 @@ void PrusaGcodeSuite::M708() {
  *
  *#### Usage
  *
- *    M709 [ S | X ]
+ *    M709 [ S | X | C ]
  *
  * #### Parameters
  *
+ * - `C` - Slot count of a user-modified MMU with more slots than stock (persistent, up to 14)
+ *   Must match the slot count of its custom MMU firmware, the MMU would reject the extra tool changes otherwise.
+ *   `T5` to `T<C-1>` select those slots instead of `T5` unloading the filament.
+ *   `0` to `5` mean a stock MMU (default). Without a value, prints the slot count in use.
  * - `X` - reset type
  *   - `0` - command via communication into the MMU (soft reset)
  *   - `1` - hard reset via MMU's reset pin
@@ -79,8 +92,25 @@ void PrusaGcodeSuite::M708() {
  *
  *  without any parameter returns 0 or 1 for current state
  *
+ *#### Examples
+ *
+ *    M709 C12 ; Use slots T0 to T11 of a 12-slot MMU
+ *    M709 C0 ; Back to a stock MMU
  */
 void PrusaGcodeSuite::M709() {
+    if (parser.seen('C')) {
+        if (parser.has_value()) {
+            const uint8_t slots = parser.value_byte();
+            if (slots > max_mmu_slot_count) {
+                SERIAL_ERROR_MSG("M709: slot count too high");
+                return;
+            }
+            config_store().mmu2_extended_slot_count.set(slots > VirtualToolIndex::count ? slots : 0);
+        }
+        SERIAL_ECHOLNPAIR("MMU slot count: ", std::max<uint8_t>(config_store().mmu2_extended_slot_count.get(), VirtualToolIndex::count));
+        return;
+    }
+
     const int16_t reset_val = parser.byteval('X', -1);
     const int16_t power_val = parser.byteval('S', -1);
 

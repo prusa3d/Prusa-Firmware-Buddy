@@ -286,6 +286,11 @@ struct VirtualToolIndexExtension {
     static std::optional<VirtualToolIndex> currently_selected_opt() {
         return stdext::get_optional<VirtualToolIndex>(currently_selected());
     }
+
+    /// @returns whether the MMU has a slot loaded that is beyond the stock slot range
+    /// That is possible only on a user-modified MMU with more slots (see M709 C).
+    /// No virtual tool is selected then, as such slots have no per-tool settings.
+    static bool is_extended_mmu_slot_loaded();
 };
 
 struct GcodeToolIndexExtension {
