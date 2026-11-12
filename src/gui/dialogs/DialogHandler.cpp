@@ -33,6 +33,7 @@
     #include <gui/screen/screen_nozzle_mismatch.hpp>
     #include <feature/indx_dock_calibration/screen_dock_calibration.hpp>
     #include <feature/indx_nozzle_cleaner_calibration/screen_nozzle_cleaner_calibration.hpp>
+    #include <feature/indx_nozzle_cleaning/screen_indx_nozzle_cleaning.hpp>
 #endif
 #if HAS_GANTRY_SQUARENESS_CHECK()
     #include <feature/indx_gantry_squareness/screen_gantry_squareness.hpp>
@@ -329,6 +330,7 @@ using FSMDisplayConfig = FSMDisplayConfigDef<
     FSMScreenDef<ClientFSM::NozzleMismatch, ScreenNozzleMismatch>,
     FSMScreenDef<ClientFSM::DockCalibration, ScreenDockCalibration>,
     FSMScreenDef<ClientFSM::NozzleCleanerCalibration, ScreenNozzleCleanerCalibration>,
+    FSMScreenDef<ClientFSM::NozzleCleaning, ScreenIndxNozzleCleaning>,
 #endif
 #if HAS_GANTRY_SQUARENESS_CHECK()
     FSMScreenDef<ClientFSM::GantrySquareness, ScreenGantrySquareness>,

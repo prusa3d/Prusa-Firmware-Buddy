@@ -106,7 +106,7 @@ if(HAS_DOOR_SENSOR_CALIBRATION)
 endif()
 
 if(HAS_INDX)
-  target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp)
+  target_sources(firmware PRIVATE M1982.cpp M1983.cpp M1984.cpp M1989.cpp)
 endif()
 
 if(HAS_GANTRY_SQUARENESS_CHECK)

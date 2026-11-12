@@ -537,6 +537,20 @@ enum class PhaseNozzleCleanerCalibration : PhaseUnderlyingType {
     _last = calibration_success,
 };
 constexpr inline ClientFSM client_fsm_from_phase(PhaseNozzleCleanerCalibration) { return ClientFSM::NozzleCleanerCalibration; }
+
+enum class PhaseNozzleCleaning : PhaseUnderlyingType {
+    preparing,
+    picking_tool,
+    heating,
+    cleaning,
+    manual_clean_hot,
+    cooling,
+    manual_clean_cold,
+    parking_tool,
+    finished,
+    _last = finished,
+};
+constexpr inline ClientFSM client_fsm_from_phase(PhaseNozzleCleaning) { return ClientFSM::NozzleCleaning; }
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()
 enum class PhaseToolOffsetsCalibration : PhaseUnderlyingType {
@@ -888,6 +902,18 @@ inline constexpr EnumArray<PhaseNozzleCleanerCalibration, PhaseResponses, CountP
     { PhaseNozzleCleanerCalibration::measuring_y, {} },
     { PhaseNozzleCleanerCalibration::evaluating_y, { Response::Yes, Response::Retry, Response::Abort } },
     { PhaseNozzleCleanerCalibration::calibration_success, { Response::Continue } },
+};
+
+inline constexpr EnumArray<PhaseNozzleCleaning, PhaseResponses, CountPhases<PhaseNozzleCleaning>()> nozzle_cleaning_wizard_responses {
+    { PhaseNozzleCleaning::preparing, {} },
+    { PhaseNozzleCleaning::picking_tool, {} },
+    { PhaseNozzleCleaning::heating, { Response::Skip, Response::Abort } },
+    { PhaseNozzleCleaning::cleaning, {} },
+    { PhaseNozzleCleaning::manual_clean_hot, { Response::Continue, Response::Skip, Response::Abort } },
+    { PhaseNozzleCleaning::cooling, { Response::Skip, Response::Abort } },
+    { PhaseNozzleCleaning::manual_clean_cold, { Response::Continue, Response::Skip, Response::Abort } },
+    { PhaseNozzleCleaning::parking_tool, {} },
+    { PhaseNozzleCleaning::finished, { Response::Continue } },
 };
 #endif
 #if HAS_TOOL_OFFSET_SENSOR()

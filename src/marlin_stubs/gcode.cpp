@@ -340,6 +340,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 1984:
             PrusaGcodeSuite::M1984();
             break;
+        case 1989:
+            PrusaGcodeSuite::M1989();
+            break;
 #endif
 #if HAS_GANTRY_SQUARENESS_CHECK()
         case 1988:
