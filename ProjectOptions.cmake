@@ -757,6 +757,10 @@ set_feature_for_printers(HAS_NOZZLE_CLEANER_LITE "XL" "COREONE" "COREONEL")
 set_feature_for_printers(
   HAS_MANUAL_BELT_TUNING "COREONE" "COREONE_INDX" "COREONEL" "COREONEL_INDX" "iX"
   )
+
+# Belt tuning that measures the belts with the head accelerometer instead of asking the user to find
+# their resonance by eye
+set_feature_for_printers(HAS_AUTOMATIC_BELT_TUNING "COREONE_INDX")
 set_feature_for_printers_master_board(
   HAS_I2C_EXPANDER
   "MK3.5"

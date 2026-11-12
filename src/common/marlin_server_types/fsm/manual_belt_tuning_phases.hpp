@@ -25,6 +25,12 @@ struct screw_revs {
     int8_t turn_eights;
 };
 
+/// How much to turn each tensioner screw, in eighths of a turn, tightening is positive
+struct screw_adjustment {
+    int8_t left_eights;
+    int8_t right_eights;
+};
+
 enum class PhaseManualBeltTuning : PhaseUnderlyingType {
     /// Introduction to belt tuning calibration, QR, prerequisites
     intro,
@@ -56,6 +62,27 @@ enum class PhaseManualBeltTuning : PhaseUnderlyingType {
     /// Calibration successfully completed
     finished,
 
+    /// Automatic measurement of the belt frequencies in progress, shows the progress
+    measuring,
+
+    /// The belt frequencies could not be found in the measurement
+    measurement_failed,
+
+    /// Vibrating just below the frequency found for the upper belt, the user watches it
+    confirm_upper_belt_wave,
+
+    /// Vibrating just above that frequency, the user tells whether the belt behaved as expected
+    confirm_upper_belt_collapse,
+
+    /// Shows the measured frequencies of both belts and their targets
+    show_measured,
+
+    /// User adjusts each tensioner screw by the calculated amount, the belts get measured again
+    adjust_screws,
+
+    /// The belts are still out of range after several adjustments, the user decides how to go on
+    not_converging,
+
     _cnt,
     _last = _cnt - 1
 };
@@ -73,6 +100,13 @@ inline constexpr EnumArray<PhaseManualBeltTuning, PhaseResponses, PhaseManualBel
     { PhaseManualBeltTuning::alignment_issue, { Response::Retry, Response::Abort } },
     { PhaseManualBeltTuning::adjust_tensioners, { Response::Continue, Response::Adjust, Response::Abort } },
     { PhaseManualBeltTuning::finished, { Response::Finish } },
+    { PhaseManualBeltTuning::measuring, { Response::Abort } },
+    { PhaseManualBeltTuning::measurement_failed, { Response::Retry, Response::Skip, Response::Abort } },
+    { PhaseManualBeltTuning::confirm_upper_belt_wave, { Response::Continue, Response::Abort } },
+    { PhaseManualBeltTuning::confirm_upper_belt_collapse, { Response::Yes, Response::No, Response::Abort } },
+    { PhaseManualBeltTuning::show_measured, { Response::Continue, Response::Abort } },
+    { PhaseManualBeltTuning::adjust_screws, { Response::Continue, Response::Abort } },
+    { PhaseManualBeltTuning::not_converging, { Response::Retry, Response::Ignore, Response::Abort } },
 };
 
 } // namespace ClientResponses

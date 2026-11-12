@@ -1,6 +1,7 @@
 #pragma once
 
 #include <printers.h>
+#include <option/has_automatic_belt_tuning.h>
 
 namespace manual_belt_tuning {
 
@@ -133,6 +134,31 @@ constexpr float calc_revs_from_freq(float df1, float df2, float k1, float k2) {
 constexpr float floor_to_half(float val) {
     return static_cast<float>(static_cast<int>(val * 2)) / 2.0f;
 }
+
+#if HAS_AUTOMATIC_BELT_TUNING()
+
+// Automatic measurement with the head accelerometer. The values below come from a single printer.
+
+// frequency change of a belt per one revolution of its own screw, and of the other belt's screw
+constexpr float automatic_hz_per_rev = 27.f;
+constexpr float automatic_hz_per_rev2 = 17.f;
+
+// accepted distance of a belt from its optimal frequency
+constexpr float automatic_freq_tolerance = 3.f;
+
+// the most to ask for at once on one screw, in eighths of a turn; the belts get measured again anyway
+constexpr int8_t automatic_max_turn_eights = 2;
+
+// how far above its frequency the lower belt usually collapses when the frequency is swept up
+constexpr float automatic_collapse_distance = 9.f;
+
+// adjustments after which the user gets asked whether to go on, when the belts are still out of the tolerance
+constexpr int automatic_adjustment_rounds = 5;
+
+// the second place the belts get measured at, relative to the calibration position
+constexpr float automatic_second_position_x_offset = -20.f;
+
+#endif
 
 // optimal frequency for top belt (in some cases lower belt has higher freq and optimal frequencies are switched)
 constexpr float higher_freq_belt_optimal = floor_to_half(tension_to_freq(tension_optimal_N, length_top_belt));

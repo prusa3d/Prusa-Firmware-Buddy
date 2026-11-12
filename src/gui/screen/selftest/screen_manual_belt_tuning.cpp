@@ -11,6 +11,10 @@
 #include <standard_frame/frame_text_prompt.hpp>
 #include <standard_frame/frame_wait.hpp>
 
+#include <algorithm>
+#include <array>
+#include <iterator>
+
 using Phase = PhaseManualBeltTuning;
 
 namespace {
@@ -49,6 +53,35 @@ constexpr const char *txt_desc_turn_screw = N_("Turn both screws:\n%s %s turns\n
 constexpr const char *txt_desc_no_turn = N_("No need to turn the tensioner screws.\n\nPress Continue to finish calibration or Adjust to repeat measuring.");
 // Finish screen
 constexpr auto txt_desc_finished = N_("Belt tension has been successfully calibrated.");
+
+// Automatic measurement in progress PHASE: measuring
+constexpr const char *txt_title_measuring = N_("Measuring the belts");
+constexpr const char *txt_desc_measuring = N_("The printer vibrates to find the frequency of each belt. This takes about two minutes.\n\nProgress: %u %%");
+// The belts were not found in the measurement PHASE: measurement_failed
+constexpr const char *txt_title_measurement_failed = N_("Belts not found");
+constexpr const char *txt_desc_measurement_failed = N_("Belts too loose or too tight to measure.\n\nPress a belt mid-gantry. If it gives easily, tighten both screws half a turn. If very stiff, loosen both half a turn.\n\nRetry, or Skip to measure by eye.");
+// The user watches the upper belt below the frequency found for it PHASE: confirm_upper_belt_wave
+constexpr const char *txt_title_confirm_wave = N_("Watch the upper belt");
+constexpr const char *txt_desc_confirm_wave = N_("Watch the upper belt. Over the next 15 seconds a slow wave should appear on it and grow.\n\nThen press Continue and keep watching: the wave should suddenly die down.");
+// The user tells whether the upper belt calmed down above that frequency PHASE: confirm_upper_belt_collapse
+constexpr const char *txt_title_confirm_collapse = N_("Did the wave die down?");
+constexpr const char *txt_desc_confirm_collapse = N_("The vibration is now a little faster.\n\nDid the upper belt's wave grow, and then die down after you pressed Continue?");
+// Measured frequencies of both belts PHASE: show_measured
+constexpr const char *txt_title_measured = N_("Measured belt frequencies");
+constexpr const char *txt_desc_measured = N_("Upper belt: %.1f Hz, optimal %.1f Hz\nLower belt: %.1f Hz, optimal %.1f Hz\n\nPress Continue to proceed.");
+// The user turns each tensioner screw as calculated PHASE: adjust_screws
+constexpr const char *txt_desc_adjust_screws = N_("Left screw:\n%s\nRight screw:\n%s\n\nPress Continue to measure again.");
+// The belts are still out of range after several adjustments PHASE: not_converging
+constexpr const char *txt_title_not_converging = N_("Belts still out of range");
+constexpr const char *txt_desc_not_converging = N_("The belts are still not within the optimal range after several adjustments.\n\nRetry to keep adjusting, Ignore to finish with the belts as they are, or Abort.");
+// Indexed by eighths of a turn, from loosening by two to tightening by two
+constexpr const char *txt_screw_turns[] = {
+    N_("loosen about 1/4 turn"),
+    N_("loosen about 1/8 turn"),
+    N_("leave as it is"),
+    N_("tighten about 1/8 turn"),
+    N_("tighten about 1/4 turn"),
+};
 
 constexpr uint8_t qr_size = 100;
 
@@ -172,6 +205,17 @@ public:
 
             desc.SetText(_(desc_ptr).formatted(params, buffer_tighten_loosen.data(), buffer_eights.data()));
 
+        } else if (phase == PhaseManualBeltTuning::adjust_screws) {
+            const auto adjustment = fsm::deserialize_data<screw_adjustment>(data);
+            const auto turn_text = [](int8_t eights) {
+                constexpr int count = std::size(txt_screw_turns);
+                return txt_screw_turns[std::clamp(eights + count / 2, 0, count - 1)];
+            };
+            // The buffers are named after their use in the other phase, here they hold the left and the right screw
+            StringBuilder(buffer_tighten_loosen).append_string_view(_(turn_text(adjustment.left_eights)));
+            StringBuilder(buffer_eights).append_string_view(_(turn_text(adjustment.right_eights)));
+            desc.SetText(_(desc_ptr).formatted(params, buffer_tighten_loosen.data(), buffer_eights.data()));
+
         } else {
             desc.SetText(_(desc_ptr));
         }
@@ -188,6 +232,46 @@ protected:
     std::array<char, 40> buffer_tighten_loosen = {};
     std::array<char, 40> buffer_eights = {};
     StringViewUtf8Parameters<120> params;
+};
+
+/// Screens of the automatic measurement that show values
+class FrameAutomatic : public FrameTitleRadio {
+
+public:
+    FrameAutomatic(window_frame_t *parent, Phase phase, const char *title, const char *desc)
+        : FrameTitleRadio(parent, phase, title)
+        , phase(phase)
+        , desc_ptr(desc)
+        , desc(parent, rect_desc, is_multiline::yes) {}
+
+    void update(fsm::PhaseData data) {
+        switch (phase) {
+
+        case Phase::measuring:
+            // The text is formatted into the same buffer every time, which alone would not get redrawn
+            desc.SetText(string_view_utf8 {});
+            desc.SetText(_(desc_ptr).formatted(params, static_cast<unsigned>(data[0])));
+            break;
+
+        case Phase::show_measured: {
+            const auto tensions = fsm::deserialize_data<belt_tensions>(data);
+            desc.SetText(_(desc_ptr).formatted(params,
+                tensions.get_upper(), manual_belt_tuning::higher_freq_belt_optimal,
+                tensions.get_lower(), manual_belt_tuning::lower_freq_belt_optimal));
+            break;
+        }
+
+        default:
+            desc.SetText(_(desc_ptr));
+            break;
+        }
+    }
+
+protected:
+    Phase phase;
+    const char *desc_ptr;
+    window_text_t desc;
+    StringViewUtf8Parameters<64> params;
 };
 
 class FrameAdjustKnob : public FrameTitle {
@@ -268,7 +352,14 @@ using Frames = FrameDefinitionList<ScreenManualBeltTuning::FrameStorage,
     FrameDefinition<Phase::show_tension, frames::FrameTitleDescRadio, Phase::show_tension, txt_title_freq_report, txt_desc_freq_report>,
     FrameDefinition<Phase::alignment_issue, frames::FrameTitleDescRadioQR, Phase::alignment_issue, txt_title_alignment_issue, txt_desc_alignment_issue, link_belt_calib_gantry>,
     FrameDefinition<Phase::adjust_tensioners, frames::FrameTitleDescRadioQR, Phase::adjust_tensioners, txt_title_turn_screw, txt_desc_turn_screw, link_tensioning>,
-    FrameDefinition<Phase::finished, FrameTextPrompt, Phase::finished, txt_desc_finished>>;
+    FrameDefinition<Phase::finished, FrameTextPrompt, Phase::finished, txt_desc_finished>,
+    FrameDefinition<Phase::measuring, frames::FrameAutomatic, Phase::measuring, txt_title_measuring, txt_desc_measuring>,
+    FrameDefinition<Phase::measurement_failed, frames::FrameTitleDescRadio, Phase::measurement_failed, txt_title_measurement_failed, txt_desc_measurement_failed>,
+    FrameDefinition<Phase::confirm_upper_belt_wave, frames::FrameTitleDescRadio, Phase::confirm_upper_belt_wave, txt_title_confirm_wave, txt_desc_confirm_wave>,
+    FrameDefinition<Phase::confirm_upper_belt_collapse, frames::FrameTitleDescRadio, Phase::confirm_upper_belt_collapse, txt_title_confirm_collapse, txt_desc_confirm_collapse>,
+    FrameDefinition<Phase::show_measured, frames::FrameAutomatic, Phase::show_measured, txt_title_measured, txt_desc_measured>,
+    FrameDefinition<Phase::adjust_screws, frames::FrameTitleDescRadioQR, Phase::adjust_screws, txt_title_turn_screw, txt_desc_adjust_screws, link_tensioning>,
+    FrameDefinition<Phase::not_converging, frames::FrameTitleDescRadio, Phase::not_converging, txt_title_not_converging, txt_desc_not_converging>>;
 
 } // namespace
 

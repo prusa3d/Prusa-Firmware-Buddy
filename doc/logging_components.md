@@ -1,6 +1,7 @@
 # Logging - Defined Components
 This file is generated automatically so don't edit it directly
 
+- BeltTuning: logging::Severity::info, src/feature/manual_belt_tuning/belt_resonance.cpp
 - Bootloader: logging::Severity::info, src/bootloader/bootloader.cpp
 - Buddy: logging::Severity::debug, src/common/appmain.cpp
 - BufferedSerial: logging::Severity::debug, src/hw/buffered_serial.cpp
