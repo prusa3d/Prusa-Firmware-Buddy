@@ -19,6 +19,10 @@ public:
         SetLabel(_("Tool %i").formatted(label_params_, tool_.display_index()));
     }
 
+    void Loop() override {
+        set_value(bool(selected_mask_ & tool_bit()), false);
+    }
+
 protected:
     void toggled(Tristate) override {
         if (value() == Tristate::yes) {
@@ -36,6 +40,23 @@ private:
     const PhysicalToolIndex tool_;
     uint32_t &selected_mask_;
     StringViewUtf8Parameters<4> label_params_;
+};
+
+class MenuItemSetSelection : public IWindowMenuItem {
+public:
+    MenuItemSetSelection(const string_view_utf8 &label, uint32_t &selected_mask, uint32_t mask)
+        : IWindowMenuItem(label)
+        , selected_mask_(selected_mask)
+        , mask_(mask) {}
+
+protected:
+    void click(IWindowMenu &) override {
+        selected_mask_ = mask_;
+    }
+
+private:
+    uint32_t &selected_mask_;
+    const uint32_t mask_;
 };
 
 class MenuItemStart : public IWindowMenuItem {
@@ -61,6 +82,8 @@ private:
 
 enum class Item {
     return_,
+    select_all,
+    deselect_all,
     tool,
     start_automatic,
     start_manual,
@@ -68,6 +91,8 @@ enum class Item {
 
 static constexpr auto index_mapping_items = std::to_array<DynamicIndexMappingRecord<Item>>({
     Item::return_,
+    Item::select_all,
+    Item::deselect_all,
     { Item::tool, DynamicIndexMappingType::dynamic_section },
     Item::start_automatic,
     Item::start_manual,
@@ -79,8 +104,9 @@ public:
         : WindowMenuVirtual(parent, rect, CloseScreenReturnBehavior::yes) {
         for (auto tool : PhysicalToolIndex::all().skip_all_disabled()) {
             enabled_tools_[enabled_tool_count_++] = tool.to_raw();
-            selected_mask_ |= uint32_t { 1 } << tool.to_raw();
+            enabled_mask_ |= uint32_t { 1 } << tool.to_raw();
         }
+        selected_mask_ = enabled_mask_;
         index_mapping_.set_section_size<Item::tool>(enabled_tool_count_);
         setup_items();
     }
@@ -96,6 +122,14 @@ public:
 
         case Item::return_:
             variant.emplace<MI_RETURN>();
+            break;
+
+        case Item::select_all:
+            variant.emplace<MenuItemSetSelection>(_("Select All"), selected_mask_, enabled_mask_);
+            break;
+
+        case Item::deselect_all:
+            variant.emplace<MenuItemSetSelection>(_("Deselect All"), selected_mask_, 0);
             break;
 
         case Item::tool:
@@ -116,6 +150,7 @@ private:
     DynamicIndexMapping<index_mapping_items> index_mapping_;
     std::array<uint8_t, PhysicalToolIndex::count> enabled_tools_ {};
     uint8_t enabled_tool_count_ = 0;
+    uint32_t enabled_mask_ = 0;
     uint32_t selected_mask_ = 0;
 };
 
