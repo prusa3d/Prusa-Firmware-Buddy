@@ -907,11 +907,11 @@ inline constexpr EnumArray<PhaseNozzleCleanerCalibration, PhaseResponses, CountP
 inline constexpr EnumArray<PhaseNozzleCleaning, PhaseResponses, CountPhases<PhaseNozzleCleaning>()> nozzle_cleaning_wizard_responses {
     { PhaseNozzleCleaning::preparing, {} },
     { PhaseNozzleCleaning::picking_tool, {} },
-    { PhaseNozzleCleaning::heating, { Response::Abort } },
+    { PhaseNozzleCleaning::heating, { Response::Skip, Response::Abort } },
     { PhaseNozzleCleaning::cleaning, {} },
-    { PhaseNozzleCleaning::manual_clean_hot, { Response::Continue, Response::Abort } },
-    { PhaseNozzleCleaning::cooling, { Response::Abort } },
-    { PhaseNozzleCleaning::manual_clean_cold, { Response::Continue, Response::Abort } },
+    { PhaseNozzleCleaning::manual_clean_hot, { Response::Continue, Response::Skip, Response::Abort } },
+    { PhaseNozzleCleaning::cooling, { Response::Skip, Response::Abort } },
+    { PhaseNozzleCleaning::manual_clean_cold, { Response::Continue, Response::Skip, Response::Abort } },
     { PhaseNozzleCleaning::parking_tool, {} },
     { PhaseNozzleCleaning::finished, { Response::Continue } },
 };

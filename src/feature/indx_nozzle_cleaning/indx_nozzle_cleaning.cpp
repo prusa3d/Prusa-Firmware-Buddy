@@ -13,7 +13,6 @@
 #include <mapi/parking.hpp>
 #include <marlin_server.hpp>
 #include <Marlin/src/Marlin.h>
-#include <Marlin/src/gcode/gcode.h>
 #include <Marlin/src/module/planner.h>
 #include <Marlin/src/module/temperature.h>
 #include <Marlin/src/module/tool_change.h>
@@ -153,24 +152,15 @@ namespace {
                 }
             }
 
-            if (!wait_temp(Phase::heating, tool, hot_temp)) {
+            switch (prepare_nozzle(tool, hot_temp)) {
+            case Response::Abort:
                 return false;
-            }
-
-            if (mode_ == Mode::automatic) {
-                GcodeSuite::dwell(automatic_clean_delay_ms);
-            }
-
-            if (mode_ == Mode::manual) {
-                if (!ask_user(Phase::manual_clean_hot, display_index)) {
-                    return false;
-                }
-                if (!wait_temp(Phase::cooling, tool, std::min(cold_temp, hot_temp))) {
-                    return false;
-                }
-                if (!ask_user(Phase::manual_clean_cold, display_index)) {
-                    return false;
-                }
+            case Response::Skip:
+                log_info(IndxNozzleCleaning, "Tool %u: skipped", display_index);
+                thermalManager.setTargetHotend(0, tool);
+                return true;
+            default:
+                break;
             }
 
             fsm_change(Phase::cleaning, PhaseDataLayout::make(display_index, 0));
@@ -197,25 +187,51 @@ namespace {
             mapi::park();
         }
 
-        /// @return false when the user aborted
-        bool ask_user(Phase phase, uint8_t display_index) {
+        /// Heats the nozzle up and, in the manual mode, guides the user through the manual cleaning.
+        /// @return Response::_none when the nozzle is ready for the nozzle cleaner, otherwise Response::Skip or Response::Abort
+        Response prepare_nozzle(PhysicalToolIndex tool, int16_t hot_temp) {
+            const uint8_t display_index = tool.display_index();
+
+            if (const Response response = wait_temp(Phase::heating, tool, hot_temp); response != Response::_none) {
+                return response;
+            }
+
+            if (mode_ == Mode::automatic) {
+                return wait_for_response(Phase::heating, automatic_clean_delay_ms);
+            }
+
+            if (const Response response = ask_user(Phase::manual_clean_hot, display_index); response != Response::Continue) {
+                return response;
+            }
+            if (const Response response = wait_temp(Phase::cooling, tool, std::min(cold_temp, hot_temp)); response != Response::_none) {
+                return response;
+            }
+            const Response response = ask_user(Phase::manual_clean_cold, display_index);
+            return response == Response::Continue ? Response::_none : response;
+        }
+
+        Response ask_user(Phase phase, uint8_t display_index) {
             fsm_change(phase, PhaseDataLayout::make(display_index, 0));
-            return wait_for_response(phase) == Response::Continue;
+            return wait_for_response(phase);
         }
 
         /// Sets the target and waits for it in both directions; returns as soon as the target is crossed when heating.
-        /// @return false when the user aborted
-        bool wait_temp(Phase phase, PhysicalToolIndex tool, int16_t target) {
+        /// @return Response::_none when the target was reached, otherwise the user's response (Response::Skip or Response::Abort)
+        Response wait_temp(Phase phase, PhysicalToolIndex tool, int16_t target) {
             const uint8_t display_index = tool.display_index();
             const auto publish = [&] {
                 fsm_change(phase, PhaseDataLayout::make(display_index, static_cast<int16_t>(thermalManager.degHotend(tool))));
             };
             publish();
 
+            Response response = Response::_none;
+
             // The wait does no moves, so there are no skipped steps to recover from
             GCodeExceptionHandler abort_handler { GCEHandlerExtent::extruder_only, [] {} };
             const auto on_idle = [&] {
-                if (marlin_server::get_response_from_phase(phase) == Response::Abort) {
+                // The response is consumed, so don't overwrite it in the idle calls while unwinding
+                if (const Response r = marlin_server::get_response_from_phase(phase); r != Response::_none) {
+                    response = r;
                     gcode_exceptions().throw_at(&abort_handler);
                     return;
                 }
@@ -230,7 +246,7 @@ namespace {
                                                      .no_wait_for_cooling = false,
                                                      .early_return_temperature = heating ? std::optional<float>(target) : std::nullopt,
                                                  });
-            return !gcode_exceptions().is_unwinding();
+            return response;
         }
     };
 
