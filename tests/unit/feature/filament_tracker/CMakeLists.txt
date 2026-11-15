@@ -6,5 +6,5 @@ add_executable(
 target_include_directories(
   filament_tracker_tests PRIVATE stub ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include
   )
-target_link_libraries(filament_tracker_tests buddy_utils)
+target_link_libraries(filament_tracker_tests buddy_utils freertos-mock random)
 add_catch_test(filament_tracker_tests)

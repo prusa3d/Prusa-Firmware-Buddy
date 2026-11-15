@@ -32,7 +32,6 @@
 #include <client_response.hpp>
 #include <option/has_esp.h>
 #include <common/aggregate_arity.hpp>
-#include <random/random.h>
 
 #include <option/has_cancel_object.h>
 #if HAS_CANCEL_OBJECT()
@@ -236,14 +235,6 @@ void MarlinPrinter::drop_paths() {
 }
 
 namespace {
-#if HAS_FILAMENT_TRACKER()
-    uint32_t odometer_id() {
-        // Filament tracker stores data in RAM, so the value gets reset on printer restart
-        static const uint32_t id = rand_u();
-        return id;
-    }
-#endif
-
     void get_tool_info(Printer::Params &params) {
         params.tool_args = {
 #if HAS_MMU2()
@@ -301,7 +292,7 @@ namespace {
             [[maybe_unused]] auto &vtp = params.virtual_tools[vt];
 
 #if HAS_FILAMENT_TRACKER()
-            vtp.odometer_id = odometer_id();
+            vtp.odometer_id = buddy::filament_tracker().extruded_distance_id();
             vtp.odometer_e_mm = buddy::filament_tracker().get_extruded_distance(vt);
 #endif
 

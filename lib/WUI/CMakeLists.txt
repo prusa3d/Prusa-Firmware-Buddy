@@ -15,6 +15,7 @@ target_sources(
             link_content/usb_files.cpp
             netdev.c
             nhttp/common_selectors.cpp
+            nhttp/filament_renderer.cpp
             nhttp/file_command.cpp
             nhttp/file_command_marlin.cpp
             nhttp/file_info.cpp

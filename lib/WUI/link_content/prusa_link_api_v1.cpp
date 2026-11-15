@@ -1,5 +1,6 @@
 #include "prusa_link_api_v1.h"
 #include "basic_gets.h"
+#include "../nhttp/filament_renderer.h"
 #include "../nhttp/file_info.h"
 #include "../nhttp/file_command.h"
 #include "../nhttp/headers.h"
@@ -167,6 +168,9 @@ Selector::Accepted PrusaLinkApiV1::accept(const RequestParser &parser, handler::
             id = nullopt;
         }
         get_only(SendJson(StatusRenderer(id), parser.can_keep_alive()), parser, out);
+        return Accepted::Accepted;
+    } else if (suffix == "filament") {
+        get_only(SendJson(FilamentRenderer(), parser.can_keep_alive()), parser, out);
         return Accepted::Accepted;
     } else if (suffix == "transfer") {
         if (auto status = Monitor::instance.status(); status.has_value()) {

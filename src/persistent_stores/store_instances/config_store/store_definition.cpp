@@ -22,6 +22,11 @@
     #include <feature/auto_retract/auto_retract.hpp>
 #endif
 
+#include <option/has_filament_tracker.h>
+#if HAS_FILAMENT_TRACKER()
+    #include <feature/filament_tracker/filament_tracker.hpp>
+#endif
+
 #include <option/has_anfc.h>
 #include <bsod/bsod.h>
 #if HAS_ANFC()
@@ -251,6 +256,12 @@ FilamentType CurrentStore::set_filament_type(VirtualToolIndex virtual_tool, Fila
     }
 
     if (value == FilamentType::none) {
+#if HAS_FILAMENT_TRACKER()
+        if (get_filament_type(virtual_tool.to_raw()) != FilamentType::none) {
+            buddy::filament_tracker().track_filament_unload(virtual_tool);
+        }
+#endif
+
 #if HAS_AUTO_RETRACT()
         // On filament removal, it invalidates retracted distance
         buddy::auto_retract().set_retracted_distance(virtual_tool.to_physical(), std::nullopt);

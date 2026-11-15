@@ -3,9 +3,12 @@
 #include <algorithm>
 #include <cmath>
 
+#include <random/random.h>
+
 using namespace buddy;
 
-FilamentTracker::FilamentTracker() {
+FilamentTracker::FilamentTracker()
+    : extruded_distance_id_(rand_u()) {
     // Start assuming all filament is unretracted
     // This is not necessarily true
     retracted_distances.fill(0);
@@ -61,6 +64,21 @@ std::optional<float> FilamentTracker::get_retracted_distance(PhysicalToolIndex p
 uint32_t buddy::FilamentTracker::get_extruded_distance(VirtualToolIndex virtual_tool) const {
     const auto &ed = extruded_distances[virtual_tool];
     return ed.integral;
+}
+
+void buddy::FilamentTracker::track_filament_unload(VirtualToolIndex virtual_tool) {
+    const uint32_t extruded = get_extruded_distance(virtual_tool);
+    unloads.transform([&](auto &items) {
+        auto &item = items[virtual_tool];
+        item.count++;
+        item.extruded_at_last = extruded;
+    });
+}
+
+FilamentTracker::Unloads buddy::FilamentTracker::get_unloads(VirtualToolIndex virtual_tool) const {
+    return unloads.visit([&](const auto &items) {
+        return items[virtual_tool];
+    });
 }
 
 FilamentTracker &buddy::filament_tracker() {
