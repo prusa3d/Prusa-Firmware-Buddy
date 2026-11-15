@@ -1,5 +1,7 @@
 #include "filament_renderer.h"
 
+#include <config_store/store_instance.hpp>
+#include <feature/filament_sensor/filament_sensors_handler.hpp>
 #include <filament.hpp>
 #include <tool_index.hpp>
 #include <segmented_json_macros.h>
@@ -24,8 +26,34 @@ namespace {
     static_assert(sizeof(FilamentState::Tool::UUIDBytes) == sizeof(UUID::Bytes));
 #endif
 
+    std::optional<bool> filament_present(VirtualToolIndex tool) {
+        const PhysicalToolIndex physical = tool.to_physical();
+
+        // Virtual tools sharing a physical tool share its sensor, which
+        // tells only about the one that is selected
+        if (stdext::get_optional<VirtualToolIndex>(physical.currently_selected_virtual_tool()) != tool) {
+            return std::nullopt;
+        }
+
+        // Same choice as the sensor that clears the stored filament of an idle tool
+        const IFSensor *sensor = GetExtruderFSensor(physical) ?: GetSideFSensor(physical);
+        if (!sensor) {
+            return std::nullopt;
+        }
+
+        switch (sensor->get_state()) {
+        case FilamentSensorState::HasFilament:
+            return true;
+        case FilamentSensorState::NoFilament:
+            return false;
+        default:
+            return std::nullopt;
+        }
+    }
+
     FilamentState::Tool snapshot(VirtualToolIndex tool) {
         FilamentState::Tool result;
+        result.filament_present = filament_present(tool);
 
 #if HAS_FILAMENT_TRACKER()
         // Unloads first, so that extruded is never below extruded_at_unload
@@ -93,6 +121,7 @@ json::JsonResult FilamentRenderer::renderState(size_t resume_point, json::JsonOu
 #if HAS_FILAMENT_TRACKER()
         JSON_FIELD_INT("boot_id", buddy::filament_tracker().extruded_distance_id()) JSON_COMMA;
 #endif
+        JSON_FIELD_BOOL("sensors_enabled", config_store().fsensor_enabled.get()) JSON_COMMA;
         JSON_FIELD_ARR("tools");
         for (state.iter = 0; state.iter < VirtualToolIndex::count; state.iter++) {
             // Snapshot once per tool: a resumed chunk jumps past this point
@@ -114,6 +143,10 @@ json::JsonResult FilamentRenderer::renderState(size_t resume_point, json::JsonOu
                 JSON_FIELD_INT("unload_count", tool.unload_count) JSON_COMMA;
                 JSON_FIELD_INT("extruded_at_unload", tool.extruded_at_unload);
 #endif
+                if (tool.filament_present.has_value()) {
+                    JSON_COMMA;
+                    JSON_FIELD_BOOL("filament_present", *tool.filament_present);
+                }
                 if (tool.has_material) {
                     JSON_COMMA;
                     JSON_FIELD_OBJ("material");

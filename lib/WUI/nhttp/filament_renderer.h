@@ -25,6 +25,11 @@ public:
         uint32_t extruded_at_unload = 0;
 #endif
 
+        /// What the filament sensor closest to the nozzle of the tool sees.
+        /// Empty if it cannot tell: disabled, not calibrated, not connected
+        /// or currently serving a different tool.
+        std::optional<bool> filament_present;
+
         bool has_material = false;
         std::array<char, 8> name {};
         std::optional<uint32_t> color_rgb;
@@ -53,7 +58,8 @@ public:
 };
 
 /// Renders the response of `GET /api/v1/filament`: the filament loaded in
-/// each enabled tool and how much each tool has extruded since boot.
+/// each enabled tool, how much each tool has extruded since boot and what
+/// the filament sensors see.
 class FilamentRenderer final : public json::JsonRenderer<FilamentState> {
 public:
     FilamentRenderer()
