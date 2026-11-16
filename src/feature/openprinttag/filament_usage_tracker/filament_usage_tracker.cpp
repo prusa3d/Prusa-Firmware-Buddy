@@ -340,11 +340,11 @@ FilamentUsageTracker::AsyncJobFinishCallback FilamentUsageTracker::write_consump
             case Error::region_corrupt:
             case Error::tag_invalid:
             case Error::write_protected:
+            case Error::field_not_present:
                 return cannot_track_finish_cb;
 
             case Error::not_implemented:
             case Error::wrong_field_type:
-            case Error::field_not_present:
             case Error::radio_disabled:
             case Error::_cnt:
                 // These do not make sense for the request
