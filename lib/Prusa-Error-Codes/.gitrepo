@@ -4,9 +4,9 @@
 ; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
-	remote = git@github.com:prusa3d/Prusa-Error-Codes.git
+	remote = https://github.com/prusa3d/Prusa-Error-Codes.git
 	branch = master
-	commit = 9e609385d1c18cc080bcfaaf2bd1d6a7cd7cf5ad
-	parent = 5e4470334f2a9c44a8ba7cf2c8bd2e1021f75fbe
+	commit = 80f972cf2a71ed765a5fc7bd820ee958c4fd672d
+	parent = ce133c01a225e19fdd513775bd0f5b95d8e608ab
 	method = merge
 	cmdver = 0.4.3

@@ -773,6 +773,10 @@ uint8_t do_homing_move_axis_rel(const AxisEnum axis, const float distance, const
 uint8_t do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s, [[maybe_unused]] bool can_move_back_before_homing, [[maybe_unused]] bool homing_z_with_probe) {
   planner.synchronize();
 
+#if HAS_CRASH_DETECTION()
+  Crash_Temporary_Deactivate ctd;
+#endif
+
   TemporaryGlobalEndstopsState _es(true);
   phase_stepping::EnsureSuitableForHoming phstep_disabler;
 
