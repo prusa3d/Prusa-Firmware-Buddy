@@ -199,7 +199,7 @@ extern char *__real__dtoa_r(struct _reent *, double, int, int, int *, int *, cha
 
 char *__wrap__dtoa_r(struct _reent *r, double a, int b, int c, int *d, int *e, char **f) {
     if (xPortIsInsideInterrupt()) {
-        _bsod("_dtoa_r (float formatting) called from ISR", 0, 0);
+        _bsod("_dtoa_r (float formatting) called from ISR", "", 0);
     }
     return __real__dtoa_r(r, a, b, c, d, e, f);
 }

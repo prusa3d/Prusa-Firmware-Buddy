@@ -149,7 +149,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         };
 #if HAS_TOOL_MAPPING()
         auto is_tool_mapping_index = [&]() -> std::optional<uint32_t> {
-            if (in_tool_mapping && event.type == Type::Array && event.depth == 3) {
+            if (in_tool_mapping && event.type == Type::Array && event.depth == 3 && event.key.has_value()) {
                 return convert_num<uint32_t>(event.key.value());
             }
             return std::nullopt;
@@ -309,7 +309,10 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                     }
                 }
             }
-        } else if (in_tool_mapping && event.key == "tool_mapping" && event.type == Type::Pop && event.depth == 2) {
+        } else if (in_tool_mapping && event.type == Type::Pop && event.depth == 2) {
+            // search_json emits Pop events without a key, so match on depth:
+            // the only depth-2 container open while in_tool_mapping is
+            // tool_mapping itself.
             in_tool_mapping = false;
         } else if (auto index = is_tool_mapping_index(); index.has_value()) {
             tool_mapping_index_inner = 0;

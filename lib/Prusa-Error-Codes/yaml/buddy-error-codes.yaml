@@ -455,6 +455,24 @@ Errors:
     gui_layout: "warning_dialog"
     approved: true
 
+  - code: "XX148"
+    printers: [XL]
+    title: "Printer Type Mismatch"
+    text: "XL-CAN bridge detected, but the printer type is manually set to Original Prusa XL. Check the Printer Type in the Hardware settings."
+    id: "MANUAL_PRINTER_TYPE_XL_MISMATCH"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: false
+
+  - code: "XX149"
+    printers: [XL]
+    title: "Printer Type Mismatch"
+    text: "No XL-CAN bridge found, but the printer type is manually set to Prusa XL+. Check the XL-CAN connection or the Printer Type in the Hardware settings."
+    id: "MANUAL_PRINTER_TYPE_XLS_MISMATCH"
+    type: WARNING
+    gui_layout: "warning_dialog"
+    approved: false
+
   # TEMPERATURE    xx2xx
 
   - code: "XX201"

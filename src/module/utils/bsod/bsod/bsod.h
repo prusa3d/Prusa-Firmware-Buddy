@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-[[noreturn]] void __attribute__((noreturn, format(__printf__, 1, 4)))
+/// @p file_name must not be NULL (pass "" when there is none): it is formatted with %s, and address 0
+/// is MPU-protected, so a NULL faults inside the BSOD and replaces its message.
+[[noreturn]] void __attribute__((noreturn, format(__printf__, 1, 4), nonnull(2)))
 _bsod(const char *fmt, const char *file_name, int line_number, ...);
 
 #define bsod(fmt, ...) _bsod(fmt, __FILE_NAME__, __LINE__, ##__VA_ARGS__)

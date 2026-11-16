@@ -439,6 +439,7 @@ target_compile_options(
           $<$<COMPILE_LANGUAGE:CXX>:-Wno-non-virtual-dtor>
           $<$<COMPILE_LANGUAGE:CXX>:-Werror=delete-non-virtual-dtor>
           $<$<COMPILE_LANGUAGE:CXX>:-Werror=switch>
+          $<$<COMPILE_LANGUAGE:CXX>:-Werror=nonnull>
           $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond>
           $<$<COMPILE_LANGUAGE:CXX>:-Wlogical-op>
           $<$<COMPILE_LANGUAGE:CXX>:-Wnull-dereference>
