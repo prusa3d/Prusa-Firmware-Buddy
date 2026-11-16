@@ -63,6 +63,7 @@ void CurrentStore::perform_config_check() {
 
 #elif PRINTER_IS_PRUSA_XL()
         change_extended_printer_type(PrinterModel::xls, ChangeExtendedPrinterTypeMode::config_store_init);
+        extended_printer_type_autodetect.set(true);
 
         for (auto tool : PhysicalToolIndex::all()) {
             set_nozzle_diameter(tool, 0.4f); // New XL printers have .4mm nozzles: BFW-5638

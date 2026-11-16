@@ -799,6 +799,14 @@ void init(void) {
     case XLTypeDetectionResult::wiring_suspected:
         set_warning(WarningType::XlCanWiringSuspected);
         break;
+
+    case XLTypeDetectionResult::manual_xl_mismatch:
+        set_warning(WarningType::ManualPrinterTypeXLMismatch);
+        break;
+
+    case XLTypeDetectionResult::manual_xls_mismatch:
+        set_warning(WarningType::ManualPrinterTypeXLSMismatch);
+        break;
     }
 
 #endif

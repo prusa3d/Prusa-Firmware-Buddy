@@ -144,6 +144,10 @@ enum class WarningType : uint32_t {
     PrinterDetectedAsXL,
     /// XL-CAN bridge not responding and MB reset not under master control; check cabling.
     XlCanWiringSuspected,
+    /// Printer type manually set to XL, but the XL-CAN bridge was detected at boot.
+    ManualPrinterTypeXLMismatch,
+    /// Printer type manually set to XLS, but no XL-CAN bridge was found at boot.
+    ManualPrinterTypeXLSMismatch,
 #endif
 #if HAS_ILI9488_DISPLAY() && HAS_HUMAN_INTERACTIONS()
     DisplayProblemDetected,

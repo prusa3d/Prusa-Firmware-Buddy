@@ -47,7 +47,7 @@ public:
 
         /// Non-zero-terminated string
         /// \p memory_ptr contains the pointer
-        /// \p magical_value equals to (size * 2) + 1
+        /// \p magical_value equals to (size * 2) + 1; size is at least 1, an empty view is a zero_terminated_string
         string_view,
 
         /// String stored in a file
@@ -167,6 +167,11 @@ public:
     }
 
     static inline string_view_utf8 MakeRAM(std::string_view str) {
+        if (str.empty()) {
+            // size * 2 + 1 would be 1, the Type::formatted_string marker
+            return MakeRAM("");
+        }
+
         string_view_utf8 s;
         s.magical_value = str.size() * 2 + 1;
         s.memory_ptr = reinterpret_cast<const uint8_t *>(str.data());

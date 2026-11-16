@@ -11,8 +11,7 @@
 #include "filament.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
-#include <bsod.h>
-#include <config_store/store_instance.hpp>
+#include <option/has_mmu2.h>
 #include <tool_index.hpp>
 
 namespace {
@@ -352,15 +351,27 @@ void FirstLayer::print_shape_2() {
     finish_printing();
 }
 
-void FirstLayer::run() {
-    // is filament selected
-    const std::optional<VirtualToolIndex> virtual_tool = VirtualToolIndex::currently_selected_opt();
-    if (!virtual_tool.has_value()) {
-        // Ensured by the wizard that we do have filament.
-        bsod("First layer calibration: no filament");
+std::optional<VirtualToolIndex> FirstLayer::virtual_tool() {
+    const std::optional<VirtualToolIndex> selected = VirtualToolIndex::currently_selected_opt();
+#if HAS_MMU2()
+    if (!selected.has_value()) {
+        // With more physical tools, slot 0 would not identify the head to print with
+        static_assert(PhysicalToolIndex::count == 1);
+        return VirtualToolIndex::from_raw(0);
     }
-    const FilamentType filament = config_store().get_filament_type(*virtual_tool);
+#endif
+    return selected;
+}
+
+void FirstLayer::run() {
+    const std::optional<VirtualToolIndex> virtual_tool = FirstLayer::virtual_tool();
+    if (!virtual_tool.has_value()) {
+        SERIAL_ERROR_MSG("G26: no tool picked");
+        return;
+    }
+    const FilamentType filament = FilamentType::for_tool(*virtual_tool);
     if (filament == FilamentType::none) {
+        SERIAL_ERROR_MSG("G26: filament type not set");
         return;
     }
     auto filament_description = filament.parameters();
@@ -380,7 +391,10 @@ void FirstLayer::run() {
  * @brief gcode to draw a first layer on bed
  *
  * does not take any parameters
- * meant to be called from selftest
+ * used by the first layer selftest, can also be sent as a G-code
+ *
+ * Prints with the filament of the selected tool; on MMU printers with no slot selected, slot 0.
+ * Does nothing when that filament type is not set, or on a toolchanger with no tool picked.
  */
 
 /** \addtogroup G-Codes
