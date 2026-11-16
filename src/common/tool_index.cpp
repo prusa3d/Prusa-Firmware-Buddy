@@ -144,7 +144,8 @@ std::variant<VirtualToolIndex, NoTool> PhysicalExtension::currently_selected_vir
     static_assert(PhysicalToolIndex::count == 1);
     if (MMU2::mmu2.Enabled()) {
         const auto e = MMU2::mmu2.get_current_tool();
-        if (e == MMU2::FILAMENT_UNKNOWN) {
+        if (e == MMU2::FILAMENT_UNKNOWN || e >= VirtualToolIndex::count) {
+            // Nothing loaded, or an extended slot of a user-modified MMU
             return NoTool {};
         } else {
             return VirtualToolIndex::from_raw(e);
@@ -164,6 +165,18 @@ std::variant<VirtualToolIndex, NoTool> VirtualExtension::currently_selected() {
         [](PhysicalToolIndex t) -> Result { return t.currently_selected_virtual_tool(); }, //
         [](NoTool) -> Result { return NoTool {}; } //
     );
+}
+
+bool VirtualExtension::is_extended_mmu_slot_loaded() {
+#if HAS_MMU2()
+    if (!MMU2::mmu2.Enabled()) {
+        return false;
+    }
+    const auto e = MMU2::mmu2.get_current_tool();
+    return e != MMU2::FILAMENT_UNKNOWN && e >= VirtualToolIndex::count;
+#else
+    return false;
+#endif
 }
 
 std::variant<PhysicalToolIndex, NoTool> PhysicalExtension::from_raw_notool(uint8_t index) {

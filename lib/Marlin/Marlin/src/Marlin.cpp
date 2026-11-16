@@ -363,14 +363,18 @@ void idle(bool waiting) {
 
   #if ENABLED(NOZZLE_LOAD_CELL)
     if( EMotorStallDetector::Instance().Evaluate(stepper.axis_is_moving(E_AXIS), ! stepper.motor_direction(E_AXIS))){
-        // E-motor stall has been detected, issue a modified M600
+        // E-motor stall has been detected, start the stuck filament recovery
         SERIAL_ECHOLNPGM("E-motor stall detected");
 
         const auto virtual_tool = VirtualToolIndex::currently_selected_opt();
-        if (!virtual_tool.has_value()) {
+        if (virtual_tool.has_value()) {
+            marlin_server::gcode_interrupt(GCodeLiteral{"M1601 V%.0f", (float) virtual_tool->to_raw()});
+        } else if (VirtualToolIndex::is_extended_mmu_slot_loaded()) {
+            // The filament change needs a virtual tool, so just pause and let the user handle it
+            marlin_server::print_pause();
+        } else {
             bsod("EStall without a tool");
         }
-        marlin_server::gcode_interrupt(GCodeLiteral{"M1601 V%.0f", (float) virtual_tool->to_raw()});
     }
   #endif
 

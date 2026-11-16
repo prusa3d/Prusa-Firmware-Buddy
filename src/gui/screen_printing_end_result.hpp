@@ -58,6 +58,9 @@ private:
 
     static constexpr long minimum_grams_valid = 1;
 
+    /// @returns whether the tool used enough filament to get a consumed material line
+    static bool has_consumed_material_line(const GCodeInfo::ExtruderInfo &ext_info);
+
     window_text_t printing_time_label;
     window_text_t printing_time_value;
     std::array<char, sizeof("100d 20h 30m") + extra_buffer_size> printing_time_value_buffer;

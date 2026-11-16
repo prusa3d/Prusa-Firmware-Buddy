@@ -159,12 +159,19 @@ void EndResultBody::Show() {
     window_t::Show();
 }
 
+bool EndResultBody::has_consumed_material_line(const GCodeInfo::ExtruderInfo &ext_info) {
+    return ext_info.used() && ext_info.filament_used_g.has_value() && std::lround(ext_info.filament_used_g.value()) >= minimum_grams_valid;
+}
+
 void EndResultBody::handle_consumed_material_showing(const GCodeInfo &gcode) {
 
-    // holds how many extruders were printing with specified grammage that's big enough to show
-    const size_t num_extruders_with_valid_grams = std::ranges::count_if(gcode.get_per_extruder_info(), [&](auto &elem) {
-        return elem.filament_used_g.has_value() && std::lround(elem.filament_used_g.value()) >= minimum_grams_valid;
-    });
+    // holds how many tools get a consumed material line (there is one text field for each)
+    size_t num_extruders_with_valid_grams = 0;
+    for (auto i : GcodeToolIndex::all()) {
+        if (has_consumed_material_line(gcode.get_extruder_info(i))) {
+            ++num_extruders_with_valid_grams;
+        }
+    }
 
     const bool has_valid_wipe_tower_grams {
         [&]() {
@@ -208,7 +215,7 @@ void EndResultBody::handle_consumed_tool_fields(const GCodeInfo &gcode, size_t n
         size_t consumed_material_line_idx = 0;
         for (auto i : GcodeToolIndex::all()) {
             const auto &ext_info { gcode.get_extruder_info(i) };
-            if (!ext_info.used() || !ext_info.filament_used_g.has_value() || std::lround(ext_info.filament_used_g.value()) < minimum_grams_valid) {
+            if (!has_consumed_material_line(ext_info)) {
                 continue;
             }
 

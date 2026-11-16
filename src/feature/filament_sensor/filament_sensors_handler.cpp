@@ -229,9 +229,16 @@ void FilamentSensors::process_events() {
         }
 #endif
 
-        m600_sent = true;
-
         const auto tool = VirtualToolIndex::currently_selected_opt();
+
+        if (!tool.has_value() && VirtualToolIndex::is_extended_mmu_slot_loaded()) {
+            // The filament change needs a virtual tool, so just pause and let the user handle it
+            marlin_server::print_pause();
+            log_info(FSensor, "Paused on runout of an extended MMU slot");
+            return true;
+        }
+
+        m600_sent = true;
 
         if (tool.has_value()) {
             marlin_server::gcode_interrupt(GCodeLiteral { .gcode = "M600 A P T%.0f", .parameter = static_cast<float>(tool->to_raw()) });
