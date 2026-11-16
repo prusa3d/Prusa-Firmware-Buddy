@@ -16,6 +16,10 @@ add_executable(
   )
 target_include_directories(support_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
+add_executable(unique_file_ptr_tests ${CMAKE_CURRENT_SOURCE_DIR}/unique_file_ptr_test.cpp)
+target_include_directories(unique_file_ptr_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+add_catch_test(unique_file_ptr_tests)
+
 add_executable(
   str_utils_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/str_utils_test.cpp ${CMAKE_SOURCE_DIR}/src/common/str_utils.cpp
