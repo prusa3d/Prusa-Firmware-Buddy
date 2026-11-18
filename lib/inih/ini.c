@@ -199,11 +199,6 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
                 *end = '\0';
                 name = rstrip(start);
                 value = end + 1;
-#if INI_ALLOW_INLINE_COMMENTS
-                end = find_chars_or_comment(value, NULL);
-                if (*end)
-                    *end = '\0';
-#endif
                 value = lskip(value);
                 rstrip(value);
                 value = unquote(value);
