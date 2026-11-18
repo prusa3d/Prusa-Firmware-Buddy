@@ -47,3 +47,19 @@ TEST_CASE("ooseq_limit outbound ignores inbound-only usage", "[ooseq_limit]") {
     CHECK(compute_bytes_limit(false, 0, INBOUND_SHARE_BYTES) == OUTBOUND_PCB_BYTES);
     CHECK(compute_segs_limit(false, 0, INBOUND_SHARE_SEGS) == OUTBOUND_PCB_SEGS);
 }
+
+TEST_CASE("ooseq_limit one inbound pcb can keep more than one full-size segment", "[ooseq_limit]") {
+    // 1024 is TCP_MSS (include/buddy/lwipopts.h). With room for less than one
+    // segment, a PrusaLink upload keeps no out-of-order data and sends no SACK.
+    constexpr uint32_t mss = 1024;
+    CHECK(compute_bytes_limit(true, 0, 0) >= 2 * mss);
+    CHECK(compute_segs_limit(true, 0, 0) >= 2);
+}
+
+TEST_CASE("ooseq_limit an inbound pcb at its full share leaves room for outbound", "[ooseq_limit]") {
+    // One upload holds the whole inbound share. Connect (outbound) must still
+    // be able to keep a full-size segment.
+    constexpr uint32_t mss = 1024;
+    CHECK(compute_bytes_limit(false, INBOUND_SHARE_BYTES, INBOUND_SHARE_BYTES) >= mss);
+    CHECK(compute_segs_limit(false, INBOUND_SHARE_SEGS, INBOUND_SHARE_SEGS) >= 1);
+}
