@@ -272,6 +272,7 @@ uint32_t Printer::info_fingerprint() const {
 #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
         .add(parameters.addon_power)
 #endif
+        .add(parameters.stealth_mode)
         .done();
 }
 

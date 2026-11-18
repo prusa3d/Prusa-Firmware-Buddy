@@ -609,6 +609,7 @@ namespace {
 #if PRINTER_IS_PRUSA_COREONE() || PRINTER_IS_PRUSA_COREONEL()
                     JSON_FIELD_BOOL("addon_power", params.addon_power) JSON_COMMA;
 #endif
+                    JSON_FIELD_BOOL("stealth_mode", params.stealth_mode) JSON_COMMA;
                     JSON_FIELD_INT("tool_count", PhysicalToolIndex::count);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::JobInfo) {

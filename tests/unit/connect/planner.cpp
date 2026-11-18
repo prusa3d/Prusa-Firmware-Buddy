@@ -432,6 +432,24 @@ TEST_CASE("connect::FileChanged after multiple fs changes", "[connect]") {
 }
 // TODO: Tests for unknown commands and such
 
+TEST_CASE("connect::Command Set value - stealth_mode", "[connect]") {
+    SECTION("on") {
+        Test test;
+        marlin_client::last_gcode.clear();
+        auto command = Command { CommandId(0), SetValue { PropertyName::StealthMode, 0, true } };
+        test.planner.command(command);
+        REQUIRE(marlin_client::last_gcode == "M9150");
+    }
+
+    SECTION("off") {
+        Test test;
+        marlin_client::last_gcode.clear();
+        auto command = Command { CommandId(0), SetValue { PropertyName::StealthMode, 0, false } };
+        test.planner.command(command);
+        REQUIRE(marlin_client::last_gcode == "M9140");
+    }
+}
+
 TEST_CASE("connect::Command Set value - chamber.target_temp set/unset logic", "[connect]") {
     SECTION("unset") {
         Test test;

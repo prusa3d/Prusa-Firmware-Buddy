@@ -371,6 +371,7 @@ Printer::Params MarlinPrinter::params() const {
         params.addon_power = buddy::xbuddy_extension().usb_power();
     }
 #endif
+    params.stealth_mode = config_store().stealth_mode.get();
     params.print_duration = marlin_vars().print_duration;
     params.time_to_end = marlin_vars().time_to_end;
     params.time_to_pause = marlin_vars().time_to_pause;

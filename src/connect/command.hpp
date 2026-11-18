@@ -100,6 +100,7 @@ struct DialogAction {
 
 enum class PropertyName {
     HostName,
+    StealthMode,
 #if XL_ENCLOSURE_SUPPORT()
     EnclosureEnabled,
     EnclosurePrintingFiltration,
