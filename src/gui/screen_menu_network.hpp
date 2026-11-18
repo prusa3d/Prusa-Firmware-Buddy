@@ -22,6 +22,8 @@ using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off,
     MI_WIFI_SETTINGS,
 #endif
     MI_ETH_SETTINGS,
+    MI_NTP_VIA_DHCP,
+    MI_NTP_ADDR,
 #if BUDDY_ENABLE_CONNECT()
     MI_PRUSA_CONNECT,
 #endif
