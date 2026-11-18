@@ -243,7 +243,7 @@ fn main() -> Result<(), Error> {
         if killblocks.contains(&idx) {
             println!("Killing CRC");
             for b in crc {
-                *b += 1;
+                *b = (*b).wrapping_add(1);
             }
         }
         ensure!(block.len() == size, "Short file");
