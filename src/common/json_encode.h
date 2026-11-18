@@ -81,6 +81,26 @@ size_t jsonify_str_buffer(std::string_view input);
 void jsonify_str(std::string_view, char *output);
 
 /**
+ * \brief Maximum on-stack buffer used by JSONIFY_STR.
+ *
+ * jsonify_str_buffer() returns up to `6 * input_len + 1` for worst-case
+ * input (every byte becomes \uXXXX). With JSONIFY_STR's VLA growing
+ * linearly with that estimate, a sufficiently long input — e.g. a
+ * 255-byte file path passed verbatim, or a 200-byte gcode line — can
+ * overflow a small task stack. The tcpip thread (TCPIP_THREAD_STACKSIZE
+ * = 1248 B) is the most exposed: JSONIFY_STR is called from several
+ * status renderer paths that run on it.
+ *
+ * Cap the VLA at this many bytes. If a caller's input would need more,
+ * the escaped result is the empty string "" and a warning is logged
+ * via DEBUG_ERROR_MSG (when EEPROM_CHITCHAT-style debug is enabled).
+ * This is a strict safety improvement: previous behaviour for inputs
+ * that fit is unchanged; inputs that previously could crash the stack
+ * now degrade to an empty JSON string field instead.
+ */
+#define JSONIFY_STR_MAX_BUFFER 384
+
+/**
  * \brief Macro to put the jsonification of strings together conveniently.
  *
  * Usually, one wants to first check how large a buffer for the rendered JSON
@@ -92,7 +112,11 @@ void jsonify_str(std::string_view, char *output);
  * statements (wrapping it into do {} while (0) would also destroy the buffer)
  * and creating several local variables. Be conservative in its use.
  *
- * * Have a `const char * or std::string_view` input variable with a certain name.
+ * The buffer size is bounded by `JSONIFY_STR_MAX_BUFFER` for stack safety;
+ * inputs whose escaped form would exceed that limit yield an empty
+ * `name_escaped` (rather than corrupting the stack).
+ *
+ * * Have a `const char *` or `std::string_view` input variable with a certain name.
  * * Call the macro with that variable name.
  * * A variable `std::string_view name_escaped` is created. Eg:
  *
@@ -102,11 +126,15 @@ void jsonify_str(std::string_view, char *output);
  * printf("%.*s", (int)whatever_escaped.size(), whatever_escaped.data());
  * ```
  */
-#define JSONIFY_STR(NAME)                                                                                                        \
-    _Pragma("GCC diagnostic push");                                                                                              \
-    _Pragma("GCC diagnostic ignored \"-Wvla\"");                                                                                 \
-    const std::string_view NAME##_view { NAME }; /*Prevent double-counting the length in case const char* is provided*/          \
-    const size_t NAME##_len = jsonify_str_buffer(NAME##_view);                                                                   \
-    char NAME##_buffer[NAME##_len];                                                                                              \
-    const std::string_view NAME##_escaped = NAME##_len ? (jsonify_str(NAME##_view, NAME##_buffer), NAME##_buffer) : NAME##_view; \
+#define JSONIFY_STR(NAME)                                                                                                            \
+    _Pragma("GCC diagnostic push");                                                                                                  \
+    _Pragma("GCC diagnostic ignored \"-Wvla\"");                                                                                     \
+    const std::string_view NAME##_view { NAME }; /*Prevent double-counting the length in case const char* is provided*/              \
+    const size_t NAME##_len = jsonify_str_buffer(NAME##_view);                                                                       \
+    /* VLA size is bounded — if NAME##_len is too big the buffer is a tiny placeholder. */                                           \
+    char NAME##_buffer[NAME##_len < JSONIFY_STR_MAX_BUFFER ? (NAME##_len ? NAME##_len : 1) : 1];                                     \
+    const std::string_view NAME##_escaped =                                                                                          \
+        (NAME##_len == 0)                        ? NAME##_view                                                                       \
+        : (NAME##_len < JSONIFY_STR_MAX_BUFFER)  ? (jsonify_str(NAME##_view, NAME##_buffer), std::string_view { NAME##_buffer })     \
+                                                 : std::string_view {};                                                              \
     _Pragma("GCC diagnostic pop");
