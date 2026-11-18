@@ -17,4 +17,9 @@ public:
         uint8_t min_pwm_to_measure_rpm);
 
     bool set_pwm(uint16_t pwm) override;
+    bool selftest_set_pwm(uint8_t pwm) override;
+
+private:
+    /// Clamps a non-zero PWM (0-255), sets the PWM period for it, and returns the PWM to scale.
+    uint16_t apply_dynamic_period(uint16_t pwm);
 };

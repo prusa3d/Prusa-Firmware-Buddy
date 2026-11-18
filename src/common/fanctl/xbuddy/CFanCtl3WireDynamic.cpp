@@ -1,4 +1,5 @@
 #include "CFanCtl3WireDynamic.hpp"
+#include <fanctl/dynamic_pwm.hpp>
 #include <option/has_love_board.h>
 #include <hw_configuration.hpp>
 
@@ -30,26 +31,32 @@ CFanCtl3WireDynamic::CFanCtl3WireDynamic(
     setPhaseShiftMode(CFanCtlPWM::PhaseShiftMode::none);
 }
 
+uint16_t CFanCtl3WireDynamic::apply_dynamic_period(uint16_t pwm) {
+    if (pwm == 0) {
+        return 0;
+    }
+    pwm = std::clamp<uint16_t>(pwm, 255 * 9 / 100 /* 9% min */, 255);
+    const uint8_t period = fanctl::dynamic_pwm_period(static_cast<uint8_t>(pwm));
+    m_pwm.set_max_PWM(period);
+    m_pwm.set_min_PWM(period / 10);
+    m_pwm.set_PhaseShiftThr(period * 4 / 10);
+    return pwm;
+}
+
 bool CFanCtl3WireDynamic::set_pwm(uint16_t pwm) {
     if (selftest_mode) {
         return false;
     }
-    if (pwm) {
-        pwm = std::clamp<uint16_t>(pwm, 255 * 9 / 100 /* 9% min */, 255);
-        uint8_t val = 0;
-        if (pwm < 50) {
-            val = 250;
-        } else if (pwm < 80) {
-            val = 125;
-        } else if (pwm < 120) {
-            val = 50;
-        } else {
-            val = 40;
-        }
-        m_pwm.set_max_PWM(val);
-        m_pwm.set_min_PWM(val / 10);
-        m_pwm.set_PhaseShiftThr(val * 4 / 10);
+    m_PWMValue = scalePWM(apply_dynamic_period(pwm));
+    return true;
+}
+
+// The self test must use the same PWM periods as a print. Otherwise it keeps the period of the
+// last set_pwm() and does not test the slow periods that low print fan speeds use.
+bool CFanCtl3WireDynamic::selftest_set_pwm(uint8_t pwm) {
+    if (!selftest_mode) {
+        return false;
     }
-    m_PWMValue = scalePWM(pwm);
+    m_PWMValue = scalePWM(apply_dynamic_period(pwm));
     return true;
 }
