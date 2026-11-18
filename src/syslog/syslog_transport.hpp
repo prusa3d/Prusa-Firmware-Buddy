@@ -28,7 +28,7 @@ private:
 
     DnsState dns_resolved = DnsState::None;
     ip_addr_t addr;
-    char remote_host[config_store_ns::connect_host_size + 1] = "";
+    char remote_host[config_store_ns::metrics_host_size + 1] = "";
     uint16_t remote_port = 0;
 
     std::atomic<bool> initialized = false;

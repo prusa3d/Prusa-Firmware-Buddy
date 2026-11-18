@@ -293,7 +293,7 @@ struct CurrentStore
     StoreItem<bool, defaults::prusalink_enabled, ItemFlag::network, journal::hash("PrusaLink Enabled")> prusalink_enabled;
     StoreItem<std::array<char, pl_password_size>, defaults::prusalink_password, ItemFlag::network, journal::hash("PrusaLink Password")> prusalink_password;
 
-    StoreItem<std::array<char, connect_host_size + 1>, defaults::connect_host, ItemFlag::network | ItemFlag::dev_items, journal::hash("Connect Host")> connect_host;
+    StoreItem<std::array<char, connect_host_size + 1>, defaults::connect_host, ItemFlag::network | ItemFlag::dev_items, journal::hash("Connect Host V2")> connect_host;
     StoreItem<std::array<char, connect_token_size + 1>, defaults::connect_token, ItemFlag::network, journal::hash("Connect Token")> connect_token;
     StoreItem<std::array<char, connect_proxy_size + 1>, defaults::connect_proxy_host, ItemFlag::network | ItemFlag::dev_items, journal::hash("Connect Proxy Host")> connect_proxy_host;
     StoreItem<uint16_t, defaults::connect_port, ItemFlag::network | ItemFlag::dev_items, journal::hash("Connect Port")> connect_port;
@@ -1203,6 +1203,9 @@ struct DeprecatedStore
     };
     StoreItem<bool, fsensor_enabled_v2_default, journal::hash("FSensor Enabled V2")> fsensor_enabled_v2;
     StoreItem<SelftestResult, defaults::selftest_result, journal::hash("Selftest Result INDX")> selftest_result;
+
+    // Lengthened to fit the hostname that the INI accepts
+    StoreItem<std::array<char, 20 + 1>, char { 0 }, journal::hash("Connect Host")> connect_host_v1;
 
     /*
         StoreItemArray<float, defaults::nozzle_diameter, ItemFlag::hw_config, journal::hash("Nozzle Diameter Array"), 16, HOTENDS> nozzle_diameters;
