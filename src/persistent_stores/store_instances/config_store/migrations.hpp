@@ -86,6 +86,9 @@ namespace deprecated_ids {
     inline constexpr uint16_t filament_order_v1[] {
         decltype(DeprecatedStore::filament_order_v1)::hashed_id,
     };
+    inline constexpr uint16_t connect_host[] {
+        decltype(DeprecatedStore::connect_host_v1)::hashed_id,
+    };
 } // namespace deprecated_ids
 
 namespace migrations {
@@ -117,6 +120,8 @@ namespace migrations {
     void fsensor_enabled(journal::Backend &backend);
 
     void filament_order(journal::Backend &backend);
+
+    void connect_host(journal::Backend &backend);
 } // namespace migrations
 
 /**
@@ -148,6 +153,7 @@ inline constexpr journal::Backend::MigrationFunction migration_functions[] {
         { migrations::filament_order, deprecated_ids::filament_order_v1 },
         { migrations::printer_setup_done, deprecated_ids::printer_setup_done },
         { migrations::fsensor_enabled, deprecated_ids::fsensor_enabled },
+        { migrations::connect_host, deprecated_ids::connect_host },
 };
 
 // Span of migration versions to simplify passing it around

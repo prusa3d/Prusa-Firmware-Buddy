@@ -17,14 +17,14 @@ inline constexpr size_t sheets_num { 8 };
 inline constexpr float z_offset_uncalibrated { std::numeric_limits<float>::max() };
 
 inline constexpr size_t lan_hostname_max_len { 20 };
-inline constexpr size_t connect_host_size { 20 };
+inline constexpr size_t connect_host_size { 35 }; ///< Same as connect_client::max_host_len
 inline constexpr size_t connect_proxy_size { 30 };
 inline constexpr size_t connect_token_size { 20 };
 inline constexpr size_t pl_password_size { 16 };
 inline constexpr size_t wifi_max_ssid_len { 32 };
 inline constexpr size_t wifi_max_passwd_len { 64 };
 
-inline constexpr size_t metrics_host_size { connect_host_size }; ///< Size of metrics host string
+inline constexpr size_t metrics_host_size { 20 }; ///< Size of metrics host string
 inline constexpr int16_t stallguard_sensitivity_unset { std::numeric_limits<int16_t>::max() };
 
 // 0 = no override -> derive the X/Y steps/mm for this unit's hardware at runtime.

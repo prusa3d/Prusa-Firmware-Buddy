@@ -340,5 +340,30 @@ namespace migrations {
         using NewItem = decltype(CurrentStore::fsensor_enabled);
         backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id, old_value);
     }
+
+    void connect_host(journal::Backend &backend) {
+        using OldItem = decltype(DeprecatedStore::connect_host_v1);
+        using NewItem = decltype(CurrentStore::connect_host);
+        static_assert(sizeof(NewItem::value_type) >= sizeof(OldItem::value_type));
+
+        // This runs also when only an older migration was needed, so only copy
+        // a host that is actually stored, and keep the default otherwise.
+        bool found = false;
+        OldItem::value_type old_host {};
+        backend.read_items_for_migrations([&](journal::Backend::ItemHeader header, std::array<std::byte, journal::Backend::MAX_ITEM_SIZE> &buffer) -> void {
+            if (header.id == OldItem::hashed_id && header.len == sizeof(old_host)) {
+                memcpy(old_host.data(), buffer.data(), sizeof(old_host));
+                found = true;
+            }
+        });
+
+        if (found) {
+            // Terminate it even if the EEPROM content is not
+            old_host.back() = '\0';
+            NewItem::value_type new_host {};
+            strlcpy(new_host.data(), old_host.data(), new_host.size());
+            backend.save_migration_item<NewItem::value_type>(NewItem::hashed_id, new_host);
+        }
+    }
 } // namespace migrations
 } // namespace config_store_ns

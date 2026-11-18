@@ -117,6 +117,9 @@ namespace {
         size_t len = strlen(value);
 
         if (ini_string_match(section, INI_SECTION, name, "hostname")) {
+            // Whatever fits the buffer has to fit the store too, or the stored
+            // copy would be cut short.
+            static_assert(sizeof config->host == config_store_ns::connect_host_size + 1);
             char buffer[sizeof config->host];
             if (compress_host(value, buffer, sizeof buffer)) {
                 strlcpy(config->host, buffer, sizeof config->host);
