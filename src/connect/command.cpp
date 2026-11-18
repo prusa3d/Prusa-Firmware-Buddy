@@ -367,6 +367,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
                     data = BrokenCommand { "Hostname too long." };
                 }
             }
+        } else if (is_arg("stealth_mode", Type::Primitive)) {
+            set_value_bool_arg(PropertyName::StealthMode);
 #if XL_ENCLOSURE_SUPPORT()
         } else if (is_arg("enclosure_enabled", Type::Primitive)) {
             set_value_bool_arg(PropertyName::EnclosureEnabled);

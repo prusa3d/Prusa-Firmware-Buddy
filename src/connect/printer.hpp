@@ -146,6 +146,7 @@ public:
 #endif
         uint32_t progress_code = 0;
         char command_code = 0;
+        bool stealth_mode = false;
 
         // Which physical tools (print heads) are enabled (bitfield)
         uint8_t physical_tool_mask = 0;

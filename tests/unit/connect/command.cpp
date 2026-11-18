@@ -352,6 +352,27 @@ TEST_CASE("connect::Set value - addon_power", "[connect]") {
     }
 }
 
+void set_value_stealth_mode(bool b) {
+    std::string json = std::format(R"({{"command":"SET_VALUE","kwargs":{{"stealth_mode": {}}}}})", b);
+
+    auto cmd = command_test<SetValue>(json.c_str());
+    REQUIRE(cmd.name == PropertyName::StealthMode);
+    REQUIRE(holds_alternative<bool>(cmd.value));
+    REQUIRE(get<bool>(cmd.value) == b);
+}
+
+TEST_CASE("connect::Set value - stealth_mode", "[connect]") {
+    // Note: for the gcode it sends see TEST_CASE("connect::Command Set value - stealth_mode")
+    // in connect_planner unit test suite.
+    SECTION("true") {
+        set_value_stealth_mode(true);
+    }
+
+    SECTION("false") {
+        set_value_stealth_mode(false);
+    }
+}
+
 TEST_CASE("connect::Set value - hostname too long", "[connect]") {
     command_test<BrokenCommand>("{\"command\":\"SET_VALUE\",\"kwargs\": {\"hostname\":\"Nice_hostname_but_far_too_long_for_us_to_process\"}}");
 }

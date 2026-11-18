@@ -19,8 +19,8 @@
 #if XBUDDY_EXTENSION_VARIANT_IS_STANDARD()
     #include <feature/xbuddy_extension/xbuddy_extension.hpp>
     #include <feature/xbuddy_extension/cooling.hpp>
-    #include <marlin_client.hpp>
 #endif
+#include <marlin_client.hpp>
 
 #include <option/has_chamber_filtration_api.h>
 #if HAS_CHAMBER_FILTRATION_API()
@@ -994,6 +994,15 @@ void Planner::command(const Command &command, const SetValue &params) {
     switch (params.name) {
     case connect_client::PropertyName::HostName:
         err = set_hostname(reinterpret_cast<const char *>(get<SharedBorrow>(params.value)->data()));
+        break;
+    case connect_client::PropertyName::StealthMode:
+        // Through the gcode queue: M9150/M9140 store the setting and change the
+        // planner's limits, which must happen in the marlin thread.
+        if (get<bool>(params.value)) {
+            marlin_client::inject(GCodeLiteral("M9150"));
+        } else {
+            marlin_client::inject(GCodeLiteral("M9140"));
+        }
         break;
 #if XL_ENCLOSURE_SUPPORT() && HAS_CHAMBER_FILTRATION_API()
     case connect_client::PropertyName::EnclosureEnabled:
