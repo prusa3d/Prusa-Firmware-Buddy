@@ -24,10 +24,17 @@
 // * Inbound connections (PrusaLink, multiple connection, possibly created by
 //   an attacker).
 //
-// We give significantly more room to the Connect case.
+// We give more room to the Connect case: a larger per-connection limit, and
+// the inbound share never takes the whole global budget. An inbound
+// connection can still keep a few full-size segments, so that an upload can
+// recover from a lost frame with SACK.
 //
 // Note that nothing from here is run or consulted for in-sequence packets at
 // all.
+
+// The byte cap must let an inbound pcb fill its segment cap with full-size
+// segments. Else it cannot keep even one segment of a normal upload.
+static_assert(ooseq_limit::INBOUND_PCB_BYTES >= ooseq_limit::INBOUND_PCB_SEGS * TCP_MSS);
 
 namespace {
 

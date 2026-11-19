@@ -13,15 +13,26 @@ namespace ooseq_limit {
 // pinned ring ~= GLOBAL_BYTES + GLOBAL_SEGS * per-frame overhead; keep it well
 // under the ring size in pbuf_rx.cpp.
 inline constexpr uint32_t GLOBAL_BYTES = 4096;
-inline constexpr uint32_t INBOUND_SHARE_BYTES = 1024;
-inline constexpr uint32_t INBOUND_PCB_BYTES = 512;
+// An inbound pcb (eg. a PrusaLink upload) must be able to keep some full-size
+// (TCP_MSS) segments. With less than one, it keeps no out-of-order data and
+// sends no SACK, so each lost frame makes the sender resend all data after it.
+// ooseq_limit.cpp checks the limit against TCP_MSS.
+inline constexpr uint32_t INBOUND_SHARE_BYTES = 3072;
+inline constexpr uint32_t INBOUND_PCB_BYTES = 3072;
 inline constexpr uint32_t OUTBOUND_PCB_BYTES = 4096;
 
 // tcp_seg count budget (protects the shared MEMP_NUM_TCP_SEG pool).
 inline constexpr uint16_t GLOBAL_SEGS = 5;
-inline constexpr uint16_t INBOUND_SHARE_SEGS = 2;
-inline constexpr uint16_t INBOUND_PCB_SEGS = 1;
+inline constexpr uint16_t INBOUND_SHARE_SEGS = 3;
+inline constexpr uint16_t INBOUND_PCB_SEGS = 3;
 inline constexpr uint16_t OUTBOUND_PCB_SEGS = 4;
+
+// The share never takes the whole global budget, so an outbound pcb (Connect)
+// always has room.
+static_assert(INBOUND_SHARE_BYTES >= INBOUND_PCB_BYTES);
+static_assert(INBOUND_SHARE_SEGS >= INBOUND_PCB_SEGS);
+static_assert(GLOBAL_BYTES > INBOUND_SHARE_BYTES);
+static_assert(GLOBAL_SEGS > INBOUND_SHARE_SEGS);
 
 namespace detail {
     template <typename T>
