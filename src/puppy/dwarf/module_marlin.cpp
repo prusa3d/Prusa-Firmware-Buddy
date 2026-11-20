@@ -20,6 +20,7 @@
 #include <hal/HAL_MultiWatchdog.hpp>
 #include <advanced_power.hpp>
 #include <bsod.h>
+#include "Marlin/src/module/temperature.h"
 
 #include <option/has_planner.h>
 #if HAS_PLANNER()
@@ -68,6 +69,7 @@ static auto &watchdog() {
 }
 
 void dwarf::modules::marlin::start() {
+    int too_hot;
     auto &wdg = watchdog();
     setup();
 
@@ -92,12 +94,26 @@ void dwarf::modules::marlin::start() {
                 1000);
             break;
         default: // Follow internal status
+            too_hot = (Temperature::degHotend(0) > 50);
+
             if (dwarf::ModbusControl::isDwarfSelected()) {
-                led::blinking(0x0f, 0x0f, 0x0f, 500, 500);
+                if (too_hot) {
+                    led::pulsing(0x0f, 0x07, 0, 0x0f, 0x0f, 0x0f, 1000);
+                } else {
+                    led::blinking(0x0f, 0x0f, 0x0f, 500, 500);
+                }
             } else if (!Cheese::is_parked()) {
-                led::blinking(0x0f, 0x0c, 0, 200, 50);
+                if (too_hot) {
+                    led::pulsing(0x0f, 0x00, 0, 0x0f, 0x0c, 0x00, 250);
+                } else {
+                    led::blinking(0x0f, 0x0c, 0, 200, 50);
+                }
             } else {
-                led::blinking(0, 0x0f, 0, 1000, 75);
+                if (too_hot) {
+                    led::pulsing(0x0f, 0x07, 0, 0x00, 0x0f, 0x00, 1000);
+                } else {
+                    led::blinking(0, 0x0f, 0, 1000, 75);
+                }
             }
             break;
         }
