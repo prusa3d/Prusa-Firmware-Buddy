@@ -930,7 +930,8 @@ void prepare_move_to(xyze_pos_t target, feedRate_t fr_mm_s, PrepareMoveHints hin
     // Segment the move enough for MBL
     #if ENABLED(AUTO_BED_LEVELING_UBL)
     if(planner.leveling_active && planner.leveling_active_at_z(target.z)) {
-      segment_count = std::max(segment_count, static_cast<SegmentCount>(std::round(xy_distance / LEVELED_SEGMENT_LENGTH)));
+      constexpr float segment_length = LEVELED_SEGMENT_LENGTH; // float: most configurations use the double literal 5.0
+      segment_count = std::max(segment_count, static_cast<SegmentCount>(std::round(xy_distance / segment_length)));
     }
     #endif
 
