@@ -12,6 +12,9 @@
 #include <common/printer_model_data.hpp>
 #include <common/extended_printer_type.hpp>
 #include <option/has_print_fan_type.h>
+#include "MItem_tools.hpp"
+#include <Configuration.h>
+#include <cstdio>
 
 #if HAS_CHAMBER_VENTS()
     #include <feature/chamber/chamber_enums.hpp>
@@ -213,6 +216,19 @@ void MI_EMERGENCY_STOP_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
     config_store().emergency_stop_disable_consent_given.set(!value());
 }
 #endif
+
+MI_FILAMENT_ACCEL_LIMIT::MI_FILAMENT_ACCEL_LIMIT()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().filament_accel_limit_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_FILAMENT_ACCEL_LIMIT::OnChange(size_t old_index) {
+    std::array<char, 16> gcode;
+    snprintf(gcode.data(), gcode.size(), "M204 F%d", value() ? DEFAULT_MAX_FILAMENT_ACCELERATION : 0);
+    if (!gui_try_gcode_with_msg(gcode.data())) {
+        set_value(old_index > 0);
+        return;
+    }
+    config_store().filament_accel_limit_enabled.set(value());
+}
 
 #if HAS_CHAMBER_VENTS()
 static constexpr const char *chamber_vent_control_items[] = {

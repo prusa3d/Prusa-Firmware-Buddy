@@ -48,6 +48,7 @@
   #include "endstops.h"
   #include "planner.h"
   #include "stepper.h"
+  #include <config_store/store_instance.hpp>
 #endif
 
 #include "temperature.h"
@@ -190,7 +191,7 @@ void MarlinSettings::reset_motion(const bool no_limits) {
     s.acceleration = DEFAULT_ACCELERATION;
     s.retract_acceleration = DEFAULT_RETRACT_ACCELERATION;
     s.travel_acceleration = DEFAULT_TRAVEL_ACCELERATION;
-    s.max_filament_acceleration_mm_per_s2 = DEFAULT_MAX_FILAMENT_ACCELERATION;
+    s.max_filament_acceleration_mm_per_s2 = config_store().filament_accel_limit_enabled.get() ? DEFAULT_MAX_FILAMENT_ACCELERATION : 0;
     s.min_feedrate_mm_s = feedRate_t(DEFAULT_MINIMUMFEEDRATE);
     s.min_travel_feedrate_mm_s = feedRate_t(DEFAULT_MINTRAVELFEEDRATE);
 

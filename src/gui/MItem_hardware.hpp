@@ -111,6 +111,18 @@ protected:
 };
 #endif
 
+/// Filament acceleration limit (M204 F). Turning it off speeds up prints at the
+/// cost of pressure advance demanding extruder speed jumps the motor may not follow.
+class MI_FILAMENT_ACCEL_LIMIT : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Filament Accel. Limit");
+
+public:
+    MI_FILAMENT_ACCEL_LIMIT();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
 #if HAS_CHAMBER_VENTS()
 class MI_SWITCH_VENT_MECHANISM : public MenuItemSwitch {
 public:
