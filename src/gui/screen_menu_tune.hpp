@@ -87,6 +87,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_STEALTH_MODE,
     MI_INPUT_SHAPER,
+    MI_FILAMENT_ACCEL_LIMIT,
     MI_FAN_CHECK,
     MI_GCODE_VERIFY,
 #if HAS_EMERGENCY_STOP()

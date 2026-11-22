@@ -813,6 +813,10 @@ struct CurrentStore
 
     StoreItem<bool, false, ItemFlag::features, journal::hash("Stealth mode")> stealth_mode;
 
+    /// Whether the default filament acceleration limit (M204 F) applies; off leaves it disabled.
+    /// An explicit M204 F in g-code still overrides it.
+    StoreItem<bool, true, ItemFlag::features, journal::hash("Filament Acceleration Limit")> filament_accel_limit_enabled;
+
     StoreItem<bool, true, ItemFlag::features, journal::hash("Input Shaper Axis X Enabled")> input_shaper_axis_x_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, ItemFlag::calibrations, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, true, ItemFlag::features, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;

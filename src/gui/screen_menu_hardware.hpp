@@ -67,6 +67,7 @@ using ScreenMenuHardwareBase = BasicScreenMenu<
 #if HAS_15GT_BELTS()
     MI_BELTS_15GT,
 #endif
+    MI_FILAMENT_ACCEL_LIMIT,
 
 // ================================
 // Bed related
