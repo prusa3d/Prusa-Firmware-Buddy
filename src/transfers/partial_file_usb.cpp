@@ -148,15 +148,16 @@ bool UsbPartialFile::write_current_sector() {
     current_sector->count = (len + SECTOR_SIZE - 1) / SECTOR_SIZE;
     // Synchronized through release-acquire pair through the queue into USB thread
     future_extend[slot_idx] = ValidPart { start, end };
-    // This _in theory_ can block, which we don't like. But, as the queue for
-    // the requests is currently 5 long, we can put at most 2 there, there can
-    // be other 3 threads doing something with the USB at the same time and
-    // still not block... unlikely.
-    //
-    // So we don't complicate the things and keep it this way (at worst, we
-    // will stall tcpip thread for a short bit).
+    // Serialize with FatFs disk I/O (unlink / FAT updates). lseek above must
+    // stay *before* this: the exclusive token is not a FreeRTOS mutex, but
+    // taking FatFs while holding it would still invert the FatFs-then-USB lock
+    // order used by USBH_write.
+    if (!usbh_storage_async_begin()) {
+        return false;
+    }
     auto result = usbh_msc_submit_request(current_sector);
     if (result != USBH_OK) {
+        usbh_storage_async_end();
         return false;
     }
     return true;
@@ -402,6 +403,7 @@ void UsbPartialFile::usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot)
         write_error = true;
     }
     sector_pool.release(slot);
+    usbh_storage_async_end();
 
     // Call the callback. Make sure this is _after_ we released the slot, so it
     // can be reused from there.
