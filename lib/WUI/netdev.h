@@ -97,6 +97,9 @@ void netdev_set_enabled(const uint32_t netdev_id, const bool enabled);
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Get device enabled
 ///
+/// This is the stored setting only. When the printer has more than one
+/// device, any device other than the active one is kept down regardless.
+///
 /// @param[in] netdev_id device ID. One of
 ///             - #NETDEV_ETH_ID
 ///             - #NETDEV_ESP_ID
@@ -110,6 +113,8 @@ uint32_t netdev_get_active_id();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Set network device for communication
+///
+/// The other device is brought down (Wi-Fi leaves its access point).
 ///
 /// @param[in] dev_id device ID. One of
 ///             - #NETDEV_ETH_ID

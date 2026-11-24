@@ -17,6 +17,7 @@ using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off,
 #if HAS_ESP()
     MI_NET_INTERFACE_t,
 #endif
+    MI_HOSTNAME,
     MI_NETWORK_STATUS,
 #if HAS_ESP()
     MI_WIFI_SETTINGS,
