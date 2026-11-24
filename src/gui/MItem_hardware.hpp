@@ -59,8 +59,6 @@ protected:
 };
 
 #else
-// Display-only: either there is just a single model variant, or, on XL, the
-// type is auto-detected at boot (XL-CAN probe).
 class MI_EXTENDED_PRINTER_TYPE : public IWiInfo {
 public:
     MI_EXTENDED_PRINTER_TYPE()

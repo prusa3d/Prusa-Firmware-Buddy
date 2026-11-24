@@ -59,3 +59,32 @@ TEST_CASE("Json structural traversal") {
     REQUIRE(success);
     REQUIRE(pos == event_cnt);
 }
+
+TEST_CASE("Json traversal with inconsistent token sizes") {
+    // jsmn (strict or not) accepts these but emits a container size larger
+    // than the number of tokens it produced. The traversal must stay within
+    // the parsed tokens instead of reading past them.
+    const char *inputs[] = {
+        "{\" \"trt}\"]tn\"",
+        "{\":n,-\"\"a\"\"]:a\"}",
+        "{\"a:{:\"\":{]\"}\"r:taa } :\"",
+    };
+    for (const char *input : inputs) {
+        char buf[64];
+        strcpy(buf, input);
+        jsmn_parser parser;
+        jsmntok_t tokens[MAX_TOKENS];
+        // Make the unused tokens look like valid strings, so that reading past
+        // the parsed ones would "succeed" instead of failing by luck.
+        for (auto &token : tokens) {
+            token = jsmntok_t { JSMN_STRING, 0, 1, 0 };
+        }
+        jsmn_init(&parser);
+        const auto parse_result = jsmn_parse(&parser, buf, strlen(buf), tokens, sizeof tokens / sizeof *tokens);
+        if (parse_result <= 0) {
+            continue;
+        }
+        const bool success = json::search(buf, tokens, parse_result, [](const Event &) {});
+        CHECK_FALSE(success);
+    }
+}

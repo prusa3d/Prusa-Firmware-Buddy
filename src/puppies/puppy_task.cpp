@@ -607,6 +607,14 @@ void run() {
 #endif
 
 #if HAS_XL_CAN()
+        constexpr auto xls_index = stdext::index_of(extended_printer_type_model, PrinterModel::xls);
+        constexpr auto xl_index = stdext::index_of(extended_printer_type_model, PrinterModel::xl);
+
+    #if HAS_EXTENDED_PRINTER_TYPE_AUTODETECT()
+        const bool autodetect_printer_type = config_store().extended_printer_type_autodetect.get();
+    #else
+        constexpr bool autodetect_printer_type = true;
+    #endif
         // Probe for the XL-CAN bridge on first boot; the result determines
         // whether this is an XLS (bridge present) or plain XL (absent). On XLS
         // the bridge is brought to app mode here before the standard
@@ -616,6 +624,15 @@ void run() {
             BootloaderProtocol bootloader_protocol { PuppyModbus::share_buffer().data() };
             xl_can.set_enabled(xl_can_probe(bootloader_protocol));
             xl_type_detection_result = XLTypeDetectionResult::ok;
+        }
+        if (first_run && !autodetect_printer_type) {
+            if ((config_store().extended_printer_type.get() == xls_index) && !xl_can.is_enabled()) {
+                log_info(Puppies, "XL-CAN absent: Printer type mismatch unchanged (manual selection)");
+                xl_type_detection_result = XLTypeDetectionResult::manual_xls_mismatch;
+            } else if ((config_store().extended_printer_type.get() == xl_index) && xl_can.is_enabled()) {
+                log_info(Puppies, "XL-CAN detected: Printer type mismatch unchanged (manual selection)");
+                xl_type_detection_result = XLTypeDetectionResult::manual_xl_mismatch;
+            }
         }
         if (xl_can.is_enabled() && (first_run || xl_can_requires_reset)) {
             {
@@ -631,8 +648,7 @@ void run() {
 
     #if HAS_PUPPY_BOOTSTRAP()
             if (first_run) {
-                constexpr auto xls_index = stdext::index_of(extended_printer_type_model, PrinterModel::xls);
-                if (config_store().extended_printer_type.get() != xls_index) {
+                if (config_store().extended_printer_type.get() != xls_index && autodetect_printer_type) {
                     // Do NOT set the printer type here - we're in a bootstrap retry loop, wait for the final result
                     // Setting the printer type handled by the reader
                     xl_type_detection_result = XLTypeDetectionResult::detected_as_xls;
@@ -645,8 +661,7 @@ void run() {
 #if HAS_XL_CAN() && HAS_PUPPY_BOOTSTRAP() && HAS_PUPPY_MODULARBED()
         // Bridge absent on first run: determine variant via MB reset controllability check,
         // or trust the stored type when it already says XL.
-        if (first_run && !xl_can.is_enabled()) {
-            constexpr auto xl_index = stdext::index_of(extended_printer_type_model, PrinterModel::xl);
+        if (first_run && !xl_can.is_enabled() && autodetect_printer_type) {
             if (config_store().extended_printer_type.get() == xl_index) {
                 // Steady-state plain XL boot: trust the stored type, skip the check.
                 log_info(Puppies, "Bridge absent, stored type is XL — no controllability check");

@@ -450,7 +450,7 @@ static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *
         ep_ix = 0U;
         pep = (USBH_EpDescTypeDef *)NULL;
 
-        while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+        while ((ep_ix < USBH_MAX_NUM_ENDPOINTS) && (ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
         {
           pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
 
@@ -660,10 +660,16 @@ static void USBH_ParseStringDesc(uint8_t *psrc, uint8_t *pdest, uint16_t length)
 USBH_DescHeader_t  *USBH_GetNextDesc(uint8_t   *pbuf, uint16_t  *ptr)
 {
   USBH_DescHeader_t  *pnext;
+  uint8_t bLength;
 
-  *ptr += ((USBH_DescHeader_t *)(void *)pbuf)->bLength;
-  pnext = (USBH_DescHeader_t *)(void *)((uint8_t *)(void *)pbuf + \
-                                        ((USBH_DescHeader_t *)(void *)pbuf)->bLength);
+  bLength = ((USBH_DescHeader_t *)(void *)pbuf)->bLength;
+  if (bLength < USB_LEN_DESC_HDR)
+  {
+    bLength = USB_LEN_DESC_HDR;
+  }
+
+  *ptr += bLength;
+  pnext = (USBH_DescHeader_t *)(void *)((uint8_t *)(void *)pbuf + bLength);
 
   return (pnext);
 }
