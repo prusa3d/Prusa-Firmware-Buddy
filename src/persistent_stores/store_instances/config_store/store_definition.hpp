@@ -871,6 +871,10 @@ struct CurrentStore
 #if HAS_EXTENDED_PRINTER_TYPE()
     StoreItem<uint8_t, 0, ItemFlag::hw_config, journal::hash("Extended Printer Type")> extended_printer_type;
 #endif
+#if HAS_EXTENDED_PRINTER_TYPE_AUTODETECT()
+    /// A way to turn off automatic Printer type detection
+    StoreItem<bool, true, ItemFlag::hw_config, journal::hash("Printer Type Autodetect")> extended_printer_type_autodetect;
+#endif
 
 #if HAS_INPUT_SHAPER_CALIBRATION()
     StoreItem<TestResult, TestResult::unknown, ItemFlag::calibrations, journal::hash("Input Shaper Calibration")> selftest_result_input_shaper_calibration;

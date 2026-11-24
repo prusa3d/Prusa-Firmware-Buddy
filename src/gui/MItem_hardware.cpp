@@ -62,22 +62,71 @@ void MI_SIDE_FSENSOR_REMAP::OnChange([[maybe_unused]] size_t old_index) {
 #endif
 
 #if IS_EXTENDED_PRINTER_TYPE_CONFIGURABLE()
+namespace {
+/// The "Auto" row precedes the models on printers that detect their type
+constexpr int extended_printer_type_first_model_row = HAS_EXTENDED_PRINTER_TYPE_AUTODETECT() ? 1 : 0;
+bool printer_type_changed_since_boot = false;
+
+/// The detection/type change only apply at boot
+void offer_restart_after_printer_type_change() {
+    if (MsgBoxQuestion(_("The printer type change takes full effect after a restart. Restart now?"), { Response::Yes, Response::No }) == Response::Yes) {
+        sys_reset();
+    }
+}
+} // namespace
+
 MI_EXTENDED_PRINTER_TYPE::MI_EXTENDED_PRINTER_TYPE()
     : MenuItemSelectMenu(_("Printer Type")) //
 {
-    set_current_item(config_store().extended_printer_type.get());
+    #if HAS_EXTENDED_PRINTER_TYPE_AUTODETECT()
+    if (config_store().extended_printer_type_autodetect.get()) {
+        set_current_item(0);
+        return;
+    }
+    #endif
+    set_current_item(extended_printer_type_first_model_row + config_store().extended_printer_type.get());
 }
 
 int MI_EXTENDED_PRINTER_TYPE::item_count() const {
-    return static_cast<int>(extended_printer_type_model.size());
+    return extended_printer_type_first_model_row + static_cast<int>(extended_printer_type_model.size());
 }
 
 string_view_utf8 MI_EXTENDED_PRINTER_TYPE::build_item_text(int index, [[maybe_unused]] StringViewUtf8ParamBase &params) const {
-    return string_view_utf8::MakeCPUFLASH(PrinterModelInfo::get(extended_printer_type_model[index]).display_str());
+    #if HAS_EXTENDED_PRINTER_TYPE_AUTODETECT()
+    if (index == 0) {
+        if (config_store().extended_printer_type_autodetect.get() && !printer_type_changed_since_boot) {
+            // Printer type was auto detected at boot, display the value next to the Auto
+            return _("Auto (%s)").formatted(params, PrinterModelInfo::current().display_str());
+        } else {
+            // Auto detection skipped or needs a restart, don't show type, just "auto"
+            return _("Auto");
+        }
+    }
+    #endif
+    return string_view_utf8::MakeCPUFLASH(PrinterModelInfo::get(extended_printer_type_model[index - extended_printer_type_first_model_row]).display_str());
 }
 
 bool MI_EXTENDED_PRINTER_TYPE::on_item_selected(const OnItemSelectedArgs &args) {
-    change_extended_printer_type(extended_printer_type_model[args.new_index], ChangeExtendedPrinterTypeMode::standard_with_marlin_client_and_puppies);
+    const auto new_type_index = args.new_index - extended_printer_type_first_model_row;
+    #if HAS_EXTENDED_PRINTER_TYPE_AUTODETECT()
+    const bool new_autodetect_value = args.new_index == 0;
+
+    if (config_store().extended_printer_type_autodetect.get() != new_autodetect_value) {
+        config_store().extended_printer_type_autodetect.set(new_autodetect_value);
+        printer_type_changed_since_boot = true;
+    }
+
+    #endif
+
+    if (args.new_index >= extended_printer_type_first_model_row && new_type_index != config_store().extended_printer_type.get()) {
+        change_extended_printer_type(extended_printer_type_model[new_type_index], ChangeExtendedPrinterTypeMode::standard_with_marlin_client_and_puppies);
+        printer_type_changed_since_boot = true;
+    }
+
+    if (printer_type_changed_since_boot) {
+        offer_restart_after_printer_type_change();
+    }
+
     return true;
 }
 #endif

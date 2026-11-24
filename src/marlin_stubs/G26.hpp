@@ -1,12 +1,15 @@
 /**
  * @file G26.hpp
- * @brief first layer calibration, must be run within selftest only
+ * @brief First layer calibration pattern (G26); used by the first layer selftest, also a public G-code
  */
 
 #pragma once
 
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include <bsod/bsod.h>
+#include <tool_index.hpp>
+
+#include <optional>
 
 class FirstLayer {
 private:
@@ -32,6 +35,14 @@ public:
     static FirstLayer *instance() {
         return instance_;
     }
+
+    /// Virtual tool whose filament parameters the pattern is printed with.
+    ///
+    /// The selected virtual tool, or on MMU printers slot 0 when no slot is selected: the MMU forgets the
+    /// slot across a reset while the filament stays loaded. Slot 0 is what the selftest's filament check
+    /// reads and what M702 falls back to.
+    /// nullopt only on a toolchanger with no tool picked (MMU and toolchanger are mutually exclusive).
+    [[nodiscard]] static std::optional<VirtualToolIndex> virtual_tool();
 
     uint8_t progress_percent() const;
     void run();
