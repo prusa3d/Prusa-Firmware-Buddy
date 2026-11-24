@@ -20,6 +20,9 @@ def validate_name(name):
 
 
 def main():
+    if len(sys.argv) < 2 or len(sys.argv[2:]) % 2:
+        raise SystemExit(
+            'Usage: mktar.py <output.tar> [<target> <source> ...]')
     output, *entries = sys.argv[1:]
     members = sorted((target, source)
                      for target, source in zip(entries[0::2], entries[1::2]))
