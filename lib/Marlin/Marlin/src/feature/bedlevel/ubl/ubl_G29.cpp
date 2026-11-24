@@ -134,6 +134,9 @@
    *                    specified height, no correction is applied and natural printer kenimatics take over. If no
    *                    number is specified for the command, 10mm is assumed to be reasonable.
    *
+   *   G     Preheat    Preheat the printer frame before mesh bed levelling (absorb heat to avoid inaccuracies due
+   *                    to thermal expansion).
+   *
    *   H #   Height     With P2, 'H' specifies the Height to raise the nozzle after each manual probe of the bed.
    *                    If omitted, the nozzle will raise by Z_CLEARANCE_BETWEEN_PROBES.
    *
